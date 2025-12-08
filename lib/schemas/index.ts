@@ -14,7 +14,10 @@ export type {
 // Company types
 export type {
     CompanySummary,
+    CompanySummaryWithFit,
     CompanyRead,
+    CompanyDetailResponse,
+    CompanyInclude,
     StatsResponse,
     CompanyFilters,
 } from './company';
@@ -25,8 +28,13 @@ export type { DomainResult } from './domain';
 // Employee types
 export type {
     EmployeeSummary,
+    EmployeeSummaryWithWeight,
     EmployeeRead,
     EmployeeWithPosts,
+    EmployeeDetailResponse,
+    EmployeeFilters,
+    AnalyzeEmployeeRequest,
+    AnalyzeEmployeeResponse,
     WorkExperience,
     Education,
     Certification,
@@ -51,23 +59,54 @@ export type {
     OutreachTemplateResponse,
     CompanyPlaybooksResponse,
     PlaybookFilters,
+    PlaybookRegenerateRequest,
+    PlaybookRegenerateResponse,
+    BulkPlaybookGenerationResponse,
 } from './playbook';
 
 // Signal types
 export type {
-    CompanySignal,
-    CompanySignalResponse,
+    SignalDetail,
+    SignalsInclude,
     CompanySignalsResponse,
-    EmployeeSignalResponse,
-    EmployeeSignalsListResponse,
+    SignalContributor,
+    SignalContributorsResponse,
     SignalCategoryInfo,
     SignalCategoriesResponse,
+    SignalStatsResponse,
+    EmployeeDetectedInterest,
+    EmployeeDetectedEvent,
+    EmployeeSignalsInclude,
+    AggregateRequest,
+    AggregateResponse,
+    // Legacy types for backward compatibility
+    CompanySignal,
+    CompanySignalResponse,
+    EmployeeSignalResponse,
+    EmployeeSignalsListResponse,
     SignalAggregationResponse,
     AggregatedSignal,
     CompanySignalAggregationResult,
     AggregationResultResponse,
     AnalysisStatusResponse,
 } from './signal';
+
+// Fit score types
+export type {
+    SignalContribution,
+    FitScore,
+    FitScoreSummary,
+    FitInclude,
+    FitCacheInfo,
+    FitCacheHealth,
+    CandidateFitSummary,
+    ProductCandidatesResponse,
+    FitCalculateRequest,
+    FitCalculateResponse,
+    CompanyFitComparisonResponse,
+    ProductFitScore,
+    SignalMatch,
+} from './fit';
 
 // Product types
 export type {

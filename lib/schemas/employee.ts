@@ -2,6 +2,8 @@
 
 import type { SocialProfile } from './common';
 import type { PostSummary } from './content';
+import type { CompanyInclude } from './company';
+import type { EmployeeSignalsInclude } from './signal';
 
 export interface EmployeeSummary {
     id: number;
@@ -16,6 +18,13 @@ export interface EmployeeSummary {
     avatar_url: string | null;
     is_decision_maker: boolean;
     is_currently_employed: boolean;
+}
+
+export interface EmployeeSummaryWithWeight extends EmployeeSummary {
+    seniority_level?: string | null;
+    department_category?: string | null;
+    aggregation_weight?: number | null;
+    signals_count: number;
 }
 
 export interface WorkExperience {
@@ -132,4 +141,38 @@ export interface EmployeeRead {
 
 export interface EmployeeWithPosts extends EmployeeRead {
     posts: PostSummary[];
+}
+
+export interface EmployeeDetailResponse {
+    employee: EmployeeRead;
+    signals?: EmployeeSignalsInclude | null;
+    posts?: PostSummary[] | null;
+    company?: CompanyInclude | null;
+}
+
+export interface EmployeeFilters {
+    [key: string]: string | number | boolean | undefined;
+    page?: number;
+    page_size?: number;
+    domain?: string;
+    search?: string;
+    seniority?: string;
+    department?: string;
+    min_weight?: number;
+    has_signals?: boolean;
+    is_decision_maker?: boolean;
+    country?: string;
+    sort_by?: 'full_name' | 'aggregation_weight' | 'seniority_level' | 'updated_at';
+    sort_order?: 'asc' | 'desc';
+}
+
+export interface AnalyzeEmployeeRequest {
+    force?: boolean;
+}
+
+export interface AnalyzeEmployeeResponse {
+    employee_id: number;
+    interests_detected: number;
+    events_detected: number;
+    status: string;
 }

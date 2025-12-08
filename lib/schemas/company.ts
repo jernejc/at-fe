@@ -1,6 +1,9 @@
 // Company-related schemas
 
 import type { Technology, Location, SocialProfile, FundingRound } from './common';
+import type { FitInclude } from './fit';
+import type { SignalsInclude } from './signal';
+import type { EmployeeSummary } from './employee';
 
 export interface CompanySummary {
     id: number;
@@ -16,6 +19,13 @@ export interface CompanySummary {
     logo_base64: string | null;
     data_sources: string[];
     updated_at: string;
+}
+
+export interface CompanySummaryWithFit extends CompanySummary {
+    likelihood_score?: number | null;
+    urgency_score?: number | null;
+    combined_score?: number | null;
+    fit_calculated_at?: string | null;
 }
 
 export interface CompanyRead {
@@ -73,6 +83,21 @@ export interface CompanyRead {
     updated_at: string;
 }
 
+export interface CompanyDetailResponse {
+    company: CompanyRead;
+    signals?: SignalsInclude | null;
+    fits?: FitInclude[] | null;
+    employees?: EmployeeSummary[] | null;
+    counts: Record<string, number>;
+}
+
+export interface CompanyInclude {
+    id: number;
+    domain: string;
+    name: string;
+    industry?: string | null;
+}
+
 export interface StatsResponse {
     total_companies: number;
     total_employees: number;
@@ -95,6 +120,9 @@ export interface CompanyFilters {
     min_employees?: number;
     max_employees?: number;
     has_rating?: boolean;
-    sort_by?: 'domain' | 'name' | 'employee_count' | 'rating_overall' | 'updated_at';
+    product_id?: number;
+    min_fit_score?: number;
+    min_urgency_score?: number;
+    sort_by?: 'domain' | 'name' | 'employee_count' | 'rating_overall' | 'updated_at' | 'fit_score' | 'urgency_score' | 'combined_score';
     sort_order?: 'asc' | 'desc';
 }

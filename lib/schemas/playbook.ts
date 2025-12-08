@@ -7,6 +7,8 @@ export interface PlaybookSummary {
     fit_score: number | null;
     fit_urgency: number | null;
     contacts_count: number;
+    generation_version: number;
+    regenerated_at?: string | null;
 }
 
 export interface OutreachTemplateResponse {
@@ -42,10 +44,13 @@ export interface PlaybookRead {
     fit_reasoning: string | null;
     value_proposition: string | null;
     elevator_pitch: string | null;
-    discovery_questions: string[] | null;
-    objection_handling: Record<string, string> | null;
-    recommended_channels: string[] | null;
+    discovery_questions: unknown[] | null;
+    objection_handling: Record<string, unknown> | null;
+    recommended_channels: unknown[] | null;
     contacts: PlaybookContactResponse[];
+    generation_version: number;
+    generation_metadata?: Record<string, unknown> | null;
+    regenerated_at?: string | null;
 }
 
 export interface CompanyPlaybooksResponse {
@@ -61,4 +66,32 @@ export interface PlaybookFilters {
     page_size?: number;
     product_group?: string;
     min_fit_score?: number;
+    domain?: string;
+}
+
+export interface PlaybookRegenerateRequest {
+    product_groups?: string[] | null;
+    force?: boolean;
+}
+
+export interface PlaybookRegenerateResponse {
+    company_id: number;
+    company_domain: string;
+    company_name: string;
+    playbooks_created: number;
+    previous_version: number;
+    new_version: number;
+    product_groups: string[];
+    fit_scores: Record<string, number>;
+    generation_metadata: Record<string, unknown>;
+}
+
+export interface BulkPlaybookGenerationResponse {
+    product_id: number;
+    companies_processed: number;
+    playbooks_created: number;
+    playbooks_failed: number;
+    status: string;
+    job_id?: string | null;
+    errors: string[];
 }

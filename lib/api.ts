@@ -1,6 +1,6 @@
 // API Client for Company Intelligence API
 
-const API_BASE = 'https://at-data.cogitech.dev';
+const API_BASE = 'http://localhost:8000';
 
 // ============= Re-export all schemas for backward compatibility =============
 
@@ -13,13 +13,21 @@ export type {
     ValidationError,
     HTTPValidationError,
     CompanySummary,
+    CompanySummaryWithFit,
     CompanyRead,
+    CompanyDetailResponse,
+    CompanyInclude,
     StatsResponse,
     CompanyFilters,
     DomainResult,
     EmployeeSummary,
+    EmployeeSummaryWithWeight,
     EmployeeRead,
     EmployeeWithPosts,
+    EmployeeDetailResponse,
+    EmployeeFilters,
+    AnalyzeEmployeeRequest,
+    AnalyzeEmployeeResponse,
     WorkExperience,
     Education,
     Certification,
@@ -36,18 +44,44 @@ export type {
     OutreachTemplateResponse,
     CompanyPlaybooksResponse,
     PlaybookFilters,
-    CompanySignal,
-    CompanySignalResponse,
+    PlaybookRegenerateRequest,
+    PlaybookRegenerateResponse,
+    BulkPlaybookGenerationResponse,
+    SignalDetail,
+    SignalsInclude,
     CompanySignalsResponse,
-    EmployeeSignalResponse,
-    EmployeeSignalsListResponse,
+    SignalContributor,
+    SignalContributorsResponse,
     SignalCategoryInfo,
     SignalCategoriesResponse,
+    SignalStatsResponse,
+    EmployeeDetectedInterest,
+    EmployeeDetectedEvent,
+    EmployeeSignalsInclude,
+    AggregateRequest,
+    AggregateResponse,
+    CompanySignal,
+    CompanySignalResponse,
+    EmployeeSignalResponse,
+    EmployeeSignalsListResponse,
     SignalAggregationResponse,
     AggregatedSignal,
     CompanySignalAggregationResult,
     AggregationResultResponse,
     AnalysisStatusResponse,
+    SignalContribution,
+    FitScore,
+    FitScoreSummary,
+    FitInclude,
+    FitCacheInfo,
+    FitCacheHealth,
+    CandidateFitSummary,
+    ProductCandidatesResponse,
+    FitCalculateRequest,
+    FitCalculateResponse,
+    CompanyFitComparisonResponse,
+    ProductFitScore,
+    SignalMatch,
     ProductSummary,
     ProductRead,
     ProductCreate,
@@ -62,17 +96,36 @@ export type {
 import type {
     PaginatedResponse,
     CompanySummary,
+    CompanySummaryWithFit,
     CompanyRead,
+    CompanyDetailResponse,
     CompanyFilters,
     DomainResult,
     EmployeeSummary,
+    EmployeeSummaryWithWeight,
+    EmployeeDetailResponse,
+    EmployeeWithPosts,
+    EmployeeFilters,
+    AnalyzeEmployeeResponse,
     JobPostingSummary,
     NewsArticleSummary,
     PostSummary,
     PlaybookSummary,
     PlaybookRead,
     PlaybookFilters,
+    PlaybookRegenerateResponse,
+    BulkPlaybookGenerationResponse,
     CompanySignalsResponse,
+    SignalContributorsResponse,
+    SignalCategoriesResponse,
+    SignalStatsResponse,
+    AggregateResponse,
+    FitScore,
+    FitScoreSummary,
+    FitCacheHealth,
+    FitCalculateRequest,
+    FitCalculateResponse,
+    CompanyFitComparisonResponse,
     StatsResponse,
     SearchResults,
     ProductSummary,
@@ -80,6 +133,7 @@ import type {
     ProductCreate,
     ProductUpdate,
     ProductFitResponse,
+    ProductCandidatesResponse,
     CompanyPlaybooksResponse,
 } from './schemas';
 
@@ -112,40 +166,56 @@ function buildQueryString(params: Record<string, unknown>): string {
     return queryString ? `?${queryString}` : '';
 }
 
-// Companies
-export async function getCompanies(filters: CompanyFilters = {}): Promise<PaginatedResponse<CompanySummary>> {
+// ============= Companies =============
+
+export async function getCompanies(filters: CompanyFilters = {}): Promise<PaginatedResponse<CompanySummary | CompanySummaryWithFit>> {
     const query = buildQueryString(filters);
-    return fetchAPI<PaginatedResponse<CompanySummary>>(`/api/v1/companies${query}`);
+    return fetchAPI<PaginatedResponse<CompanySummary | CompanySummaryWithFit>>(`/api/v1/companies${query}`);
 }
 
-export async function getCompany(domain: string): Promise<DomainResult> {
-    return fetchAPI<DomainResult>(`/api/v1/companies/${encodeURIComponent(domain)}`);
+export async function getCompany(
+    domain: string,
+    options?: { include?: string; employee_limit?: number; product_id?: number }
+): Promise<CompanyDetailResponse> {
+    const query = buildQueryString(options || {});
+    return fetchAPI<CompanyDetailResponse>(`/api/v1/companies/${encodeURIComponent(domain)}${query}`);
+}
+
+export async function getCompanyLegacy(
+    domain: string,
+    options?: { include_employees?: boolean; employee_limit?: number }
+): Promise<DomainResult> {
+    const query = buildQueryString(options || {});
+    return fetchAPI<DomainResult>(`/api/v1/companies/${encodeURIComponent(domain)}${query}`);
 }
 
 export async function getCompanyEmployees(
     domain: string,
     page = 1,
-    pageSize = 20
+    pageSize = 20,
+    filters?: { title_contains?: string; department?: string; is_decision_maker?: boolean; country?: string }
 ): Promise<PaginatedResponse<EmployeeSummary>> {
-    const query = buildQueryString({ page, page_size: pageSize });
+    const query = buildQueryString({ page, page_size: pageSize, ...filters });
     return fetchAPI<PaginatedResponse<EmployeeSummary>>(`/api/v1/companies/${encodeURIComponent(domain)}/employees${query}`);
 }
 
 export async function getCompanyJobs(
     domain: string,
     page = 1,
-    pageSize = 20
+    pageSize = 20,
+    filters?: { department?: string; is_remote?: boolean }
 ): Promise<PaginatedResponse<JobPostingSummary>> {
-    const query = buildQueryString({ page, page_size: pageSize });
+    const query = buildQueryString({ page, page_size: pageSize, ...filters });
     return fetchAPI<PaginatedResponse<JobPostingSummary>>(`/api/v1/companies/${encodeURIComponent(domain)}/jobs${query}`);
 }
 
 export async function getCompanyNews(
     domain: string,
     page = 1,
-    pageSize = 20
+    pageSize = 20,
+    filters?: { event_type?: string }
 ): Promise<PaginatedResponse<NewsArticleSummary>> {
-    const query = buildQueryString({ page, page_size: pageSize });
+    const query = buildQueryString({ page, page_size: pageSize, ...filters });
     return fetchAPI<PaginatedResponse<NewsArticleSummary>>(`/api/v1/companies/${encodeURIComponent(domain)}/news${query}`);
 }
 
@@ -158,26 +228,105 @@ export async function getCompanyPosts(
     return fetchAPI<PaginatedResponse<PostSummary>>(`/api/v1/companies/${encodeURIComponent(domain)}/posts${query}`);
 }
 
-// Signals
-export async function getCompanySignals(companyId: number): Promise<CompanySignalsResponse> {
-    return fetchAPI<CompanySignalsResponse>(`/signals/companies/${companyId}`);
-}
+// ============= Employees =============
 
-// Playbooks
-export async function getPlaybooks(filters: PlaybookFilters = {}): Promise<PaginatedResponse<PlaybookSummary>> {
+export async function getEmployees(filters: EmployeeFilters = {}): Promise<PaginatedResponse<EmployeeSummaryWithWeight>> {
     const query = buildQueryString(filters);
-    return fetchAPI<PaginatedResponse<PlaybookSummary>>(`/api/v1/playbooks${query}`);
+    return fetchAPI<PaginatedResponse<EmployeeSummaryWithWeight>>(`/api/v1/employees${query}`);
 }
 
-export async function getPlaybook(playbookId: number): Promise<PlaybookRead> {
-    return fetchAPI<PlaybookRead>(`/api/v1/playbooks/${playbookId}`);
+export async function getEmployee(
+    employeeId: number,
+    options?: { include_posts?: boolean; posts_limit?: number }
+): Promise<EmployeeDetailResponse> {
+    const query = buildQueryString(options || {});
+    return fetchAPI<EmployeeDetailResponse>(`/api/v1/employees/${employeeId}${query}`);
 }
 
-export async function getCompanyPlaybooks(domain: string): Promise<CompanyPlaybooksResponse> {
-    return fetchAPI<CompanyPlaybooksResponse>(`/api/v1/playbooks/companies/${encodeURIComponent(domain)}`);
+export async function analyzeEmployee(employeeId: number, force = false): Promise<AnalyzeEmployeeResponse> {
+    return fetchAPI<AnalyzeEmployeeResponse>(`/api/v1/employees/${employeeId}/analyze`, {
+        method: 'POST',
+        body: JSON.stringify({ force }),
+    });
 }
 
-// Products
+export async function getEmployeeByLinkedIn(linkedinId: string): Promise<EmployeeDetailResponse> {
+    return fetchAPI<EmployeeDetailResponse>(`/api/v1/employees/by-linkedin/${encodeURIComponent(linkedinId)}`);
+}
+
+// ============= Signals =============
+
+export async function getSignalCategories(type?: 'interest' | 'event'): Promise<SignalCategoriesResponse> {
+    const query = buildQueryString({ type });
+    return fetchAPI<SignalCategoriesResponse>(`/api/v1/signals/categories${query}`);
+}
+
+export async function getCompanySignals(
+    domain: string,
+    options?: { min_confidence?: number; type?: 'interest' | 'event' }
+): Promise<CompanySignalsResponse> {
+    const query = buildQueryString(options || {});
+    return fetchAPI<CompanySignalsResponse>(`/api/v1/signals/company/${encodeURIComponent(domain)}${query}`);
+}
+
+export async function getSignalContributors(
+    domain: string,
+    options?: { category?: string; type?: 'interest' | 'event' }
+): Promise<SignalContributorsResponse> {
+    const query = buildQueryString(options || {});
+    return fetchAPI<SignalContributorsResponse>(`/api/v1/signals/company/${encodeURIComponent(domain)}/contributors${query}`);
+}
+
+export async function aggregateCompanySignals(
+    domain: string,
+    options?: { max_employees?: number; min_seniority?: string; force?: boolean; reaggregate_only?: boolean }
+): Promise<AggregateResponse> {
+    return fetchAPI<AggregateResponse>(`/api/v1/signals/company/${encodeURIComponent(domain)}/aggregate`, {
+        method: 'POST',
+        body: JSON.stringify(options || {}),
+    });
+}
+
+export async function getSignalStats(): Promise<SignalStatsResponse> {
+    return fetchAPI<SignalStatsResponse>('/api/v1/signals/stats');
+}
+
+// ============= Fit Scores =============
+
+export async function getFits(filters: {
+    page?: number;
+    page_size?: number;
+    domain?: string;
+    product_id?: number;
+    min_score?: number;
+    min_likelihood?: number;
+    min_urgency?: number;
+    industry?: string;
+    country?: string;
+    sort?: string;
+} = {}): Promise<PaginatedResponse<FitScoreSummary>> {
+    const query = buildQueryString(filters);
+    return fetchAPI<PaginatedResponse<FitScoreSummary>>(`/api/v1/fits${query}`);
+}
+
+export async function getFitHealth(): Promise<FitCacheHealth> {
+    return fetchAPI<FitCacheHealth>('/api/v1/fits/health');
+}
+
+export async function getFit(domain: string, productId: number, forceCalculate = false): Promise<FitScore> {
+    const query = buildQueryString({ force_calculate: forceCalculate });
+    return fetchAPI<FitScore>(`/api/v1/fits/${encodeURIComponent(domain)}/${productId}${query}`);
+}
+
+export async function calculateFits(request: FitCalculateRequest = {}): Promise<FitCalculateResponse> {
+    return fetchAPI<FitCalculateResponse>('/api/v1/fits/calculate', {
+        method: 'POST',
+        body: JSON.stringify(request),
+    });
+}
+
+// ============= Products =============
+
 export async function getProducts(page = 1, pageSize = 20, category?: string): Promise<PaginatedResponse<ProductSummary>> {
     const query = buildQueryString({ page, page_size: pageSize, category });
     return fetchAPI<PaginatedResponse<ProductSummary>>(`/api/v1/products${query}`);
@@ -215,14 +364,92 @@ export async function calculateProductFit(productId: number, domain: string): Pr
     return fetchAPI<ProductFitResponse>(`/api/v1/products/${productId}/fit/${encodeURIComponent(domain)}`);
 }
 
-// Stats
+export async function getProductCandidates(
+    productId: number,
+    options?: {
+        page?: number;
+        page_size?: number;
+        min_fit_score?: number;
+        min_urgency_score?: number;
+        industry?: string;
+        country?: string;
+    }
+): Promise<ProductCandidatesResponse> {
+    const query = buildQueryString(options || {});
+    return fetchAPI<ProductCandidatesResponse>(`/api/v1/products/${productId}/candidates${query}`);
+}
+
+export async function calculateProductCandidates(
+    productId: number,
+    options?: { force?: boolean; company_ids?: number[] }
+): Promise<{ product_id: number; companies_calculated: number; companies_skipped: number; duration_seconds: number; status: string }> {
+    const query = buildQueryString({ force: options?.force, company_ids: options?.company_ids?.join(',') });
+    return fetchAPI(`/api/v1/products/${productId}/candidates/calculate${query}`, {
+        method: 'POST',
+    });
+}
+
+export async function compareCompanyFits(domain: string, productIds?: number[]): Promise<CompanyFitComparisonResponse> {
+    const query = buildQueryString({ product_ids: productIds?.join(',') });
+    return fetchAPI<CompanyFitComparisonResponse>(`/api/v1/products/compare/${encodeURIComponent(domain)}${query}`);
+}
+
+// ============= Playbooks =============
+
+export async function getPlaybooks(filters: PlaybookFilters = {}): Promise<PaginatedResponse<PlaybookSummary>> {
+    const query = buildQueryString(filters);
+    return fetchAPI<PaginatedResponse<PlaybookSummary>>(`/api/v1/playbooks${query}`);
+}
+
+export async function getPlaybook(playbookId: number): Promise<PlaybookRead> {
+    return fetchAPI<PlaybookRead>(`/api/v1/playbooks/${playbookId}`);
+}
+
+export async function deletePlaybook(playbookId: number): Promise<void> {
+    await fetchAPI<void>(`/api/v1/playbooks/${playbookId}`, {
+        method: 'DELETE',
+    });
+}
+
+export async function getCompanyPlaybooks(domain: string): Promise<CompanyPlaybooksResponse> {
+    return fetchAPI<CompanyPlaybooksResponse>(`/api/v1/playbooks/company/${encodeURIComponent(domain)}`);
+}
+
+export async function generatePlaybooks(
+    domain: string,
+    options?: { product_groups?: string[]; force?: boolean }
+): Promise<PlaybookRegenerateResponse> {
+    return fetchAPI<PlaybookRegenerateResponse>(`/api/v1/playbooks/company/${encodeURIComponent(domain)}/generate`, {
+        method: 'POST',
+        body: JSON.stringify(options || {}),
+    });
+}
+
+export async function generatePlaybooksBulk(
+    productId: number,
+    options?: { limit?: number; min_fit_score?: number; force?: boolean }
+): Promise<BulkPlaybookGenerationResponse> {
+    const query = buildQueryString({ product_id: productId, ...options });
+    return fetchAPI<BulkPlaybookGenerationResponse>(`/api/v1/playbooks/bulk/generate${query}`, {
+        method: 'POST',
+    });
+}
+
+// ============= Stats =============
+
 export async function getStats(): Promise<StatsResponse> {
     return fetchAPI<StatsResponse>('/api/v1/stats');
 }
 
-// Search
+// ============= Search =============
+
 export async function searchCompanies(query: string, limit = 20): Promise<SearchResults> {
     const params = buildQueryString({ q: query, entity_type: 'company', limit });
+    return fetchAPI<SearchResults>(`/api/v1/search${params}`);
+}
+
+export async function search(query: string, entityType?: 'company' | 'employee' | 'all', limit = 20): Promise<SearchResults> {
+    const params = buildQueryString({ q: query, entity_type: entityType, limit });
     return fetchAPI<SearchResults>(`/api/v1/search${params}`);
 }
 
