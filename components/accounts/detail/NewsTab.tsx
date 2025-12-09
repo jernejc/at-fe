@@ -1,6 +1,6 @@
 // News Tab Component with Pagination
 
-import type { NewsArticleSummary } from '@/lib/api';
+import type { NewsArticleSummary } from '@/lib/schemas';
 import { EmptyState } from './components';
 import { formatRelativeDate } from './utils';
 

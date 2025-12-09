@@ -15,13 +15,15 @@ import {
     getCompanyPlaybooks,
     getCompanyJobs,
     getCompanyNews,
+} from '@/lib/api';
+import {
     CompanyDetailResponse,
     CompanySignalsResponse,
     PlaybookSummary,
     JobPostingSummary,
     NewsArticleSummary,
     EmployeeRead
-} from '@/lib/api';
+} from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import { JobsTab } from './detail/JobsTab';
 import { NewsTab } from './detail/NewsTab';

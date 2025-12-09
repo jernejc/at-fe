@@ -1,8 +1,8 @@
 // People Tab Component
 
 import { useState } from 'react';
-import type { EmployeeSummary, EmployeeRead } from '@/lib/api';
 import { getEmployee } from '@/lib/api';
+import type { EmployeeSummary, EmployeeRead } from '@/lib/schemas';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import { EmptyState } from './components';
 import { EmployeeDetailModal } from './EmployeeDetailModal';

@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import { ScoreBadge, UrgencyBadge, SignalTag } from './ScoreBadge';
-import { CompanySummary, PlaybookSummary, EmployeeSummary } from '@/lib/api';
+import type { CompanySummary, PlaybookSummary, EmployeeSummary } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 
 interface AccountCardProps {

@@ -7,11 +7,13 @@ import { AccountCard, AccountCardSkeleton } from './AccountCard';
 import {
     getCompanies,
     getPlaybooks,
+    PRODUCT_GROUPS
+} from '@/lib/api';
+import type {
     CompanySummary,
     PlaybookSummary,
     CompanyFilters,
-    PRODUCT_GROUPS
-} from '@/lib/api';
+} from '@/lib/schemas';
 
 type ScoreFilter = 'all' | 'hot' | 'warm' | 'cold';
 

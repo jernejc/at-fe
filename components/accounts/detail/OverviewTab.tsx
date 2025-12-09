@@ -1,6 +1,6 @@
 // Overview Tab Component
 
-import type { CompanyRead } from '@/lib/api';
+import type { CompanyRead } from '@/lib/schemas';
 import { DetailCell, RatingBar } from './components';
 
 interface OverviewTabProps {

@@ -1,6 +1,6 @@
 // Jobs Tab Component with Pagination
 
-import type { JobPostingSummary } from '@/lib/api';
+import type { JobPostingSummary } from '@/lib/schemas';
 import { EmptyState } from './components';
 import { formatRelativeDate } from './utils';
 

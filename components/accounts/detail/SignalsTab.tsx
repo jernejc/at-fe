@@ -1,6 +1,6 @@
 // Signals Tab Component
 
-import type { CompanySignalsResponse } from '@/lib/api';
+import type { CompanySignalsResponse } from '@/lib/schemas';
 import { EmptyState } from './components';
 import { cn } from '@/lib/utils';
 

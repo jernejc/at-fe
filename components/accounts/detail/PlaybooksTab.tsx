@@ -1,7 +1,7 @@
 // Playbooks Tab Component
 
 import { useState, useEffect } from 'react';
-import type { PlaybookSummary, PlaybookRead } from '@/lib/api';
+import type { PlaybookSummary, PlaybookRead } from '@/lib/schemas';
 import { getPlaybook } from '@/lib/api';
 import { EmptyState } from './components';
 import { cn } from '@/lib/utils';

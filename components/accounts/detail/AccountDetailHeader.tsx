@@ -1,6 +1,6 @@
 // Enhanced Account Detail Header Component - Fixed
 
-import type { CompanyRead } from '@/lib/api';
+import type { CompanyRead } from '@/lib/schemas';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import { SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { MetricPill } from './components';

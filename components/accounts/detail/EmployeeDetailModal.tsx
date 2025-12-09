@@ -3,7 +3,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
-import type { EmployeeRead } from '@/lib/api';
+import type { EmployeeRead } from '@/lib/schemas';
 
 interface EmployeeDetailModalProps {
     employee: EmployeeRead | null;

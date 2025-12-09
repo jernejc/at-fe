@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AccountList, AccountDetail } from '@/components/accounts';
-import { getStats, StatsResponse, CompanySummary, PRODUCT_GROUPS } from '@/lib/api';
+import { getStats, PRODUCT_GROUPS } from '@/lib/api';
+import type { StatsResponse, CompanySummary } from '@/lib/schemas';
 import { useEffect } from 'react';
 
 export default function Dashboard() {
