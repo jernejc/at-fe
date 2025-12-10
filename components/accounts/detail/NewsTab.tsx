@@ -18,7 +18,7 @@ export function NewsTab({ news, total, onLoadMore, loadingMore }: NewsTabProps) 
     const eventTypes = [...new Set(news.map(n => n.event_type).filter(Boolean))];
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
             {/* Event type filters/summary */}
             {eventTypes.length > 0 && (
                 <div className="flex gap-2 flex-wrap">

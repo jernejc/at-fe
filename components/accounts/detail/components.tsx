@@ -50,3 +50,14 @@ export function RatingBar({ label, value, color }: { label: string; value: numbe
         </div>
     );
 }
+
+export function SectionHeader({ title, count, color = "bg-blue-600", children }: { title: string; count?: number | string; color?: string; children?: React.ReactNode }) {
+    return (
+        <div className="flex items-center gap-3 mb-4">
+            <div className={cn("w-1 h-5 rounded-full", color)} />
+            <h3 className="font-semibold">{title}</h3>
+            {count !== undefined && <span className="text-sm text-muted-foreground">({count})</span>}
+            {children}
+        </div>
+    );
+}

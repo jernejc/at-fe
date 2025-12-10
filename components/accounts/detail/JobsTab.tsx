@@ -1,7 +1,7 @@
 // Jobs Tab Component with Pagination
 
 import type { JobPostingSummary } from '@/lib/schemas';
-import { EmptyState } from './components';
+import { EmptyState, SectionHeader } from './components';
 import { formatRelativeDate } from './utils';
 import { cn } from '@/lib/utils';
 
@@ -28,14 +28,11 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
     const showGrouping = departments.length > 2 || (departments.length === 2 && !departments.includes('Other'));
 
     return (
-        <div className="p-6 space-y-8">
+        <div className="space-y-6">
             {showGrouping ? (
                 departments.map(dept => (
                     <section key={dept}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <h4 className="font-bold text-base text-foreground">{dept}</h4>
-                            <span className="px-1.5 py-0.5 rounded-md bg-muted text-xs font-medium text-muted-foreground">{byDept[dept].length}</span>
-                        </div>
+                        <SectionHeader title={dept} count={byDept[dept].length} />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {byDept[dept].map((job) => (
                                 <JobCard key={job.id} job={job} />
@@ -72,7 +69,7 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
 function JobCard({ job }: { job: JobPostingSummary }) {
     return (
         <div
-            className="group relative block p-4 rounded-lg border border-border bg-card hover:border-blue-400 dark:hover:border-blue-600 transition-colors"
+            className="group relative block p-4 rounded-xl border border-border bg-card hover:border-blue-400 dark:hover:border-blue-600 transition-colors"
         >
             <div className="flex flex-col h-full gap-3">
                 <div className="flex-1 min-w-0">

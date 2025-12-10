@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { getEmployee } from '@/lib/api';
 import type { EmployeeSummary, EmployeeRead } from '@/lib/schemas';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
-import { EmptyState } from './components';
+import { EmptyState, SectionHeader } from './components';
 import { EmployeeDetailModal } from './EmployeeDetailModal';
 import { cn } from '@/lib/utils';
 
@@ -49,13 +49,10 @@ export function PeopleTab({ decisionMakers, employees, total }: PeopleTabProps) 
 
     return (
         <>
-            <div className="p-6 space-y-6">
+            <div className="space-y-6">
                 {decisionMakers.length > 0 && (
                     <section>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-1 h-5 bg-amber-500" />
-                            <h3 className="font-semibold">Key Contacts</h3>
-                        </div>
+                        <SectionHeader title="Key Contacts" color="bg-amber-500" />
                         <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-card">
                             {decisionMakers.map((e) => (
                                 <PersonRow
@@ -71,13 +68,11 @@ export function PeopleTab({ decisionMakers, employees, total }: PeopleTabProps) 
 
                 {employees.length > 0 && (
                     <section>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-1 h-5 bg-blue-600" />
-                            <h3 className="font-semibold">Team</h3>
-                            <span className="text-sm text-muted-foreground">
+                        <SectionHeader title="Team" color="bg-blue-600">
+                            <span className="text-sm text-muted-foreground ml-auto">
                                 Showing {employees.length} of {total - decisionMakers.length}
                             </span>
-                        </div>
+                        </SectionHeader>
                         <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-card">
                             {employees.map((e) => (
                                 <PersonRow

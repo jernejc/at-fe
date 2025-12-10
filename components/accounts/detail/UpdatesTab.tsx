@@ -30,7 +30,7 @@ export function UpdatesTab({ updates }: UpdatesTabProps) {
     if (posts.length === 0) return <EmptyState>No recent updates</EmptyState>;
 
     return (
-        <div className="space-y-4 p-6 bg-muted/5">
+        <div className="space-y-6">
             {posts.map((post, i) => (
                 <UpdateCard key={i} post={post} />
             ))}
@@ -42,7 +42,7 @@ function UpdateCard({ post }: { post: UpdatePost }) {
     const isReshare = !!post.resharedPostAuthor;
 
     return (
-        <article className="bg-card p-4 rounded-xl border border-border/60 shadow-sm">
+        <article className="bg-card p-4 rounded-xl border border-border/60 shadow-sm hover:border-blue-400 dark:hover:border-blue-600 transition-colors">
             {/* Header */}
             <div className="flex flex-col gap-1 mb-3">
                 <div className="flex items-center justify-between">

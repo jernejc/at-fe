@@ -1,7 +1,7 @@
 // Overview Tab Component
 
 import type { CompanyRead } from '@/lib/schemas';
-import { DetailCell, RatingBar } from './components';
+import { DetailCell, RatingBar, SectionHeader } from './components';
 
 interface OverviewTabProps {
     company: CompanyRead;
@@ -9,14 +9,11 @@ interface OverviewTabProps {
 
 export function OverviewTab({ company }: OverviewTabProps) {
     return (
-        <div className="p-6 space-y-8">
+        <div className="space-y-6">
             {/* About with accent line */}
             {company.description && (
                 <section>
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                        <h3 className="font-semibold">About</h3>
-                    </div>
+                    <SectionHeader title="About" />
                     <p className="text-muted-foreground leading-relaxed pl-4 text-sm">{company.description}</p>
                 </section>
             )}
@@ -24,11 +21,7 @@ export function OverviewTab({ company }: OverviewTabProps) {
             {/* Specialties */}
             {company.specialties && company.specialties.length > 0 && (
                 <section>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                        <h3 className="font-semibold">Specialties</h3>
-                        <span className="text-sm text-muted-foreground">({company.specialties.length})</span>
-                    </div>
+                    <SectionHeader title="Specialties" count={company.specialties.length} />
                     <div className="flex flex-wrap gap-2 pl-4">
                         {company.specialties.slice(0, 20).map((specialty, i) => (
                             <span key={i} className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50 rounded-md">
@@ -44,10 +37,7 @@ export function OverviewTab({ company }: OverviewTabProps) {
 
             {/* Details grid with alternating colors */}
             <section>
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                    <h3 className="font-semibold">Company Details</h3>
-                </div>
+                <SectionHeader title="Company Details" />
                 <div className="grid grid-cols-2 md:grid-cols-4 border rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-900/20">
                     {company.industry && <DetailCell label="Industry" value={company.industry} />}
                     {company.company_type && <DetailCell label="Type" value={company.company_type} />}
@@ -67,11 +57,7 @@ export function OverviewTab({ company }: OverviewTabProps) {
             {/* Tech stack with colored tags */}
             {company.technologies && company.technologies.length > 0 && (
                 <section>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                        <h3 className="font-semibold">Tech Stack</h3>
-                        <span className="text-sm text-muted-foreground">({company.technologies.length})</span>
-                    </div>
+                    <SectionHeader title="Tech Stack" count={company.technologies.length} />
                     <div className="flex flex-wrap gap-2 pl-4">
                         {company.technologies.slice(0, 20).map((tech, i) => (
                             <span key={i} className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50 rounded-md">
@@ -88,11 +74,7 @@ export function OverviewTab({ company }: OverviewTabProps) {
             {/* Ratings visual bars - Unified Colors */}
             {company.rating_overall && (
                 <section>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                        <h3 className="font-semibold">Employee Ratings</h3>
-                        {company.reviews_count && <span className="text-sm text-muted-foreground">({company.reviews_count.toLocaleString()} reviews)</span>}
-                    </div>
+                    <SectionHeader title="Employee Ratings" count={company.reviews_count ? `${company.reviews_count.toLocaleString()} reviews` : undefined} />
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pl-4">
                         <RatingBar label="Overall" value={company.rating_overall} color="bg-blue-600" />
                         <RatingBar label="Culture" value={company.rating_culture} color="bg-blue-500" />
@@ -107,10 +89,7 @@ export function OverviewTab({ company }: OverviewTabProps) {
             {/* Funding timeline */}
             {company.funding_rounds && company.funding_rounds.length > 0 && (
                 <section>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                        <h3 className="font-semibold">Funding</h3>
-                    </div>
+                    <SectionHeader title="Funding" />
                     <div className="pl-4 space-y-0">
                         {company.funding_rounds.map((round, i) => (
                             <div key={i} className="flex items-center gap-4 py-3 border-b border-border/50 last:border-0 border-dashed">
@@ -133,10 +112,7 @@ export function OverviewTab({ company }: OverviewTabProps) {
             {/* Contact */}
             {(company.website_url || (company.emails && company.emails.length > 0)) && (
                 <section>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                        <h3 className="font-semibold">Contact</h3>
-                    </div>
+                    <SectionHeader title="Contact" />
                     <div className="pl-4 space-y-2">
                         {company.website_url && (
                             <a href={(company.website_url.startsWith('http') ? company.website_url : `https://${company.website_url}`)} target="_blank" rel="noopener" className="flex items-center gap-2 text-sm text-blue-600 hover:underline w-fit">
