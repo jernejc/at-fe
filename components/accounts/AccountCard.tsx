@@ -1,9 +1,11 @@
 'use client';
 
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
-import { ScoreBadge, UrgencyBadge, SignalTag } from './ScoreBadge';
+import { ScoreBadge } from './ScoreBadge';
 import type { CompanySummary, PlaybookSummary, EmployeeSummary } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
+import { MetricPill } from './detail/components';
+import { formatCompactNumber } from './detail/utils';
 
 interface AccountCardProps {
     company: CompanySummary;
@@ -25,16 +27,6 @@ export function AccountCard({
     onClick,
 }: AccountCardProps) {
     const fitScore = playbook?.fit_score ?? 0;
-    const urgency = playbook?.fit_urgency ?? 0;
-    const urgencyLabel = urgency >= 8 ? 'immediate' : urgency >= 5 ? 'near-term' : 'future';
-    const timeframe = urgency >= 8 ? '0-3months' : urgency >= 5 ? '3-6months' : '6months+';
-
-    // Format employee count
-    const employeeCount = company.employee_count
-        ? company.employee_count >= 1000
-            ? `${Math.floor(company.employee_count / 1000)}K`
-            : company.employee_count.toString()
-        : 'N/A';
 
     // Get company initials for fallback
     const companyInitials = company.name
@@ -44,25 +36,33 @@ export function AccountCard({
         .join('')
         .toUpperCase();
 
-    // Get contact initials
+    // Get key contact initials for fallback
     const contactInitials = keyContact?.full_name
-        ?.split(' ')
-        .map(w => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase() || '?';
+        ? keyContact.full_name
+            .split(' ')
+            .map(w => w[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase()
+        : '';
+
+    // Calculate company maturity/location for display
+    const location = company.hq_city ? `${company.hq_city}${company.hq_country ? `, ${company.hq_country}` : ''}` : null;
+
+    const lastActive = '2d ago'; // Mock data or derive from usage
+    const hasSignals = signals && signals.length > 0;
 
     return (
         <div
             className={cn(
-                'account-row flex items-center gap-4 px-4 py-3 border-b border-border cursor-pointer',
-                'hover:bg-muted/50',
-                selected && 'bg-primary/5'
+                'group relative flex items-center gap-5 p-5 border-b border-border/40 cursor-pointer transition-all duration-200',
+                'hover:bg-slate-50/80 dark:hover:bg-slate-900/40 hover:shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] hover:z-10',
+                selected && 'bg-blue-50/40 dark:bg-blue-900/10'
             )}
             onClick={onClick}
         >
-            {/* Checkbox */}
-            <div className="flex-shrink-0">
+            {/* Selection Checkbox - Always present but subtle */}
+            <div className="shrink-0 flex items-center justify-center pt-3">
                 <input
                     type="checkbox"
                     checked={selected}
@@ -70,138 +70,154 @@ export function AccountCard({
                         e.stopPropagation();
                         onSelect?.(e.target.checked);
                     }}
-                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                    className={cn(
+                        "w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer transition-opacity z-20",
+                        selected ? "opacity-100" : "opacity-30 group-hover:opacity-100"
+                    )}
                 />
             </div>
 
-            {/* Company Logo */}
-            <Avatar className="w-10 h-10 rounded-lg">
-                {(company.logo_base64 || company.logo_url) && (
-                    <AvatarImage
-                        src={company.logo_base64
-                            ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
-                            : company.logo_url!}
-                        alt={company.name}
-                    />
-                )}
-                <AvatarFallback className="rounded-lg bg-muted text-muted-foreground text-sm font-medium">
-                    {companyInitials}
-                </AvatarFallback>
-            </Avatar>
-
-            {/* Company Info */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-foreground truncate">{company.name}</h3>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="truncate">{company.industry || 'Technology'}</span>
-                    <span className="text-border">•</span>
-                    <span>{company.hq_city || 'Unknown'}{company.hq_country && `, ${company.hq_country}`}</span>
-                </div>
-            </div>
-
-            {/* Score with breakdown */}
-            <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
-                <ScoreBadge score={Math.round(fitScore * 100)} size="lg" />
-                <span className="text-[10px] text-muted-foreground">
-                    Fit {Math.round(fitScore * 50)} Sig {Math.round(fitScore * 50)}
-                </span>
-            </div>
-
-            {/* Key Contact */}
-            <div className="flex items-center gap-2 min-w-[160px] flex-shrink-0">
-                <Avatar className="w-8 h-8">
-                    {keyContact?.avatar_url && <AvatarImage src={keyContact.avatar_url} alt={keyContact.full_name} />}
-                    <AvatarFallback className="text-xs">{contactInitials}</AvatarFallback>
+            {/* Company Logo - Larger & Boxed */}
+            <div className="relative shrink-0 rounded-xl p-0.5 bg-white dark:bg-slate-800 shadow-sm border border-border/60 mt-1">
+                <Avatar className="w-14 h-14 rounded-lg">
+                    {(company.logo_base64 || company.logo_url) && (
+                        <AvatarImage
+                            src={company.logo_base64
+                                ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
+                                : company.logo_url!}
+                            alt={company.name}
+                            className="object-contain"
+                        />
+                    )}
+                    <AvatarFallback className="rounded-lg bg-slate-50 text-slate-700 dark:bg-slate-900 dark:text-slate-300 font-bold text-sm">
+                        {companyInitials}
+                    </AvatarFallback>
                 </Avatar>
-                <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                        {keyContact?.full_name || 'No key contact'}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                        {keyContact?.current_title || 'LinkedIn profile re...'}
-                    </p>
+            </div>
+
+            {/* Main Content Info */}
+            <div className="flex-1 min-w-0 flex flex-col gap-3">
+
+                {/* Header Row: Name & Metadata */}
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-lg text-foreground truncate leading-tight group-hover:text-blue-600 transition-colors">
+                            {company.name}
+                        </h3>
+                        {/* Urgency Dot if Hot */}
+                        {(playbook?.fit_urgency || 0) >= 8 && (
+                            <span className="relative flex h-2.5 w-2.5" title="High Urgency">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-x-3 gap-y-1 text-sm text-muted-foreground flex-wrap leading-tight">
+                        {company.industry && (
+                            <span className="font-medium text-foreground/70 truncate max-w-[200px]">
+                                {company.industry}
+                            </span>
+                        )}
+
+                        {location && (
+                            <span className="flex items-center gap-1">
+                                <span className="text-border/60">•</span>
+                                <span className="truncate max-w-[150px]">{location}</span>
+                            </span>
+                        )}
+
+                        {company.employee_count && (
+                            <span className="flex items-center gap-1">
+                                <span className="text-border/60">•</span>
+                                <span>{formatCompactNumber(company.employee_count)} employees</span>
+                            </span>
+                        )}
+                    </div>
                 </div>
-                {keyContact?.profile_url && (
-                    <a
-                        href={keyContact.profile_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-blue-500 hover:text-blue-600"
-                    >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                        </svg>
-                    </a>
+
+                {/* Signals Row - The "Why" */}
+                {hasSignals && (
+                    <div className="flex flex-wrap gap-2">
+                        {signals.slice(0, 3).map((signal, i) => (
+                            <div key={i} className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-border/50 text-xs font-medium text-slate-700 dark:text-slate-300">
+                                <span className={cn("w-1.5 h-1.5 rounded-full",
+                                    i === 0 ? "bg-emerald-500" : "bg-blue-500"
+                                )}></span>
+                                {signal}
+                            </div>
+                        ))}
+                        {signals.length > 3 && (
+                            <span className="text-xs text-muted-foreground self-center">+{signals.length - 3} more</span>
+                        )}
+                    </div>
                 )}
             </div>
 
-            {/* Urgency/Timing */}
-            <div className="flex-shrink-0 min-w-[100px]">
-                <UrgencyBadge urgency={urgencyLabel} timeframe={timeframe} />
-                <p className="text-xs text-muted-foreground mt-0.5">
-                    ${employeeCount} • {company.rating_overall?.toFixed(1) || 'N/A'}
-                </p>
-            </div>
+            {/* Right Side: Key Contact & Score */}
+            <div className="flex items-start gap-8 shrink-0">
 
-            {/* Top Signal */}
-            <div className="flex-1 min-w-[200px] max-w-[300px]">
-                <p className="text-sm text-foreground truncate">
-                    {signals[0] || 'Recent funding round'}
-                </p>
-                <div className="flex gap-1 mt-1">
-                    {signals.slice(1, 4).map((signal, i) => (
-                        <SignalTag key={i} variant={i === 0 ? 'growth' : i === 1 ? 'critical' : 'default'}>
-                            {signal}
-                        </SignalTag>
-                    ))}
-                    {signals.length > 4 && (
-                        <span className="text-xs text-muted-foreground">+{signals.length - 4} more</span>
+                {/* Key Contact Preview (if available) */}
+                <div className="hidden xl:flex flex-col items-end gap-1 text-right min-w-[140px]">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Top Contact</span>
+                    {keyContact ? (
+                        <div className="flex items-center gap-2 justify-end group/contact p-1 rounded hover:bg-muted/50 transition-colors -mr-1">
+                            <div className="flex flex-col items-end">
+                                <span className="text-sm font-medium text-foreground leading-none">{keyContact.full_name}</span>
+                                <span className="text-xs text-muted-foreground truncate max-w-[120px]">{keyContact.current_title}</span>
+                            </div>
+                            <Avatar className="w-8 h-8 border border-border">
+                                {keyContact.avatar_url && <AvatarImage src={keyContact.avatar_url} />}
+                                <AvatarFallback className="text-[10px]">{contactInitials}</AvatarFallback>
+                            </Avatar>
+                        </div>
+                    ) : (
+                        <div className="text-sm text-muted-foreground/60 italic">None identified</div>
                     )}
                 </div>
-            </div>
 
-            {/* Actions */}
-            <button
-                onClick={(e) => e.stopPropagation()}
-                className="p-2 hover:bg-muted rounded-md flex-shrink-0"
-            >
-                <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                </svg>
-            </button>
+                {/* Vertical Divider */}
+                <div className="hidden lg:block w-px h-12 bg-border/40 self-center" />
+
+                {/* Score & Urgency */}
+                <div className="flex flex-col items-end gap-1 min-w-[80px]">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Fit Score</span>
+                    <ScoreBadge score={Math.round(fitScore * 100)} size="lg" className="text-base px-3 py-1" />
+                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <span>Updated {lastActive}</span>
+                    </span>
+                </div>
+
+                {/* Hover Action */}
+                <div className="hidden sm:flex items-center self-center pl-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                    <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-muted-foreground hover:text-blue-600 transition-colors">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
 
-// Loading skeleton
+// Rich Skeleton
 export function AccountCardSkeleton() {
     return (
-        <div className="flex items-center gap-4 px-4 py-3 border-b border-border animate-pulse">
-            <div className="w-4 h-4 bg-muted rounded" />
-            <div className="w-10 h-10 bg-muted rounded-lg" />
-            <div className="flex-1 space-y-2">
-                <div className="w-32 h-4 bg-muted rounded" />
-                <div className="w-48 h-3 bg-muted rounded" />
-            </div>
-            <div className="w-16 h-7 bg-muted rounded-full" />
-            <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-muted rounded-full" />
-                <div className="space-y-1">
-                    <div className="w-24 h-3 bg-muted rounded" />
-                    <div className="w-20 h-2 bg-muted rounded" />
+        <div className="flex items-start gap-5 p-5 border-b border-border/40">
+            <div className="w-5 h-5 mt-3 shrink-0" />
+            <div className="w-14 h-14 bg-muted rounded-xl shrink-0 mt-1" />
+            <div className="flex-1 space-y-4">
+                <div className="space-y-2">
+                    <div className="w-48 h-6 bg-muted rounded" />
+                    <div className="w-64 h-4 bg-muted rounded opacity-60" />
+                </div>
+                <div className="flex gap-2">
+                    <div className="w-24 h-6 bg-muted rounded-md" />
+                    <div className="w-32 h-6 bg-muted rounded-md" />
                 </div>
             </div>
-            <div className="w-20 h-6 bg-muted rounded-full" />
-            <div className="flex-1 space-y-1">
-                <div className="w-48 h-3 bg-muted rounded" />
-                <div className="flex gap-1">
-                    <div className="w-12 h-4 bg-muted rounded-full" />
-                    <div className="w-14 h-4 bg-muted rounded-full" />
-                </div>
-            </div>
+            <div className="w-20 h-10 bg-muted rounded-lg shrink-0" />
         </div>
     );
 }

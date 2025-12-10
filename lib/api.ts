@@ -399,3 +399,23 @@ export const PRODUCT_GROUPS = [
 ] as const;
 
 export type ProductGroupId = typeof PRODUCT_GROUPS[number]['id'];
+
+// ============= A2A =============
+
+export async function getA2ADiagram(): Promise<string> {
+    const response = await fetch('https://at-data.cogitech.dev/a2a/diagram');
+    if (!response.ok) {
+        throw new Error(`Failed to fetch diagram: ${response.status} ${response.statusText}`);
+    }
+    const text = await response.text();
+    // Remove markdown code fences if present, handling potential whitespace
+    return text.replaceAll('```mermaid', '').replaceAll('```', '').trim();
+}
+
+export async function getA2AHealth(): Promise<any> {
+    const response = await fetch('https://at-data.cogitech.dev/a2a/health');
+    if (!response.ok) {
+        throw new Error(`Failed to fetch health: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+}

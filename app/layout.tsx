@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AccountScope - GTM Account Discovery",
+  title: "LookAcross - Account Intelligence",
   description: "Real-time account intelligence and buying signals for your target companies. No more cold outreach - reach out when they're ready to buy.",
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} antialiased`}
       >
