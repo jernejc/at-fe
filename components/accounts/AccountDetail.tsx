@@ -150,80 +150,134 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     const decisionMakers = employees.filter(e => e.is_decision_maker);
     const otherEmployees = employees.filter(e => !e.is_decision_maker);
 
+    const hasPlaybooks = playbooks.length > 0;
+    const hasPeople = (data?.counts?.employees || 0) > 0;
+    const hasSignals = ((signals?.interests?.length || 0) + (signals?.events?.length || 0)) > 0;
+    const hasJobs = jobsTotal > 0;
+    const hasNews = newsTotal > 0;
+    const hasUpdates = (company?.updates?.length || 0) > 0;
+
     return (
         <Sheet open={open} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent side="bottom" className="h-[85vh] flex flex-col p-0">
+            <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0 border-t-0 rounded-t-2xl overflow-hidden shadow-2xl">
                 {loading ? (
                     <>
                         <SheetHeader className="sr-only"><SheetTitle>Loading</SheetTitle></SheetHeader>
-                        <div className="p-8 space-y-6 animate-pulse">
-                            <div className="flex gap-5">
-                                <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-50" />
-                                <div className="flex-1 space-y-3">
-                                    <div className="h-7 w-56 bg-muted" />
-                                    <div className="h-4 w-80 bg-muted" />
+                        <div className="p-8 space-y-8 animate-pulse bg-white dark:bg-slate-950 h-full">
+                            <div className="flex gap-6">
+                                <div className="w-24 h-24 rounded-xl bg-slate-200 dark:bg-slate-800" />
+                                <div className="flex-1 space-y-4 pt-2">
+                                    <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                                    <div className="h-4 w-96 bg-slate-100 dark:bg-slate-900 rounded" />
+                                    <div className="flex gap-2 pt-2">
+                                        <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
+                                        <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
+                                    </div>
                                 </div>
+                            </div>
+                            <div className="h-px bg-slate-100 dark:bg-slate-900" />
+                            <div className="grid grid-cols-4 gap-4">
+                                <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
                             </div>
                         </div>
                     </>
                 ) : company ? (
-                    <div className="flex flex-col h-full">
+                    <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-950/50">
                         {/* Header */}
-                        <AccountDetailHeader company={company} />
+                        <div className="bg-white dark:bg-slate-900 z-10 transition-shadow">
+                            <AccountDetailHeader company={company} />
 
-                        {/* Tabs with color indicator */}
-                        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-                            <div className="border-y bg-muted/30">
-                                <TabsList className="h-11 bg-transparent px-6 gap-0">
-                                    <TabBtn value="overview" active={activeTab}>Overview</TabBtn>
-                                    <TabBtn value="playbooks" active={activeTab}>Playbooks ({playbooks.length})</TabBtn>
-                                    <TabBtn value="people" active={activeTab}>People ({data?.counts['employees'] || 0})</TabBtn>
-                                    <TabBtn value="signals" active={activeTab}>Signals ({(signals?.interests?.length || 0) + (signals?.events?.length || 0)})</TabBtn>
-                                    <TabBtn value="jobs" active={activeTab}>Jobs ({jobsTotal || 0})</TabBtn>
-                                    <TabBtn value="news" active={activeTab}>News ({newsTotal || 0})</TabBtn>
-                                    <TabBtn value="updates" active={activeTab}>Updates ({company.updates?.length || 0})</TabBtn>
-                                </TabsList>
-                            </div>
+                            {/* Tabs - Clean Underline Style */}
+                            <div className="pt-2">
+                                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                    <TabsList className="h-auto w-full justify-start gap-8 bg-transparent p-0 px-6 border-b border-border rounded-none overflow-x-auto no-scrollbar">
+                                        <TabBtn value="overview">Overview</TabBtn>
 
-                            <div className="flex-1 overflow-y-auto bg-muted/20">
-                                <TabsContent value="overview" className="m-0">
-                                    <OverviewTab company={company} />
-                                </TabsContent>
-                                <TabsContent value="playbooks" className="m-0">
-                                    <PlaybooksTab playbooks={playbooks} />
-                                </TabsContent>
-                                <TabsContent value="people" className="m-0">
-                                    <PeopleTab decisionMakers={decisionMakers} employees={otherEmployees} total={data?.counts.employees || 0} />
-                                </TabsContent>
-                                <TabsContent value="signals" className="m-0">
-                                    <SignalsTab signals={signals} />
-                                </TabsContent>
-                                <TabsContent value="jobs" className="m-0">
-                                    <JobsTab
-                                        jobs={jobs}
-                                        total={jobsTotal}
-                                        onLoadMore={handleLoadMoreJobs}
-                                        loadingMore={loadingMoreJobs}
-                                    />
-                                </TabsContent>
-                                <TabsContent value="news" className="m-0">
-                                    <NewsTab
-                                        news={news}
-                                        total={newsTotal}
-                                        onLoadMore={handleLoadMoreNews}
-                                        loadingMore={loadingMoreNews}
-                                    />
-                                </TabsContent>
-                                <TabsContent value="updates" className="m-0">
-                                    <UpdatesTab updates={company.updates || []} />
-                                </TabsContent>
+                                        {hasPlaybooks && (
+                                            <TabBtn value="playbooks" count={playbooks.length}>Playbooks</TabBtn>
+                                        )}
+                                        {hasPeople && (
+                                            <TabBtn value="people" count={data?.counts['employees']}>People</TabBtn>
+                                        )}
+                                        {hasSignals && (
+                                            <TabBtn value="signals" count={(signals?.interests?.length || 0) + (signals?.events?.length || 0)}>Signals</TabBtn>
+                                        )}
+                                        {hasJobs && (
+                                            <TabBtn value="jobs" count={jobsTotal}>Jobs</TabBtn>
+                                        )}
+                                        {hasNews && (
+                                            <TabBtn value="news" count={newsTotal}>News</TabBtn>
+                                        )}
+                                        {hasUpdates && (
+                                            <TabBtn value="updates" count={company.updates?.length}>Updates</TabBtn>
+                                        )}
+                                    </TabsList>
+                                </Tabs>
                             </div>
-                        </Tabs>
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                            <div className="p-6 max-w-7xl mx-auto w-full">
+                                <Tabs value={activeTab} className="w-full">
+                                    <TabsContent value="overview" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                                        <OverviewTab company={company} />
+                                    </TabsContent>
+
+                                    {hasPlaybooks && (
+                                        <TabsContent value="playbooks" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                                            <PlaybooksTab playbooks={playbooks} />
+                                        </TabsContent>
+                                    )}
+                                    {hasPeople && (
+                                        <TabsContent value="people" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                                            <PeopleTab decisionMakers={decisionMakers} employees={otherEmployees} total={data?.counts.employees || 0} />
+                                        </TabsContent>
+                                    )}
+                                    {hasSignals && (
+                                        <TabsContent value="signals" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                                            <SignalsTab signals={signals} />
+                                        </TabsContent>
+                                    )}
+                                    {hasJobs && (
+                                        <TabsContent value="jobs" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                                            <JobsTab
+                                                jobs={jobs}
+                                                total={jobsTotal}
+                                                onLoadMore={handleLoadMoreJobs}
+                                                loadingMore={loadingMoreJobs}
+                                            />
+                                        </TabsContent>
+                                    )}
+                                    {hasNews && (
+                                        <TabsContent value="news" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                                            <NewsTab
+                                                news={news}
+                                                total={newsTotal}
+                                                onLoadMore={handleLoadMoreNews}
+                                                loadingMore={loadingMoreNews}
+                                            />
+                                        </TabsContent>
+                                    )}
+                                    {hasUpdates && (
+                                        <TabsContent value="updates" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                                            <UpdatesTab updates={company.updates || []} />
+                                        </TabsContent>
+                                    )}
+                                </Tabs>
+                            </div>
+                        </div>
                     </div>
                 ) : (
                     <>
                         <SheetHeader className="sr-only"><SheetTitle>Not found</SheetTitle></SheetHeader>
-                        <div className="flex-1 flex items-center justify-center text-muted-foreground">Company not found</div>
+                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
+                            <div className="text-4xl mb-4">🔍</div>
+                            <p className="font-medium">Company not found</p>
+                        </div>
                     </>
                 )}
             </SheetContent>
@@ -231,20 +285,35 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     );
 }
 
-// Custom tab button with color accent
-function TabBtn({ value, active, children }: { value: string; active: string; children: React.ReactNode }) {
-    const isActive = active === value;
+// Custom tab button with clean underline style
+function TabBtn({ value, count, children }: { value: string; count?: number; children: React.ReactNode }) {
     return (
         <TabsTrigger
             value={value}
             className={cn(
-                "h-11 px-4 rounded-none border-b-2 transition-colors",
-                isActive
-                    ? "border-blue-600 text-blue-600 font-semibold bg-transparent"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                "group relative flex items-center gap-2 pb-3 pt-2 px-1 rounded-none font-medium text-sm transition-none bg-transparent hover:text-foreground",
+                "text-muted-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold data-[state=active]:shadow-none",
+                "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 dark:after:bg-blue-400 after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
             )}
         >
-            {children}
+            <span>{children}</span>
+            {count !== undefined && count > 0 && (
+                <span className={cn(
+                    "text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none transition-colors",
+                    "bg-muted text-muted-foreground",
+                    "group-data-[state=active]:bg-blue-50 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:bg-blue-900/20 dark:group-data-[state=active]:text-blue-300"
+                )}>
+                    {formatCompactNumber(count)}
+                </span>
+            )}
         </TabsTrigger>
     );
+}
+
+// Helper for formatting large numbers
+function formatCompactNumber(num: number): string {
+    return new Intl.NumberFormat('en-US', {
+        notation: "compact",
+        maximumFractionDigits: 1
+    }).format(num);
 }

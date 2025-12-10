@@ -56,7 +56,7 @@ export function PeopleTab({ decisionMakers, employees, total }: PeopleTabProps) 
                             <div className="w-1 h-5 bg-amber-500" />
                             <h3 className="font-semibold">Key Contacts</h3>
                         </div>
-                        <div className="border divide-y">
+                        <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-card">
                             {decisionMakers.map((e) => (
                                 <PersonRow
                                     key={e.id}
@@ -78,7 +78,7 @@ export function PeopleTab({ decisionMakers, employees, total }: PeopleTabProps) 
                                 Showing {employees.length} of {total - decisionMakers.length}
                             </span>
                         </div>
-                        <div className="border divide-y">
+                        <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-card">
                             {employees.map((e) => (
                                 <PersonRow
                                     key={e.id}
@@ -116,9 +116,9 @@ function PersonRow({
     return (
         <div
             className={cn(
-                "flex items-center gap-4 p-4 bg-background transition-colors",
+                "flex items-center gap-4 p-4 bg-card transition-colors",
                 onClick && "cursor-pointer",
-                highlight ? "hover:bg-amber-50/50" : "hover:bg-muted/50"
+                highlight ? "bg-amber-50/30 hover:bg-amber-50/80 dark:bg-amber-900/10 dark:hover:bg-amber-900/20" : "hover:bg-muted/50"
             )}
             onClick={onClick}
         >
