@@ -55,8 +55,10 @@ function SheetContent({
     className,
     children,
     side = "bottom",
+    overlay = true,
+    hideClose = false,
     ...props
-}: SheetContentProps) {
+}: SheetContentProps & { overlay?: boolean; hideClose?: boolean }) {
     const sideClasses = {
         top: "inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
         bottom: "inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
@@ -66,7 +68,7 @@ function SheetContent({
 
     return (
         <SheetPortal>
-            <SheetOverlay />
+            {overlay && <SheetOverlay />}
             <DialogPrimitive.Content
                 data-slot="sheet-content"
                 className={cn(
@@ -77,13 +79,15 @@ function SheetContent({
                 {...props}
             >
                 {children}
-                <DialogPrimitive.Close
-                    data-slot="sheet-close"
-                    className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"
-                >
-                    <XIcon className="size-5" />
-                    <span className="sr-only">Close</span>
-                </DialogPrimitive.Close>
+                {!hideClose && (
+                    <DialogPrimitive.Close
+                        data-slot="sheet-close"
+                        className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"
+                    >
+                        <XIcon className="size-5" />
+                        <span className="sr-only">Close</span>
+                    </DialogPrimitive.Close>
+                )}
             </DialogPrimitive.Content>
         </SheetPortal>
     )

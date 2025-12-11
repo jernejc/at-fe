@@ -1,9 +1,9 @@
 
 import { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, type Node } from '@xyflow/react';
 import { Bot, Database, Server, Cpu, BrainCircuit, Share2, Search, FileText } from 'lucide-react';
 
-const CONFIG = {
+export const AGENT_CONFIG = {
     orchestrator: {
         color: '#4285F4', // Google Blue
         bg: '#eff6ff', // Blue 50
@@ -30,9 +30,22 @@ const CONFIG = {
     }
 };
 
-export const AgentNode = memo(({ data, selected }: NodeProps) => {
-    const type = (data.type as keyof typeof CONFIG) || 'default';
-    const style = CONFIG[type] || CONFIG.default;
+
+interface AgentNodeData extends Record<string, unknown> {
+    label: string;
+    type?: string;
+    dimmed?: boolean;
+    skills?: string[];
+    hasSource?: boolean;
+    hasTarget?: boolean;
+    opacity?: number;
+}
+
+type AgentNodeType = Node<AgentNodeData>;
+
+export const AgentNode = memo(({ data, selected }: NodeProps<AgentNodeType>) => {
+    const type = (data.type as keyof typeof AGENT_CONFIG) || 'default';
+    const style = AGENT_CONFIG[type] || AGENT_CONFIG.default;
     const Icon = style.icon;
 
     return (
@@ -44,7 +57,8 @@ export const AgentNode = memo(({ data, selected }: NodeProps) => {
             minWidth: '240px',
             height: '100%', // Fill the fixed height set by parent
             overflow: 'hidden',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.3s ease',
+            opacity: data.opacity ?? (data.dimmed ? 0.1 : 1),
             display: 'flex',
             flexDirection: 'column'
         }} className="group hover:shadow-lg">
@@ -80,9 +94,8 @@ export const AgentNode = memo(({ data, selected }: NodeProps) => {
             </div>
 
             {/* Connection Handles */}
-            {/* Connection Handles */}
-            <Handle type="target" position={Position.Top} className="!bg-slate-400 !w-3 !h-3" />
-            <Handle type="source" position={Position.Bottom} className="!bg-slate-400 !w-3 !h-3" />
+            {data.hasTarget && <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-slate-300 !opacity-0 group-hover:!opacity-100 transition-opacity duration-300" />}
+            {data.hasSource && <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-slate-300 !opacity-0 group-hover:!opacity-100 transition-opacity duration-300" />}
         </div>
     );
 });

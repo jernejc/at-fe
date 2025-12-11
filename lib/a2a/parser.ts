@@ -187,8 +187,8 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
     // Add nodes to dagre
     rawNodes.forEach(node => {
         if (node.type !== 'skill') {
-            // User requested FIXED HEIGHT for everything ("make the nodes fixed in height as well")
-            const height = 300;
+            // User requested FIXED HEIGHT - Adjusted to 200px
+            const height = 200;
 
             g.setNode(node.id, { label: node.label, width: NODE_WIDTH, height: height });
 
@@ -222,6 +222,9 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
 
             const skills = agentSkills.get(node.id) || [];
 
+            const hasSource = rawEdges.some(e => e.source === node.id && e.type !== 'skill');
+            const hasTarget = rawEdges.some(e => e.target === node.id && e.type !== 'skill');
+
             nodes.push({
                 id: node.id,
                 type: 'agentNode',
@@ -229,11 +232,13 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
                 data: {
                     label: node.label,
                     type: node.type || 'default',
-                    skills: skills
+                    skills: skills,
+                    hasSource,
+                    hasTarget
                 },
                 position: { x: nodeWithPos.x - NODE_WIDTH / 2, y: nodeWithPos.y - nodeWithPos.height / 2 },
                 // Force consistent Width AND Height in style
-                style: { width: NODE_WIDTH, height: 300 }
+                style: { width: NODE_WIDTH, height: 200 }
             });
         }
     });

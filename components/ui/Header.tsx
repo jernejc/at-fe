@@ -24,8 +24,7 @@ export function Header() {
                 {/* User Actions (Right) */}
                 <div className="flex items-center gap-6 justify-end shrink-0">
                     <ProcessingStatus />
-                    <Link href="/a2a/diagram" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">A2A Diagram</Link>
-                    <Link href="/a2a/health" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">A2A Health</Link>
+                    <Link href="/a2a/diagram" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">A2A</Link>
                     <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-border flex items-center justify-center text-xs font-semibold text-slate-600">
                         JD
                     </div>

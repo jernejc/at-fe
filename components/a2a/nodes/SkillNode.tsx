@@ -7,7 +7,10 @@ export const SkillNode = memo(({ data }: NodeProps) => {
     const skills = String(data.label).split(',').map(s => s.trim());
 
     return (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg shadow-sm min-w-[200px] max-w-[300px]">
+        <div
+            className="bg-amber-50 border border-amber-200 rounded-lg shadow-sm min-w-[200px] max-w-[300px] transition-all duration-300"
+            style={{ opacity: data.dimmed ? 0.05 : 1 }}
+        >
             <div className="bg-amber-100/50 px-3 py-2 border-b border-amber-200 flex items-center gap-2">
                 <Lightbulb size={14} className="text-amber-600" />
                 <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">Capabilities</span>
