@@ -6,7 +6,6 @@ import {
     SheetContent,
     SheetHeader,
     SheetTitle,
-    SheetDescription
 } from '@/components/ui/sheet';
 import { X } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -23,7 +22,6 @@ import {
     PlaybookSummary,
     JobPostingSummary,
     NewsArticleSummary,
-    EmployeeRead
 } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import { JobsTab } from './detail/JobsTab';
@@ -46,13 +44,11 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     const [signals, setSignals] = useState<CompanySignalsResponse | null>(null);
     const [playbooks, setPlaybooks] = useState<PlaybookSummary[]>([]);
 
-    // Jobs pagination state
     const [jobs, setJobs] = useState<JobPostingSummary[]>([]);
     const [jobsPage, setJobsPage] = useState(1);
     const [jobsTotal, setJobsTotal] = useState(0);
     const [loadingMoreJobs, setLoadingMoreJobs] = useState(false);
 
-    // News pagination state
     const [news, setNews] = useState<NewsArticleSummary[]>([]);
     const [newsPage, setNewsPage] = useState(1);
     const [newsTotal, setNewsTotal] = useState(0);
