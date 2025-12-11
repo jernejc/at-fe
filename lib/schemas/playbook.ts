@@ -35,6 +35,31 @@ export interface PlaybookContactResponse extends PlaybookContact {
     outreach_templates: OutreachTemplateResponse[];
 }
 
+export interface SignalBasisEvent {
+    urgency: number;
+    category: string;
+    confidence: number;
+    influence_on_strategy: string;
+}
+
+export interface SignalBasisInterest {
+    category: string;
+    strength: number;
+    confidence: number;
+    influence_on_strategy: string;
+}
+
+export interface SignalBasis {
+    notes: string;
+    top_events: SignalBasisEvent[];
+    top_interests: SignalBasisInterest[];
+}
+
+export interface GenerationMetadata {
+    signal_basis?: SignalBasis;
+    [key: string]: unknown;
+}
+
 export interface PlaybookRead {
     id: number;
     company_id: number;
@@ -44,12 +69,12 @@ export interface PlaybookRead {
     fit_reasoning: string | null;
     value_proposition: string | null;
     elevator_pitch: string | null;
-    discovery_questions: unknown[] | null;
-    objection_handling: Record<string, unknown> | null;
-    recommended_channels: unknown[] | null;
+    discovery_questions: string[] | null;
+    objection_handling: Record<string, string> | null;
+    recommended_channels: string[] | null;
     contacts: PlaybookContactResponse[];
     generation_version: number;
-    generation_metadata?: Record<string, unknown> | null;
+    generation_metadata?: GenerationMetadata | null;
     regenerated_at?: string | null;
 }
 

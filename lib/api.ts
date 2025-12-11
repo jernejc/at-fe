@@ -1,7 +1,6 @@
 // API Client for Company Intelligence API
 
-const API_BASE = 'http://localhost:8000';
-
+export const API_BASE = 'http://localhost:8000';
 
 // Import types needed for API functions
 import type {
@@ -418,4 +417,19 @@ export async function getA2AHealth(): Promise<any> {
         throw new Error(`Failed to fetch health: ${response.status} ${response.statusText}`);
     }
     return response.json();
+}
+
+// ============= Processing =============
+
+export interface ProcessingOptions {
+    force?: boolean;
+    include_posts?: boolean;
+    full_details?: boolean;
+}
+
+export async function startProcessing(domain: string, options?: ProcessingOptions): Promise<any> {
+    const query = buildQueryString((options || {}) as Record<string, unknown>);
+    return fetchAPI(`/processing/${encodeURIComponent(domain)}${query}`, {
+        method: 'POST',
+    });
 }

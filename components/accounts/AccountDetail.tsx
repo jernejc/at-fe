@@ -159,7 +159,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
 
     return (
         <Sheet open={open} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0 border-t-0 rounded-t-2xl overflow-hidden shadow-2xl">
+            <SheetContent side="bottom" className="h-[95vh] flex flex-col p-0 border-t-0 rounded-t-2xl overflow-hidden shadow-2xl">
                 {loading ? (
                     <>
                         <SheetHeader className="sr-only"><SheetTitle>Loading</SheetTitle></SheetHeader>
@@ -191,30 +191,32 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                             <AccountDetailHeader company={company} />
 
                             {/* Tabs - Clean Underline Style */}
-                            <div className="pt-2">
+                            <div className="pt-1">
                                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                                    <TabsList className="h-auto w-full justify-start gap-8 bg-transparent p-0 px-6 border-b border-border rounded-none overflow-x-auto no-scrollbar">
-                                        <TabBtn value="overview">Overview</TabBtn>
+                                    <div className="w-full border-b border-border text-center">
+                                        <TabsList className="h-auto w-full max-w-7xl mx-auto justify-center gap-8 bg-transparent p-0 rounded-none overflow-x-auto no-scrollbar">
+                                            <TabBtn value="overview">Overview</TabBtn>
 
-                                        {hasPlaybooks && (
-                                            <TabBtn value="playbooks" count={playbooks.length}>Playbooks</TabBtn>
-                                        )}
-                                        {hasPeople && (
-                                            <TabBtn value="people" count={data?.counts['employees']}>People</TabBtn>
-                                        )}
-                                        {hasSignals && (
-                                            <TabBtn value="signals" count={(signals?.interests?.length || 0) + (signals?.events?.length || 0)}>Signals</TabBtn>
-                                        )}
-                                        {hasJobs && (
-                                            <TabBtn value="jobs" count={jobsTotal}>Jobs</TabBtn>
-                                        )}
-                                        {hasNews && (
-                                            <TabBtn value="news" count={newsTotal}>News</TabBtn>
-                                        )}
-                                        {hasUpdates && (
-                                            <TabBtn value="updates" count={company.updates?.length}>Updates</TabBtn>
-                                        )}
-                                    </TabsList>
+                                            {hasPlaybooks && (
+                                                <TabBtn value="playbooks" count={playbooks.length}>Playbooks</TabBtn>
+                                            )}
+                                            {hasPeople && (
+                                                <TabBtn value="people" count={data?.counts['employees']}>People</TabBtn>
+                                            )}
+                                            {hasSignals && (
+                                                <TabBtn value="signals" count={(signals?.interests?.length || 0) + (signals?.events?.length || 0)}>Signals</TabBtn>
+                                            )}
+                                            {hasJobs && (
+                                                <TabBtn value="jobs" count={jobsTotal}>Jobs</TabBtn>
+                                            )}
+                                            {hasNews && (
+                                                <TabBtn value="news" count={newsTotal}>News</TabBtn>
+                                            )}
+                                            {hasUpdates && (
+                                                <TabBtn value="updates" count={company.updates?.length}>Updates</TabBtn>
+                                            )}
+                                        </TabsList>
+                                    </div>
                                 </Tabs>
                             </div>
                         </div>
@@ -229,7 +231,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
 
                                     {hasPlaybooks && (
                                         <TabsContent value="playbooks" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
-                                            <PlaybooksTab playbooks={playbooks} />
+                                            <PlaybooksTab playbooks={playbooks} availableEmployees={employees} domain={domain} />
                                         </TabsContent>
                                     )}
                                     {hasPeople && (

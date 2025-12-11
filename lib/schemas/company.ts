@@ -18,6 +18,7 @@ export interface CompanySummary {
     logo_url: string | null;
     logo_base64: string | null;
     data_sources: string[];
+    top_contact: EmployeeSummary | null;
     updated_at: string;
 }
 

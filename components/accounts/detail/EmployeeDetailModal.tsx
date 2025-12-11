@@ -5,11 +5,18 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import type { EmployeeRead } from '@/lib/schemas';
 
+interface PlaybookContext {
+    role_category?: string | null;
+    value_prop?: string | null;
+    fit_score?: number | null;
+}
+
 interface EmployeeDetailModalProps {
     employee: EmployeeRead | null;
     open: boolean;
     onClose: () => void;
     isLoading?: boolean;
+    playbookContext?: PlaybookContext | null;
 }
 
 // Helper to safely get properties regardless of casing
@@ -21,19 +28,19 @@ function getValue(obj: any, keys: string[]) {
     return null;
 }
 
-export function EmployeeDetailModal({ employee, open, onClose, isLoading = false }: EmployeeDetailModalProps) {
+export function EmployeeDetailModal({ employee, open, onClose, isLoading = false, playbookContext }: EmployeeDetailModalProps) {
     if (!employee) return null;
 
     return (
         <Sheet open={open} onOpenChange={onClose}>
-            <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background border-l shadow-xl">
+            <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col h-full bg-background border-l shadow-xl">
                 {/* Header (Fixed) */}
-                <div className="p-6 border-b shrink-0">
+                <div className="p-6 border-b shrink-0 bg-muted/5">
                     <SheetHeader>
                         <div className="flex items-start gap-4">
-                            <Avatar className="w-20 h-20 border-2 border-muted">
+                            <Avatar className="w-20 h-20 border-2 border-background shadow-sm">
                                 {employee.avatar_url && <AvatarImage src={employee.avatar_url} />}
-                                <AvatarFallback className="text-xl font-bold bg-muted/50">
+                                <AvatarFallback className="text-xl font-bold bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
                                     {(employee.full_name || '??').slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
@@ -46,6 +53,11 @@ export function EmployeeDetailModal({ employee, open, onClose, isLoading = false
                                     <p className="text-base text-muted-foreground mt-1 truncate">{employee.current_title}</p>
                                 )}
                                 <div className="flex flex-wrap gap-2 mt-3">
+                                    {playbookContext?.role_category && (
+                                        <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-200">
+                                            {playbookContext.role_category}
+                                        </Badge>
+                                    )}
                                     {employee.is_decision_maker && (
                                         <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0">Decision Maker</Badge>
                                     )}
@@ -72,11 +84,24 @@ export function EmployeeDetailModal({ employee, open, onClose, isLoading = false
 
                 {/* Content (Scrollable) */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    {/* Playbook Context - Why Them? */}
+                    {playbookContext?.value_prop && (
+                        <section className="p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                Why This Contact?
+                            </h3>
+                            <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                                {playbookContext.value_prop}
+                            </p>
+                        </section>
+                    )}
+
                     {/* Bio */}
                     {employee.bio && (
                         <section>
                             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
-                                <span className="w-1 h-1 bg-amber-500 rounded-full"></span>
+                                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
                                 About
                             </h3>
                             <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">{employee.bio}</p>

@@ -257,6 +257,7 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                                 key={company.id}
                                 company={company}
                                 playbook={playbooks[company.id]}
+                                keyContact={company.top_contact || undefined}
                                 signals={['Growth', 'critical', '+2 more']}
                                 selected={selectedIds.has(company.id)}
                                 onSelect={(selected) => handleSelect(company.id, selected)}
