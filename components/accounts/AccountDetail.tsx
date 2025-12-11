@@ -8,6 +8,7 @@ import {
     SheetTitle,
     SheetDescription
 } from '@/components/ui/sheet';
+import { X } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
     getCompany,
@@ -159,7 +160,14 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
 
     return (
         <Sheet open={open} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent side="bottom" className="h-[95vh] flex flex-col p-0 border-t-0 rounded-t-2xl overflow-hidden shadow-2xl">
+            <SheetContent side="bottom" hideClose className="h-[95vh] flex flex-col p-0 border-t-0 rounded-t-2xl overflow-hidden shadow-2xl">
+                <button
+                    onClick={onClose}
+                    className="absolute right-4 top-4 z-50 rounded-full bg-white/80 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-900/80 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors backdrop-blur-sm"
+                >
+                    <X className="h-5 w-5" />
+                    <span className="sr-only">Close</span>
+                </button>
                 {loading ? (
                     <>
                         <SheetHeader className="sr-only"><SheetTitle>Loading</SheetTitle></SheetHeader>

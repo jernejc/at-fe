@@ -90,8 +90,6 @@ export function A2ADiagram({ mermaid }: A2ADiagramProps) {
         const connectedNodeIds = new Set(connectedEdges.flatMap(e => [e.source, e.target]));
         connectedNodeIds.add(node.id);
 
-        // Update Visuals
-        // Update Visuals
         setNodes((nds) => nds.map((n) => {
             const isSelected = n.id === node.id;
             const isConnected = connectedNodeIds.has(n.id) && !isSelected;
