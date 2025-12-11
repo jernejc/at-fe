@@ -1,6 +1,5 @@
-// API Client for Company Intelligence API
 
-export const API_BASE = 'http://localhost:8000';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Import types needed for API functions
 import type {
