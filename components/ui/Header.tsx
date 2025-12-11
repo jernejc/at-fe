@@ -8,7 +8,7 @@ export function Header() {
         <div className="bg-white dark:bg-slate-900 border-b border-border/80 shrink-0 z-20 sticky top-0">
             <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between gap-4">
                 {/* Brand (Left) */}
-                <div className="flex items-center gap-3 shrink-0 w-60 hover:opacity-80 transition-opacity">
+                <div className="flex items-center gap-3 shrink-0 w-60 hover:opacity-80 transition-opacity cursor-pointer" onClick={() => window.location.href = '/'}>
                     <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-500/20">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
