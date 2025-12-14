@@ -1,8 +1,6 @@
-
 import { Node, Edge } from '@xyflow/react';
 import dagre from 'dagre';
-
-// --- Types ---
+import { generateMockAgentData } from '@/components/a2a/mock-agent-data';
 
 export interface ParsedDiagram {
     nodes: Node[];
@@ -12,7 +10,7 @@ export interface ParsedDiagram {
 interface RawNode {
     id: string;
     label: string;
-    type?: 'orchestrator' | 'service' | 'data' | 'skill';
+    type?: 'entry' | 'orchestrator' | 'service' | 'data' | 'skill';
     parentId?: string;
     skills?: string[];
 }
@@ -21,6 +19,7 @@ interface RawEdge {
     source: string;
     target: string;
     type: 'flow' | 'skill';
+    visualType?: 'normal' | 'thick'; // For ==>
     label?: string;
 }
 
@@ -67,10 +66,13 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
             continue;
         }
 
-        // Relationships (--> or -.-)
-        if (line.includes('-->') || line.includes('-.-')) {
+        // Relationships (--> or -.- or ==>)
+        if (line.includes('-->') || line.includes('-.-') || line.includes('==>')) {
             const isSkill = line.includes('-.-');
-            const operator = isSkill ? '-.-' : '-->';
+            let operator = '-->';
+            if (isSkill) operator = '-.-';
+            else if (line.includes('==>')) operator = '==>';
+
             const parts = line.split(operator).map(p => p.trim());
 
             if (parts.length === 2) {
@@ -110,7 +112,8 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
                 rawEdges.push({
                     source,
                     target: targetId,
-                    type: isSkill ? 'skill' : 'flow'
+                    type: isSkill ? 'skill' : 'flow',
+                    visualType: operator === '==>' ? 'thick' : 'normal'
                 });
             }
             continue;
@@ -144,10 +147,15 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
     // 4. Post-process nodes to assign types based on naming conventions/known tiers if not set
     // In this specific A2A context, we can infer types from subgraph membership
     subgraphs.forEach((nodeIds, subgraphId) => {
-        const typeMap: Record<string, 'orchestrator' | 'service' | 'data'> = {
+        const typeMap: Record<string, 'entry' | 'orchestrator' | 'service' | 'data'> = {
+            'entry_group': 'entry',
+            'orchestrator_group': 'orchestrator',
+            'service_group': 'service',
+            'data_group': 'data',
+            // Legacy/Fallback support
             'orchestrators': 'orchestrator',
             'services': 'service',
-            'data': 'data' // 'Data Layer' -> data
+            'data': 'data'
         };
         const type = typeMap[subgraphId] || (subgraphId === 'data' ? 'data' : undefined);
 
@@ -158,22 +166,72 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
                     node.type = type;
                     node.parentId = subgraphId;
                 }
+
             });
+        }
+    });
+    // 4.5. SMART INFERENCE (Self-Healing Layout)
+    // Instead of hardcoding, we infer types/groups for floating nodes based on semantics.
+    rawNodes.forEach(node => {
+        // Only fix if floating (no parent) or untyped
+        if (!node.parentId || !node.type) {
+            const labelLower = node.label.toLowerCase();
+            const idLower = node.id.toLowerCase();
+
+            let inferredType: 'entry' | 'orchestrator' | 'service' | 'data' | undefined;
+            let inferredParent: string | undefined;
+
+            // Heuristic Rules
+            if (labelLower.includes('analyzer') || labelLower.includes('generator') || labelLower.includes('summarizer') || labelLower.includes('service')) {
+                inferredType = 'service';
+                inferredParent = 'service_group';
+            } else if (labelLower.includes('db') || labelLower.includes('store') || labelLower.includes('cache') || labelLower.includes('vector')) {
+                inferredType = 'data';
+                inferredParent = 'data_group';
+            } else if (labelLower.includes('orchestrator') || labelLower.includes('planner') || labelLower.includes('brain')) {
+                inferredType = 'orchestrator';
+                inferredParent = 'orchestrator_group';
+            }
+
+            // Apply Inference
+            if (inferredType && inferredParent) {
+                // Update Node Props
+                if (!node.type) node.type = inferredType;
+                if (!node.parentId) node.parentId = inferredParent;
+
+                // Update Physical Graph Grouping
+                // Check if target group exists
+                if (subgraphs.has(inferredParent)) {
+                    const group = subgraphs.get(inferredParent) || [];
+                    if (!group.includes(node.id)) {
+                        group.push(node.id);
+                        subgraphs.set(inferredParent, group);
+                    }
+                }
+            }
         }
     });
 
     // 5. Layout with Dagre
-    const g = new dagre.graphlib.Graph({ compound: true });
-    g.setGraph({ rankdir: 'TB', align: 'DL', ranksep: 80, nodesep: 50 }); // Tighter, more professional spacing
+    const g = new dagre.graphlib.Graph({ compound: false }); // No compound layout needed for pure DAG
+    g.setGraph({
+        rankdir: 'TB',   // Top-to-bottom flow
+        ranksep: 90,     // Vertical spacing between ranks (rows)
+        nodesep: 40,     // Horizontal spacing between nodes in same rank
+        marginx: 30,
+        marginy: 30
+        // No align specified - uses default centering which looks balanced
+    });
     g.setDefaultEdgeLabel(() => ({}));
 
-    // Pre-calculate skills (needed for AgentNode data, even if not for sizing)
+
+
+    // Pre-calculate skills
     const agentSkills = new Map<string, string[]>();
     rawNodes.forEach(node => {
         if (node.type !== 'skill') {
             const skillEdges = rawEdges.filter(e => e.source === node.id && e.type === 'skill');
             const skills: string[] = [];
-
             skillEdges.forEach(edge => {
                 const skillNode = rawNodes.get(edge.target);
                 if (skillNode && skillNode.label) {
@@ -187,40 +245,110 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
     // Add nodes to dagre
     rawNodes.forEach(node => {
         if (node.type !== 'skill') {
-            // User requested FIXED HEIGHT - Adjusted to 200px
             const height = 200;
-
             g.setNode(node.id, { label: node.label, width: NODE_WIDTH, height: height });
-
-            if (node.parentId) {
-                g.setParent(node.id, node.parentId);
-            }
+            // NO PARENT ID - Flattening the graph
         }
     });
 
-    // Add Groups (Subgraphs) to dagre
-    subgraphs.forEach((_, id) => {
-        g.setNode(id, { label: subgraphLabels.get(id), clusterLabelPos: 'top', style: 'fill: #fdfdfd' });
-    });
+    // NO GROUPS in Dagre - We want a pure node layout
 
     // Add edges to dagre - EXCLUDING SKILL EDGES
     rawEdges.forEach(edge => {
         if (edge.type !== 'skill') {
+            // Standard edges only
             g.setEdge(edge.source, edge.target);
         }
     });
 
+
+
     dagre.layout(g);
 
-    // 6. Convert to React Flow format
+    // 6. POST-PROCESS: Center-align all ranks for perfect visual alignment
+    // Group nodes by their Y position (rank)
+    const ranks = new Map<number, string[]>();
+    g.nodes().forEach(nodeId => {
+        const node = g.node(nodeId);
+        if (node) {
+            const y = Math.round(node.y); // Round to handle floating point
+            if (!ranks.has(y)) ranks.set(y, []);
+            ranks.get(y)!.push(nodeId);
+        }
+    });
 
-    // Create Agent Nodes (with merged skills)
+    // Find global center X (using the widest rank as reference)
+    let globalCenterX = 0;
+    let maxRankWidth = 0;
+    ranks.forEach((nodeIds) => {
+        let minX = Infinity, maxX = -Infinity;
+        nodeIds.forEach(nodeId => {
+            const node = g.node(nodeId);
+            if (node) {
+                minX = Math.min(minX, node.x - NODE_WIDTH / 2);
+                maxX = Math.max(maxX, node.x + NODE_WIDTH / 2);
+            }
+        });
+        const rankWidth = maxX - minX;
+        if (rankWidth > maxRankWidth) {
+            maxRankWidth = rankWidth;
+            globalCenterX = (minX + maxX) / 2;
+        }
+    });
+
+    // Adjust each rank to be centered around globalCenterX
+    ranks.forEach((nodeIds) => {
+        if (nodeIds.length === 1) {
+            // Single-node rank: position exactly at center for perfect alignment
+            const node = g.node(nodeIds[0]);
+            if (node) {
+                node.x = globalCenterX;
+            }
+        } else {
+            // Multi-node rank: shift the entire group to center
+            let minX = Infinity, maxX = -Infinity;
+            nodeIds.forEach(nodeId => {
+                const node = g.node(nodeId);
+                if (node) {
+                    minX = Math.min(minX, node.x - NODE_WIDTH / 2);
+                    maxX = Math.max(maxX, node.x + NODE_WIDTH / 2);
+                }
+            });
+            const rankCenterX = (minX + maxX) / 2;
+            const offsetX = globalCenterX - rankCenterX;
+
+            // Apply offset to all nodes in this rank
+            nodeIds.forEach(nodeId => {
+                const node = g.node(nodeId);
+                if (node) {
+                    node.x += offsetX;
+                }
+            });
+        }
+    });
+
+    // 7. Convert to React Flow format (FLAT STRUCTURE)
+
+    // No Group Nodes Processing
+
+    // Create Agent Nodes (children)
     rawNodes.forEach(node => {
         if (node.type !== 'skill') {
-            const nodeWithPos = g.node(node.id);
-            if (!nodeWithPos) return;
+            const nodeWithPosition = g.node(node.id);
+            // Safety check
+            if (!nodeWithPosition) return;
+
+            // In flat layout, Dagre gives absolute positions.
+            // We shift by width/2 height/2 because Dagre uses center coords, RF uses top-left?
+            // Actually Dagre uses top-left usually if configured, but let's stick to standard conversion.
+            // Wait, Dagre default is center. React Flow is Top-Left.
+            // Let's assume standard center-to-topleft conversion.
 
             const skills = agentSkills.get(node.id) || [];
+
+            // Hydrate with Mock Data for Rich UI
+            const mockData = generateMockAgentData(node.label, node.type);
+            const enrichedSkills = [...new Set([...skills, ...mockData.capabilities])];
 
             const hasSource = rawEdges.some(e => e.source === node.id && e.type !== 'skill');
             const hasTarget = rawEdges.some(e => e.target === node.id && e.type !== 'skill');
@@ -229,15 +357,20 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
                 id: node.id,
                 type: 'agentNode',
                 draggable: false,
+                position: {
+                    x: nodeWithPosition.x - NODE_WIDTH / 2,
+                    y: nodeWithPosition.y - (nodeWithPosition.height / 2)
+                },
                 data: {
                     label: node.label,
                     type: node.type || 'default',
-                    skills: skills,
+                    skills: enrichedSkills,
+                    status: mockData.status,
+                    role: mockData.role,
+                    currentTask: mockData.currentTask,
                     hasSource,
                     hasTarget
                 },
-                position: { x: nodeWithPos.x - NODE_WIDTH / 2, y: nodeWithPos.y - nodeWithPos.height / 2 },
-                // Force consistent Width AND Height in style
                 style: { width: NODE_WIDTH, height: 200 }
             });
         }
@@ -248,17 +381,25 @@ export function parseMermaidToReactFlow(mermaid: string): ParsedDiagram {
         const isSkill = edge.type === 'skill';
         if (isSkill) return; // Don't create edges for merged skills
 
+        const isThick = edge.visualType === 'thick';
+
         edges.push({
             id: `e-${i}`,
             source: edge.source,
             target: edge.target,
             type: 'smoothstep',
-            animated: true,
+            animated: isThick ? true : false, // Only animate heavy flows? Or all? Let's animate thick ones to emphasize flow.
             style: {
-                stroke: '#64748b',
-                strokeWidth: 2,
+                stroke: isThick ? '#94a3b8' : '#94a3b8', // Normalize color to Slate 400
+                strokeWidth: 2, // Normalize width
+                strokeDasharray: '5,5', // Make all edges dashed
             },
-            markerEnd: { type: 'arrowclosed', color: '#64748b' },
+            markerEnd: {
+                type: 'arrowclosed',
+                color: isThick ? '#94a3b8' : '#94a3b8', // Normalize marker color
+                width: 20,
+                height: 20
+            },
         });
     });
 

@@ -1,4 +1,5 @@
-import { getA2ADiagram } from '@/lib/api';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { A2ADiagram } from '@/components/a2a/A2ADiagram';
 import { Header } from '@/components/ui/Header';
 
@@ -8,8 +9,10 @@ export default async function DiagramPage() {
     let diagram = '';
     let error = null;
     try {
-        diagram = await getA2ADiagram();
+        const filePath = path.join(process.cwd(), 'public', 'diagram.txt');
+        diagram = await fs.readFile(filePath, 'utf-8');
     } catch (e) {
+        console.error(e);
         error = 'Failed to load diagram';
     }
 

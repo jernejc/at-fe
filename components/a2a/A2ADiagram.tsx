@@ -12,9 +12,12 @@ import { Loader2, Brain, Activity, Clock, CheckCircle2, ChevronRight, X } from '
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from '@/components/ui/sheet';
 import { generateMockAgentData, AgentDetail } from './mock-agent-data';
 
+import { GroupNode } from './nodes/GroupNode';
+
 const nodeTypes = {
     agentNode: AgentNode,
     skillNode: SkillNode,
+    groupNode: GroupNode,
 };
 
 interface A2ADiagramProps {
@@ -158,14 +161,15 @@ export function A2ADiagram({ mermaid }: A2ADiagramProps) {
                 fitView
                 onInit={onInitWrapped}
                 onNodeClick={onNodeClick}
+                onPaneClick={resetSelection}
                 minZoom={0.1}
                 attributionPosition="bottom-right"
             >
-                <Background color="#94a3b8" variant={BackgroundVariant.Dots} gap={20} size={1} />
                 <Controls showInteractive={false} className="bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 rounded-lg p-1" />
 
                 <Panel position="top-right" className="bg-white/80 dark:bg-slate-800/80 backdrop-blur p-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm text-xs text-slate-500">
                     <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#F97316]"></div> Gateway</div>
                         <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#4285F4]"></div> Orchestrator</div>
                         <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#DB4437]"></div> Service</div>
                         <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#0F9D58]"></div> Data</div>

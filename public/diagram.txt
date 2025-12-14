@@ -1,0 +1,72 @@
+```mermaid
+flowchart LR
+    %% A2A Multi-Agent Architecture
+
+    %% Entry Point
+    subgraph entry_group[" API Gateway "]
+        gateway_node["Processing Gateway"]
+    end
+
+    %% Orchestration Layer
+    subgraph orchestrator_group[" Orchestration Layer "]
+        agentic_company_orchestrator["Company Orchestrator"]
+    end
+
+    %% Processing Agents - ordered for optimal alignment
+    %% Data Collector in center as it connects to all data sources
+    subgraph service_group[" Processing Agents "]
+        direction TB
+        agentic_fit_calculator["Fit Calculator"]
+        agentic_signal_analyzer["Signal Analyzer"]
+        agentic_data_collector["Data Collector"]
+        agentic_playbook_generator["Playbook Generator"]
+        market_analyst["Market Analyst"]
+    end
+
+    %% Data Sources - ordered to align with service agent connections
+    %% database centered as all service agents connect to it
+    subgraph data_group[" Data Sources "]
+        direction TB
+        coresignal["Coresignal"]
+        database["Database"]
+        discovery["Discovery"]
+        llm_extraction["LLM Extraction"]
+    end
+
+    %% Request Flow - Main pipeline
+    gateway_node ==> agentic_company_orchestrator
+
+    %% Orchestrator to Service Agents
+    agentic_company_orchestrator --> agentic_data_collector
+    agentic_company_orchestrator --> agentic_fit_calculator
+    agentic_company_orchestrator --> agentic_playbook_generator
+    agentic_company_orchestrator --> agentic_signal_analyzer
+    agentic_company_orchestrator --> market_analyst
+
+    %% Service Agents to Data Sources
+    agentic_data_collector --> coresignal
+    agentic_data_collector --> database
+    agentic_data_collector --> discovery
+    agentic_data_collector --> llm_extraction
+    agentic_fit_calculator --> database
+    agentic_playbook_generator --> database
+    agentic_signal_analyzer --> database
+    market_analyst --> database
+
+    %% Node Styling
+    classDef orchestrator fill:#1565c0,stroke:#0d47a1,color:#fff,stroke-width:2px,font-weight:bold
+    classDef service fill:#7b1fa2,stroke:#4a148c,color:#fff,stroke-width:2px
+    classDef data fill:#2e7d32,stroke:#1b5e20,color:#fff,stroke-width:2px
+    classDef entry fill:#f57c00,stroke:#e65100,color:#fff,stroke-width:2px,font-weight:bold
+
+    class agentic_company_orchestrator orchestrator
+    class agentic_data_collector,agentic_fit_calculator,agentic_playbook_generator,agentic_signal_analyzer,market_analyst service
+    class coresignal,database,discovery,llm_extraction data
+    class gateway_node entry
+
+    %% Subgraph Styling
+    style entry_group fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style orchestrator_group fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style service_group fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style data_group fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+```

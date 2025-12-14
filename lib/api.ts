@@ -411,11 +411,7 @@ export async function getA2ADiagram(): Promise<string> {
 }
 
 export async function getA2AHealth(): Promise<any> {
-    const response = await fetch('https://at-data.cogitech.dev/a2a/health');
-    if (!response.ok) {
-        throw new Error(`Failed to fetch health: ${response.status} ${response.statusText}`);
-    }
-    return response.json();
+    return fetchAPI('/processing/a2a/status');
 }
 
 // ============= Processing =============
@@ -426,9 +422,9 @@ export interface ProcessingOptions {
     full_details?: boolean;
 }
 
-export async function startProcessing(domain: string, options?: ProcessingOptions): Promise<any> {
-    const query = buildQueryString((options || {}) as Record<string, unknown>);
-    return fetchAPI(`/processing/${encodeURIComponent(domain)}${query}`, {
+export async function startProcessing(domain: string, options?: ProcessingOptions): Promise<{ process_id: string; status: string }> {
+    return fetchAPI(`/processing/${encodeURIComponent(domain)}`, {
         method: 'POST',
+        body: JSON.stringify(options || {}),
     });
 }

@@ -56,15 +56,92 @@ export function ProcessingStatus() {
     };
 
     const parseMessage = (rawMessage: string): { text: string, type: LogMessage['type'], isComplete: boolean, isError: boolean } => {
+        let text = rawMessage;
+        let type: LogMessage['type'] = 'info';
+        let isComplete = false;
+        let isError = false;
+
+        try {
+            // Try parsing as JSON first
+            const data = JSON.parse(rawMessage);
+
+            // Handle structured JSON event
+            if (typeof data === 'object' && data !== null) {
+                // Determine type from event type field
+                const eventType = (data.type || '').toLowerCase();
+                const status = (data.status || '').toLowerCase();
+
+                // Handle 'complete' event type - format a summary instead of raw JSON
+                if (eventType === 'complete' && data.data) {
+                    isComplete = true;
+                    type = 'success';
+                    const result = data.data;
+                    const signals = result.signals;
+
+                    // Build readable summary
+                    const parts: string[] = [];
+                    if (signals) {
+                        parts.push(`Interests: ${signals.interests_detected || 0}`);
+                        parts.push(`Events: ${signals.events_detected || 0}`);
+                        parts.push(`Signals stored: ${signals.signals_stored || 0}`);
+                        if (signals.fit_scores?.length) {
+                            parts.push(`Fit scores calculated: ${signals.fit_scores.length}`);
+                        }
+                    }
+                    text = parts.length > 0 ? parts.join(', ') : 'Processing complete';
+                    return { text, type, isComplete, isError };
+                }
+
+                // Handle error events
+                if (status === 'error' || eventType === 'error') {
+                    isError = true;
+                    type = 'error';
+                    text = data.error || data.message || 'Processing failed';
+                    return { text, type, isComplete, isError };
+                }
+
+                // Handle progress/status events
+                if (eventType === 'progress' || eventType === 'status') {
+                    text = data.message || data.status || 'Processing...';
+                    type = 'info';
+                    return { text, type, isComplete, isError };
+                }
+
+                // Other structured messages
+                if (status === 'completed' || status === 'done') {
+                    isComplete = true;
+                    type = 'success';
+                    text = data.message || 'Processing completed';
+                } else if (status === 'queued') {
+                    type = 'warning';
+                    text = data.message || 'Queued';
+                } else if (status === 'processing') {
+                    type = 'info';
+                    text = data.message || 'Processing...';
+                } else {
+                    // Fallback: use message or status field, avoid raw JSON dump
+                    text = data.message || data.status || data.step || 'Processing...';
+                }
+
+                // If we have a payload with more details, append it
+                if (data.payload && typeof data.payload === 'string') {
+                    text += `: ${data.payload}`;
+                }
+
+                return { text, type, isComplete, isError };
+            }
+        } catch (e) {
+            // Not JSON, continue with string parsing
+        }
+
         const cleanMessage = rawMessage.replace(/^"|"$/g, '');
         const lowerMsg = cleanMessage.toLowerCase();
 
         // Define patterns
-        const isError = lowerMsg.includes('failed') || lowerMsg.includes('error') || lowerMsg.includes('exception');
-        const isComplete = cleanMessage === 'completed' || cleanMessage.includes('Processing completed');
+        isError = lowerMsg.includes('failed') || lowerMsg.includes('error') || lowerMsg.includes('exception');
+        isComplete = cleanMessage === 'completed' || cleanMessage.includes('Processing completed');
         const isSuccess = lowerMsg.includes('success') || lowerMsg.includes('saved') || lowerMsg.includes('done');
 
-        let type: LogMessage['type'] = 'info';
         if (isError) type = 'error';
         else if (isComplete) type = 'success';
         else if (isSuccess) type = 'success';
@@ -89,10 +166,17 @@ export function ProcessingStatus() {
 
         try {
             // 1. Start processing with options
-            await startProcessing(domain, options);
+            const response = await startProcessing(domain, options);
+            const processId = response?.process_id;
 
-            // 2. Listen for updates
-            const evtSource = new EventSource(`${API_BASE}/processing/${encodeURIComponent(domain)}/stream`);
+            if (!processId) {
+                throw new Error('No process_id returned from API');
+            }
+
+            // 2. Listen for updates via SSE
+            const streamPath = `/processing/${encodeURIComponent(processId)}/stream`;
+
+            const evtSource = new EventSource(`${API_BASE}${streamPath}`);
             eventSourceRef.current = evtSource;
 
             evtSource.onmessage = (event) => {

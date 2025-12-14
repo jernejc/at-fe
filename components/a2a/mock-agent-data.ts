@@ -43,7 +43,11 @@ export function generateMockAgentData(nodeLabel: string, type: string = 'default
 
     // Deterministic-ish random based on string length
     const seed = nodeLabel.length;
-    const role = isOrchestrator ? 'Orchestrator' : ROLES[seed % ROLES.length];
+    let role = ROLES[seed % ROLES.length];
+
+    if (isOrchestrator) role = 'Orchestrator';
+    if (type === 'entry') role = 'Gateway Interface';
+
     const status = seed % 3 === 0 ? 'thinking' : seed % 3 === 1 ? 'executing' : 'idle';
 
     return {
