@@ -11,7 +11,6 @@ interface AccountCardProps {
     company: CompanySummary;
     playbook?: PlaybookSummary;
     keyContact?: EmployeeSummary;
-    signals?: string[];
     selected?: boolean;
     onSelect?: (selected: boolean) => void;
     onClick?: () => void;
@@ -21,12 +20,40 @@ export function AccountCard({
     company,
     playbook,
     keyContact,
-    signals = [],
     selected = false,
     onSelect,
     onClick,
 }: AccountCardProps) {
     const fitScore = playbook?.fit_score ?? 0;
+    const fitUrgency = playbook?.fit_urgency ?? 0;
+    const contactsCount = playbook?.contacts_count ?? 0;
+
+    // Format relative date
+    const formatRelativeDate = (dateStr: string): string => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffHours < 1) return 'just now';
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays === 1) return 'yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+
+    // Get freshness color based on updated_at
+    const getFreshnessColor = (dateStr: string): string => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 1) return 'text-emerald-600 dark:text-emerald-400'; // Fresh
+        if (diffDays < 7) return 'text-amber-600 dark:text-amber-400';    // Recent
+        return 'text-muted-foreground';                                     // Stale
+    };
 
     // Get company initials for fallback
     const companyInitials = company.name
@@ -49,8 +76,9 @@ export function AccountCard({
     // Calculate company maturity/location for display
     const location = company.hq_city ? `${company.hq_city}${company.hq_country ? `, ${company.hq_country}` : ''}` : null;
 
-    const lastActive = '2d ago'; // Mock data or derive from usage
-    const hasSignals = signals && signals.length > 0;
+    const lastUpdated = company.updated_at ? formatRelativeDate(company.updated_at) : null;
+    const freshnessColor = company.updated_at ? getFreshnessColor(company.updated_at) : 'text-muted-foreground';
+    const hasPlaybook = playbook !== undefined;
 
     return (
         <div
@@ -136,22 +164,45 @@ export function AccountCard({
                     </div>
                 </div>
 
-                {/* Signals Row - The "Why" */}
-                {hasSignals && (
-                    <div className="flex flex-wrap gap-2">
-                        {signals.slice(0, 3).map((signal, i) => (
-                            <div key={i} className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-border/50 text-xs font-medium text-slate-700 dark:text-slate-300">
-                                <span className={cn("w-1.5 h-1.5 rounded-full",
-                                    i === 0 ? "bg-emerald-500" : "bg-blue-500"
-                                )}></span>
-                                {signal}
-                            </div>
-                        ))}
-                        {signals.length > 3 && (
-                            <span className="text-xs text-muted-foreground self-center">+{signals.length - 3} more</span>
-                        )}
-                    </div>
-                )}
+                {/* Playbook Status Row - Real Data */}
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                    {/* Urgency Indicator */}
+                    {fitUrgency >= 8 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            High Intent
+                        </span>
+                    )}
+                    {fitUrgency >= 5 && fitUrgency < 8 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium">
+                            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                            Warming Up
+                        </span>
+                    )}
+
+                    {/* Contacts Ready */}
+                    {hasPlaybook && contactsCount > 0 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            {contactsCount} contact{contactsCount !== 1 ? 's' : ''} ready
+                        </span>
+                    )}
+
+                    {/* Playbook Badge */}
+                    {hasPlaybook && contactsCount === 0 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Playbook ready
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Right Side: Key Contact & Score */}
@@ -183,9 +234,14 @@ export function AccountCard({
                 <div className="flex flex-col items-end gap-1 min-w-[80px]">
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Fit Score</span>
                     <ScoreBadge score={Math.round(fitScore * 100)} size="lg" className="text-base px-3 py-1" />
-                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                        <span>Updated {lastActive}</span>
-                    </span>
+                    {lastUpdated && (
+                        <span className={cn("flex items-center gap-1 text-[10px]", freshnessColor)}>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>{lastUpdated}</span>
+                        </span>
+                    )}
                 </div>
 
                 {/* Hover Action */}

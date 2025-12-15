@@ -142,21 +142,62 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
         setSelectedIds(newSelected);
     };
 
+    // Export filtered companies to CSV
+    const handleExport = () => {
+        const headers = ['Name', 'Domain', 'Industry', 'Location', 'Employees', 'Fit Score', 'Urgency', 'Updated'];
+        const rows = filteredCompanies.map(company => {
+            const playbook = playbooks[company.id];
+            const location = company.hq_city ? `${company.hq_city}${company.hq_country ? ', ' + company.hq_country : ''}` : '';
+            return [
+                company.name,
+                company.domain,
+                company.industry || '',
+                location,
+                company.employee_count?.toString() || '',
+                playbook?.fit_score ? Math.round(playbook.fit_score * 100).toString() : '',
+                playbook?.fit_urgency?.toString() || '',
+                company.updated_at || ''
+            ];
+        });
+
+        const csvContent = [headers, ...rows]
+            .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `accounts-export-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="flex flex-col h-full bg-slate-50/30 dark:bg-slate-900/10">
 
             {/* 1. Main Application Header - "LookAcross" Brand + Product Tabs */}
-            {/* 1. Main Application Header - "LookAcross" Brand + Product Tabs */}
             <Header />
 
-            {/* 1.5. Product Group Navigation - Context Switching (Dedicated Row) */}
-            <div className="bg-white dark:bg-slate-900 border-b border-border/60 z-10">
-                <div className="max-w-[1600px] mx-auto px-6">
-                    <Tabs value={activeProductGroup} onValueChange={setActiveProductGroup} className="w-full">
-                        <TabsList className="bg-transparent h-auto p-0 gap-8 w-full justify-start border-b-0 rounded-none">
+            {/* 1.5. Product Group Navigation - Context Switching (Scrollable) */}
+            <div className="bg-white dark:bg-slate-900 border-b border-border/60 z-10 relative">
+                {/* Fade gradient on right edge for scroll indication */}
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none z-10" />
+
+                <div className="max-w-[1600px] mx-auto px-6 overflow-x-auto scrollbar-hide">
+                    <Tabs value={activeProductGroup} onValueChange={setActiveProductGroup} className="w-max min-w-full">
+                        <TabsList className="bg-transparent h-auto p-0 gap-6 w-max justify-start rounded-none" style={{ border: 'none' }}>
                             <TabsTrigger
                                 value="all"
-                                className="relative h-12 rounded-none border-b-[2px] border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-colors shadow-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+                                className="relative h-12 rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap"
+                                style={{
+                                    border: 'none',
+                                    borderBottom: activeProductGroup === 'all' ? '2px solid #2563eb' : '2px solid transparent',
+                                    color: activeProductGroup === 'all' ? '#2563eb' : undefined,
+                                    background: 'transparent',
+                                    boxShadow: 'none',
+                                    outline: 'none'
+                                }}
                             >
                                 All Accounts
                             </TabsTrigger>
@@ -164,11 +205,22 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                                 <TabsTrigger
                                     key={group.id}
                                     value={group.id}
-                                    className="relative h-12 rounded-none border-b-[2px] border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-colors shadow-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+                                    className="relative h-12 rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap group"
+                                    style={{
+                                        border: 'none',
+                                        borderBottom: activeProductGroup === group.id ? `2px solid ${group.color}` : '2px solid transparent',
+                                        color: activeProductGroup === group.id ? group.color : undefined,
+                                        background: 'transparent',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    }}
                                 >
                                     <span
-                                        className="w-2 h-2 rounded-full mr-2.5 opacity-60 group-hover:opacity-100 transition-opacity"
-                                        style={{ backgroundColor: group.color }}
+                                        className="w-2 h-2 rounded-full mr-2 transition-all group-hover:scale-110"
+                                        style={{
+                                            backgroundColor: group.color,
+                                            opacity: activeProductGroup === group.id ? 1 : 0.5
+                                        }}
                                     />
                                     {group.name}
                                 </TabsTrigger>
@@ -201,24 +253,32 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
 
                     <div className="h-6 w-px bg-border/60 mx-1" />
 
-                    {/* Filter Tabs */}
+                    {/* Filter Tabs with Counts */}
                     <Tabs value={scoreFilter} onValueChange={(v) => setScoreFilter(v as ScoreFilter)} className="w-auto">
                         <TabsList className="h-10 bg-slate-100/50 dark:bg-slate-800/50 p-1 border border-border/50">
-                            <TabsTrigger value="all" className="text-xs px-3 font-medium">All</TabsTrigger>
-                            <TabsTrigger value="hot" className="text-xs px-3 font-medium text-emerald-700 dark:text-emerald-400 data-[state=active]:bg-emerald-50 dark:data-[state=active]:bg-emerald-900/20 data-[state=active]:shadow-none">Hot</TabsTrigger>
-                            <TabsTrigger value="warm" className="text-xs px-3 font-medium text-amber-700 dark:text-amber-400 data-[state=active]:bg-amber-50 dark:data-[state=active]:bg-amber-900/20 data-[state=active]:shadow-none">Warm</TabsTrigger>
+                            <TabsTrigger value="all" className="text-xs px-3 font-medium">
+                                All <span className="ml-1.5 text-muted-foreground">({scoreCounts.all})</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="hot" className="text-xs px-3 font-medium text-emerald-700 dark:text-emerald-400 data-[state=active]:bg-emerald-50 dark:data-[state=active]:bg-emerald-900/20 data-[state=active]:shadow-none">
+                                Hot <span className="ml-1.5 opacity-70">({scoreCounts.hot})</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="warm" className="text-xs px-3 font-medium text-amber-700 dark:text-amber-400 data-[state=active]:bg-amber-50 dark:data-[state=active]:bg-amber-900/20 data-[state=active]:shadow-none">
+                                Warm <span className="ml-1.5 opacity-70">({scoreCounts.warm})</span>
+                            </TabsTrigger>
                         </TabsList>
                     </Tabs>
 
-                    {/* Dropdowns */}
-                    <div className="flex items-center gap-2">
-                        <FilterDropdown label="Industry" />
-                        <FilterDropdown label="More" />
-                    </div>
-
+                    {/* Export Button */}
                     <div className="ml-auto pl-4 border-l border-border/60">
-                        <button className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-                            Save View
+                        <button
+                            onClick={handleExport}
+                            disabled={filteredCompanies.length === 0}
+                            className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Export CSV
                         </button>
                     </div>
                 </div>
@@ -258,7 +318,6 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                                 company={company}
                                 playbook={playbooks[company.id]}
                                 keyContact={company.top_contact || undefined}
-                                signals={['Growth', 'critical', '+2 more']}
                                 selected={selectedIds.has(company.id)}
                                 onSelect={(selected) => handleSelect(company.id, selected)}
                                 onClick={() => onAccountClick?.(company)}
@@ -268,17 +327,5 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                 </div>
             </div>
         </div>
-    );
-}
-
-// Simple filter dropdown placeholder
-function FilterDropdown({ label }: { label: string }) {
-    return (
-        <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-border rounded-lg hover:bg-muted/50 transition-colors">
-            <span>{label}</span>
-            <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-        </button>
     );
 }
