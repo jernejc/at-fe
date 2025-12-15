@@ -355,7 +355,7 @@ export function ProcessingStatus() {
                                 <div className="flex flex-col rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-950 shadow-inner relative group">
                                     <div className="h-40 overflow-y-auto p-3 font-mono text-xs space-y-1">
                                         {logs.map((log, i) => (
-                                            <div key={i} className="break-all border-b border-white/5 pb-0.5 last:border-0 last:pb-0 animate-in fade-in slide-in-from-left-1 duration-100 flex gap-2">
+                                            <div key={i} className="break-all pb-0.5 last:pb-0 animate-in fade-in slide-in-from-left-1 duration-100 flex gap-2">
                                                 <span className="text-slate-600 dark:text-slate-500 shrink-0 select-none">
                                                     [{log.timestamp}]
                                                 </span>
