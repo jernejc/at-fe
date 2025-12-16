@@ -3,18 +3,23 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import { Header } from '@/components/ui/Header';
 import { AccountCard, AccountCardSkeleton } from './AccountCard';
 import {
     getCompanies,
     getPlaybooks,
+    getProducts,
+    calculateFits,
     PRODUCT_GROUPS
 } from '@/lib/api';
 import type {
     CompanySummary,
     PlaybookSummary,
     CompanyFilters,
+    ProductSummary,
 } from '@/lib/schemas';
+import { Loader2, Plus, Sparkles } from 'lucide-react';
 
 type ScoreFilter = 'all' | 'hot' | 'warm' | 'cold';
 
@@ -26,15 +31,17 @@ interface AccountListProps {
 export function AccountList({ productGroup, onAccountClick }: AccountListProps) {
     const [companies, setCompanies] = useState<CompanySummary[]>([]);
     const [playbooks, setPlaybooks] = useState<Record<number, PlaybookSummary>>({});
+    const [products, setProducts] = useState<ProductSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeProductGroup, setActiveProductGroup] = useState<string>('all');
     const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [calculatingFit, setCalculatingFit] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
 
-    // Fetch companies and playbooks
+    // Fetch companies, playbooks, and products
     useEffect(() => {
         async function fetchData() {
             setLoading(true);
@@ -48,16 +55,18 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                     sort_order: 'desc',
                 };
 
-                const [companiesRes, playbooksRes] = await Promise.all([
+                const [companiesRes, playbooksRes, productsRes] = await Promise.all([
                     getCompanies(filters),
                     getPlaybooks({
                         page_size: 100,
                         product_group: activeProductGroup === 'all' ? undefined : activeProductGroup
                     }),
+                    getProducts(1, 100),
                 ]);
 
                 setCompanies(companiesRes.items);
                 setTotalCount(companiesRes.total);
+                setProducts(productsRes.items);
 
                 // Create lookup map for playbooks by company_id
                 const playbookMap: Record<number, PlaybookSummary> = {};
@@ -173,6 +182,88 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
         URL.revokeObjectURL(url);
     };
 
+    // Handle Calculate Fit
+    const handleCalculateFit = async () => {
+        if (selectedIds.size === 0 || activeProductGroup === 'all') return;
+
+        // Debug: Log available products and active group
+        console.log('Active product group:', activeProductGroup);
+        console.log('Available products:', products.map(p => ({ id: p.id, name: p.name, category: p.category })));
+
+        // Find the product ID for the active product group
+        // Try matching by category first, then by product group name
+        let product = products.find(p => p.category === activeProductGroup);
+
+        if (!product) {
+            // Try to find by matching product group name with product name or category
+            const productGroupInfo = PRODUCT_GROUPS.find(g => g.id === activeProductGroup);
+            if (productGroupInfo) {
+                product = products.find(p =>
+                    p.name.toLowerCase().includes(productGroupInfo.name.toLowerCase()) ||
+                    p.category?.toLowerCase().includes(productGroupInfo.name.toLowerCase())
+                );
+            }
+        }
+
+        if (!product) {
+            alert(
+                `Could not find product for the selected group "${activeProductGroup}".\n\n` +
+                `Available products:\n${products.map(p => `- ${p.name} (category: ${p.category || 'none'})`).join('\n')}\n\n` +
+                `Please check the console for more details.`
+            );
+            return;
+        }
+
+        console.log('Selected product:', product);
+
+        setCalculatingFit(true);
+        try {
+            const selectedDomains = filteredCompanies
+                .filter(c => selectedIds.has(c.id))
+                .map(c => c.domain);
+
+            // Make individual API calls for each company
+            // The API supports: specific company × specific product (domain + product_id)
+            console.log(`Calculating fits for ${selectedDomains.length} companies with product ${product.name}...`);
+
+            let totalCalculated = 0;
+            let totalSkipped = 0;
+            let totalDuration = 0;
+
+            for (const domain of selectedDomains) {
+                try {
+                    const result = await calculateFits({
+                        domain: domain,
+                        product_id: product.id,
+                        force: false,
+                    });
+                    totalCalculated += result.companies_calculated;
+                    totalSkipped += result.companies_skipped;
+                    totalDuration += result.duration_seconds;
+                } catch (err) {
+                    console.error(`Failed to calculate fit for ${domain}:`, err);
+                }
+            }
+
+            alert(
+                `✅ Fit calculation complete!\n\n` +
+                `Product: ${product.name}\n` +
+                `Companies processed: ${selectedDomains.length}\n` +
+                `Companies calculated: ${totalCalculated}\n` +
+                `Companies skipped: ${totalSkipped}\n` +
+                `Total duration: ${totalDuration.toFixed(2)}s`
+            );
+
+            // Clear selection after successful calculation
+            setSelectedIds(new Set());
+        } catch (err) {
+            console.error('Error calculating fits:', err);
+            alert('❌ Failed to calculate fits: ' + (err instanceof Error ? err.message : 'Unknown error'));
+        } finally {
+            setCalculatingFit(false);
+        }
+    };
+
     return (
         <div className="flex flex-col h-full bg-slate-50/30 dark:bg-slate-900/10">
 
@@ -268,18 +359,54 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                         </TabsList>
                     </Tabs>
 
-                    {/* Export Button */}
+                    {/* Action Buttons - Compact Group */}
                     <div className="ml-auto pl-4 border-l border-border/60">
-                        <button
-                            onClick={handleExport}
-                            disabled={filteredCompanies.length === 0}
-                            className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Export CSV
-                        </button>
+                        {selectedIds.size === 0 ? (
+                            <div className="text-xs text-muted-foreground font-medium">
+                                Select companies to take action
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-1">
+                                {/* Primary Action - New Campaign */}
+                                <Button
+                                    onClick={() => {
+                                        const selectedDomains = filteredCompanies
+                                            .filter(c => selectedIds.has(c.id))
+                                            .map(c => c.domain)
+                                            .join(',');
+                                        window.location.href = `/campaigns/new?domains=${encodeURIComponent(selectedDomains)}`;
+                                    }}
+                                    size="sm"
+                                    className="gap-1.5 h-8 shadow-sm hover:shadow transition-all bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    New Campaign ({selectedIds.size})
+                                </Button>
+
+                                {/* Divider */}
+                                <div className="h-6 w-px bg-blue-200 dark:bg-blue-800" />
+
+                                {/* Secondary Action - Calculate Fit */}
+                                <button
+                                    onClick={handleCalculateFit}
+                                    disabled={activeProductGroup === 'all' || calculatingFit}
+                                    className="flex items-center gap-1.5 px-3 h-8 text-xs font-medium rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                                    title={activeProductGroup === 'all' ? 'Select a product group to calculate fit' : 'Calculate fit scores'}
+                                >
+                                    {calculatingFit ? (
+                                        <>
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            Calculating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                            Calculate Fit
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

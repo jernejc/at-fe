@@ -216,6 +216,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Sheet Slide-Up Animation */
+@keyframes slide-up-sheet {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* Score Badge Animations */
 @keyframes pulse-hot {
 

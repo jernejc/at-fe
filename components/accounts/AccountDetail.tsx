@@ -168,23 +168,25 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                     <>
                         <SheetHeader className="sr-only"><SheetTitle>Loading</SheetTitle></SheetHeader>
                         <div className="p-8 space-y-8 animate-pulse bg-white dark:bg-slate-950 h-full">
-                            <div className="flex gap-6">
-                                <div className="w-24 h-24 rounded-xl bg-slate-200 dark:bg-slate-800" />
-                                <div className="flex-1 space-y-4 pt-2">
-                                    <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-                                    <div className="h-4 w-96 bg-slate-100 dark:bg-slate-900 rounded" />
-                                    <div className="flex gap-2 pt-2">
-                                        <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
-                                        <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
+                            <div className="max-w-7xl mx-auto w-full space-y-8">
+                                <div className="flex gap-6">
+                                    <div className="w-24 h-24 rounded-xl bg-slate-200 dark:bg-slate-800" />
+                                    <div className="flex-1 space-y-4 pt-2">
+                                        <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                                        <div className="h-4 w-96 bg-slate-100 dark:bg-slate-900 rounded" />
+                                        <div className="flex gap-2 pt-2">
+                                            <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
+                                            <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="h-px bg-slate-100 dark:bg-slate-900" />
-                            <div className="grid grid-cols-4 gap-4">
-                                <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
-                                <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
-                                <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
-                                <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                <div className="h-px bg-slate-100 dark:bg-slate-900" />
+                                <div className="grid grid-cols-4 gap-4">
+                                    <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                    <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                    <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                    <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                </div>
                             </div>
                         </div>
                     </>

@@ -121,3 +121,26 @@ export type {
 
 // Search types
 export type { SearchResults } from './search';
+
+// Campaign types
+export type {
+    CampaignSummary,
+    CampaignRead,
+    CampaignCreate,
+    CampaignUpdate,
+    CampaignSegment,
+    FitDistribution,
+    CampaignOverview,
+    MembershipRead,
+    MembershipCreate,
+    MembershipUpdate,
+    BulkAddResult,
+    CompanyComparison,
+    CampaignComparison,
+    ProcessRequest,
+    ProcessResult,
+    CampaignExport,
+    ImportResult,
+    CampaignImport,
+    CampaignFilters,
+} from './campaign';

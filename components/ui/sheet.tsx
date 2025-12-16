@@ -74,6 +74,7 @@ function SheetContent({
                 className={cn(
                     "bg-background fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out",
                     sideClasses[side],
+                    side === "bottom" && "data-[state=open]:[animation:slide-up-sheet_0.2s_ease-out]",
                     className
                 )}
                 {...props}

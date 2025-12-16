@@ -94,6 +94,9 @@ export function AccountCard({
                 <input
                     type="checkbox"
                     checked={selected}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                    }}
                     onChange={(e) => {
                         e.stopPropagation();
                         onSelect?.(e.target.checked);
