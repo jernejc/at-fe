@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -11,7 +11,7 @@ import { createCampaign } from '@/lib/api';
 import type { CampaignCreate } from '@/lib/schemas';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
-export default function NewCampaignPage() {
+function NewCampaignContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
@@ -209,5 +209,30 @@ export default function NewCampaignPage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+function LoadingFallback() {
+    return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+            <div className="bg-white dark:bg-slate-900 border-b border-border">
+                <div className="max-w-4xl mx-auto px-6 py-6">
+                    <div className="h-10 w-20 bg-slate-200 dark:bg-slate-700 rounded mb-4 animate-pulse" />
+                    <div className="h-9 w-64 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                    <div className="h-5 w-96 bg-slate-200 dark:bg-slate-700 rounded mt-2 animate-pulse" />
+                </div>
+            </div>
+            <div className="max-w-4xl mx-auto px-6 py-8">
+                <div className="h-64 bg-white dark:bg-slate-800 rounded-lg animate-pulse" />
+            </div>
+        </div>
+    );
+}
+
+export default function NewCampaignPage() {
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <NewCampaignContent />
+        </Suspense>
     );
 }
