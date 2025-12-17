@@ -187,3 +187,21 @@ export interface CampaignFilters {
     sort_by?: 'name' | 'created_at' | 'updated_at' | 'company_count';
     sort_order?: 'asc' | 'desc';
 }
+
+// UI-only filter types for the campaign builder
+export type CampaignFilterType = 'natural_query' | 'industry' | 'size_min' | 'size_max' | 'country' | 'domain_list';
+
+export interface CampaignFilterUI {
+    id: string;
+    type: CampaignFilterType;
+    value: string;
+    displayLabel: string;
+}
+
+export interface CampaignDraft {
+    name: string;
+    description: string;
+    filters: CampaignFilterUI[];
+    owner?: string;
+}
+
