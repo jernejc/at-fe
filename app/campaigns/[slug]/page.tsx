@@ -2,11 +2,16 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCampaign, getCampaignOverview, getCampaignCompanies, getCampaignComparison } from '@/lib/api';
+import Link from 'next/link';
+import { getCampaign, getCampaignOverview, getCampaignCompanies, getCampaignComparison, deleteCampaign } from '@/lib/api';
 import type { CampaignRead, CampaignOverview, MembershipRead, CampaignComparison } from '@/lib/schemas';
-import { ArrowLeft, Loader2, TrendingUp, Users, FolderKanban, Zap, Building2, MapPin, Award, Target } from 'lucide-react';
+import { ArrowLeft, Loader2, Users, FolderKanban, Building2, TrendingUp, ChevronRight, Calendar, Download, Settings, Trash2 } from 'lucide-react';
+import { AccountDetail } from '@/components/accounts';
+import { CompanyRowCompact, PartnerTab } from '@/components/campaigns';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { Header } from '@/components/ui/Header';
+import { AddCompanyButton } from '@/components/campaigns/AddCompanyButton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
@@ -20,12 +25,66 @@ export default function CampaignPage({ params }: CampaignPageProps) {
     const { slug } = use(params);
     const router = useRouter();
     const [campaign, setCampaign] = useState<CampaignRead | null>(null);
+
+    // Color helper for fit scores
+    const getFitColor = (range: string) => {
+        const start = parseInt(range.split('-')[0]);
+        if (start >= 80) return 'bg-emerald-500 dark:bg-emerald-500';
+        if (start >= 60) return 'bg-green-500 dark:bg-green-500';
+        if (start >= 40) return 'bg-yellow-500 dark:bg-yellow-500';
+        if (start >= 20) return 'bg-orange-500 dark:bg-orange-500';
+        return 'bg-red-500 dark:bg-red-500';
+    };
+
     const [overview, setOverview] = useState<CampaignOverview | null>(null);
     const [companies, setCompanies] = useState<MembershipRead[]>([]);
     const [comparison, setComparison] = useState<CampaignComparison | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('overview');
+
+    // Account Detail Popover State
+    const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
+    const [detailOpen, setDetailOpen] = useState(false);
+
+    const handleCompanyClick = (domain: string) => {
+        setSelectedDomain(domain);
+        setDetailOpen(true);
+    };
+
+    const refreshData = async () => {
+        try {
+            // Refresh overview always as it affects stats and top companies
+            const overviewData = await getCampaignOverview(slug);
+            setOverview(overviewData);
+
+            // Refresh companies list if it's already loaded or we are on that tab
+            if (activeTab === 'companies' || companies.length > 0) {
+                const result = await getCampaignCompanies(slug, { page_size: 50 });
+                setCompanies(result.items);
+            }
+        } catch (error) {
+            console.error('Failed to refresh data', error);
+        }
+    };
+
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (!confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            await deleteCampaign(slug);
+            router.push('/campaigns');
+        } catch (error) {
+            console.error('Failed to delete campaign:', error);
+            alert('Failed to delete campaign');
+            setIsDeleting(false);
+        }
+    };
 
     useEffect(() => {
         async function fetchCampaign() {
@@ -85,8 +144,8 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                 <Header />
                 <div className="flex-1 flex flex-col items-center justify-center gap-4">
                     <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{error || 'Campaign not found'}</p>
-                    <Button 
-                        onClick={() => router.push('/')} 
+                    <Button
+                        onClick={() => router.push('/')}
                         size="lg"
                         className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow-md transition-all"
                     >
@@ -106,43 +165,93 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
             <main className="flex-1 overflow-y-auto">
                 <div className="max-w-[1600px] mx-auto px-6 py-8">
-                    {/* Page Header */}
-                    <div className="mb-6">
-                        <Button
-                            variant="ghost"
-                            onClick={() => router.push('/campaigns')}
-                            className="mb-4 -ml-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Campaigns
-                        </Button>
+                    {/* Breadcrumbs */}
+                    <div className="flex items-center gap-2 mb-6 text-sm text-slate-500 font-medium animate-in fade-in-50 slide-in-from-left-2">
+                        <Link href="/campaigns" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
+                            Campaigns
+                        </Link>
+                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-900 dark:text-white truncate max-w-[200px]">{campaign.name}</span>
+                    </div>
 
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <FolderKanban className="w-6 h-6 text-slate-600 dark:text-slate-400" />
-                                    <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">{campaign.name}</h1>
+                    {/* Page Header */}
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8 animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+                        {/* Left: Title & Info */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-4 mb-4">
+                                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100/50 dark:border-blue-900/50 shrink-0">
+                                    <FolderKanban className="w-6 h-6" />
                                 </div>
-                                {campaign.description && (
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{campaign.description}</p>
-                                )}
-                                <div className="flex items-center gap-4 mt-4 text-sm text-slate-500 dark:text-slate-400">
-                                    {campaign.owner && (
-                                        <div className="flex items-center gap-1.5">
-                                            <Users className="w-4 h-4" />
-                                            <span>{campaign.owner}</span>
-                                        </div>
-                                    )}
-                                    <span>•</span>
-                                    <span className="font-medium">{campaign.company_count} companies</span>
-                                    {avgFitScore && (
-                                        <>
-                                            <span>•</span>
-                                            <span>Avg Fit: <span className="font-semibold text-slate-700 dark:text-slate-300">{avgFitScore}%</span></span>
-                                        </>
-                                    )}
+                                <div>
+                                    <div className="flex items-center gap-3">
+                                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white truncate">
+                                            {campaign.name}
+                                        </h1>
+                                        <Badge variant="secondary" className="capitalize px-2.5 py-0.5 pointer-events-none">
+                                            {campaign.status}
+                                        </Badge>
+                                    </div>
                                 </div>
                             </div>
+
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500 dark:text-slate-400 ml-1">
+                                {campaign.owner && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
+                                            {campaign.owner.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span>{campaign.owner}</span>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-1.5">
+                                    <Calendar className="w-4 h-4 opacity-70" />
+                                    <span>Created {new Date(campaign.created_at).toLocaleDateString()}</span>
+                                </div>
+
+                                <div className="hidden sm:block w-px h-3 bg-slate-200 dark:bg-slate-700" />
+
+                                <span><span className="font-medium text-slate-900 dark:text-white">{campaign.company_count}</span> companies</span>
+
+                                {avgFitScore && (
+                                    <>
+                                        <div className="hidden sm:block w-px h-3 bg-slate-200 dark:bg-slate-700" />
+                                        <span>Avg Fit: <span className="font-medium text-green-600 dark:text-green-400">{avgFitScore}%</span></span>
+                                    </>
+                                )}
+                            </div>
+
+                            {campaign.description && (
+                                <p className="mt-4 text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                                    {campaign.description}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-3 shrink-0 pt-2">
+                            <Button variant="outline" size="sm" className="h-9 gap-2 shadow-sm">
+                                <Download className="w-4 h-4" />
+                                Export
+                            </Button>
+                            <Button variant="outline" size="sm" className="h-9 gap-2 shadow-sm">
+                                <Settings className="w-4 h-4" />
+                                Settings
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-9 gap-2 shadow-sm text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 dark:border-red-900/30 dark:hover:bg-red-900/30 dark:text-red-400"
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                )}
+                                Delete
+                            </Button>
                         </div>
                     </div>
 
@@ -152,6 +261,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                             <TabsList className="h-auto w-full justify-start gap-6 bg-transparent p-0 rounded-none">
                                 <TabBtn value="overview"><TrendingUp className="w-4 h-4" /> Overview</TabBtn>
                                 <TabBtn value="companies" count={campaign.company_count}><Building2 className="w-4 h-4" /> Companies</TabBtn>
+                                <TabBtn value="partners"><Users className="w-4 h-4" /> Partners</TabBtn>
                                 <TabBtn value="comparison">Comparison</TabBtn>
                             </TabsList>
                         </div>
@@ -159,227 +269,151 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                         {/* Overview Tab */}
                         <TabsContent value="overview" className="mt-0 animate-in fade-in-50">
                             {overview && (
-                                <div className="space-y-8">
-                                    {/* Hero Stats - Asymmetric Layout */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                        {/* Large Progress Card */}
-                                        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8">
-                                            <div className="flex items-start justify-between mb-6">
-                                                <div>
-                                                    <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">Campaign Progress</div>
-                                                    <div className="text-5xl font-bold text-slate-900 dark:text-white tabular-nums">{progressPercent}%</div>
-                                                    <div className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                                                        {overview.processed_count} of {overview.company_count} companies processed
-                                                    </div>
+                                <div className="space-y-6">
+                                    {/* Hero Section */}
+                                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                                        <div className="p-6 pb-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-1">
+                                                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Campaign Progress</h3>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                        {overview.processed_count} of {overview.company_count} companies analyzed
+                                                    </p>
                                                 </div>
-                                                <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                                    <Target className="w-8 h-8 text-slate-600 dark:text-slate-400" />
-                                                </div>
-                                            </div>
-                                            <div className="mt-6">
-                                                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-slate-900 dark:bg-slate-200 rounded-full transition-all duration-1000"
-                                                        style={{ width: `${progressPercent}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Avg Fit Score - Prominent */}
-                                        {avgFitScore && (
-                                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8">
-                                                <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">Average Fit Score</div>
-                                                <div className="text-5xl font-bold text-slate-900 dark:text-white tabular-nums mb-6">{avgFitScore}%</div>
-                                                <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                    <Award className="w-6 h-6 text-slate-600 dark:text-slate-400" />
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Secondary Stats - Compact Row */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                    <Building2 className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{overview.company_count}</div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400">Total Companies</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                    <Zap className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{overview.processed_count}</div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400">Processed</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {overview.fit_distribution && (
-                                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                        <TrendingUp className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
-                                                            {Object.values(overview.fit_distribution).reduce((sum, val) => sum + val, 0) - (overview.fit_distribution.unscored || 0)}
-                                                        </div>
-                                                        <div className="text-xs text-slate-500 dark:text-slate-400">Scored</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {overview.industry_breakdown && (
-                                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                        <Building2 className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
-                                                            {Object.keys(overview.industry_breakdown).filter(k => overview.industry_breakdown[k] > 0).length}
-                                                        </div>
-                                                        <div className="text-xs text-slate-500 dark:text-slate-400">Industries</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Content Grid - Asymmetric */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                        {/* Top Companies - Takes 2 columns */}
-                                        {overview.top_companies && overview.top_companies.length > 0 && (
-                                            <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                                                <h3 className="text-base font-semibold mb-5 text-slate-900 dark:text-white">
-                                                    Top Performing Companies
-                                                </h3>
-                                                <div className="space-y-3">
-                                                    {overview.top_companies.slice(0, 5).map((company, idx) => (
-                                                        <div
-                                                            key={company.id}
-                                                            className="group flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
-                                                        >
-                                                            <div className="flex items-center gap-4 flex-1 min-w-0">
-                                                                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm shrink-0">
-                                                                    {idx + 1}
-                                                                </div>
-                                                                <div className="min-w-0 flex-1">
-                                                                    <div className="font-medium text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors truncate">
-                                                                        {company.company_name}
-                                                                    </div>
-                                                                    <div className="text-sm text-slate-500 dark:text-slate-400 truncate">{company.domain}</div>
-                                                                </div>
-                                                            </div>
-                                                            {company.cached_fit_score && (
-                                                                <div className="text-right shrink-0 ml-4">
-                                                                    <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                                                                        {Math.round(company.cached_fit_score * 100)}%
-                                                                    </div>
-                                                                    <div className="text-xs text-slate-500 dark:text-slate-400">Fit Score</div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Fit Distribution - Sidebar */}
-                                        {overview.fit_distribution && Object.values(overview.fit_distribution).some(v => v > 0) && (
-                                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                                                <h3 className="text-base font-semibold mb-5 text-slate-900 dark:text-white">Fit Distribution</h3>
-                                                <div className="space-y-4">
-                                                    {Object.entries(overview.fit_distribution)
-                                                        .filter(([key]) => key !== 'unscored')
-                                                        .sort((a, b) => {
-                                                            const aStart = parseInt(a[0].split('-')[0]);
-                                                            const bStart = parseInt(b[0].split('-')[0]);
-                                                            return bStart - aStart;
-                                                        })
-                                                        .slice(0, 5)
-                                                        .map(([range, count]) => {
-                                                            const total = Object.values(overview.fit_distribution).reduce((sum, val) => sum + val, 0);
-                                                            const percentage = total > 0 ? (count / total) * 100 : 0;
-
-                                                            return (
-                                                                <div key={range} className="space-y-2">
-                                                                    <div className="flex items-center justify-between text-sm">
-                                                                        <span className="font-medium text-slate-900 dark:text-white">{range}%</span>
-                                                                        <span className="text-slate-500 dark:text-slate-400 text-xs">{count}</span>
-                                                                    </div>
-                                                                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                                        <div
-                                                                            className="h-full bg-slate-900 dark:bg-slate-200 rounded-full transition-all duration-500"
-                                                                            style={{ width: `${percentage}%` }}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    {overview.fit_distribution.unscored > 0 && (
-                                                        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                                <span className="font-medium text-slate-500 dark:text-slate-400">Unscored</span>
-                                                                <span className="text-slate-500 dark:text-slate-400 text-xs">{overview.fit_distribution.unscored}</span>
-                                                            </div>
-                                                            <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className="h-full bg-slate-400 dark:bg-slate-600 rounded-full"
-                                                                    style={{
-                                                                        width: `${(overview.fit_distribution.unscored / Object.values(overview.fit_distribution).reduce((sum, val) => sum + val, 0)) * 100}%`
-                                                                    }}
-                                                                />
-                                                            </div>
+                                                <div className="text-right">
+                                                    <div className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums">{progressPercent}%</div>
+                                                    {avgFitScore && (
+                                                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                                                            Avg fit: <span className="font-semibold text-slate-700 dark:text-slate-300">{avgFitScore}%</span>
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
+                                        <div className="h-1.5 bg-slate-100 dark:bg-slate-800">
+                                            <div
+                                                className="h-full bg-blue-500 transition-all duration-1000 ease-out"
+                                                style={{ width: `${progressPercent}%` }}
+                                            />
+                                        </div>
                                     </div>
 
-                                    {/* Industry Breakdown - Full Width */}
-                                    {overview.industry_breakdown && Object.keys(overview.industry_breakdown).length > 0 && (
-                                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                                            <h3 className="text-base font-semibold mb-5 text-slate-900 dark:text-white">Industry Breakdown</h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {Object.entries(overview.industry_breakdown)
-                                                    .filter(([_, count]) => count > 0)
-                                                    .sort((a, b) => b[1] - a[1])
-                                                    .slice(0, 8)
-                                                    .map(([industry, count]) => {
-                                                        const total = Object.values(overview.industry_breakdown).reduce((sum, val) => sum + val, 0);
-                                                        const percentage = total > 0 ? (count / total) * 100 : 0;
+                                    {/* Main content - Two column layout */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                                        {/* Left column - Top Companies */}
+                                        <div className="lg:col-span-3 space-y-6">
+                                            {/* Industry Breakdown */}
+                                            {overview.industry_breakdown && Object.keys(overview.industry_breakdown).length > 0 && (
+                                                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                                                    <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                                                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Industries</h3>
+                                                    </div>
+                                                    <div className="p-5">
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {Object.entries(overview.industry_breakdown)
+                                                                .filter(([_, count]) => count > 0)
+                                                                .sort((a, b) => b[1] - a[1])
+                                                                .slice(0, 8)
+                                                                .map(([industry, count]) => (
+                                                                    <span
+                                                                        key={industry}
+                                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs rounded-lg"
+                                                                    >
+                                                                        {industry}
+                                                                        <span className="text-slate-400 dark:text-slate-500">{count}</span>
+                                                                    </span>
+                                                                ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+                                                    <h3 className="font-semibold text-slate-900 dark:text-white">Top Companies</h3>
+                                                </div>
+                                                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                    {overview.top_companies && overview.top_companies.length > 0 ? overview.top_companies.slice(0, 5).map((company, idx) => (
+                                                        <CompanyRowCompact
+                                                            key={company.id}
+                                                            name={company.company_name || company.domain}
+                                                            domain={company.domain}
+                                                            rank={idx + 1}
+                                                            fitScore={company.cached_fit_score}
+                                                            logoBase64={company.logo_base64}
+                                                            onClick={() => handleCompanyClick(company.domain)}
+                                                            className="cursor-pointer"
+                                                        />
+                                                    )) : (
+                                                        <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                                                            No companies yet. Add one to get started!
+                                                        </div>
+                                                    )}
+                                                </div>
 
-                                                        return (
-                                                            <div key={industry} className="space-y-2">
-                                                                <div className="flex items-center justify-between text-sm">
-                                                                    <span className="font-medium truncate flex-1 text-slate-900 dark:text-white">{industry}</span>
-                                                                    <span className="text-slate-500 dark:text-slate-400 ml-2 text-xs">{count}</span>
-                                                                </div>
-                                                                <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                                    <div
-                                                                        className="h-full bg-slate-900 dark:bg-slate-200 rounded-full transition-all duration-500"
-                                                                        style={{ width: `${percentage}%` }}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
                                             </div>
                                         </div>
-                                    )}
+
+                                        {/* Right column - Stats sidebar */}
+                                        <div className="lg:col-span-2 space-y-6">
+                                            {/* Fit Distribution */}
+                                            {overview.fit_distribution && Object.values(overview.fit_distribution).some(v => v > 0) && (
+                                                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                                                    <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                                                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Fit Distribution</h3>
+                                                    </div>
+                                                    <div className="p-5 space-y-4">
+                                                        {Object.entries(overview.fit_distribution)
+                                                            .filter(([key]) => key !== 'unscored')
+                                                            .sort((a, b) => {
+                                                                const aStart = parseInt(a[0].split('-')[0]);
+                                                                const bStart = parseInt(b[0].split('-')[0]);
+                                                                return bStart - aStart;
+                                                            })
+                                                            .map(([range, count]) => {
+                                                                const total = Object.values(overview.fit_distribution).reduce((sum, val) => sum + val, 0) - (overview.fit_distribution.unscored || 0);
+                                                                const percentage = total > 0 ? (count / total) * 100 : 0;
+                                                                const colorClass = getFitColor(range);
+
+                                                                return (
+                                                                    <div key={range} className="space-y-1.5">
+                                                                        <div className="flex items-center justify-between text-xs">
+                                                                            <span className="font-medium text-slate-700 dark:text-slate-300">{range}% Match</span>
+                                                                            <span className="text-slate-500 dark:text-slate-400">{count} companies</span>
+                                                                        </div>
+                                                                        <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                                            <div
+                                                                                className={`h-full rounded-full transition-all duration-1000 ${colorClass}`}
+                                                                                style={{ width: `${percentage}%` }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        {overview.fit_distribution.unscored > 0 && (
+                                                            <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
+                                                                <div className="space-y-1.5">
+                                                                    <div className="flex items-center justify-between text-xs">
+                                                                        <span className="font-medium text-slate-500 dark:text-slate-400">Unscored</span>
+                                                                        <span className="text-slate-400 dark:text-slate-500">{overview.fit_distribution.unscored} companies</span>
+                                                                    </div>
+                                                                    <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                                        <div
+                                                                            className="h-full bg-slate-300 dark:bg-slate-600 rounded-full"
+                                                                            style={{
+                                                                                width: `${(overview.fit_distribution.unscored / Object.values(overview.fit_distribution).reduce((sum, val) => sum + val, 0)) * 100}%`
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </TabsContent>
@@ -387,52 +421,25 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                         {/* Companies Tab */}
                         <TabsContent value="companies" className="mt-0 animate-in fade-in-50">
                             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                                <h2 className="text-base font-semibold mb-4 text-slate-900 dark:text-white">Companies in Campaign</h2>
+                                <div className="mb-4">
+                                    <h2 className="text-base font-semibold text-slate-900 dark:text-white">Companies in Campaign</h2>
+                                </div>
                                 {companies.length > 0 ? (
-                                    <div className="space-y-2">
+                                    <div className="divide-y divide-slate-100 dark:divide-slate-800 -mx-2">
                                         {companies.map((membership) => (
-                                            <div
+                                            <CompanyRowCompact
                                                 key={membership.id}
-                                                className="group flex items-center justify-between p-4 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-                                            >
-                                                <div className="flex-1">
-                                                    <div className="font-medium mb-1 text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
-                                                        {membership.company_name || membership.domain}
-                                                    </div>
-                                                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                                                        {membership.industry && (
-                                                            <span className="flex items-center gap-1">
-                                                                <Building2 className="w-3.5 h-3.5" />
-                                                                {membership.industry}
-                                                            </span>
-                                                        )}
-                                                        {membership.employee_count && (
-                                                            <span className="flex items-center gap-1">
-                                                                <Users className="w-3.5 h-3.5" />
-                                                                {membership.employee_count.toLocaleString()}
-                                                            </span>
-                                                        )}
-                                                        {membership.hq_country && (
-                                                            <span className="flex items-center gap-1">
-                                                                <MapPin className="w-3.5 h-3.5" />
-                                                                {membership.hq_country}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    {membership.segment && (
-                                                        <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium">
-                                                            {membership.segment}
-                                                        </span>
-                                                    )}
-                                                    {membership.cached_fit_score !== null && (
-                                                        <div className="text-sm font-bold text-slate-900 dark:text-white min-w-[48px] text-right">
-                                                            {Math.round(membership.cached_fit_score * 100)}%
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
+                                                name={membership.company_name || membership.domain}
+                                                domain={membership.domain}
+                                                industry={membership.industry}
+                                                employeeCount={membership.employee_count}
+                                                hqCountry={membership.hq_country}
+                                                segment={membership.segment}
+                                                fitScore={membership.cached_fit_score}
+                                                logoBase64={membership.logo_base64}
+                                                onClick={() => handleCompanyClick(membership.domain)}
+                                                className="cursor-pointer"
+                                            />
                                         ))}
                                     </div>
                                 ) : (
@@ -440,6 +447,9 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                         <p>No companies in this campaign yet</p>
                                     </div>
                                 )}
+                            </div>
+                            <div className="mt-4">
+                                <AddCompanyButton slug={slug} onCompanyAdded={refreshData} className="h-12 bg-white dark:bg-slate-900 border-dashed" />
                             </div>
                         </TabsContent>
 
@@ -509,10 +519,26 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 )}
                             </div>
                         </TabsContent>
+
+                        {/* Partners Tab */}
+                        <TabsContent value="partners" className="mt-0 animate-in fade-in-50">
+                            <PartnerTab campaignSlug={slug} />
+                        </TabsContent>
                     </Tabs>
                 </div>
             </main>
-        </div>
+
+            {/* Account Detail Popover */}
+            {
+                selectedDomain && (
+                    <AccountDetail
+                        domain={selectedDomain}
+                        open={detailOpen}
+                        onClose={() => setDetailOpen(false)}
+                    />
+                )
+            }
+        </div >
     );
 }
 

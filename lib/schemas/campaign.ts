@@ -93,6 +93,7 @@ export interface MembershipRead {
     is_processed: boolean;
     notes: string | null;
     priority: number;
+    logo_base64?: string | null;
     created_at: string;
 }
 
@@ -198,10 +199,24 @@ export interface CampaignFilterUI {
     displayLabel: string;
 }
 
+
+export type PartnerType = 'agency' | 'technology' | 'consulting' | 'reseller';
+
+export interface Partner {
+    id: string;
+    name: string;
+    type: PartnerType;
+    logo_url?: string;
+    description: string;
+    status: 'active' | 'inactive';
+    match_score: number;
+}
+
 export interface CampaignDraft {
     name: string;
     description: string;
     filters: CampaignFilterUI[];
     owner?: string;
+    partners?: Partner[];
 }
 

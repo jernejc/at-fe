@@ -10,16 +10,34 @@ import {
     getCompanies,
     getPlaybooks,
     getProducts,
-    calculateFits,
-    PRODUCT_GROUPS
+    PRODUCT_GROUPS,
+    getCampaigns,
+    addCompaniesBulk,
 } from '@/lib/api';
 import type {
     CompanySummary,
     PlaybookSummary,
     CompanyFilters,
     ProductSummary,
+    CampaignSummary,
 } from '@/lib/schemas';
-import { Loader2, Plus, Sparkles } from 'lucide-react';
+import { Loader2, Plus, Sparkles, FolderPlus } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/Select";
+import { Label } from "@/components/ui/label";
 
 type ScoreFilter = 'all' | 'hot' | 'warm' | 'cold';
 
@@ -38,8 +56,13 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
     const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-    const [calculatingFit, setCalculatingFit] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
+
+    // Add to Campaign State
+    const [showAddToCampaign, setShowAddToCampaign] = useState(false);
+    const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
+    const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+    const [addingToCampaign, setAddingToCampaign] = useState(false);
 
     // Fetch companies, playbooks, and products
     useEffect(() => {
@@ -182,85 +205,39 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
         URL.revokeObjectURL(url);
     };
 
-    // Handle Calculate Fit
-    const handleCalculateFit = async () => {
-        if (selectedIds.size === 0 || activeProductGroup === 'all') return;
-
-        // Debug: Log available products and active group
-        console.log('Active product group:', activeProductGroup);
-        console.log('Available products:', products.map(p => ({ id: p.id, name: p.name, category: p.category })));
-
-        // Find the product ID for the active product group
-        // Try matching by category first, then by product group name
-        let product = products.find(p => p.category === activeProductGroup);
-
-        if (!product) {
-            // Try to find by matching product group name with product name or category
-            const productGroupInfo = PRODUCT_GROUPS.find(g => g.id === activeProductGroup);
-            if (productGroupInfo) {
-                product = products.find(p =>
-                    p.name.toLowerCase().includes(productGroupInfo.name.toLowerCase()) ||
-                    p.category?.toLowerCase().includes(productGroupInfo.name.toLowerCase())
-                );
-            }
+    // Handle Add to Campaign
+    useEffect(() => {
+        if (showAddToCampaign) {
+            getCampaigns({ page: 1, page_size: 100 }).then(res => {
+                setCampaigns(res.items);
+            });
         }
+    }, [showAddToCampaign]);
 
-        if (!product) {
-            alert(
-                `Could not find product for the selected group "${activeProductGroup}".\n\n` +
-                `Available products:\n${products.map(p => `- ${p.name} (category: ${p.category || 'none'})`).join('\n')}\n\n` +
-                `Please check the console for more details.`
-            );
-            return;
-        }
+    const handleAddToCampaign = async () => {
+        if (!selectedCampaignId || selectedIds.size === 0) return;
 
-        console.log('Selected product:', product);
-
-        setCalculatingFit(true);
+        setAddingToCampaign(true);
         try {
             const selectedDomains = filteredCompanies
                 .filter(c => selectedIds.has(c.id))
                 .map(c => c.domain);
 
-            // Make individual API calls for each company
-            // The API supports: specific company × specific product (domain + product_id)
-            console.log(`Calculating fits for ${selectedDomains.length} companies with product ${product.name}...`);
-
-            let totalCalculated = 0;
-            let totalSkipped = 0;
-            let totalDuration = 0;
-
-            for (const domain of selectedDomains) {
-                try {
-                    const result = await calculateFits({
-                        domain: domain,
-                        product_id: product.id,
-                        force: false,
-                    });
-                    totalCalculated += result.companies_calculated;
-                    totalSkipped += result.companies_skipped;
-                    totalDuration += result.duration_seconds;
-                } catch (err) {
-                    console.error(`Failed to calculate fit for ${domain}:`, err);
-                }
-            }
+            const result = await addCompaniesBulk(selectedCampaignId, selectedDomains);
 
             alert(
-                `✅ Fit calculation complete!\n\n` +
-                `Product: ${product.name}\n` +
-                `Companies processed: ${selectedDomains.length}\n` +
-                `Companies calculated: ${totalCalculated}\n` +
-                `Companies skipped: ${totalSkipped}\n` +
-                `Total duration: ${totalDuration.toFixed(2)}s`
+                `✅ Successfully added ${result.added} companies to the campaign.\n` +
+                (result.skipped > 0 ? `(${result.skipped} were already defined)` : '')
             );
 
-            // Clear selection after successful calculation
+            setShowAddToCampaign(false);
             setSelectedIds(new Set());
+            setSelectedCampaignId(null);
         } catch (err) {
-            console.error('Error calculating fits:', err);
-            alert('❌ Failed to calculate fits: ' + (err instanceof Error ? err.message : 'Unknown error'));
+            console.error('Error adding to campaign:', err);
+            alert('❌ Failed to add companies to campaign');
         } finally {
-            setCalculatingFit(false);
+            setAddingToCampaign(false);
         }
     };
 
@@ -275,49 +252,64 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                 {/* Fade gradient on right edge for scroll indication */}
                 <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none z-10" />
 
-                <div className="max-w-[1600px] mx-auto px-6 overflow-x-auto scrollbar-hide">
-                    <Tabs value={activeProductGroup} onValueChange={setActiveProductGroup} className="w-max min-w-full">
-                        <TabsList className="bg-transparent h-auto p-0 gap-6 w-max justify-start rounded-none" style={{ border: 'none' }}>
-                            <TabsTrigger
-                                value="all"
-                                className="relative h-12 rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap"
-                                style={{
-                                    border: 'none',
-                                    borderBottom: activeProductGroup === 'all' ? '2px solid #2563eb' : '2px solid transparent',
-                                    color: activeProductGroup === 'all' ? '#2563eb' : undefined,
-                                    background: 'transparent',
-                                    boxShadow: 'none',
-                                    outline: 'none'
-                                }}
-                            >
-                                All Accounts
-                            </TabsTrigger>
-                            {PRODUCT_GROUPS.map((group) => (
+                <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between gap-4">
+                    <div className="overflow-x-auto scrollbar-hide flex-1">
+                        <Tabs value={activeProductGroup} onValueChange={setActiveProductGroup} className="w-max min-w-full">
+                            <TabsList className="bg-transparent h-auto p-0 gap-6 w-max justify-start rounded-none" style={{ border: 'none' }}>
                                 <TabsTrigger
-                                    key={group.id}
-                                    value={group.id}
-                                    className="relative h-12 rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap group"
+                                    value="all"
+                                    className="relative h-12 rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap"
                                     style={{
                                         border: 'none',
-                                        borderBottom: activeProductGroup === group.id ? `2px solid ${group.color}` : '2px solid transparent',
-                                        color: activeProductGroup === group.id ? group.color : undefined,
+                                        borderBottom: activeProductGroup === 'all' ? '2px solid #2563eb' : '2px solid transparent',
+                                        color: activeProductGroup === 'all' ? '#2563eb' : undefined,
                                         background: 'transparent',
                                         boxShadow: 'none',
                                         outline: 'none'
                                     }}
                                 >
-                                    <span
-                                        className="w-2 h-2 rounded-full mr-2 transition-all group-hover:scale-110"
-                                        style={{
-                                            backgroundColor: group.color,
-                                            opacity: activeProductGroup === group.id ? 1 : 0.5
-                                        }}
-                                    />
-                                    {group.name}
+                                    All Accounts
                                 </TabsTrigger>
-                            ))}
-                        </TabsList>
-                    </Tabs>
+                                {PRODUCT_GROUPS.map((group) => (
+                                    <TabsTrigger
+                                        key={group.id}
+                                        value={group.id}
+                                        className="relative h-12 rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap group"
+                                        style={{
+                                            border: 'none',
+                                            borderBottom: activeProductGroup === group.id ? `2px solid ${group.color}` : '2px solid transparent',
+                                            color: activeProductGroup === group.id ? group.color : undefined,
+                                            background: 'transparent',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        }}
+                                    >
+                                        <span
+                                            className="w-2 h-2 rounded-full mr-2 transition-all group-hover:scale-110"
+                                            style={{
+                                                backgroundColor: group.color,
+                                                opacity: activeProductGroup === group.id ? 1 : 0.5
+                                            }}
+                                        />
+                                        {group.name}
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </Tabs>
+                    </div>
+
+                    {/* Add Product Button - Pinned Right */}
+                    <div className="shrink-0 pl-4 border-l border-border/60">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 gap-1.5 text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800"
+                            onClick={() => window.location.href = '/products/new'}
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span className="hidden sm:inline">Add Product</span>
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -380,41 +372,90 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                                     className="gap-1.5 h-8 shadow-sm hover:shadow transition-all bg-blue-600 hover:bg-blue-700 text-white"
                                 >
                                     <Plus className="w-3.5 h-3.5" />
-                                    New Campaign ({selectedIds.size})
+                                    New Campaign
                                 </Button>
 
                                 {/* Divider */}
                                 <div className="h-6 w-px bg-blue-200 dark:bg-blue-800" />
 
-                                {/* Secondary Action - Calculate Fit */}
-                                <button
-                                    onClick={handleCalculateFit}
-                                    disabled={activeProductGroup === 'all' || calculatingFit}
-                                    className="flex items-center gap-1.5 px-3 h-8 text-xs font-medium rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40"
-                                    title={activeProductGroup === 'all' ? 'Select a product group to calculate fit' : 'Calculate fit scores'}
+                                {/* Secondary Action - Add to Existing */}
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setShowAddToCampaign(true)}
+                                    size="sm"
+                                    className="gap-1.5 h-8 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40"
                                 >
-                                    {calculatingFit ? (
-                                        <>
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            Calculating...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="w-3.5 h-3.5" />
-                                            Calculate Fit
-                                        </>
-                                    )}
-                                </button>
+                                    <FolderPlus className="w-3.5 h-3.5" />
+                                    Add to Existing
+                                </Button>
+
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
+            {/* Add to Campaign Dialog */}
+            <Dialog open={showAddToCampaign} onOpenChange={setShowAddToCampaign}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add to Campaign</DialogTitle>
+                        <DialogDescription>
+                            Add {selectedIds.size} selected companies to an existing campaign.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label>Select Campaign</Label>
+                            <Select
+                                value={selectedCampaignId || ''}
+                                onValueChange={setSelectedCampaignId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a campaign..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {campaigns.map((c) => (
+                                        <SelectItem key={c.slug} value={c.slug}>
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowAddToCampaign(false)}
+                            disabled={addingToCampaign}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleAddToCampaign}
+                            disabled={!selectedCampaignId || addingToCampaign}
+                        >
+                            {addingToCampaign && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            Add Companies
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Status Bar */}
             <div className="bg-slate-50 dark:bg-slate-900/50 border-b border-border/60 shrink-0">
-                <div className="max-w-[1600px] mx-auto px-6 py-1.5 flex items-center justify-between text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                <div className="max-w-[1600px] mx-auto px-5 xl:px-4 py-1.5 flex items-center justify-between text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
                     <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            checked={filteredCompanies.length > 0 && selectedIds.size === filteredCompanies.length}
+                            onChange={(e) => handleSelectAll(e.target.checked)}
+                            disabled={filteredCompanies.length === 0}
+                        />
                         <span>Sorted by Fit Score</span>
                     </div>
                     <span>{filteredCompanies.length} results</span>
@@ -452,7 +493,7 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                         ))
                     )}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

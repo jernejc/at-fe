@@ -61,24 +61,36 @@ export default function CampaignsPage() {
             <main className="flex-1 overflow-y-auto">
                 <div className="max-w-[1600px] mx-auto px-6 py-8">
                     {/* Page Header */}
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                                <FolderKanban className="w-6 h-6 text-slate-600 dark:text-slate-400" />
-                                <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Campaigns</h1>
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8 animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+                        {/* Left: Title & Info */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100/50 dark:border-blue-900/50 shrink-0">
+                                    <FolderKanban className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                                        Campaigns
+                                    </h1>
+                                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                        Manage and track your account targeting campaigns
+                                    </p>
+                                </div>
                             </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-3 shrink-0 pt-2">
                             <Button
                                 onClick={() => router.push('/campaigns/new')}
-                                className="gap-2 h-10 px-6 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow-md transition-all"
+                                className="gap-2 h-10 px-5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow-md transition-all font-medium"
                             >
                                 <Plus className="w-4 h-4" />
                                 New Campaign
                             </Button>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Manage your account targeting campaigns
-                        </p>
                     </div>
+
 
                     {/* Content */}
                     {campaigns.length === 0 ? (
@@ -87,7 +99,7 @@ export default function CampaignsPage() {
                             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                                 Get started by creating your first campaign from the accounts list
                             </p>
-                            <Button 
+                            <Button
                                 onClick={() => router.push('/')}
                                 className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow-md transition-all"
                             >
