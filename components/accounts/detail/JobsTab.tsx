@@ -1,9 +1,12 @@
 // Jobs Tab Component with Pagination
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import type { JobPostingSummary } from '@/lib/schemas';
 import { EmptyState, SectionHeader } from './components';
 import { formatRelativeDate } from './utils';
-import { cn } from '@/lib/utils';
 
 interface JobsTabProps {
     jobs: JobPostingSummary[];
@@ -52,13 +55,14 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
             {total > jobs.length && onLoadMore && (
                 <div className="flex flex-col items-center gap-2 pt-6 border-t">
                     <p className="text-sm text-muted-foreground">Showing {jobs.length} of {total} positions</p>
-                    <button
+                    <Button
                         onClick={onLoadMore}
                         disabled={loadingMore}
-                        className="px-6 py-2.5 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                        variant="outline"
+                        className="px-6 py-2.5 h-auto text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all"
                     >
                         {loadingMore ? 'Loading...' : 'Load More Jobs'}
-                    </button>
+                    </Button>
                 </div>
             )}
         </div>
@@ -68,10 +72,8 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
 
 function JobCard({ job }: { job: JobPostingSummary }) {
     return (
-        <div
-            className="group relative block p-4 rounded-xl border border-border bg-card hover:border-blue-400 dark:hover:border-blue-600 transition-colors"
-        >
-            <div className="flex flex-col h-full gap-3">
+        <Card className="group relative block rounded-xl border-border bg-card hover:border-blue-400 dark:hover:border-blue-600 transition-colors shadow-sm">
+            <CardContent className="flex flex-col h-full gap-3 p-4">
                 <div className="flex-1 min-w-0">
                     <h5 className="font-semibold text-base text-foreground mb-2">
                         {job.title}
@@ -79,24 +81,24 @@ function JobCard({ job }: { job: JobPostingSummary }) {
 
                     <div className="flex flex-wrap gap-2">
                         {job.location && (
-                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
+                            <Badge variant="secondary" className="gap-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-muted-foreground/20">
                                 <svg className="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 {job.location}
-                            </div>
+                            </Badge>
                         )}
                         {job.employment_type && (
-                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
+                            <Badge variant="secondary" className="gap-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground hover:bg-muted-foreground/20">
                                 <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                                 {job.employment_type}
-                            </div>
+                            </Badge>
                         )}
                         {job.is_remote && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50">
+                            <Badge variant="outline" className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40">
                                 Remote
-                            </span>
+                            </Badge>
                         )}
                     </div>
                 </div>
@@ -106,7 +108,7 @@ function JobCard({ job }: { job: JobPostingSummary }) {
                         Posted {job.posted_at ? formatRelativeDate(job.posted_at) : 'recently'}
                     </span>
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }

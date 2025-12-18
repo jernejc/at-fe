@@ -1,8 +1,9 @@
 // Employee Detail Sheet Component (Drawer)
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
-import { Badge } from '@/components/ui/Badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import type { EmployeeRead } from '@/lib/schemas';
 
 interface PlaybookContext {
@@ -33,7 +34,12 @@ export function EmployeeDetailModal({ employee, open, onClose, isLoading = false
 
     return (
         <Sheet open={open} onOpenChange={onClose}>
-            <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col h-full bg-background border-l shadow-xl">
+            <SheetContent
+                side="right"
+                className="p-0 flex flex-col h-full bg-background border-l shadow-xl"
+                style={{ width: '100%', maxWidth: '650px', zIndex: 60 }}
+                overlayClassName="!z-[60]"
+            >
                 {/* Header (Fixed) */}
                 <div className="p-6 border-b shrink-0 bg-muted/5">
                     <SheetHeader>
@@ -86,15 +92,17 @@ export function EmployeeDetailModal({ employee, open, onClose, isLoading = false
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     {/* Playbook Context - Why Them? */}
                     {playbookContext?.value_prop && (
-                        <section className="p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                                Why This Contact?
-                            </h3>
-                            <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                                {playbookContext.value_prop}
-                            </p>
-                        </section>
+                        <Card className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30 shadow-sm">
+                            <CardContent className="p-4">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                    Why This Contact?
+                                </h3>
+                                <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                                    {playbookContext.value_prop}
+                                </p>
+                            </CardContent>
+                        </Card>
                     )}
 
                     {/* Bio */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Sheet,
     SheetContent,
@@ -15,13 +15,18 @@ import {
     getCompanyPlaybooks,
     getCompanyJobs,
     getCompanyNews,
+    getCompanyExplainability,
+    getEmployee,
 } from '@/lib/api';
 import {
     CompanyDetailResponse,
     CompanySignalsResponse,
+    CompanyExplainabilityResponse,
     PlaybookSummary,
     JobPostingSummary,
     NewsArticleSummary,
+    EmployeeRead,
+    EmployeeSummary,
 } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import { JobsTab } from './detail/JobsTab';
@@ -29,9 +34,10 @@ import { NewsTab } from './detail/NewsTab';
 import { OverviewTab } from './detail/OverviewTab';
 import { PeopleTab } from './detail/PeopleTab';
 import { PlaybooksTab } from './detail/PlaybooksTab';
-import { SignalsTab } from './detail/SignalsTab';
 import { UpdatesTab } from './detail/UpdatesTab';
+import { ExplainabilityTab } from './detail/ExplainabilityTab';
 import { AccountDetailHeader } from './detail/AccountDetailHeader';
+import { EmployeeDetailModal } from './detail/EmployeeDetailModal';
 
 interface AccountDetailProps {
     domain: string;
@@ -41,8 +47,8 @@ interface AccountDetailProps {
 
 export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     const [data, setData] = useState<CompanyDetailResponse | null>(null);
-    const [signals, setSignals] = useState<CompanySignalsResponse | null>(null);
     const [playbooks, setPlaybooks] = useState<PlaybookSummary[]>([]);
+    const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(null);
 
     const [jobs, setJobs] = useState<JobPostingSummary[]>([]);
     const [jobsPage, setJobsPage] = useState(1);
@@ -56,6 +62,35 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
 
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
+
+    // Employee Detail State
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeRead | null>(null);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [loadingDetail, setLoadingDetail] = useState(false);
+
+    const handleEmployeeClick = useCallback(async (person: EmployeeSummary) => {
+        setLoadingDetail(true);
+        // Initialize with summary data to show header immediately
+        setSelectedEmployee(person as unknown as EmployeeRead);
+        setDetailModalOpen(true);
+        try {
+            const response = await getEmployee(person.id);
+            // Merge detail data, preserving summary data if detail is missing fields
+            if (response.employee) {
+                setSelectedEmployee(prev => ({ ...prev, ...response.employee } as EmployeeRead));
+            }
+        } catch (error) {
+            console.error('Failed to load employee details:', error);
+        } finally {
+            setLoadingDetail(false);
+        }
+    }, []);
+
+    const handleCloseEmployeeModal = () => {
+        setDetailModalOpen(false);
+        // Clear after animation completes
+        setTimeout(() => setSelectedEmployee(null), 300);
+    };
 
     useEffect(() => {
         if (!open || !domain) return;
@@ -74,13 +109,13 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                 setData(companyData);
                 setPlaybooks(playbooksData.playbooks);
 
-                const [signalsData, jobsData, newsData] = await Promise.all([
-                    getCompanySignals(domain).catch(() => null),
+                const [jobsData, newsData, explainabilityData] = await Promise.all([
                     getCompanyJobs(domain, 1, 20).catch(() => ({ items: [], total: 0, page: 1, page_size: 20, total_pages: 0, has_next: false, has_previous: false })),
                     getCompanyNews(domain, 1, 20).catch(() => ({ items: [], total: 0, page: 1, page_size: 20, total_pages: 0, has_next: false, has_previous: false })),
+                    getCompanyExplainability(domain).catch(() => null),
                 ]);
 
-                setSignals(signalsData);
+                setExplainability(explainabilityData);
                 setJobs(jobsData.items);
                 setJobsTotal(jobsData.total);
                 setJobsPage(1);
@@ -98,7 +133,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     }, [domain, open]);
 
     // Load more jobs handler
-    const handleLoadMoreJobs = async () => {
+    const handleLoadMoreJobs = useCallback(async () => {
         if (loadingMoreJobs || jobs.length >= jobsTotal) return;
 
         setLoadingMoreJobs(true);
@@ -112,10 +147,10 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
         } finally {
             setLoadingMoreJobs(false);
         }
-    };
+    }, [domain, jobs, jobsPage, jobsTotal, loadingMoreJobs]);
 
     // Load more news handler
-    const handleLoadMoreNews = async () => {
+    const handleLoadMoreNews = useCallback(async () => {
         if (loadingMoreNews || news.length >= newsTotal) return;
 
         setLoadingMoreNews(true);
@@ -129,192 +164,218 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
         } finally {
             setLoadingMoreNews(false);
         }
-    };
+    }, [domain, loadingMoreNews, news, newsPage, newsTotal]);
 
     const company = data?.company;
 
     // Deduplicate employees by full_name, preferring those with avatar_url
-    const employees = (data?.employees || [])
-        .sort((a, b) => {
-            // Sort so entries with avatar come first
-            if (a.avatar_url && !b.avatar_url) return -1;
-            if (!a.avatar_url && b.avatar_url) return 1;
-            return 0;
-        })
-        .filter((employee, index, arr) =>
-            arr.findIndex(e => e.full_name === employee.full_name) === index
-        );
-    const decisionMakers = employees.filter(e => e.is_decision_maker);
-    const otherEmployees = employees.filter(e => !e.is_decision_maker);
+    // Deduplicate employees by full_name, preferring those with avatar_url
+    const { decisionMakers, otherEmployees } = useMemo(() => {
+        const uniqueEmployees = (data?.employees || [])
+            .sort((a, b) => {
+                // Sort so entries with avatar come first
+                if (a.avatar_url && !b.avatar_url) return -1;
+                if (!a.avatar_url && b.avatar_url) return 1;
+                return 0;
+            })
+            .filter((employee, index, arr) =>
+                arr.findIndex(e => e.full_name === employee.full_name) === index
+            );
+        return {
+            decisionMakers: uniqueEmployees.filter(e => e.is_decision_maker),
+            otherEmployees: uniqueEmployees.filter(e => !e.is_decision_maker)
+        };
+    }, [data?.employees]);
 
     const hasPlaybooks = playbooks.length > 0;
     const hasPeople = (data?.counts?.employees || 0) > 0;
-    const hasSignals = ((signals?.interests?.length || 0) + (signals?.events?.length || 0)) > 0;
     const hasJobs = jobsTotal > 0;
     const hasNews = newsTotal > 0;
     const hasUpdates = (company?.updates?.length || 0) > 0;
+    const hasExplainability = !!explainability;
 
     return (
-        <Sheet open={open} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent side="bottom" hideClose className="h-[95vh] flex flex-col p-0 border-t-0 rounded-t-2xl overflow-hidden shadow-2xl">
-                <button
-                    onClick={onClose}
-                    className="absolute right-4 top-4 z-50 rounded-full bg-white/80 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-900/80 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors backdrop-blur-sm"
-                >
-                    <X className="h-5 w-5" />
-                    <span className="sr-only">Close</span>
-                </button>
-                {loading ? (
-                    <>
-                        <SheetHeader className="sr-only"><SheetTitle>Loading</SheetTitle></SheetHeader>
-                        <div className="p-8 space-y-8 animate-pulse bg-white dark:bg-slate-950 h-full">
-                            <div className="max-w-7xl mx-auto w-full space-y-8">
-                                <div className="flex gap-6">
-                                    <div className="w-24 h-24 rounded-xl bg-slate-200 dark:bg-slate-800" />
-                                    <div className="flex-1 space-y-4 pt-2">
-                                        <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-                                        <div className="h-4 w-96 bg-slate-100 dark:bg-slate-900 rounded" />
-                                        <div className="flex gap-2 pt-2">
-                                            <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
-                                            <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
+        <>
+            <Sheet open={open} onOpenChange={(open) => !open && onClose()}>
+                <SheetContent side="bottom" showCloseButton={false} className="flex flex-col p-0 border-t-0 rounded-t-2xl overflow-hidden" style={{ height: '95vh', maxHeight: '95vh' }}>
+                    <button
+                        onClick={onClose}
+                        className="absolute right-4 top-4 z-50 rounded-full bg-white p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors shadow-sm"
+                    >
+                        <X className="h-5 w-5" />
+                        <span className="sr-only">Close</span>
+                    </button>
+                    {loading ? (
+                        <>
+                            <SheetHeader className="sr-only"><SheetTitle>Loading</SheetTitle></SheetHeader>
+                            <div className="p-8 space-y-8 animate-pulse bg-white dark:bg-slate-950 h-full">
+                                <div className="max-w-7xl mx-auto w-full space-y-8">
+                                    <div className="flex gap-6">
+                                        <div className="w-24 h-24 rounded-xl bg-slate-200 dark:bg-slate-800" />
+                                        <div className="flex-1 space-y-4 pt-2">
+                                            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                                            <div className="h-4 w-96 bg-slate-100 dark:bg-slate-900 rounded" />
+                                            <div className="flex gap-2 pt-2">
+                                                <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
+                                                <div className="h-6 w-20 bg-slate-100 dark:bg-slate-900 rounded-full" />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="h-px bg-slate-100 dark:bg-slate-900" />
-                                <div className="grid grid-cols-4 gap-4">
-                                    <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
-                                    <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
-                                    <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
-                                    <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
-                                </div>
-                            </div>
-                        </div>
-                    </>
-                ) : company ? (
-                    <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-950/50">
-                        {/* Header */}
-                        <div className="bg-white dark:bg-slate-900 z-10 transition-shadow">
-                            <AccountDetailHeader company={company} />
-
-                            {/* Tabs - Clean Underline Style */}
-                            <div className="pt-1">
-                                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                                    <div className="w-full border-b border-border text-center">
-                                        <TabsList className="h-auto w-full max-w-7xl mx-auto justify-center gap-8 bg-transparent p-0 rounded-none overflow-x-auto no-scrollbar">
-                                            <TabBtn value="overview">Overview</TabBtn>
-
-                                            {hasPlaybooks && (
-                                                <TabBtn value="playbooks" count={playbooks.length}>Playbooks</TabBtn>
-                                            )}
-                                            {hasPeople && (
-                                                <TabBtn value="people" count={data?.counts['employees']}>People</TabBtn>
-                                            )}
-                                            {hasSignals && (
-                                                <TabBtn value="signals" count={(signals?.interests?.length || 0) + (signals?.events?.length || 0)}>Signals</TabBtn>
-                                            )}
-                                            {hasJobs && (
-                                                <TabBtn value="jobs" count={jobsTotal}>Jobs</TabBtn>
-                                            )}
-                                            {hasNews && (
-                                                <TabBtn value="news" count={newsTotal}>News</TabBtn>
-                                            )}
-                                            {hasUpdates && (
-                                                <TabBtn value="updates" count={company.updates?.length}>Updates</TabBtn>
-                                            )}
-                                        </TabsList>
+                                    <div className="h-px bg-slate-100 dark:bg-slate-900" />
+                                    <div className="grid grid-cols-4 gap-4">
+                                        <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                        <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                        <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
+                                        <div className="h-8 bg-slate-100 dark:bg-slate-900 rounded" />
                                     </div>
-                                </Tabs>
+                                </div>
                             </div>
-                        </div>
+                        </>
+                    ) : company ? (
+                        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950">
+                            {/* Header */}
+                            <div className="bg-white dark:bg-slate-900 z-20 shadow-sm transition-shadow">
+                                <AccountDetailHeader company={company} />
 
-                        {/* Content Area */}
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                            <div className="p-6 max-w-7xl mx-auto w-full">
-                                <Tabs value={activeTab} className="w-full">
-                                    <TabsContent value="overview" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
-                                        <OverviewTab company={company} />
-                                    </TabsContent>
+                                {/* Tabs - Clean Underline Style */}
+                                <div className="pt-1">
+                                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                        <div className="w-full border-b border-border text-center">
+                                            <TabsList variant="line" className="w-full max-w-7xl mx-auto justify-center gap-8">
+                                                <TabsTrigger value="overview">Overview</TabsTrigger>
 
-                                    {hasPlaybooks && (
-                                        <TabsContent value="playbooks" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
-                                            <PlaybooksTab playbooks={playbooks} availableEmployees={employees} domain={domain} />
-                                        </TabsContent>
+                                                {hasExplainability && (
+                                                    <TabsTrigger value="explainability">
+                                                        Explainability
+                                                    </TabsTrigger>
+                                                )}
+
+                                                {hasPlaybooks && (
+                                                    <TabsTrigger value="playbooks">
+                                                        Playbooks
+                                                        <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                                            {formatCompactNumber(playbooks.length)}
+                                                        </span>
+                                                    </TabsTrigger>
+                                                )}
+                                                {hasPeople && (
+                                                    <TabsTrigger value="people">
+                                                        People
+                                                        <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                                            {formatCompactNumber(data?.counts['employees'] || 0)}
+                                                        </span>
+                                                    </TabsTrigger>
+                                                )}
+                                                {hasJobs && (
+                                                    <TabsTrigger value="jobs">
+                                                        Jobs
+                                                        <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                                            {formatCompactNumber(jobsTotal)}
+                                                        </span>
+                                                    </TabsTrigger>
+                                                )}
+                                                {hasNews && (
+                                                    <TabsTrigger value="news">
+                                                        News
+                                                        <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                                            {formatCompactNumber(newsTotal)}
+                                                        </span>
+                                                    </TabsTrigger>
+                                                )}
+                                                {hasUpdates && (
+                                                    <TabsTrigger value="updates">
+                                                        Updates
+                                                        <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                                            {formatCompactNumber(company?.updates?.length || 0)}
+                                                        </span>
+                                                    </TabsTrigger>
+                                                )}
+                                            </TabsList>
+                                        </div>
+                                    </Tabs>
+                                </div>
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="flex-1 overflow-y-auto overflow-x-hidden isolate">
+                                <div className="p-6 max-w-7xl mx-auto w-full">
+                                    {activeTab === 'overview' && (
+                                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-2">
+                                            <OverviewTab company={company} />
+                                        </div>
                                     )}
-                                    {hasPeople && (
-                                        <TabsContent value="people" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
-                                            <PeopleTab decisionMakers={decisionMakers} employees={otherEmployees} total={data?.counts.employees || 0} />
-                                        </TabsContent>
+
+                                    {activeTab === 'explainability' && hasExplainability && explainability && (
+                                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-2">
+                                            <ExplainabilityTab data={explainability} />
+                                        </div>
                                     )}
-                                    {hasSignals && (
-                                        <TabsContent value="signals" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
-                                            <SignalsTab signals={signals} />
-                                        </TabsContent>
+
+                                    {activeTab === 'playbooks' && hasPlaybooks && (
+                                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-2">
+                                            <PlaybooksTab playbooks={playbooks} availableEmployees={otherEmployees} domain={domain} />
+                                        </div>
                                     )}
-                                    {hasJobs && (
-                                        <TabsContent value="jobs" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+
+                                    {activeTab === 'people' && hasPeople && (
+                                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-2">
+                                            <PeopleTab
+                                                decisionMakers={decisionMakers}
+                                                employees={otherEmployees}
+                                                total={data?.counts.employees || 0}
+                                                onSelectEmployee={handleEmployeeClick}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'jobs' && hasJobs && (
+                                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-2">
                                             <JobsTab
                                                 jobs={jobs}
                                                 total={jobsTotal}
                                                 onLoadMore={handleLoadMoreJobs}
                                                 loadingMore={loadingMoreJobs}
                                             />
-                                        </TabsContent>
+                                        </div>
                                     )}
-                                    {hasNews && (
-                                        <TabsContent value="news" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+
+                                    {activeTab === 'news' && hasNews && (
+                                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-2">
                                             <NewsTab
                                                 news={news}
                                                 total={newsTotal}
                                                 onLoadMore={handleLoadMoreNews}
                                                 loadingMore={loadingMoreNews}
                                             />
-                                        </TabsContent>
+                                        </div>
                                     )}
-                                    {hasUpdates && (
-                                        <TabsContent value="updates" className="mt-0 focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+
+                                    {activeTab === 'updates' && hasUpdates && (
+                                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-2">
                                             <UpdatesTab updates={company.updates || []} />
-                                        </TabsContent>
+                                        </div>
                                     )}
-                                </Tabs>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ) : (
-                    <>
-                        <SheetHeader className="sr-only"><SheetTitle>Not found</SheetTitle></SheetHeader>
-                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
-                            <div className="text-4xl mb-4">🔍</div>
-                            <p className="font-medium">Company not found</p>
-                        </div>
-                    </>
-                )}
-            </SheetContent>
-        </Sheet>
-    );
-}
-
-// Custom tab button with clean underline style
-function TabBtn({ value, count, children }: { value: string; count?: number; children: React.ReactNode }) {
-    return (
-        <TabsTrigger
-            value={value}
-            className={cn(
-                "group relative flex items-center gap-2 pb-3 pt-2 px-1 rounded-none font-medium text-sm transition-none bg-transparent hover:text-foreground",
-                "text-muted-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold data-[state=active]:shadow-none",
-                "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 dark:after:bg-blue-400 after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
-            )}
-        >
-            <span>{children}</span>
-            {count !== undefined && count > 0 && (
-                <span className={cn(
-                    "text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none transition-colors",
-                    "bg-muted text-muted-foreground",
-                    "group-data-[state=active]:bg-blue-50 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:bg-blue-900/20 dark:group-data-[state=active]:text-blue-300"
-                )}>
-                    {formatCompactNumber(count)}
-                </span>
-            )}
-        </TabsTrigger>
+                    ) : (
+                        <>
+                            <SheetHeader className="sr-only"><SheetTitle>Not found</SheetTitle></SheetHeader>
+                            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
+                                <div className="text-4xl mb-4">🔍</div>
+                                <p className="font-medium">Company not found</p>
+                            </div>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
+            <EmployeeDetailModal
+                employee={selectedEmployee}
+                open={detailModalOpen}
+                onClose={handleCloseEmployeeModal}
+                isLoading={loadingDetail}
+            />
+        </>
     );
 }
 

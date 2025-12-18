@@ -8,8 +8,8 @@ import type { CampaignRead, CampaignOverview, MembershipRead, CampaignComparison
 import { ArrowLeft, Loader2, Users, FolderKanban, Building2, TrendingUp, ChevronRight, Calendar, Download, Settings, Trash2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
 import { CompanyRowCompact, PartnerTab } from '@/components/campaigns';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Header } from '@/components/ui/Header';
 import { AddCompanyButton } from '@/components/campaigns/AddCompanyButton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -129,7 +129,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
     if (loading) {
         return (
-            <div className="h-screen bg-[#F8F9FB] dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
+            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
                 <Header />
                 <div className="flex-1 flex items-center justify-center">
                     <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
@@ -140,7 +140,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
     if (error || !campaign) {
         return (
-            <div className="h-screen bg-[#F8F9FB] dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
+            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
                 <Header />
                 <div className="flex-1 flex flex-col items-center justify-center gap-4">
                     <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{error || 'Campaign not found'}</p>
@@ -160,111 +160,138 @@ export default function CampaignPage({ params }: CampaignPageProps) {
     const progressPercent = Math.round((campaign.processed_count / Math.max(campaign.company_count, 1)) * 100);
 
     return (
-        <div className="h-screen bg-[#F8F9FB] dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
+        <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
             <Header />
 
-            <main className="flex-1 overflow-y-auto">
-                <div className="max-w-[1600px] mx-auto px-6 py-8">
-                    {/* Breadcrumbs */}
-                    <div className="flex items-center gap-2 mb-6 text-sm text-slate-500 font-medium animate-in fade-in-50 slide-in-from-left-2">
-                        <Link href="/campaigns" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
-                            Campaigns
-                        </Link>
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-900 dark:text-white truncate max-w-[200px]">{campaign.name}</span>
-                    </div>
+            <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950">
+                {/* Breadcrumbs - placed above header or inside? Let's put it in the header for now or above.
+                   Actually, let's keep it simple and just have the header. 
+                   If the user wants exact styling, AccountDetail doesn't have breadcrumbs.
+                   But this is a page.
+                   I'll remove the breadcrumbs for now to match the clean look, or move them into the header.
+                   Let's put them in the header top left.
+                */}
 
-                    {/* Page Header */}
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8 animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
-                        {/* Left: Title & Info */}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100/50 dark:border-blue-900/50 shrink-0">
-                                    <FolderKanban className="w-6 h-6" />
+
+                {/* Header matching AccountDetailHeader style */}
+                <div className="relative overflow-hidden group border-b border-border/60 bg-white dark:bg-slate-900">
+                    {/* Subtle background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white/50 to-blue-50/30 dark:from-slate-900/80 dark:via-slate-900/50 dark:to-blue-900/10 pointer-events-none" />
+
+                    <div className="relative px-6 pt-12 pb-0 max-w-[1600px] mx-auto w-full">
+                        <div className="flex gap-6 items-start">
+                            {/* Icon with elevated container */}
+                            <div className="relative rounded-xl p-3 bg-white dark:bg-slate-800 shadow-sm border border-border/60 shrink-0">
+                                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                    <FolderKanban className="w-8 h-8" />
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-3">
-                                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white truncate">
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
                                             {campaign.name}
                                         </h1>
-                                        <Badge variant="secondary" className="capitalize px-2.5 py-0.5 pointer-events-none">
+                                        <Badge variant="secondary" className="capitalize px-2 py-0.5 pointer-events-none">
                                             {campaign.status}
                                         </Badge>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500 dark:text-slate-400 ml-1">
-                                {campaign.owner && (
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
-                                            {campaign.owner.charAt(0).toUpperCase()}
+                                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground pt-1">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
+                                                {campaign.owner?.charAt(0).toUpperCase() || 'U'}
+                                            </div>
+                                            <span>{campaign.owner || 'Unknown'}</span>
                                         </div>
-                                        <span>{campaign.owner}</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <Calendar className="w-3.5 h-3.5 opacity-70" />
+                                            <span>Created {new Date(campaign.created_at).toLocaleDateString()}</span>
+                                        </div>
                                     </div>
-                                )}
-
-                                <div className="flex items-center gap-1.5">
-                                    <Calendar className="w-4 h-4 opacity-70" />
-                                    <span>Created {new Date(campaign.created_at).toLocaleDateString()}</span>
+                                    {campaign.description && (
+                                        <p className="text-sm text-muted-foreground pt-2 max-w-3xl leading-relaxed">
+                                            {campaign.description}
+                                        </p>
+                                    )}
                                 </div>
 
-                                <div className="hidden sm:block w-px h-3 bg-slate-200 dark:bg-slate-700" />
-
-                                <span><span className="font-medium text-slate-900 dark:text-white">{campaign.company_count}</span> companies</span>
-
-                                {avgFitScore && (
-                                    <>
-                                        <div className="hidden sm:block w-px h-3 bg-slate-200 dark:bg-slate-700" />
-                                        <span>Avg Fit: <span className="font-medium text-green-600 dark:text-green-400">{avgFitScore}%</span></span>
-                                    </>
-                                )}
+                                {/* Key metrics as pills */}
+                                <div className="flex flex-wrap gap-2 mt-5">
+                                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-sm border bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-900/20 dark:border-slate-800 dark:text-slate-400">
+                                        <span className="text-base">🏢</span>
+                                        <span className="font-semibold">{campaign.company_count}</span>
+                                        <span className="text-xs text-muted-foreground">companies</span>
+                                    </div>
+                                    {avgFitScore && (
+                                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-sm border bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-100">
+                                            <span className="text-base">🎯</span>
+                                            <span className="font-semibold">{avgFitScore}%</span>
+                                            <span className="text-xs text-muted-foreground">avg fit</span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-sm border bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-900/20 dark:border-slate-800 dark:text-slate-400">
+                                        <span className="text-base">📊</span>
+                                        <span className="font-semibold">{progressPercent}%</span>
+                                        <span className="text-xs text-muted-foreground">analyzed</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            {campaign.description && (
-                                <p className="mt-4 text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-                                    {campaign.description}
-                                </p>
-                            )}
+                            {/* Right: Actions */}
+                            <div className="flex items-center gap-3 shrink-0 pt-1">
+                                <Button variant="outline" size="sm" className="h-9 gap-2 shadow-sm bg-white dark:bg-slate-900">
+                                    <Download className="w-4 h-4" />
+                                    Export
+                                </Button>
+                                <Button variant="outline" size="sm" className="h-9 gap-2 shadow-sm bg-white dark:bg-slate-900">
+                                    <Settings className="w-4 h-4" />
+                                    Settings
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 gap-2 shadow-sm text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 dark:border-red-900/30 dark:hover:bg-red-900/30 dark:text-red-400 bg-white dark:bg-slate-900"
+                                    onClick={handleDelete}
+                                    disabled={isDeleting}
+                                >
+                                    {isDeleting ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Trash2 className="w-4 h-4" />
+                                    )}
+                                    Delete
+                                </Button>
+                            </div>
                         </div>
 
-                        {/* Right: Actions */}
-                        <div className="flex items-center gap-3 shrink-0 pt-2">
-                            <Button variant="outline" size="sm" className="h-9 gap-2 shadow-sm">
-                                <Download className="w-4 h-4" />
-                                Export
-                            </Button>
-                            <Button variant="outline" size="sm" className="h-9 gap-2 shadow-sm">
-                                <Settings className="w-4 h-4" />
-                                Settings
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 gap-2 shadow-sm text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 dark:border-red-900/30 dark:hover:bg-red-900/30 dark:text-red-400"
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                            >
-                                {isDeleting ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Trash2 className="w-4 h-4" />
-                                )}
-                                Delete
-                            </Button>
+                        {/* Tabs - Centered with clean underline style inside the header block */}
+                        <div className="pt-8">
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                <div className="w-full border-b border-border">
+                                    <TabsList variant="line" className="w-full justify-start gap-8">
+                                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                                        <TabsTrigger value="companies">
+                                            Companies
+                                            <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                                {campaign.company_count}
+                                            </span>
+                                        </TabsTrigger>
+                                        <TabsTrigger value="partners">Partners</TabsTrigger>
+                                        <TabsTrigger value="comparison">Comparison</TabsTrigger>
+                                    </TabsList>
+                                </div>
+                            </Tabs>
                         </div>
                     </div>
+                </div>
 
-                    {/* Tabs */}
-                    <Tabs value={activeTab} onValueChange={setActiveTab}>
-                        <div className="border-b border-slate-200 dark:border-slate-800 mb-6">
-                            <TabsList className="h-auto w-full justify-start gap-6 bg-transparent p-0 rounded-none">
-                                <TabBtn value="overview"><TrendingUp className="w-4 h-4" /> Overview</TabBtn>
-                                <TabBtn value="companies" count={campaign.company_count}><Building2 className="w-4 h-4" /> Companies</TabBtn>
-                                <TabBtn value="partners"><Users className="w-4 h-4" /> Partners</TabBtn>
-                                <TabBtn value="comparison">Comparison</TabBtn>
-                            </TabsList>
-                        </div>
+                {/* Content Area */}
+                <div className="max-w-[1600px] mx-auto px-6 py-8">
+                    {/* Tabs content wrappers */}
+                    <Tabs value={activeTab} className="w-full">
+                        {/* We moved TabsList to the header, so we just render content here */}
 
                         {/* Overview Tab */}
                         <TabsContent value="overview" className="mt-0 animate-in fade-in-50">
@@ -302,37 +329,12 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                                         {/* Left column - Top Companies */}
                                         <div className="lg:col-span-3 space-y-6">
-                                            {/* Industry Breakdown */}
-                                            {overview.industry_breakdown && Object.keys(overview.industry_breakdown).length > 0 && (
-                                                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                                                    <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                                                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Industries</h3>
-                                                    </div>
-                                                    <div className="p-5">
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {Object.entries(overview.industry_breakdown)
-                                                                .filter(([_, count]) => count > 0)
-                                                                .sort((a, b) => b[1] - a[1])
-                                                                .slice(0, 8)
-                                                                .map(([industry, count]) => (
-                                                                    <span
-                                                                        key={industry}
-                                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs rounded-lg"
-                                                                    >
-                                                                        {industry}
-                                                                        <span className="text-slate-400 dark:text-slate-500">{count}</span>
-                                                                    </span>
-                                                                ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
                                             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                                                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
                                                     <h3 className="font-semibold text-slate-900 dark:text-white">Top Companies</h3>
                                                 </div>
                                                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                    {overview.top_companies && overview.top_companies.length > 0 ? overview.top_companies.slice(0, 5).map((company, idx) => (
+                                                    {overview.top_companies && overview.top_companies.length > 0 ? overview.top_companies.slice(0, 10).map((company, idx) => (
                                                         <CompanyRowCompact
                                                             key={company.id}
                                                             name={company.company_name || company.domain}
@@ -355,6 +357,32 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
                                         {/* Right column - Stats sidebar */}
                                         <div className="lg:col-span-2 space-y-6">
+                                            {/* Industry Breakdown */}
+                                            {overview.industry_breakdown && Object.keys(overview.industry_breakdown).length > 0 && (
+                                                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                                                    <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                                                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Industries</h3>
+                                                    </div>
+                                                    <div className="p-5">
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {Object.entries(overview.industry_breakdown)
+                                                                .filter(([_, count]) => count > 0)
+                                                                .sort((a, b) => b[1] - a[1])
+                                                                .slice(0, 8)
+                                                                .map(([industry, count]) => (
+                                                                    <Badge
+                                                                        key={industry}
+                                                                        className="px-3 py-1.5 font-semibold text-slate-500 whitespace-nowrap bg-slate-50 border border-slate-100 hover:bg-slate-100 h-auto"
+                                                                    >
+                                                                        {industry}
+                                                                        <span className="text-slate-400 dark:text-slate-500">{count}</span>
+                                                                    </Badge>
+                                                                ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* Fit Distribution */}
                                             {overview.fit_distribution && Object.values(overview.fit_distribution).some(v => v > 0) && (
                                                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -539,31 +567,6 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                 )
             }
         </div >
-    );
-}
-
-// Tab button matching AccountDetail style
-function TabBtn({ value, count, children }: { value: string; count?: number; children: React.ReactNode }) {
-    return (
-        <TabsTrigger
-            value={value}
-            className={cn(
-                "group relative flex items-center gap-2 pb-3 pt-2 px-1 rounded-none font-medium text-sm bg-transparent hover:text-slate-900 dark:hover:text-slate-100",
-                "text-slate-500 dark:text-slate-400 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-none",
-                "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-slate-900 dark:after:bg-slate-200 after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
-            )}
-        >
-            {children}
-            {count !== undefined && count > 0 && (
-                <span className={cn(
-                    "text-[10px] font-bold px-1.5 py-0.5 rounded-lg",
-                    "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
-                    "group-data-[state=active]:bg-slate-900 group-data-[state=active]:text-white dark:group-data-[state=active]:bg-slate-200 dark:group-data-[state=active]:text-slate-900"
-                )}>
-                    {count}
-                </span>
-            )}
-        </TabsTrigger>
     );
 }
 

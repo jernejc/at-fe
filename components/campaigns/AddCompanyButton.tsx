@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Loader2, X, Search, Building2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { addCompanyToCampaign, searchCompanies } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { CompanySummary } from '@/lib/schemas';
@@ -264,7 +264,8 @@ export function AddCompanyButton({ slug, onCompanyAdded, className, variant = 'g
 
     // Idle State - Dashed Slot Style
     return (
-        <button
+        <Button
+            variant="ghost"
             className={cn(
                 "group w-full flex items-center justify-center gap-2 h-10",
                 "rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-800",
@@ -278,6 +279,6 @@ export function AddCompanyButton({ slug, onCompanyAdded, className, variant = 'g
         >
             <Plus className="w-4 h-4 transition-transform group-hover:scale-110" />
             <span>Add another company</span>
-        </button>
+        </Button>
     );
 }

@@ -179,11 +179,9 @@ export function A2ADiagram({ mermaid }: A2ADiagramProps) {
 
             <Sheet modal={false} open={isSheetOpen} onOpenChange={(open) => !open && resetSelection()}>
                 <SheetContent
-                    overlay={false}
                     side="left"
-                    hideClose={true}
+                    showCloseButton={false}
                     className="!z-10 !top-16 !h-[calc(100vh-4rem)] w-[400px] sm:w-[540px] !overflow-visible p-0 shadow-2xl border-r border-slate-200 bg-white/95 backdrop-blur-sm"
-                    onInteractOutside={(e) => e.preventDefault()}
                 >
                     {/* Custom Close Button outside the sheet content flow but visually attached or floating */}
                     <button

@@ -4,11 +4,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { AuthProvider } from "@/lib/auth/provider";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: "LookAcross - Account Intelligence",
@@ -21,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body
         className={`${inter.variable} antialiased`}
       >

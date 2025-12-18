@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Partner } from '@/lib/schemas/campaign';
 import { Search, Check, Building2, Zap, Briefcase, Globe } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 // Mock Data
 const MOCK_PARTNERS: Partner[] = [
@@ -118,53 +120,60 @@ export function PartnerSelection({ selectedPartners, onSelectionChange }: Partne
                     const TypeIcon = getIcon(partner.type);
 
                     return (
-                        <div
+                        <Card
                             key={partner.id}
                             onClick={() => togglePartner(partner)}
                             className={cn(
-                                "group relative p-4 rounded-xl border transition-all duration-200 cursor-pointer flex gap-4 items-start select-none",
+                                "group relative transition-all duration-200 cursor-pointer overflow-hidden border-2",
                                 isSelected
-                                    ? "bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 ring-1 ring-blue-500"
-                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md"
+                                    ? "bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 ring-1 ring-blue-500/20 shadow-md"
+                                    : "bg-white dark:bg-slate-900 border-transparent hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-lg"
                             )}
                         >
-                            <div className={cn(
-                                "w-12 h-12 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                                isSelected ? "bg-blue-100 text-blue-600 dark:bg-blue-800/30 dark:text-blue-300" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                            )}>
-                                <TypeIcon className="w-6 h-6" />
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                    <h3 className={cn("font-semibold truncate", isSelected ? "text-blue-700 dark:text-blue-300" : "text-slate-900 dark:text-white")}>
-                                        {partner.name}
-                                    </h3>
-                                    {partner.match_score >= 90 && (
-                                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
-                                            {partner.match_score}% Match
-                                        </span>
-                                    )}
+                            <CardContent className="p-4 flex gap-4 items-start select-none">
+                                <div className={cn(
+                                    "w-12 h-12 rounded-lg flex items-center justify-center shrink-0 transition-colors border",
+                                    isSelected
+                                        ? "bg-blue-100 border-blue-200 text-blue-600 dark:bg-blue-900/40 dark:border-blue-800 dark:text-blue-300"
+                                        : "bg-slate-50 border-slate-100 text-slate-500 dark:bg-slate-800 dark:border-slate-800 dark:text-slate-400"
+                                )}>
+                                    <TypeIcon className="w-6 h-6" />
                                 </div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-2">
-                                    {partner.description}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 capitalize">
-                                        {partner.type}
-                                    </span>
-                                </div>
-                            </div>
 
-                            <div className={cn(
-                                "absolute top-4 right-4 w-5 h-5 rounded-full border flex items-center justify-center transition-all",
-                                isSelected
-                                    ? "bg-blue-500 border-blue-500 text-white scale-100"
-                                    : "border-slate-300 dark:border-slate-600 bg-transparent text-transparent scale-90 opacity-0 group-hover:opacity-100"
-                            )}>
-                                <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                            </div>
-                        </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <h3 className={cn("font-bold text-base truncate pr-6", isSelected ? "text-blue-700 dark:text-blue-300" : "text-slate-900 dark:text-white")}>
+                                            {partner.name}
+                                        </h3>
+                                    </div>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-3 min-h-[2.5em]">
+                                        {partner.description}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={isSelected ? "default" : "secondary"} className={cn(
+                                            "capitalize font-normal",
+                                            !isSelected && "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
+                                        )}>
+                                            {partner.type}
+                                        </Badge>
+                                        {partner.match_score >= 90 && (
+                                            <Badge variant="outline" className="border-emerald-200 text-emerald-600 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-400 font-bold gap-1">
+                                                {partner.match_score}% Match
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className={cn(
+                                    "absolute top-4 right-4 w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-300",
+                                    isSelected
+                                        ? "bg-blue-600 border-blue-600 text-white scale-100 shadow-sm"
+                                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-transparent scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
+                                )}>
+                                    <Check className="w-3 h-3" strokeWidth={3} />
+                                </div>
+                            </CardContent>
+                        </Card>
                     );
                 })}
             </div>

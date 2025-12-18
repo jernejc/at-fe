@@ -2,7 +2,9 @@
 
 import { Partner } from '@/lib/schemas/campaign';
 import { Building2, Zap, Briefcase, Globe, ExternalLink, Mail, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 // Mock data (same as PartnerSelection for consistency)
 const MOCK_ASSIGNED_PARTNERS: Partner[] = [
@@ -40,20 +42,20 @@ export function PartnerTab({ campaignSlug }: { campaignSlug: string }) {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <Card className="shadow-sm overflow-hidden">
+                <div className="flex justify-between items-start border-b border-slate-200 dark:border-slate-800 p-6">
                     <div>
-                        <h2 className="text-base font-semibold text-slate-900 dark:text-white">Assigned Partners</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <CardTitle className="text-base font-semibold">Assigned Partners</CardTitle>
+                        <CardDescription className="mt-1">
                             External partners collaborating on this campaign
-                        </p>
+                        </CardDescription>
                     </div>
                     <Button variant="outline" size="sm">
                         Manage Partners
                     </Button>
                 </div>
 
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                <CardContent className="p-0 divide-y divide-slate-100 dark:divide-slate-800">
                     {partners.map(partner => {
                         const TypeIcon = getIcon(partner.type);
 
@@ -69,13 +71,13 @@ export function PartnerTab({ campaignSlug }: { campaignSlug: string }) {
                                             {partner.name}
                                         </h3>
                                         <div className="flex items-center gap-2">
-                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium dark:bg-emerald-900/10 dark:border-emerald-900/20 dark:text-emerald-400">
+                                            <Badge variant="secondary" className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/10 dark:border-emerald-900/20 dark:text-emerald-400 px-2 py-0.5">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                                 Active
-                                            </span>
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 capitalize border border-slate-200 dark:border-slate-700">
+                                            </Badge>
+                                            <Badge variant="outline" className="capitalize">
                                                 {partner.type}
-                                            </span>
+                                            </Badge>
                                         </div>
                                     </div>
                                     <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -96,14 +98,14 @@ export function PartnerTab({ campaignSlug }: { campaignSlug: string }) {
                             </div>
                         );
                     })}
-                </div>
+                </CardContent>
 
                 {partners.length === 0 && (
                     <div className="p-12 text-center text-slate-500 dark:text-slate-400">
                         No partners assigned to this campaign yet.
                     </div>
                 )}
-            </div>
+            </Card>
 
             <div>
                 <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 flex flex-col justify-center items-center text-center">

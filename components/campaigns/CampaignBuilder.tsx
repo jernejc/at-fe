@@ -7,7 +7,9 @@ import { createCampaign, getCompanies } from '@/lib/api';
 import type { CampaignFilterUI, CampaignDraft, Partner } from '@/lib/schemas/campaign';
 import type { CompanySummary } from '@/lib/schemas';
 import { Header } from '@/components/ui/Header';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { Loader2, Search, ChevronDown, ChevronUp, X, Pencil, Check, Building2, Users, MapPin, Briefcase, Globe, ArrowRight } from 'lucide-react';
 import { CompanyRowCompact } from './CompanyRowCompact';
 import { PartnerSelection } from './PartnerSelection';
@@ -322,7 +324,7 @@ export function CampaignBuilder({ initialDomains = [] }: CampaignBuilderProps) {
             </div>
 
             <main className={cn(
-                "relative z-10 flex-1 flex flex-col items-center w-full transition-all duration-700 ease-in-out",
+                "relative flex-1 flex flex-col items-center w-full transition-all duration-700 ease-in-out",
                 isLayoutExpanded ? "pt-12" : "pt-[30vh]" // Dynamic padding instead of flexbox centering
             )}>
                 <div className="w-full max-w-2xl mx-auto px-6 transition-all duration-700">
@@ -391,19 +393,20 @@ export function CampaignBuilder({ initialDomains = [] }: CampaignBuilderProps) {
                                     {hasFilters && (
                                         <div className="px-2 flex flex-wrap gap-2 mb-1 animate-in fade-in slide-in-from-bottom-1 duration-200">
                                             {draft.filters.map(filter => (
-                                                <span
+                                                <Badge
                                                     key={filter.id}
-                                                    className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1 rounded-full text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/30 font-medium"
+                                                    variant="secondary"
+                                                    className="pl-3 pr-1 py-1 gap-1.5 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 border-blue-100 dark:border-blue-800/30"
                                                 >
                                                     {filter.displayLabel}
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveFilter(filter.id)}
-                                                        className="p-0.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
+                                                        className="p-0.5 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                                                     >
                                                         <X className="w-3 h-3" />
                                                     </button>
-                                                </span>
+                                                </Badge>
                                             ))}
                                         </div>
                                     )}
@@ -446,8 +449,8 @@ export function CampaignBuilder({ initialDomains = [] }: CampaignBuilderProps) {
 
                                                     {/* Dropdown */}
                                                     {openDropdown === filter.key && (
-                                                        <div className="absolute top-full left-0 mt-3 w-64 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-200/50 dark:shadow-black/50 overflow-hidden z-30 animate-in fade-in slide-in-from-top-2 duration-200 ring-1 ring-black/5">
-                                                            <div className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800">
+                                                        <Card className="absolute top-full left-0 mt-3 w-64 overflow-hidden z-30 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                            <div className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-border">
                                                                 Select {filter.label}
                                                             </div>
                                                             <div className="max-h-72 overflow-y-auto py-1 custom-scrollbar">
@@ -463,7 +466,7 @@ export function CampaignBuilder({ initialDomains = [] }: CampaignBuilderProps) {
                                                                     </button>
                                                                 ))}
                                                             </div>
-                                                        </div>
+                                                        </Card>
                                                     )}
                                                 </div>
                                             ))}
@@ -492,8 +495,8 @@ export function CampaignBuilder({ initialDomains = [] }: CampaignBuilderProps) {
                                 "transition-all duration-700 ease-out",
                                 hasResults ? "opacity-100 translate-y-0 mt-6" : "opacity-0 translate-y-10 mt-0 pointer-events-none"
                             )}>
-                                <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-1 shadow-sm">
-                                    <div className="flex items-center justify-between gap-4 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800/50">
+                                <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60 shadow-md">
+                                    <div className="flex items-center justify-between gap-4 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800/50 m-1">
                                         <button
                                             onClick={() => setShowCompanyList(!showCompanyList)}
                                             className="flex-1 flex items-center gap-4 hover:opacity-80 transition-opacity text-left group"
@@ -539,8 +542,8 @@ export function CampaignBuilder({ initialDomains = [] }: CampaignBuilderProps) {
 
                                     {/* Expandable Company List - Detached */}
                                     {showCompanyList && (
-                                        <div className="mt-2 text-slate-600 dark:text-slate-400 animate-in slide-in-from-top-4 fade-in duration-300 origin-top">
-                                            <div className="bg-white/50 dark:bg-slate-900/50 rounded-xl overflow-hidden backdrop-blur-sm">
+                                        <div className="px-1 pb-1">
+                                            <div className="mt-1 bg-white/50 dark:bg-slate-900/50 rounded-xl overflow-hidden backdrop-blur-sm animate-in slide-in-from-top-4 fade-in duration-300 origin-top">
                                                 {matchingCompanies.slice(0, 10).map(company => (
                                                     <CompanyRowCompact
                                                         key={company.id}
@@ -560,7 +563,7 @@ export function CampaignBuilder({ initialDomains = [] }: CampaignBuilderProps) {
                                             </div>
                                         </div>
                                     )}
-                                </div>
+                                </Card>
                             </div>
                         </>
                     )}

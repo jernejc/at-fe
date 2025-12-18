@@ -144,3 +144,14 @@ export type {
     CampaignImport,
     CampaignFilters,
 } from './campaign';
+
+// Explainability types
+export type {
+    CompanyExplainabilityResponse,
+    SignalsSummary,
+    SignalInterest,
+    SignalEvent,
+    FitSummaryFit,
+    DataCoverage,
+    Freshness,
+} from './explainability';

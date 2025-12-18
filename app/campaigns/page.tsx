@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getCampaigns } from '@/lib/api';
 import type { CampaignSummary } from '@/lib/schemas';
 import { Loader2, FolderKanban, Plus, TrendingUp, Users, Building2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Header } from '@/components/ui/Header';
 import { cn } from '@/lib/utils';
 

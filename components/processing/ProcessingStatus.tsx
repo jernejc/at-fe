@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { X, Play, Loader2, CheckCircle2, Terminal } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { startProcessing, API_BASE } from '@/lib/api';
 
 export function ProcessingStatus() {

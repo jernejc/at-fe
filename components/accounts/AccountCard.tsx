@@ -1,6 +1,7 @@
 'use client';
 
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { ScoreBadge } from './ScoreBadge';
 import type { CompanySummary, PlaybookSummary, EmployeeSummary } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
@@ -110,14 +111,14 @@ export function AccountCard({
 
             {/* Company Logo - Larger & Boxed */}
             <div className="relative shrink-0 rounded-xl p-0.5 bg-white dark:bg-slate-800 shadow-sm border border-border/60 mt-1">
-                <Avatar className="w-14 h-14 rounded-lg">
+                <Avatar className="w-14 h-14 rounded-lg after:hidden">
                     {(company.logo_base64 || company.logo_url) && (
                         <AvatarImage
                             src={company.logo_base64
                                 ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
                                 : company.logo_url!}
                             alt={company.name}
-                            className="object-contain"
+                            className="object-contain rounded-lg"
                         />
                     )}
                     <AvatarFallback className="rounded-lg bg-slate-50 text-slate-700 dark:bg-slate-900 dark:text-slate-300 font-bold text-sm">
@@ -171,39 +172,39 @@ export function AccountCard({
                 <div className="flex flex-wrap items-center gap-3 text-xs">
                     {/* Urgency Indicator */}
                     {fitUrgency >= 8 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium">
+                        <Badge variant="destructive" className="gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 hover:bg-emerald-200">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
                             High Intent
-                        </span>
+                        </Badge>
                     )}
                     {fitUrgency >= 5 && fitUrgency < 8 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium">
+                        <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 hover:bg-amber-200">
                             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                             Warming Up
-                        </span>
+                        </Badge>
                     )}
 
                     {/* Contacts Ready */}
                     {hasPlaybook && contactsCount > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium">
+                        <Badge variant="outline" className="gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 hover:bg-blue-100">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             {contactsCount} contact{contactsCount !== 1 ? 's' : ''} ready
-                        </span>
+                        </Badge>
                     )}
 
                     {/* Playbook Badge */}
                     {hasPlaybook && contactsCount === 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
+                        <Badge variant="outline" className="gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             Playbook ready
-                        </span>
+                        </Badge>
                     )}
                 </div>
             </div>

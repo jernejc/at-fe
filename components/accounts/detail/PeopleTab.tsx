@@ -1,11 +1,7 @@
 // People Tab Component
-
-import { useState } from 'react';
-import { getEmployee } from '@/lib/api';
-import type { EmployeeSummary, EmployeeRead } from '@/lib/schemas';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
+import { EmployeeSummary } from '@/lib/schemas';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { EmptyState, SectionHeader } from './components';
-import { EmployeeDetailModal } from './EmployeeDetailModal';
 import { cn } from '@/lib/utils';
 
 interface PeopleTabProps {
@@ -14,85 +10,48 @@ interface PeopleTabProps {
     total: number;
 }
 
-export function PeopleTab({ decisionMakers, employees, total }: PeopleTabProps) {
-    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeRead | null>(null);
-    const [detailModalOpen, setDetailModalOpen] = useState(false);
-    const [loadingDetail, setLoadingDetail] = useState(false);
-
-    const handleEmployeeClick = async (person: EmployeeSummary) => {
-        setLoadingDetail(true);
-        // Initialize with summary data to show header immediately
-        setSelectedEmployee(person as unknown as EmployeeRead);
-        setDetailModalOpen(true);
-        try {
-            const response = await getEmployee(person.id);
-            // Merge detail data, preserving summary data if detail is missing fields
-            if (response.employee) {
-                setSelectedEmployee(prev => ({ ...prev, ...response.employee } as EmployeeRead));
-            }
-        } catch (error) {
-            console.error('Failed to load employee details:', error);
-        } finally {
-            setLoadingDetail(false);
-        }
-    };
-
-    const handleCloseModal = () => {
-        setDetailModalOpen(false);
-        // Clear after animation completes
-        setTimeout(() => setSelectedEmployee(null), 300);
-    };
-
+export function PeopleTab({ decisionMakers, employees, total, onSelectEmployee }: PeopleTabProps & { onSelectEmployee: (employee: EmployeeSummary) => void }) {
     if (decisionMakers.length === 0 && employees.length === 0) {
         return <EmptyState>No employees found</EmptyState>;
     }
 
     return (
-        <>
-            <div className="space-y-6">
-                {decisionMakers.length > 0 && (
-                    <section>
-                        <SectionHeader title="Key Contacts" color="bg-amber-500" />
-                        <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-card">
-                            {decisionMakers.map((e) => (
-                                <PersonRow
-                                    key={e.id}
-                                    person={e}
-                                    highlight
-                                    onClick={() => handleEmployeeClick(e)}
-                                />
-                            ))}
-                        </div>
-                    </section>
-                )}
+        <div className="space-y-6">
+            {decisionMakers.length > 0 && (
+                <section>
+                    <SectionHeader title="Key Contacts" color="bg-amber-500" />
+                    <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-white dark:bg-slate-900">
+                        {decisionMakers.map((e) => (
+                            <PersonRow
+                                key={e.id}
+                                person={e}
+                                highlight
+                                onClick={() => onSelectEmployee(e)}
+                            />
+                        ))}
+                    </div>
+                </section>
+            )}
 
-                {employees.length > 0 && (
-                    <section>
-                        <SectionHeader title="Team" color="bg-blue-600">
-                            <span className="text-sm text-muted-foreground ml-auto">
-                                Showing {employees.length} of {total - decisionMakers.length}
-                            </span>
-                        </SectionHeader>
-                        <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-card">
-                            {employees.map((e) => (
-                                <PersonRow
-                                    key={e.id}
-                                    person={e}
-                                    onClick={() => handleEmployeeClick(e)}
-                                />
-                            ))}
-                        </div>
-                    </section>
-                )}
-            </div>
-
-            <EmployeeDetailModal
-                employee={selectedEmployee}
-                open={detailModalOpen}
-                onClose={handleCloseModal}
-                isLoading={loadingDetail}
-            />
-        </>
+            {employees.length > 0 && (
+                <section>
+                    <SectionHeader title="Team" color="bg-blue-600">
+                        <span className="text-sm text-muted-foreground ml-auto">
+                            Showing {employees.length} of {total - decisionMakers.length}
+                        </span>
+                    </SectionHeader>
+                    <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-white dark:bg-slate-900">
+                        {employees.map((e) => (
+                            <PersonRow
+                                key={e.id}
+                                person={e}
+                                onClick={() => onSelectEmployee(e)}
+                            />
+                        ))}
+                    </div>
+                </section>
+            )}
+        </div>
     );
 }
 
@@ -111,9 +70,9 @@ function PersonRow({
     return (
         <div
             className={cn(
-                "flex items-center gap-4 p-4 bg-card transition-colors",
+                "flex items-center gap-4 p-4 bg-white dark:bg-slate-900 transition-colors",
                 onClick && "cursor-pointer",
-                highlight ? "bg-amber-50/30 hover:bg-amber-50/80 dark:bg-amber-900/10 dark:hover:bg-amber-900/20" : "hover:bg-muted/50"
+                highlight ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950 dark:hover:bg-amber-900" : "hover:bg-slate-100 dark:hover:bg-slate-800"
             )}
             onClick={onClick}
         >

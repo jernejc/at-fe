@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Building2, Users, MapPin } from 'lucide-react';
 
@@ -79,12 +79,12 @@ export function CompanyRowCompact({
 
             {/* Company Logo - Compact 28px */}
             <div className="shrink-0">
-                <Avatar className="w-7 h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <Avatar className="w-7 h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 after:hidden">
                     {logoSrc && (
                         <AvatarImage
                             src={logoSrc}
                             alt={name}
-                            className="object-contain"
+                            className="object-contain rounded-md"
                         />
                     )}
                     <AvatarFallback className="rounded-md bg-slate-50 text-slate-600 dark:bg-slate-900 dark:text-slate-400 text-[10px] font-semibold">

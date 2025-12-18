@@ -7,8 +7,8 @@ import { EmptyState, SectionHeader } from './components';
 import { EmployeeDetailModal } from './EmployeeDetailModal';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
     Search,
@@ -31,7 +31,7 @@ import {
     Check,
     ExternalLink
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface PlaybooksTabProps {
     playbooks: PlaybookSummary[];

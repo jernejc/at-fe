@@ -1,6 +1,6 @@
 // Updates Tab Component
 import { EmptyState } from './components';
-import { Avatar, AvatarFallback } from '@/components/ui/Avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { formatRelativeDate } from './utils'; // reuse util if available
 

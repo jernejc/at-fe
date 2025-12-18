@@ -8,6 +8,7 @@ import type {
     CompanySummaryWithFit,
     CompanyRead,
     CompanyDetailResponse,
+    CompanyExplainabilityResponse,
     CompanyFilters,
     DomainResult,
     EmployeeSummary,
@@ -111,6 +112,10 @@ export async function getCompanyLegacy(
 ): Promise<DomainResult> {
     const query = buildQueryString(options || {});
     return fetchAPI<DomainResult>(`/api/v1/companies/${encodeURIComponent(domain)}${query}`);
+}
+
+export async function getCompanyExplainability(domain: string): Promise<CompanyExplainabilityResponse> {
+    return fetchAPI<CompanyExplainabilityResponse>(`/api/v1/companies/${encodeURIComponent(domain)}/explainability`);
 }
 
 export async function getCompanyEmployees(

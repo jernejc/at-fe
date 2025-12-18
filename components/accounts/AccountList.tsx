@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { Header } from '@/components/ui/Header';
-import { AccountCard, AccountCardSkeleton } from './AccountCard';
+import { useState, useEffect, useMemo } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Header } from "@/components/ui/Header";
+import { AccountCard, AccountCardSkeleton } from "./AccountCard";
 import {
     getCompanies,
     getPlaybooks,
@@ -13,15 +13,15 @@ import {
     PRODUCT_GROUPS,
     getCampaigns,
     addCompaniesBulk,
-} from '@/lib/api';
+} from "@/lib/api";
 import type {
     CompanySummary,
     PlaybookSummary,
     CompanyFilters,
     ProductSummary,
     CampaignSummary,
-} from '@/lib/schemas';
-import { Loader2, Plus, Sparkles, FolderPlus } from 'lucide-react';
+} from "@/lib/schemas";
+import { Loader2, Plus, Sparkles, FolderPlus } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -36,32 +36,39 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/Select";
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-type ScoreFilter = 'all' | 'hot' | 'warm' | 'cold';
+type ScoreFilter = "all" | "hot" | "warm" | "cold";
 
 interface AccountListProps {
     productGroup?: string;
     onAccountClick?: (company: CompanySummary) => void;
 }
 
-export function AccountList({ productGroup, onAccountClick }: AccountListProps) {
+export function AccountList({
+    productGroup,
+    onAccountClick,
+}: AccountListProps) {
     const [companies, setCompanies] = useState<CompanySummary[]>([]);
-    const [playbooks, setPlaybooks] = useState<Record<number, PlaybookSummary>>({});
+    const [playbooks, setPlaybooks] = useState<Record<number, PlaybookSummary>>(
+        {}
+    );
     const [products, setProducts] = useState<ProductSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeProductGroup, setActiveProductGroup] = useState<string>('all');
-    const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('all');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [activeProductGroup, setActiveProductGroup] = useState<string>("all");
+    const [scoreFilter, setScoreFilter] = useState<ScoreFilter>("all");
+    const [searchQuery, setSearchQuery] = useState("");
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [totalCount, setTotalCount] = useState(0);
 
     // Add to Campaign State
     const [showAddToCampaign, setShowAddToCampaign] = useState(false);
     const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
-    const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+    const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
+        null
+    );
     const [addingToCampaign, setAddingToCampaign] = useState(false);
 
     // Fetch companies, playbooks, and products
@@ -74,15 +81,16 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                 const filters: CompanyFilters = {
                     page: 1,
                     page_size: 50,
-                    sort_by: 'updated_at',
-                    sort_order: 'desc',
+                    sort_by: "updated_at",
+                    sort_order: "desc",
                 };
 
                 const [companiesRes, playbooksRes, productsRes] = await Promise.all([
                     getCompanies(filters),
                     getPlaybooks({
                         page_size: 100,
-                        product_group: activeProductGroup === 'all' ? undefined : activeProductGroup
+                        product_group:
+                            activeProductGroup === "all" ? undefined : activeProductGroup,
                     }),
                     getProducts(1, 100),
                 ]);
@@ -93,16 +101,21 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
 
                 // Create lookup map for playbooks by company_id
                 const playbookMap: Record<number, PlaybookSummary> = {};
-                playbooksRes.items.forEach(pb => {
+                playbooksRes.items.forEach((pb) => {
                     // Use highest fit score if multiple playbooks for same company
-                    if (!playbookMap[pb.company_id] || (pb.fit_score || 0) > (playbookMap[pb.company_id].fit_score || 0)) {
+                    if (
+                        !playbookMap[pb.company_id] ||
+                        (pb.fit_score || 0) > (playbookMap[pb.company_id].fit_score || 0)
+                    ) {
                         playbookMap[pb.company_id] = pb;
                     }
                 });
                 setPlaybooks(playbookMap);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to fetch accounts');
-                console.error('Error fetching accounts:', err);
+                setError(
+                    err instanceof Error ? err.message : "Failed to fetch accounts"
+                );
+                console.error("Error fetching accounts:", err);
             } finally {
                 setLoading(false);
             }
@@ -113,21 +126,22 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
 
     // Filter and sort companies
     const filteredCompanies = useMemo(() => {
-        const result = companies.filter(company => {
+        const result = companies.filter((company) => {
             const playbook = playbooks[company.id];
             const score = Math.round((playbook?.fit_score || 0) * 100);
 
             // Score filter
-            if (scoreFilter === 'hot' && score < 80) return false;
-            if (scoreFilter === 'warm' && (score < 60 || score >= 80)) return false;
-            if (scoreFilter === 'cold' && score >= 60) return false;
+            if (scoreFilter === "hot" && score < 80) return false;
+            if (scoreFilter === "warm" && (score < 60 || score >= 80)) return false;
+            if (scoreFilter === "cold" && score >= 60) return false;
 
             // Search filter
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
                 const matchesName = company.name.toLowerCase().includes(query);
                 const matchesIndustry = company.industry?.toLowerCase().includes(query);
-                const matchesLocation = company.hq_city?.toLowerCase().includes(query) ||
+                const matchesLocation =
+                    company.hq_city?.toLowerCase().includes(query) ||
                     company.hq_country?.toLowerCase().includes(query);
                 if (!matchesName && !matchesIndustry && !matchesLocation) return false;
             }
@@ -137,8 +151,8 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
 
         // Sort by score descending
         return result.sort((a, b) => {
-            const scoreA = (playbooks[a.id]?.fit_score || 0);
-            const scoreB = (playbooks[b.id]?.fit_score || 0);
+            const scoreA = playbooks[a.id]?.fit_score || 0;
+            const scoreB = playbooks[b.id]?.fit_score || 0;
             return scoreB - scoreA;
         });
     }, [companies, playbooks, scoreFilter, searchQuery]);
@@ -146,7 +160,7 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
     // Count by score category
     const scoreCounts = useMemo(() => {
         const counts = { all: companies.length, hot: 0, warm: 0, cold: 0 };
-        companies.forEach(company => {
+        companies.forEach((company) => {
             const playbook = playbooks[company.id];
             const score = Math.round((playbook?.fit_score || 0) * 100);
             if (score >= 80) counts.hot++;
@@ -158,7 +172,7 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedIds(new Set(filteredCompanies.map(c => c.id)));
+            setSelectedIds(new Set(filteredCompanies.map((c) => c.id)));
         } else {
             setSelectedIds(new Set());
         }
@@ -174,41 +188,10 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
         setSelectedIds(newSelected);
     };
 
-    // Export filtered companies to CSV
-    const handleExport = () => {
-        const headers = ['Name', 'Domain', 'Industry', 'Location', 'Employees', 'Fit Score', 'Urgency', 'Updated'];
-        const rows = filteredCompanies.map(company => {
-            const playbook = playbooks[company.id];
-            const location = company.hq_city ? `${company.hq_city}${company.hq_country ? ', ' + company.hq_country : ''}` : '';
-            return [
-                company.name,
-                company.domain,
-                company.industry || '',
-                location,
-                company.employee_count?.toString() || '',
-                playbook?.fit_score ? Math.round(playbook.fit_score * 100).toString() : '',
-                playbook?.fit_urgency?.toString() || '',
-                company.updated_at || ''
-            ];
-        });
-
-        const csvContent = [headers, ...rows]
-            .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
-            .join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `accounts-export-${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-    };
-
     // Handle Add to Campaign
     useEffect(() => {
         if (showAddToCampaign) {
-            getCampaigns({ page: 1, page_size: 100 }).then(res => {
+            getCampaigns({ page: 1, page_size: 100 }).then((res) => {
                 setCampaigns(res.items);
             });
         }
@@ -220,22 +203,25 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
         setAddingToCampaign(true);
         try {
             const selectedDomains = filteredCompanies
-                .filter(c => selectedIds.has(c.id))
-                .map(c => c.domain);
+                .filter((c) => selectedIds.has(c.id))
+                .map((c) => c.domain);
 
-            const result = await addCompaniesBulk(selectedCampaignId, selectedDomains);
+            const result = await addCompaniesBulk(
+                selectedCampaignId,
+                selectedDomains
+            );
 
             alert(
                 `✅ Successfully added ${result.added} companies to the campaign.\n` +
-                (result.skipped > 0 ? `(${result.skipped} were already defined)` : '')
+                (result.skipped > 0 ? `(${result.skipped} were already defined)` : "")
             );
 
             setShowAddToCampaign(false);
             setSelectedIds(new Set());
             setSelectedCampaignId(null);
         } catch (err) {
-            console.error('Error adding to campaign:', err);
-            alert('❌ Failed to add companies to campaign');
+            console.error("Error adding to campaign:", err);
+            alert("❌ Failed to add companies to campaign");
         } finally {
             setAddingToCampaign(false);
         }
@@ -243,29 +229,38 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
 
     return (
         <div className="flex flex-col h-full bg-slate-50/30 dark:bg-slate-900/10">
-
             {/* 1. Main Application Header - "LookAcross" Brand + Product Tabs */}
             <Header />
 
             {/* 1.5. Product Group Navigation - Context Switching (Scrollable) */}
-            <div className="bg-white dark:bg-slate-900 border-b border-border/60 z-10 relative">
+            <div className="bg-white dark:bg-slate-900 border-b border-border/60 z-10 relative h-12">
                 {/* Fade gradient on right edge for scroll indication */}
                 <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none z-10" />
 
-                <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between gap-4">
-                    <div className="overflow-x-auto scrollbar-hide flex-1">
-                        <Tabs value={activeProductGroup} onValueChange={setActiveProductGroup} className="w-max min-w-full">
-                            <TabsList className="bg-transparent h-auto p-0 gap-6 w-max justify-start rounded-none" style={{ border: 'none' }}>
+                <div className="max-w-[1600px] mx-auto px-6 h-full flex items-stretch justify-between gap-4">
+                    <div className="overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 h-full">
+                        <Tabs
+                            value={activeProductGroup}
+                            onValueChange={setActiveProductGroup}
+                            className="w-max h-full"
+                        >
+                            <TabsList
+                                className="bg-transparent !h-full p-0 gap-6 w-max rounded-none flex-nowrap"
+                                style={{ border: "none" }}
+                            >
                                 <TabsTrigger
                                     value="all"
-                                    className="relative h-12 rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap"
+                                    className="relative h-full rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap flex items-center"
                                     style={{
-                                        border: 'none',
-                                        borderBottom: activeProductGroup === 'all' ? '2px solid #2563eb' : '2px solid transparent',
-                                        color: activeProductGroup === 'all' ? '#2563eb' : undefined,
-                                        background: 'transparent',
-                                        boxShadow: 'none',
-                                        outline: 'none'
+                                        border: "none",
+                                        borderBottom:
+                                            activeProductGroup === "all"
+                                                ? "2px solid #2563eb"
+                                                : "2px solid transparent",
+                                        color: activeProductGroup === "all" ? "#2563eb" : undefined,
+                                        background: "transparent",
+                                        boxShadow: "none",
+                                        outline: "none",
                                     }}
                                 >
                                     All Accounts
@@ -274,21 +269,27 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                                     <TabsTrigger
                                         key={group.id}
                                         value={group.id}
-                                        className="relative h-12 rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap group"
+                                        className="relative !h-full rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap group flex items-center"
                                         style={{
-                                            border: 'none',
-                                            borderBottom: activeProductGroup === group.id ? `2px solid ${group.color}` : '2px solid transparent',
-                                            color: activeProductGroup === group.id ? group.color : undefined,
-                                            background: 'transparent',
-                                            boxShadow: 'none',
-                                            outline: 'none'
+                                            border: "none",
+                                            borderBottom:
+                                                activeProductGroup === group.id
+                                                    ? `2px solid ${group.color}`
+                                                    : "2px solid transparent",
+                                            color:
+                                                activeProductGroup === group.id
+                                                    ? group.color
+                                                    : undefined,
+                                            background: "transparent",
+                                            boxShadow: "none",
+                                            outline: "none",
                                         }}
                                     >
                                         <span
                                             className="w-2 h-2 rounded-full mr-2 transition-all group-hover:scale-110"
                                             style={{
                                                 backgroundColor: group.color,
-                                                opacity: activeProductGroup === group.id ? 1 : 0.5
+                                                opacity: activeProductGroup === group.id ? 1 : 0.5,
                                             }}
                                         />
                                         {group.name}
@@ -299,12 +300,12 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                     </div>
 
                     {/* Add Product Button - Pinned Right */}
-                    <div className="shrink-0 pl-4 border-l border-border/60">
+                    <div className="pl-4 border-l border-border/60 flex items-center">
                         <Button
                             variant="ghost"
                             size="sm"
                             className="h-8 gap-1.5 text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800"
-                            onClick={() => window.location.href = '/products/new'}
+                            onClick={() => (window.location.href = "/products/new")}
                         >
                             <Plus className="w-4 h-4" />
                             <span className="hidden sm:inline">Add Product</span>
@@ -319,12 +320,21 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white/50 to-blue-50/30 dark:from-slate-900/80 dark:via-slate-900/50 dark:to-blue-900/10 pointer-events-none" />
 
                 <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center gap-4 relative">
-
                     {/* Search Bar - Clean & Distinct */}
                     <div className="relative flex-1 max-w-md group">
                         <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-md shadow-sm border border-border/80 group-focus-within:border-blue-500/50 group-focus-within:ring-2 group-focus-within:ring-blue-500/10 transition-all" />
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70 group-focus-within:text-blue-600 transition-colors z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <svg
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70 group-focus-within:text-blue-600 transition-colors z-10"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
                         </svg>
                         <Input
                             placeholder="Search companies..."
@@ -337,16 +347,31 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                     <div className="h-6 w-px bg-border/60 mx-1" />
 
                     {/* Filter Tabs with Counts */}
-                    <Tabs value={scoreFilter} onValueChange={(v) => setScoreFilter(v as ScoreFilter)} className="w-auto">
+                    <Tabs
+                        value={scoreFilter}
+                        onValueChange={(v) => setScoreFilter(v as ScoreFilter)}
+                        className="w-auto"
+                    >
                         <TabsList className="h-10 bg-slate-100/50 dark:bg-slate-800/50 p-1 border border-border/50">
                             <TabsTrigger value="all" className="text-xs px-3 font-medium">
-                                All <span className="ml-1.5 text-muted-foreground">({scoreCounts.all})</span>
+                                All{" "}
+                                <span className="ml-1.5 text-muted-foreground">
+                                    ({scoreCounts.all})
+                                </span>
                             </TabsTrigger>
-                            <TabsTrigger value="hot" className="text-xs px-3 font-medium text-emerald-700 dark:text-emerald-400 data-[state=active]:bg-emerald-50 dark:data-[state=active]:bg-emerald-900/20 data-[state=active]:shadow-none">
-                                Hot <span className="ml-1.5 opacity-70">({scoreCounts.hot})</span>
+                            <TabsTrigger
+                                value="hot"
+                                className="text-xs px-3 font-medium text-emerald-700 dark:text-emerald-400 data-[state=active]:bg-emerald-50 dark:data-[state=active]:bg-emerald-900/20 data-[state=active]:shadow-none"
+                            >
+                                Hot{" "}
+                                <span className="ml-1.5 opacity-70">({scoreCounts.hot})</span>
                             </TabsTrigger>
-                            <TabsTrigger value="warm" className="text-xs px-3 font-medium text-amber-700 dark:text-amber-400 data-[state=active]:bg-amber-50 dark:data-[state=active]:bg-amber-900/20 data-[state=active]:shadow-none">
-                                Warm <span className="ml-1.5 opacity-70">({scoreCounts.warm})</span>
+                            <TabsTrigger
+                                value="warm"
+                                className="text-xs px-3 font-medium text-amber-700 dark:text-amber-400 data-[state=active]:bg-amber-50 dark:data-[state=active]:bg-amber-900/20 data-[state=active]:shadow-none"
+                            >
+                                Warm{" "}
+                                <span className="ml-1.5 opacity-70">({scoreCounts.warm})</span>
                             </TabsTrigger>
                         </TabsList>
                     </Tabs>
@@ -363,10 +388,12 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                                 <Button
                                     onClick={() => {
                                         const selectedDomains = filteredCompanies
-                                            .filter(c => selectedIds.has(c.id))
-                                            .map(c => c.domain)
-                                            .join(',');
-                                        window.location.href = `/campaigns/new?domains=${encodeURIComponent(selectedDomains)}`;
+                                            .filter((c) => selectedIds.has(c.id))
+                                            .map((c) => c.domain)
+                                            .join(",");
+                                        window.location.href = `/campaigns/new?domains=${encodeURIComponent(
+                                            selectedDomains
+                                        )}`;
                                     }}
                                     size="sm"
                                     className="gap-1.5 h-8 shadow-sm hover:shadow transition-all bg-blue-600 hover:bg-blue-700 text-white"
@@ -388,7 +415,6 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                                     <FolderPlus className="w-3.5 h-3.5" />
                                     Add to Existing
                                 </Button>
-
                             </div>
                         )}
                     </div>
@@ -409,11 +435,11 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                         <div className="grid gap-2">
                             <Label>Select Campaign</Label>
                             <Select
-                                value={selectedCampaignId || ''}
+                                value={selectedCampaignId || ""}
                                 onValueChange={setSelectedCampaignId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select a campaign..." />
+                                    <SelectValue>Select a campaign...</SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
                                     {campaigns.map((c) => (
@@ -438,7 +464,9 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                             onClick={handleAddToCampaign}
                             disabled={!selectedCampaignId || addingToCampaign}
                         >
-                            {addingToCampaign && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            {addingToCampaign && (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            )}
                             Add Companies
                         </Button>
                     </DialogFooter>
@@ -452,7 +480,10 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                         <input
                             type="checkbox"
                             className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                            checked={filteredCompanies.length > 0 && selectedIds.size === filteredCompanies.length}
+                            checked={
+                                filteredCompanies.length > 0 &&
+                                selectedIds.size === filteredCompanies.length
+                            }
                             onChange={(e) => handleSelectAll(e.target.checked)}
                             disabled={filteredCompanies.length === 0}
                         />
@@ -493,7 +524,7 @@ export function AccountList({ productGroup, onAccountClick }: AccountListProps) 
                         ))
                     )}
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

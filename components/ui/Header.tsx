@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
 import { ProcessingStatus } from '@/components/processing/ProcessingStatus';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Logo from './Logo';
 
 export function Header() {
@@ -39,19 +39,14 @@ export function Header() {
                             onClick={() => setShowUserMenu(!showUserMenu)}
                             className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none"
                         >
-                            {session?.user?.image ? (
-                                <Image
-                                    src={session.user.image}
-                                    alt={session.user.name || 'User'}
-                                    width={32}
-                                    height={32}
-                                    className="rounded-full"
-                                />
-                            ) : (
-                                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-xs font-semibold text-blue-600 dark:text-blue-400">
+                            <Avatar className="h-8 w-8">
+                                {session?.user?.image && (
+                                    <AvatarImage src={session.user.image} alt={session.user.name || 'User'} />
+                                )}
+                                <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold">
                                     {getUserInitials()}
-                                </div>
-                            )}
+                                </AvatarFallback>
+                            </Avatar>
                         </button>
 
                         {/* Dropdown Menu */}

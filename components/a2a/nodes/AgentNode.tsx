@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Handle, Position, NodeProps, type Node } from '@xyflow/react';
 import { Bot, Database, Server, Cpu, BrainCircuit, Share2, Search, FileText } from 'lucide-react';
 
@@ -113,14 +114,14 @@ export const AgentNode = memo(({ data, selected }: NodeProps<AgentNodeType>) => 
                         <div className="text-[9px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Capabilities</div>
                         <div className="flex flex-wrap gap-1.5">
                             {data.skills.slice(0, 4).map((skill: unknown, i: number) => ( // Limit to 4 pills
-                                <span key={i} className="px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md text-[9px] font-semibold text-slate-500 whitespace-nowrap">
+                                <Badge key={i} variant="secondary" className="px-2 py-0.5 rounded-md text-[9px] font-semibold text-slate-500 whitespace-nowrap bg-slate-50 border border-slate-100 hover:bg-slate-100 h-auto">
                                     {String(skill)}
-                                </span>
+                                </Badge>
                             ))}
                             {data.skills.length > 4 && (
-                                <span className="px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md text-[9px] font-semibold text-slate-400">
+                                <Badge variant="outline" className="px-2 py-0.5 rounded-md text-[9px] font-semibold text-slate-400 bg-slate-50 border border-slate-100 h-auto">
                                     +{data.skills.length - 4}
-                                </span>
+                                </Badge>
                             )}
                         </div>
                     </div>
