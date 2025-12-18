@@ -28,16 +28,12 @@ export function ExplainabilityTab({ data }: ExplainabilityTabProps) {
 
     // Helper to get color based on score
     const getScoreColor = (score: number) => {
-        if (score >= 80) return "text-green-600 dark:text-green-400";
-        if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
-        return "text-red-600 dark:text-red-400";
+        if (score >= 80) return "text-emerald-600 dark:text-emerald-400";
+        if (score >= 42) return "text-blue-600 dark:text-blue-400"; // 42 is the example fit score
+        return "text-slate-400 dark:text-slate-500";
     };
 
-    const getProgressColor = (score: number) => {
-        if (score >= 80) return "bg-green-600";
-        if (score >= 60) return "bg-yellow-600";
-        return "bg-red-600";
-    };
+
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -110,7 +106,7 @@ export function ExplainabilityTab({ data }: ExplainabilityTabProps) {
                                             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 block">Top Drivers</span>
                                             <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                                                 {fit.top_drivers.map((driver, i) => (
-                                                    <Badge key={i} variant="secondary" className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800/50 px-2.5 py-1">
+                                                    <Badge key={i} variant="secondary" className="bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-800 px-2.5 py-1">
                                                         {driver}
                                                     </Badge>
                                                 ))}

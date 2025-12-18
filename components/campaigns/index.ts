@@ -1,7 +1,7 @@
 
 export { CampaignBuilder } from './CampaignBuilder';
-export { ChatFilterInput } from './ChatFilterInput';
-export { FilterPill, FilterPillSkeleton } from './FilterPill';
+export { ChatFilterInput } from './builder/ChatFilterInput';
+export { FilterPill, FilterPillSkeleton } from './builder/FilterPill';
 export { CompanyRowCompact, CompanyRowCompactSkeleton } from './CompanyRowCompact';
-export { PartnerSelection } from './PartnerSelection';
+export { PartnerSelection } from './builder/PartnerSelection';
 export { PartnerTab } from './PartnerTab';
