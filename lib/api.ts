@@ -1,5 +1,6 @@
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+export const A2A_API_BASE = process.env.NEXT_PUBLIC_A2A_API_URL || 'http://localhost:8100';
 
 // Import types needed for API functions
 import type {
@@ -64,8 +65,8 @@ import type {
 
 // ============= API Functions =============
 
-async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+async function fetchAPI<T>(endpoint: string, options?: RequestInit, baseUrl: string = API_BASE): Promise<T> {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -428,6 +429,18 @@ export async function getA2ADiagram(): Promise<string> {
     const text = await response.text();
     // Remove markdown code fences if present, handling potential whitespace
     return text.replaceAll('```mermaid', '').replaceAll('```', '').trim();
+}
+
+export async function getAgents(): Promise<import('./schemas').AgentCard[]> {
+    return fetchAPI<import('./schemas').AgentCard[]>('/api/v1/a2a/agents', undefined, A2A_API_BASE);
+}
+
+export async function getAgentCard(agentName: string): Promise<import('./schemas').AgentCard> {
+    return fetchAPI<import('./schemas').AgentCard>(`/api/v1/a2a/agents/${encodeURIComponent(agentName)}`, undefined, A2A_API_BASE);
+}
+
+export async function getAgentInvocations(agentName: string): Promise<import('./schemas').Invocation[]> {
+    return fetchAPI<import('./schemas').Invocation[]>(`/api/v1/a2a-tracking/agents/${encodeURIComponent(agentName)}/invocations`, undefined, A2A_API_BASE);
 }
 
 export async function getA2AHealth(): Promise<any> {
