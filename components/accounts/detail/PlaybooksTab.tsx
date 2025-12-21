@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import type { PlaybookSummary, PlaybookRead, EmployeeRead, PlaybookContactResponse, EmployeeSummary } from '@/lib/schemas';
-import { getPlaybook, getEmployee, getEmployees } from '@/lib/api';
+import { getCompanyPlaybook, getEmployee, getEmployees } from '@/lib/api';
 import { EmptyState, SectionHeader } from './components';
 import { EmployeeDetailModal } from './EmployeeDetailModal';
 import { cn } from '@/lib/utils';
@@ -156,12 +156,18 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
             setPlaybookDetail(null);
             return;
         }
+
+        if (!domain) {
+            console.warn('Cannot fetch playbook detail: domain is missing');
+            return;
+        }
+
         setLoadingDetail(true);
-        getPlaybook(selectedId)
+        getCompanyPlaybook(domain, selectedId)
             .then(setPlaybookDetail)
             .catch(console.error)
             .finally(() => setLoadingDetail(false));
-    }, [selectedId]);
+    }, [selectedId, domain]);
 
     if (playbooks.length === 0) {
         return <EmptyState>No playbooks generated yet</EmptyState>;

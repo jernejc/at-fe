@@ -1,4 +1,5 @@
 export interface SignalInterest {
+    id: number;
     category: string;
     strength: number;
     confidence: number;
@@ -10,6 +11,7 @@ export interface SignalInterest {
 }
 
 export interface SignalEvent {
+    id: number;
     category: string;
     strength: number;
     confidence: number;
@@ -69,3 +71,5 @@ export interface CompanyExplainabilityResponse {
     freshness: Freshness;
     links: Record<string, string>;
 }
+
+export * from './provenance';

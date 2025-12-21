@@ -5,6 +5,8 @@ import type { FitInclude } from './fit';
 import type { SignalsInclude } from './signal';
 import type { EmployeeSummary } from './employee';
 
+export type DataDepth = 'initial' | 'preview' | 'detailed';
+
 export interface CompanySummary {
     id: number;
     domain: string;

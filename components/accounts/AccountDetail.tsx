@@ -11,12 +11,14 @@ import { X } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
     getCompany,
+    getCompanyEmployees,
     getCompanySignals,
     getCompanyPlaybooks,
     getCompanyJobs,
     getCompanyNews,
     getCompanyExplainability,
     getEmployee,
+    startProcessing,
 } from '@/lib/api';
 import {
     CompanyDetailResponse,
@@ -67,6 +69,33 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeRead | null>(null);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [loadingDetail, setLoadingDetail] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handleProcess = async () => {
+        if (!domain) return;
+
+        setIsProcessing(true);
+        // Minimum loading time for UX
+        const minLoading = new Promise(resolve => setTimeout(resolve, 800));
+
+        try {
+            await Promise.all([
+                startProcessing(domain, {
+                    refresh_data: false,
+                    generate_signals: true,
+                    generate_fits: false, // Requires product_id
+                    generate_playbook: false, // Requires product_id
+                    use_a2a: false
+                }),
+                minLoading
+            ]);
+            // Could add a 'success' state here if we wanted to show a checkmark
+        } catch (error) {
+            console.error('Failed to start processing:', error);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     const handleEmployeeClick = useCallback(async (person: EmployeeSummary) => {
         setLoadingDetail(true);
@@ -101,12 +130,13 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
         async function fetchDetails() {
             setLoading(true);
             try {
-                const [companyData, playbooksData] = await Promise.all([
-                    getCompany(domain, { include: 'employees', employee_limit: 50 }),
+                const [companyData, employeesData, playbooksData] = await Promise.all([
+                    getCompany(domain, { employee_limit: 50 }),
+                    getCompanyEmployees(domain, 1, 50).catch(() => ({ items: [], total: 0, page: 1, page_size: 50, total_pages: 0, has_next: false, has_previous: false })),
                     getCompanyPlaybooks(domain).catch(() => ({ playbooks: [] })),
                 ]);
 
-                setData(companyData);
+                setData({ ...companyData, employees: employeesData.items });
                 setPlaybooks(playbooksData.playbooks);
 
                 const [jobsData, newsData, explainabilityData] = await Promise.all([
@@ -235,7 +265,11 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                         <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950">
                             {/* Header */}
                             <div className="bg-white dark:bg-slate-900 z-20 shadow-sm transition-shadow">
-                                <AccountDetailHeader company={company} />
+                                <AccountDetailHeader
+                                    company={company}
+                                    onProcess={handleProcess}
+                                    isProcessing={isProcessing}
+                                />
 
                                 {/* Tabs - Clean Underline Style */}
                                 <div className="pt-1">

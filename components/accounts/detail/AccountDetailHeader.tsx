@@ -1,16 +1,18 @@
-// Enhanced Account Detail Header Component - Fixed
-
-import type { CompanyRead } from '@/lib/schemas';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+
 import { SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Loader2, Sparkles } from 'lucide-react';
 import { MetricPill } from './components';
 import { formatCompactNumber } from './utils';
+import type { CompanyRead } from '@/lib/schemas';
 
 interface AccountDetailHeaderProps {
     company: CompanyRead;
+    onProcess: () => void;
+    isProcessing: boolean;
 }
 
-export function AccountDetailHeader({ company }: AccountDetailHeaderProps) {
+export function AccountDetailHeader({ company, onProcess, isProcessing }: AccountDetailHeaderProps) {
     // Company maturity indicator based on founded year
     const getMaturityIndicator = () => {
         if (!company.founded_year) return null;
@@ -28,7 +30,26 @@ export function AccountDetailHeader({ company }: AccountDetailHeaderProps) {
     return (
         <div className="relative overflow-hidden group border-b border-border/60">
             {/* Subtle background gradient */}
+            {/* Subtle background gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white/50 to-blue-50/30 dark:from-slate-900/80 dark:via-slate-900/50 dark:to-blue-900/10 pointer-events-none" />
+
+            {/* AI Action Floating Badge */}
+            <button
+                onClick={onProcess}
+                disabled={isProcessing}
+                className="absolute top-4 right-16 z-10 group/action flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-border/60 hover:border-primary/50 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                <div className={`p-1 rounded-full ${isProcessing ? 'bg-slate-100 dark:bg-slate-700' : 'bg-primary/10 group-hover/action:bg-primary/20'} transition-colors`}>
+                    {isProcessing ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500" />
+                    ) : (
+                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                    )}
+                </div>
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 group-hover/action:text-primary transition-colors pr-1">
+                    {isProcessing ? 'Analyzing...' : 'AI Analyze'}
+                </span>
+            </button>
 
             <div className="relative p-5 py-7 pt-8 max-w-7xl mx-auto w-full">
                 <div className="flex gap-5 items-start">
@@ -52,7 +73,7 @@ export function AccountDetailHeader({ company }: AccountDetailHeaderProps) {
 
                     <div className="flex-1 min-w-0">
                         <SheetHeader className="p-0 space-y-1 text-left gap-0">
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap pb-2">
                                 <SheetTitle className="text-xl font-bold tracking-tight text-foreground">
                                     {company.name}
                                 </SheetTitle>

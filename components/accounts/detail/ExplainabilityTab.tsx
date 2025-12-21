@@ -1,13 +1,21 @@
+import { useState } from 'react';
 import {
     CompanyExplainabilityResponse,
     SignalInterest,
-    SignalEvent
+    SignalEvent,
+    FitScore,
+    FitSummaryFit
 } from '@/lib/schemas';
+import { SignalProvenanceResponse } from '@/lib/schemas/provenance';
+import { getFitBreakdown, getSignalProvenance } from '@/lib/api';
 import { SectionHeader } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { FitBreakdownSheet } from './FitBreakdownSheet';
+import { SignalProvenanceSheet } from './SignalProvenanceSheet';
+import { cn } from '@/lib/utils';
 import {
     Brain,
     Target,
@@ -16,255 +24,360 @@ import {
     Database,
     TrendingUp,
     Activity,
-    AlertCircle
+    AlertCircle,
+    ChevronRight,
+    Sparkles,
+    BarChart3,
+    Layers,
+    ArrowRight
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface ExplainabilityTabProps {
     data: CompanyExplainabilityResponse;
 }
 
 export function ExplainabilityTab({ data }: ExplainabilityTabProps) {
-    const { signals_summary, fits_summary, data_coverage, freshness } = data;
+    const { signals_summary, fits_summary, data_coverage, freshness, company_domain } = data;
 
-    // Helper to get color based on score
-    const getScoreColor = (score: number) => {
-        if (score >= 80) return "text-emerald-600 dark:text-emerald-400";
-        if (score >= 42) return "text-blue-600 dark:text-blue-400"; // 42 is the example fit score
-        return "text-slate-400 dark:text-slate-500";
+    // State for Sheets
+    const [selectedFit, setSelectedFit] = useState<FitScore | null>(null);
+    const [isFitLoading, setIsFitLoading] = useState(false);
+    const [isFitOpen, setIsFitOpen] = useState(false);
+
+    const [selectedSignal, setSelectedSignal] = useState<SignalProvenanceResponse | null>(null);
+    const [isSignalLoading, setIsSignalLoading] = useState(false);
+    const [isSignalOpen, setIsSignalOpen] = useState(false);
+
+    // Handlers
+    const handleFitClick = async (productId: number) => {
+        setIsFitLoading(true);
+        setIsFitOpen(true);
+        try {
+            const fit = await getFitBreakdown(company_domain, productId);
+            setSelectedFit(fit);
+        } catch (error) {
+            console.error("Failed to fetch fit breakdown", error);
+            setIsFitOpen(false);
+        } finally {
+            setIsFitLoading(false);
+        }
     };
 
+    const container = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
 
+    const item = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 }
+    };
+
+    const handleSignalClick = async (signalId: number) => {
+        setIsSignalLoading(true);
+        setIsSignalOpen(true);
+        try {
+            const signal = await getSignalProvenance(company_domain, signalId);
+            setSelectedSignal(signal);
+        } catch (error) {
+            console.error("Failed to fetch signal provenance", error);
+            setIsSignalOpen(false);
+        } finally {
+            setIsSignalLoading(false);
+        }
+    };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Summary Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {fits_summary.map((fit) => {
-                    // Normalize scores to 0-100 if they are 0-1
-                    const score = fit.combined_score <= 1 ? fit.combined_score * 100 : fit.combined_score;
-                    const likelihood = fit.likelihood_score <= 1 ? fit.likelihood_score * 100 : fit.likelihood_score;
-                    const urgency = fit.urgency_score <= 1 ? fit.urgency_score * 100 : fit.urgency_score;
+        <div className="space-y-10 animate-in fade-in duration-700">
+            {/* Top Section: Fit & Coverage */}
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                {/* Main Content: Fit Scores */}
+                <div className="xl:col-span-8 space-y-4">
+                    <SectionHeader title="Product Fit" />
 
-                    return (
-                        <div key={fit.product_id} className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
-                                {/* Radial Score Chart */}
-                                <div className="relative flex-shrink-0">
-                                    <svg className="h-32 w-32 transform -rotate-90">
-                                        <circle
-                                            className="text-slate-100 dark:text-slate-800"
-                                            strokeWidth="8"
-                                            stroke="currentColor"
-                                            fill="transparent"
-                                            r="58"
-                                            cx="64"
-                                            cy="64"
-                                        />
-                                        <circle
-                                            className={`${getScoreColor(score).split(' ')[0]} transition-all duration-1000 ease-out`}
-                                            strokeWidth="8"
-                                            strokeDasharray={364.4} // 2 * pi * 58
-                                            strokeDashoffset={364.4 - (364.4 * score) / 100}
-                                            strokeLinecap="round"
-                                            stroke="currentColor"
-                                            fill="transparent"
-                                            r="58"
-                                            cx="64"
-                                            cy="64"
-                                        />
-                                    </svg>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className={`text-3xl font-bold ${getScoreColor(score)}`}>
-                                            {Math.round(score)}
-                                        </span>
-                                        <span className="text-xs uppercase font-bold text-slate-400 mt-1">Fit Score</span>
-                                    </div>
-                                </div>
+                    <motion.div
+                        variants={container}
+                        initial="hidden"
+                        animate="show"
+                        className="grid gap-4"
+                    >
+                        {fits_summary.map((fit, idx) => (
+                            <motion.div key={fit.product_id} variants={item}>
+                                <FitCard
+                                    fit={fit}
+                                    onClick={() => handleFitClick(fit.product_id)}
+                                    index={idx}
+                                />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
 
-                                {/* Stats & Drivers */}
-                                <div className="flex-1 space-y-6 text-center sm:text-left">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{fit.product_name || "Overall Fit Score"}</h3>
-                                        <p className="text-sm text-slate-500 mt-1">Based on detected signals and company profile matching.</p>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto sm:mx-0">
-                                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
-                                            <div className="text-xs text-slate-500 mb-1">Likelihood</div>
-                                            <div className="font-semibold text-slate-700 dark:text-slate-200">{Math.round(likelihood)}%</div>
-                                            <Progress value={likelihood} className="h-1 mt-2 bg-slate-200 dark:bg-slate-700" />
-                                        </div>
-                                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
-                                            <div className="text-xs text-slate-500 mb-1">Urgency</div>
-                                            <div className="font-semibold text-slate-700 dark:text-slate-200">{Math.round(urgency)}%</div>
-                                            <Progress value={urgency} className="h-1 mt-2 bg-slate-200 dark:bg-slate-700" />
-                                        </div>
-                                    </div>
-
-                                    {fit.top_drivers && fit.top_drivers.length > 0 && (
-                                        <div className="pt-2">
-                                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 block">Top Drivers</span>
-                                            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                                                {fit.top_drivers.map((driver, i) => (
-                                                    <Badge key={i} variant="secondary" className="bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-800 px-2.5 py-1">
-                                                        {driver}
-                                                    </Badge>
-                                                ))}
+                {/* Sidebar: Coverage & Stats */}
+                <div className="xl:col-span-4 space-y-4">
+                    <div className="space-y-4">
+                        <SectionHeader title="Intelligence Coverage" />
+                        <Card className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm">
+                            <CardContent className="space-y-5 p-5">
+                                {data_coverage ? (
+                                    <>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-sm text-slate-600 dark:text-slate-400">Employees</span>
+                                                <span className="font-mono text-lg font-bold text-slate-900 dark:text-slate-100">{data_coverage.employees_analyzed?.toLocaleString() || 0}</span>
                                             </div>
+                                            <Progress value={Math.min(100, (data_coverage.employees_analyzed / 1000) * 100)} className="h-1.5" />
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-sm text-slate-600 dark:text-slate-400">Signals Found</span>
+                                                <span className="font-mono text-lg font-bold text-slate-900 dark:text-slate-100">{data_coverage.signals_analyzed?.toLocaleString() || 0}</span>
+                                            </div>
+                                            <Progress value={Math.min(100, (data_coverage.signals_analyzed / 50) * 100)} className="h-1.5" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-sm text-slate-500">Coverage data unavailable</div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                {/* Right Column: AI Explainer / Coverage Stats */}
-                <div className="lg:col-span-1 space-y-4">
-                    <Card className="h-full bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800">
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                                <Database className="h-4 w-4" />
-                                Data Coverage
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {data_coverage ? (
-                                <>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-slate-600 dark:text-slate-400">Employees Analyzed</span>
-                                            <span className="font-bold text-slate-900 dark:text-slate-100">{data_coverage.employees_analyzed?.toLocaleString() || 0}</span>
-                                        </div>
-                                        <Progress value={Math.min(100, (data_coverage.employees_analyzed / 1000) * 100)} className="h-1.5" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-slate-600 dark:text-slate-400">Signals Found</span>
-                                            <span className="font-bold text-slate-900 dark:text-slate-100">{data_coverage.signals_analyzed?.toLocaleString() || 0}</span>
-                                        </div>
-                                        <Progress value={Math.min(100, (data_coverage.signals_analyzed / 50) * 100)} className="h-1.5" />
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="text-sm text-muted-foreground">Coverage data unavailable</div>
-                            )}
-
-                            {freshness && (
-                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <Clock className="h-4 w-4 text-slate-400" />
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Data Freshness</span>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-950 rounded-lg p-3 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                        <div className="text-xs text-slate-500">Average Age</div>
-                                        <div className="font-mono text-sm font-bold text-slate-900 dark:text-slate-100">{Math.round(freshness.avg_source_age_days || 0)} days</div>
-                                    </div>
-                                    <div className="text-[10px] text-slate-400 text-right mt-2">
-                                        Last calculated: {freshness.newest_source ? new Date(freshness.newest_source).toLocaleDateString() : 'Unknown'}
-                                    </div>
+                    {freshness && (
+                        <Card className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm">
+                            <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
+                                <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                    <Clock className="h-4 w-4" />
+                                    DATA FRESHNESS
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="text-sm text-slate-600 dark:text-slate-400">Average Age</div>
+                                    <Badge variant="secondary" className="font-mono text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
+                                        {Math.round(freshness.avg_source_age_days || 0)} days
+                                    </Badge>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                    Updated: {freshness.newest_source ? new Date(freshness.newest_source).toLocaleDateString() : 'Unknown'}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
 
-            {/* Signals Breakdown */}
-            <div className="space-y-6">
-                <SectionHeader title="Signal Analysis" />
+            {/* Signal Analysis Section (Full Width) */}
+            <section className="space-y-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <SectionHeader title="Signal Intelligence" />
 
-                {/* Interests */}
-                {signals_summary.interests.length > 0 && (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 px-1">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-md">
-                                <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <div className="grid gap-6">
+                    {/* Interests */}
+                    {signals_summary.interests.length > 0 && (
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 rounded-md bg-amber-100/50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400">
+                                    <Zap className="h-4 w-4" />
+                                </div>
+                                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider">detected interests</h3>
                             </div>
-                            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Detected Interests</h3>
-                        </div>
-                        <div className="grid gap-3">
-                            {signals_summary.interests.map((signal, idx) => (
-                                <SignalCard key={idx} signal={signal} type="interest" />
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Events */}
-                {signals_summary.events.length > 0 && (
-                    <div className="space-y-4 pt-4">
-                        <div className="flex items-center gap-2 px-1">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-md">
-                                <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {signals_summary.interests.map((signal, idx) => (
+                                    <SignalCard
+                                        key={idx}
+                                        signal={signal}
+                                        type="interest"
+                                        onClick={() => handleSignalClick(signal.id)}
+                                    />
+                                ))}
                             </div>
-                            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Key Events</h3>
                         </div>
-                        <div className="grid gap-3">
-                            {signals_summary.events.map((signal, idx) => (
-                                <SignalCard key={idx} signal={signal} type="event" />
-                            ))}
-                        </div>
-                    </div>
-                )}
+                    )}
 
-                {signals_summary.interests.length === 0 && signals_summary.events.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-16 text-slate-500 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
-                        <AlertCircle className="h-10 w-10 mb-4 opacity-20" />
-                        <p className="font-medium">No signals detected</p>
-                        <p className="text-sm opacity-70 mt-1">We couldn't find specific interests or events for this company.</p>
+                    {/* Events */}
+                    {signals_summary.events.length > 0 && (
+                        <div className="space-y-3 pt-2">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 rounded-md bg-blue-100/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                    <Activity className="h-4 w-4" />
+                                </div>
+                                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider">Key Events</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {signals_summary.events.map((signal, idx) => (
+                                    <SignalCard
+                                        key={idx}
+                                        signal={signal}
+                                        type="event"
+                                        onClick={() => handleSignalClick(signal.id)}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {signals_summary.interests.length === 0 && signals_summary.events.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-16 text-slate-500 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                            <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full mb-3">
+                                <AlertCircle className="h-6 w-6 text-slate-400" />
+                            </div>
+                            <p className="font-medium text-slate-900 dark:text-slate-200">No signals detected</p>
+                            <p className="text-sm text-slate-500 mt-1 max-w-sm text-center">Our AI couldn't currently identify specific interests or events for this company.</p>
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* Sheets */}
+            <FitBreakdownSheet
+                open={isFitOpen}
+                onOpenChange={setIsFitOpen}
+                fit={selectedFit}
+                isLoading={isFitLoading}
+            />
+            <SignalProvenanceSheet
+                open={isSignalOpen}
+                onOpenChange={setIsSignalOpen}
+                signal={selectedSignal}
+                isLoading={isSignalLoading}
+            />
+        </div>
+    );
+}
+
+// ----------------------------------------------------------------------
+// Sub-components
+// ----------------------------------------------------------------------
+
+function FitCard({ fit, onClick, index }: { fit: FitSummaryFit, onClick: () => void, index: number }) {
+    // Normalize scores to 0-100
+    const score = fit.combined_score <= 1 ? fit.combined_score * 100 : fit.combined_score;
+    const likelihood = fit.likelihood_score <= 1 ? fit.likelihood_score * 100 : fit.likelihood_score;
+    const urgency = fit.urgency_score <= 1 ? fit.urgency_score * 100 : fit.urgency_score;
+
+    return (
+        <div
+            onClick={onClick}
+            className="group relative bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800 p-0 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm hover:shadow-md overflow-hidden"
+        >
+            <div className="flex flex-col sm:flex-row h-full">
+                {/* Left: Score & Product Title */}
+                <div className="flex-1 p-5 flex items-start gap-5">
+                    <div className="flex flex-col items-center justify-center h-14 w-14 rounded-full border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-lg text-slate-700 dark:text-slate-200 shrink-0">
+                        {Math.round(score)}
                     </div>
-                )}
+                    <div>
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-lg group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                            {fit.product_name}
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                            {fit.top_drivers && fit.top_drivers.length > 0 ? (
+                                fit.top_drivers.slice(0, 3).map((driver, i) => (
+                                    <span key={i} className="inline-flex items-center text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+                                        {driver}
+                                    </span>
+                                ))
+                            ) : (
+                                <span className="text-xs text-slate-400">No key drivers</span>
+                            )}
+                            {fit.top_drivers && fit.top_drivers.length > 3 && (
+                                <span className="text-[10px] text-slate-400 self-center">+{fit.top_drivers.length - 3}</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right: Metrics & Action */}
+                <div className="sm:w-64 border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 p-5 flex flex-col justify-center gap-4">
+                    <div className="space-y-3">
+                        {/* Mini Meters */}
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-500 font-medium">Likelihood</span>
+                            <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-slate-800 dark:bg-slate-200 rounded-full" style={{ width: `${likelihood}%` }} />
+                                </div>
+                                <span className="w-8 text-right font-mono text-slate-700 dark:text-slate-300">{Math.round(likelihood)}%</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-500 font-medium">Urgency</span>
+                            <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-slate-800 dark:bg-slate-200 rounded-full" style={{ width: `${urgency}%` }} />
+                                </div>
+                                <span className="w-8 text-right font-mono text-slate-700 dark:text-slate-300">{Math.round(urgency)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Arrow Icon absolutely positioned or flexed */}
+                <div className="hidden sm:flex items-center justify-center w-10 border-l border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 group-hover:bg-slate-50 dark:group-hover:bg-slate-900 transition-colors">
+                    <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                </div>
             </div>
         </div>
     );
 }
 
-function SignalCard({ signal, type }: { signal: SignalInterest | SignalEvent, type: 'interest' | 'event' }) {
+function SignalCard({ signal, type, onClick }: { signal: SignalInterest | SignalEvent, type: 'interest' | 'event', onClick: () => void }) {
     const isHighConfidence = signal.confidence > 0.8;
-    const accentColor = type === 'interest' ? 'bg-amber-500' : 'bg-blue-500';
-    const bgHover = type === 'interest' ? 'hover:bg-amber-50 dark:hover:bg-amber-900/10' : 'hover:bg-blue-50 dark:hover:bg-blue-900/10';
-    const borderHover = type === 'interest' ? 'hover:border-amber-200 dark:hover:border-amber-800' : 'hover:border-blue-200 dark:hover:border-blue-800';
 
     return (
-        <div className={`group relative bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-5 transition-all duration-200 ${bgHover} ${borderHover} hover:shadow-sm`}>
-            <div className="flex flex-col sm:flex-row gap-4 sm:items-start justify-between">
-                <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-base text-slate-900 dark:text-slate-100">{signal.category}</span>
-                        {isHighConfidence && (
-                            <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0 h-5 bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50">
-                                <TrendingUp className="h-3 w-3" />
-                                High Confidence
-                            </Badge>
-                        )}
+        <div
+            onClick={onClick}
+            className="group relative overflow-hidden bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4 transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md cursor-pointer flex flex-col h-full"
+        >
+            <div className="pl-1 flex flex-col h-full">
+                <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                        <span className={`text-sm font-semibold text-slate-900 dark:text-slate-100`}>
+                            {signal.category}
+                        </span>
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-4xl">
-                        {signal.evidence_summary}
-                    </p>
+                    {isHighConfidence && (
+                        <div title="High Confidence" className="flex-shrink-0">
+                            <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)] animate-pulse" />
+                        </div>
+                    )}
                 </div>
 
-                {/* Strength Meter */}
-                <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 min-w-[120px] pt-1 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 sm:border-l sm:pl-4 mt-2 sm:mt-0">
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Strength</span>
-                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{Math.round(signal.strength)}%</span>
+                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 flex-grow font-normal">
+                    {signal.evidence_summary}
+                </p>
+
+                <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="font-medium text-slate-500">Signal Strength</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">{Math.round(signal.strength)}%</span>
                     </div>
-                    <div className="w-full sm:w-28 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                            className={`h-full rounded-full ${accentColor} transition-all duration-500`}
-                            style={{ width: `${signal.strength}%` }}
-                        />
+                    {/* Segmented Progress Bar */}
+                    <div className="flex gap-0.5 h-1.5">
+                        {[...Array(10)].map((_, i) => {
+                            const threshold = (i + 1) * 10;
+                            const isActive = signal.strength >= threshold - 5;
+                            return (
+                                <div
+                                    key={i}
+                                    className={`flex-1 rounded-sm transition-all duration-500 ${isActive ? 'bg-slate-800 dark:bg-slate-200' : 'bg-slate-100 dark:bg-slate-800'}`}
+                                    style={{ opacity: isActive ? 0.6 + (i * 0.04) : 1 }}
+                                />
+                            );
+                        })}
                     </div>
-                    <div className="hidden sm:block text-[10px] text-slate-400 mt-2">
-                        based on {signal.contributor_count} signals
+                    <div className="flex justify-between items-center mt-2">
+                        <span className="text-[10px] text-slate-400">{signal.contributor_count} source{signal.contributor_count !== 1 ? 's' : ''}</span>
                     </div>
                 </div>
             </div>
-            {/* Mobile contributor count */}
-            <div className="sm:hidden text-[10px] text-slate-400 mt-2">
-                based on {signal.contributor_count} signals
-            </div>
         </div>
-    )
+    );
 }

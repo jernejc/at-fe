@@ -119,6 +119,10 @@ export async function getCompanyExplainability(domain: string): Promise<CompanyE
     return fetchAPI<CompanyExplainabilityResponse>(`/api/v1/companies/${encodeURIComponent(domain)}/explainability`);
 }
 
+export async function getSignalProvenance(domain: string, signalId: number): Promise<import('./schemas/provenance').SignalProvenanceResponse> {
+    return fetchAPI<import('./schemas/provenance').SignalProvenanceResponse>(`/api/v1/companies/${encodeURIComponent(domain)}/signals/${signalId}`);
+}
+
 export async function getCompanyEmployees(
     domain: string,
     page = 1,
@@ -248,6 +252,11 @@ export async function getFit(domain: string, productId: number, forceCalculate =
     return fetchAPI<FitScore>(`/api/v1/fits/${encodeURIComponent(domain)}/${productId}${query}`);
 }
 
+export async function getFitBreakdown(domain: string, productId: number): Promise<FitScore> {
+    const response = await fetchAPI<{ fit: FitScore }>(`/api/v1/companies/${encodeURIComponent(domain)}/fits/${productId}/breakdown`);
+    return response.fit;
+}
+
 export async function calculateFits(request: FitCalculateRequest = {}): Promise<FitCalculateResponse> {
     return fetchAPI<FitCalculateResponse>('/api/v1/fits/calculate', {
         method: 'POST',
@@ -345,6 +354,10 @@ export async function getCompanyPlaybooks(domain: string): Promise<CompanyPlaybo
     return fetchAPI<CompanyPlaybooksResponse>(`/api/v1/playbooks/company/${encodeURIComponent(domain)}`);
 }
 
+export async function getCompanyPlaybook(domain: string, playbookId: number): Promise<PlaybookRead> {
+    return fetchAPI<PlaybookRead>(`/api/v1/playbooks/company/${encodeURIComponent(domain)}/${playbookId}`);
+}
+
 export async function generatePlaybooks(
     domain: string,
     options?: { product_groups?: string[]; force?: boolean }
@@ -432,15 +445,15 @@ export async function getA2ADiagram(): Promise<string> {
 }
 
 export async function getAgents(): Promise<import('./schemas').AgentCard[]> {
-    return fetchAPI<import('./schemas').AgentCard[]>('/api/v1/a2a/agents', undefined, A2A_API_BASE);
+    return fetchAPI<import('./schemas').AgentCard[]>('/admin/v1/a2a/agents');
 }
 
 export async function getAgentCard(agentName: string): Promise<import('./schemas').AgentCard> {
-    return fetchAPI<import('./schemas').AgentCard>(`/api/v1/a2a/agents/${encodeURIComponent(agentName)}`, undefined, A2A_API_BASE);
+    return fetchAPI<import('./schemas').AgentCard>(`/admin/v1/a2a/agents/${encodeURIComponent(agentName)}`);
 }
 
 export async function getAgentInvocations(agentName: string): Promise<import('./schemas').Invocation[]> {
-    return fetchAPI<import('./schemas').Invocation[]>(`/api/v1/a2a-tracking/agents/${encodeURIComponent(agentName)}/invocations`, undefined, A2A_API_BASE);
+    return fetchAPI<import('./schemas').Invocation[]>(`/admin/v1/a2a/tracking/agents/${encodeURIComponent(agentName)}/invocations`);
 }
 
 export async function getA2AHealth(): Promise<any> {
@@ -450,15 +463,40 @@ export async function getA2AHealth(): Promise<any> {
 // ============= Processing =============
 
 export interface ProcessingOptions {
-    force?: boolean;
+    refresh_data?: boolean;
     include_posts?: boolean;
-    full_details?: boolean;
+    include_employees?: boolean;
+    include_jobs?: boolean;
+    full_details?: boolean; // Maps to target_depth='detailed' + all includes
+    target_depth?: import('./schemas').DataDepth | null;
+    generate_signals?: boolean;
+    generate_fits?: boolean;
+    generate_playbook?: boolean;
+    product_id?: number | null;
+    max_employees?: number | null;
+    use_a2a?: boolean;
+    force?: boolean; // Alias for refresh_data for backward compat
 }
 
 export async function startProcessing(domain: string, options?: ProcessingOptions): Promise<{ process_id: string; status: string }> {
-    return fetchAPI(`/processing/${encodeURIComponent(domain)}`, {
+    // Map options to API schema
+    const payload = {
+        include_posts: options?.include_posts,
+        include_employees: options?.include_employees,
+        include_jobs: options?.include_jobs,
+        max_employees: options?.max_employees,
+        refresh_data: options?.refresh_data ?? options?.force ?? true, // Default to true if not specified
+        generate_signals: options?.generate_signals ?? true,
+        generate_fits: options?.generate_fits ?? true,
+        generate_playbook: options?.generate_playbook ?? false,
+        target_depth: options?.target_depth || (options?.full_details ? 'detailed' : null),
+        product_id: options?.product_id,
+        use_a2a: options?.use_a2a ?? false,
+    };
+
+    return fetchAPI(`/api/v1/companies/${encodeURIComponent(domain)}/process`, {
         method: 'POST',
-        body: JSON.stringify(options || {}),
+        body: JSON.stringify(payload),
     });
 }
 

@@ -21,9 +21,15 @@ export function ProcessingStatus() {
 
     const [status, setStatus] = useState<'idle' | 'running' | 'completed' | 'error' | 'stopped'>('idle');
     const [options, setOptions] = useState({
-        force: false,
+        force: false, // refresh_data
         include_posts: false,
-        full_details: false
+        include_employees: false,
+        include_jobs: false,
+        full_details: false,
+        generate_signals: true,
+        generate_fits: true,
+        generate_playbook: false,
+        use_a2a: false
     });
     const [showOptions, setShowOptions] = useState(false);
 
@@ -315,15 +321,36 @@ export function ProcessingStatus() {
 
                                     {showOptions && (
                                         <div className="grid grid-cols-2 gap-3 mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-border/50">
-                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                            <label className="flex items-center gap-2 cursor-pointer group col-span-2 border-b border-border/40 pb-2 mb-1">
                                                 <input
                                                     type="checkbox"
                                                     checked={options.full_details}
-                                                    onChange={(e) => setOptions({ ...options, full_details: e.target.checked })}
+                                                    onChange={(e) => setOptions({
+                                                        ...options,
+                                                        full_details: e.target.checked,
+                                                        // Auto-select dependent options if detailed is chosen
+                                                        include_employees: e.target.checked ? true : options.include_employees,
+                                                        include_posts: e.target.checked ? true : options.include_posts,
+                                                        include_jobs: e.target.checked ? true : options.include_jobs,
+                                                    })}
                                                     disabled={isProcessing}
                                                     className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
                                                 />
-                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Full Details</span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">Full Detail Deep Dive</span>
+                                                    <span className="text-[10px] text-muted-foreground">Sets target depth to 'detailed' and enables all collection</span>
+                                                </div>
+                                            </label>
+
+                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={options.include_employees}
+                                                    onChange={(e) => setOptions({ ...options, include_employees: e.target.checked })}
+                                                    disabled={isProcessing}
+                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
+                                                />
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Include Employees</span>
                                             </label>
                                             <label className="flex items-center gap-2 cursor-pointer group">
                                                 <input
@@ -333,7 +360,63 @@ export function ProcessingStatus() {
                                                     disabled={isProcessing}
                                                     className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
                                                 />
-                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Fetch Posts</span>
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Include Posts</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={options.include_jobs}
+                                                    onChange={(e) => setOptions({ ...options, include_jobs: e.target.checked })}
+                                                    disabled={isProcessing}
+                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
+                                                />
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Include Jobs</span>
+                                            </label>
+
+                                            <div className="col-span-2 h-px bg-border/40 my-1" />
+
+                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={options.generate_signals}
+                                                    onChange={(e) => setOptions({ ...options, generate_signals: e.target.checked })}
+                                                    disabled={isProcessing}
+                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
+                                                />
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Generate Signals</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={options.generate_fits}
+                                                    onChange={(e) => setOptions({ ...options, generate_fits: e.target.checked })}
+                                                    disabled={isProcessing}
+                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
+                                                />
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Generate Fits</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={options.generate_playbook}
+                                                    onChange={(e) => setOptions({ ...options, generate_playbook: e.target.checked })}
+                                                    disabled={isProcessing}
+                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
+                                                />
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Gen Playbook</span>
+                                            </label>
+
+                                            <div className="col-span-2 h-px bg-border/40 my-1" />
+
+                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={options.use_a2a}
+                                                    onChange={(e) => setOptions({ ...options, use_a2a: e.target.checked })}
+                                                    disabled={isProcessing}
+                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
+                                                />
+                                                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-800 dark:group-hover:text-indigo-300">Use A2A Agents</span>
                                             </label>
                                             <label className="flex items-center gap-2 cursor-pointer group">
                                                 <input
@@ -343,7 +426,7 @@ export function ProcessingStatus() {
                                                     disabled={isProcessing}
                                                     className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
                                                 />
-                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Force Re-process</span>
+                                                <span className="text-xs text-orange-600 dark:text-orange-400 group-hover:text-orange-800 dark:group-hover:text-orange-300">Force Refresh</span>
                                             </label>
                                         </div>
                                     )}

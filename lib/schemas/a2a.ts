@@ -3,6 +3,7 @@ export interface AgentCard {
     description: string;
     // Add other fields based on API response if known, otherwise generic
     type: string;
+    card_name?: string;
     invocations_count?: number;
     // ...
 }

@@ -20,6 +20,7 @@ export type {
     CompanyInclude,
     StatsResponse,
     CompanyFilters,
+    DataDepth,
 } from './company';
 
 // Domain types

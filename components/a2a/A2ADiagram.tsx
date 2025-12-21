@@ -230,7 +230,7 @@ export function A2ADiagram({ mermaid }: A2ADiagramProps) {
             <AgentDetailSheet
                 isOpen={isSheetOpen}
                 onClose={resetSelection}
-                agentName={selectedNodeId ? nodes.find(n => n.id === selectedNodeId)?.data.label : null}
+                agentName={selectedNodeId ? (nodes.find(n => n.id === selectedNodeId)?.data.label as string) : null}
                 agentCard={agentCard}
                 invocations={invocations}
                 isLoading={loadingDetails}
