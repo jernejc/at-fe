@@ -1,14 +1,14 @@
 
 'use client'; // Important for client-side interactivity
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { ReactFlow, Controls, Background, useNodesState, useEdgesState, BackgroundVariant, Panel, Node, Edge } from '@xyflow/react';
+import { useState, useEffect, useCallback } from 'react';
+import { ReactFlow, Controls, useNodesState, useEdgesState, Panel, Node, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import { parseMermaidToReactFlow } from '@/lib/a2a/parser';
-import { AgentNode, AGENT_CONFIG } from './nodes/AgentNode';
+import { AgentNode } from './nodes/AgentNode';
 import { SkillNode } from './nodes/SkillNode';
-import { Loader2, Brain, Activity, Clock, CheckCircle2, ChevronRight, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { AgentDetailSheet } from './AgentDetailSheet';
 import { getAgentCard, getAgentInvocations, getAgents } from '@/lib/api';
 import { AgentCard, Invocation } from '@/lib/schemas';

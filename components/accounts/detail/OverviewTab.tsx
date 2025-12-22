@@ -38,7 +38,7 @@ export function OverviewTab({ company }: OverviewTabProps) {
             {/* Details grid with alternating colors */}
             <section>
                 <SectionHeader title="Company Details" />
-                <div className="grid grid-cols-2 md:grid-cols-4 border rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-900/20">
+                <div className="grid grid-cols-2 md:grid-cols-4 border rounded-lg overflow-hidden">
                     {company.industry && <DetailCell label="Industry" value={company.industry} />}
                     {company.company_type && <DetailCell label="Type" value={company.company_type} />}
                     {company.employee_count_range && <DetailCell label="Size" value={company.employee_count_range} />}

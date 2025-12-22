@@ -43,7 +43,7 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                         <Badge variant="outline" className="capitalize">
                                             {signal.signal_type}
                                         </Badge>
-                                        <Badge variant={signal.confidence > 0.7 ? "default" : "secondary"} className={signal.confidence > 0.7 ? "bg-emerald-500 hover:bg-emerald-600" : ""}>
+                                        <Badge variant={signal.confidence > 0.7 ? "default" : "secondary"}>
                                             {Math.round(signal.confidence * 100)}% Confidence
                                         </Badge>
                                     </div>
@@ -62,12 +62,12 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                 {/* Summary */}
                                 {signal.evidence_summary && (
                                     <section>
-                                        <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-lg p-4">
-                                            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-2">
+                                        <div className="bg-muted/30 border border-border rounded-lg p-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-2">
                                                 <Quote className="h-3 w-3" />
                                                 Evidence Summary
                                             </h3>
-                                            <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                                            <p className="text-sm leading-relaxed text-foreground">
                                                 {signal.evidence_summary}
                                             </p>
                                         </div>
@@ -77,8 +77,8 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                 {/* Source Details */}
                                 {signal.source_details && signal.source_details.length > 0 && (
                                     <section className="space-y-4">
-                                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                            <Database className="h-4 w-4" />
+                                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                            <Database className="h-4 w-4 text-primary" />
                                             Primary Sources
                                         </h3>
                                         <div className="space-y-3">
@@ -92,8 +92,8 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                 {/* Contributors (Employees) */}
                                 {signal.contributors && signal.contributors.length > 0 && (
                                     <section className="space-y-4">
-                                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                            <Users className="h-4 w-4" />
+                                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                            <Users className="h-4 w-4 text-primary" />
                                             Contributing Employees ({signal.contributors.length})
                                         </h3>
                                         <div className="grid gap-3">
@@ -137,14 +137,14 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
 
 function SourceCard({ source }: { source: SourceDetail }) {
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-sm">
+        <div className="bg-card border border-border rounded-lg p-3 text-sm hover:bg-muted/20 transition-colors">
             <div className="flex items-start justify-between gap-2">
                 <div className="space-y-1 min-w-0">
-                    <div className="font-medium text-slate-900 dark:text-slate-100 truncate">
+                    <div className="font-medium text-foreground truncate">
                         {source.title || source.source_type}
                     </div>
                     {source.snippet && (
-                        <p className="text-slate-500 line-clamp-2 text-xs leading-relaxed">
+                        <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
                             "{source.snippet}"
                         </p>
                     )}
@@ -154,14 +154,14 @@ function SourceCard({ source }: { source: SourceDetail }) {
                         href={source.url}
                         target="_blank"
                         rel="noopener"
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
                     >
                         <ExternalLink className="h-4 w-4" />
                     </a>
                 )}
             </div>
             {source.collected_at && (
-                <div className="mt-2 text-[10px] text-slate-400">
+                <div className="mt-2 text-[10px] text-muted-foreground">
                     Collected: {new Date(source.collected_at).toLocaleDateString()}
                 </div>
             )}
@@ -171,18 +171,18 @@ function SourceCard({ source }: { source: SourceDetail }) {
 
 function ContributorCard({ contributor }: { contributor: SignalContributor }) {
     return (
-        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
             <Avatar className="h-8 w-8">
                 <AvatarFallback className="text-xs">
                     {contributor.employee_name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">
+                <div className="font-medium text-sm text-foreground truncate">
                     {contributor.employee_name}
                 </div>
                 {(contributor.title || contributor.seniority_level) && (
-                    <div className="text-xs text-slate-500 truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                         {contributor.title}
                         {contributor.title && contributor.seniority_level && " • "}
                         <span className="capitalize">{contributor.seniority_level}</span>

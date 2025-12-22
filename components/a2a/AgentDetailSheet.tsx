@@ -1,5 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Loader2, Brain, Activity, Clock, CheckCircle2, X, AlertCircle } from 'lucide-react';
+import { Loader2, Activity, Clock, X, AlertCircle } from 'lucide-react';
 import { AgentCard, Invocation } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';

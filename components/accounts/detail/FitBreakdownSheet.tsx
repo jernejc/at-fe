@@ -30,17 +30,7 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
     if (!fit && !isLoading) return null;
 
     // Helper to get color based on score
-    const getScoreColor = (score: number) => {
-        if (score >= 80) return "text-emerald-600 dark:text-emerald-400";
-        if (score >= 60) return "text-blue-600 dark:text-blue-400";
-        return "text-slate-400 dark:text-slate-500";
-    };
 
-    const getProgressColor = (score: number) => {
-        if (score >= 80) return "bg-emerald-500";
-        if (score >= 60) return "bg-blue-500";
-        return "bg-slate-300";
-    };
 
     const normalizeScore = (val: number) => val <= 1 ? val * 100 : val;
 
@@ -78,28 +68,28 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                             Detailed analysis of why {fit.company_name} is a match for {fit.product_name}.
                                         </SheetDescription>
                                     </div>
-                                    <div className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 min-w-[100px] shadow-sm">
-                                        <span className={`text-4xl font-bold ${getScoreColor(score)}`}>
+                                    <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-2xl border border-border min-w-[100px] shadow-sm">
+                                        <span className="text-4xl font-bold text-foreground">
                                             {Math.round(score)}
                                         </span>
-                                        <span className="text-[10px] uppercase font-bold text-slate-400 mt-1 tracking-wider">Fit Score</span>
+                                        <span className="text-[10px] uppercase font-bold text-muted-foreground mt-1 tracking-wider">Fit Score</span>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-8 max-w-lg">
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-xs uppercase tracking-wider font-semibold text-slate-500">
+                                        <div className="flex justify-between text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             <span>Likelihood</span>
-                                            <span className="text-slate-900 dark:text-slate-100">{Math.round(likelihood)}%</span>
+                                            <span className="text-foreground">{Math.round(likelihood)}%</span>
                                         </div>
-                                        <Progress value={likelihood} className="h-2" indicatorClassName={getProgressColor(likelihood)} />
+                                        <Progress value={likelihood} className="h-2" />
                                     </div>
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-xs uppercase tracking-wider font-semibold text-slate-500">
+                                        <div className="flex justify-between text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             <span>Urgency</span>
-                                            <span className="text-slate-900 dark:text-slate-100">{Math.round(urgency)}%</span>
+                                            <span className="text-foreground">{Math.round(urgency)}%</span>
                                         </div>
-                                        <Progress value={urgency} className="h-2" indicatorClassName={getProgressColor(urgency)} />
+                                        <Progress value={urgency} className="h-2" />
                                     </div>
                                 </div>
                             </SheetHeader>
@@ -116,7 +106,7 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                         </h3>
                                         <div className="flex flex-wrap gap-2">
                                             {fit.top_drivers.map((driver, i) => (
-                                                <Badge key={i} variant="secondary" className="px-2.5 py-1 text-sm bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-900/50">
+                                                <Badge key={i} variant="secondary" className="px-2.5 py-1 text-sm bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                                                     {driver}
                                                 </Badge>
                                             ))}
@@ -127,8 +117,8 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                 {/* Signal Matches - Interests */}
                                 {fit.interest_matches && fit.interest_matches.length > 0 && (
                                     <section className="space-y-4">
-                                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                            <Zap className="h-4 w-4 text-amber-500" />
+                                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                            <Zap className="h-4 w-4 text-primary" />
                                             Matched Interests
                                         </h3>
                                         <div className="space-y-3">
@@ -142,8 +132,8 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                 {/* Signal Matches - Events */}
                                 {fit.event_matches && fit.event_matches.length > 0 && (
                                     <section className="space-y-4">
-                                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                            <Activity className="h-4 w-4 text-violet-500" />
+                                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                            <Activity className="h-4 w-4 text-primary" />
                                             Matched Events
                                         </h3>
                                         <div className="space-y-3">
@@ -186,13 +176,13 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
 
 function SignalMatchCard({ match, type }: { match: SignalContribution, type: 'interest' | 'event' }) {
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3 hover:shadow-sm transition-shadow">
+        <div className="bg-card border border-border rounded-lg p-3 hover:shadow-sm transition-shadow">
             <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
-                    <div className="font-medium text-sm text-slate-900 dark:text-slate-100">
+                    <div className="font-medium text-sm text-foreground">
                         {match.category}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                             <TrendingUp className="h-3 w-3" />
                             Strength: {Math.round(match.strength)}%
@@ -201,7 +191,7 @@ function SignalMatchCard({ match, type }: { match: SignalContribution, type: 'in
                         <span>Weight: {match.weight}x</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 px-2 py-1 rounded text-xs font-medium">
+                <div className="flex items-center gap-1 bg-muted text-muted-foreground px-2 py-1 rounded text-xs font-medium">
                     <CheckCircle2 className="h-3 w-3" />
                     +{Math.round(match.contribution)}
                 </div>

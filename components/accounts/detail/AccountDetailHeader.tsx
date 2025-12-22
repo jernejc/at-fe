@@ -31,7 +31,7 @@ export function AccountDetailHeader({ company, onProcess, isProcessing }: Accoun
         <div className="relative overflow-hidden group border-b border-border/60">
             {/* Subtle background gradient */}
             {/* Subtle background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white/50 to-blue-50/30 dark:from-slate-900/80 dark:via-slate-900/50 dark:to-blue-900/10 pointer-events-none" />
+
 
             {/* AI Action Floating Badge */}
             <button
@@ -66,7 +66,7 @@ export function AccountDetailHeader({ company, onProcess, isProcessing }: Accoun
                                 />
                             )}
                             <AvatarFallback className="text-xl font-bold bg-slate-50 text-slate-700 dark:bg-slate-900 dark:text-slate-300 rounded-md">
-                                {company.name.slice(0, 2).toUpperCase()}
+                                {(company.name || '??').slice(0, 2).toUpperCase()}
                             </AvatarFallback>
                         </Avatar>
                     </div>
