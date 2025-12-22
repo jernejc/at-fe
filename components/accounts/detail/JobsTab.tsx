@@ -48,7 +48,7 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
                 departments.map(dept => (
                     <section key={dept} className="space-y-3">
                         <SectionHeader title={dept} count={byDept[dept].length} />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-2">
                             {byDept[dept].map((job) => (
                                 <JobCard
                                     key={job.id}
@@ -60,7 +60,7 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
                     </section>
                 ))
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-2">
                     {jobs.map((job) => (
                         <JobCard
                             key={job.id}
@@ -98,50 +98,52 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
 
 function JobCard({ job, onClick }: { job: JobPostingSummary, onClick: () => void }) {
     return (
-        <Card
+        <div
             onClick={onClick}
-            className="group relative cursor-pointer border-border/60 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all duration-200 overflow-hidden"
+            className="group relative bg-card rounded-md border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer hover:shadow-sm overflow-hidden"
         >
-            <CardContent className="flex flex-col h-full gap-4 p-4">
-                <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start gap-2">
-                        <h5 className="font-semibold text-base text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                            {job.title}
-                        </h5>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                    </div>
+            <div className="flex">
+                {/* Left: Posted Date */}
+                <div className="w-24 border-r border-border bg-muted/5 flex items-center justify-center py-3 shrink-0">
+                    <span className="text font-medium text-muted-foreground text-center px-2">
+                        {job.posted_at ? formatRelativeDate(job.posted_at) : '—'}
+                    </span>
+                </div>
 
-                    <div className="flex flex-wrap gap-2">
+                {/* Main Content */}
+                <div className="flex-1 px-4 py-3 min-w-0">
+                    <h5 className="font-medium text-sm text-foreground truncate">
+                        {job.title}
+                    </h5>
+
+                    {/* Metadata at bottom */}
+                    <div className="flex flex-wrap items-center gap-3 mt-2">
                         {job.location && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/40 px-2 py-1 rounded-md border border-border/50">
-                                <MapPin className="h-3 w-3 opacity-70" />
-                                <span className="truncate max-w-[150px]">{job.location}</span>
+                            <div className="flex items-center gap-1">
+                                <MapPin className="h-3.5 w-3.5 text-slate-500" />
+                                <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]">{job.location}</span>
                             </div>
                         )}
                         {job.employment_type && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/40 px-2 py-1 rounded-md border border-border/50">
-                                <Briefcase className="h-3 w-3 opacity-70" />
-                                <span className="truncate max-w-[150px]">{job.employment_type}</span>
+                            <div className="flex items-center gap-1">
+                                <Briefcase className="h-3.5 w-3.5 text-amber-500" />
+                                <span className="text-xs font-medium text-muted-foreground">{job.employment_type}</span>
                             </div>
                         )}
                         {job.is_remote && (
-                            <div className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded-md border border-emerald-100 dark:border-emerald-900/50">
-                                <Globe className="h-3 w-3" />
-                                <span>Remote</span>
+                            <div className="flex items-center gap-1">
+                                <Globe className="h-3.5 w-3.5 text-emerald-500" />
+                                <span className="text-xs font-medium text-muted-foreground">Remote</span>
                             </div>
                         )}
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-border/50 mt-auto">
-                    <span className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
-                        Posted {job.posted_at ? formatRelativeDate(job.posted_at) : 'recently'}
-                    </span>
-                    <Badge variant="secondary" className="text-[10px] font-normal px-1.5 h-5 bg-muted text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary transition-colors">
-                        View Details
-                    </Badge>
+                {/* Arrow Icon */}
+                <div className="flex items-center justify-center w-8 border-l border-border bg-card">
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

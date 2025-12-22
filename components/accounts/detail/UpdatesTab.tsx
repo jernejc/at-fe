@@ -1,8 +1,7 @@
 // Updates Tab Component
 import { EmptyState } from './components';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { formatRelativeDate } from './utils'; // reuse util if available
+import { Heart, MessageSquare, ArrowUpRight } from 'lucide-react';
 
 // UpdatePost interface matches the schema structure
 interface UpdatePost {
@@ -29,9 +28,17 @@ export function UpdatesTab({ updates }: UpdatesTabProps) {
 
     if (posts.length === 0) return <EmptyState>No recent updates</EmptyState>;
 
+    // Sort by date, newest first
+    const sortedPosts = [...posts].sort((a, b) => {
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+
     return (
-        <div className="space-y-6">
-            {posts.map((post, i) => (
+        <div className="space-y-2">
+            {sortedPosts.map((post, i) => (
                 <UpdateCard key={i} post={post} />
             ))}
         </div>
@@ -40,69 +47,67 @@ export function UpdatesTab({ updates }: UpdatesTabProps) {
 
 function UpdateCard({ post }: { post: UpdatePost }) {
     const isReshare = !!post.resharedPostAuthor;
+    const linkedInUrl = post.urn ? `https://www.linkedin.com/feed/update/${post.urn}` : null;
+
+    const handleClick = () => {
+        if (linkedInUrl) {
+            window.open(linkedInUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
 
     return (
-        <article className="bg-card p-4 rounded-xl border border-border/60 shadow-sm hover:border-blue-400 dark:hover:border-blue-600 transition-colors">
-            {/* Header */}
-            <div className="flex flex-col gap-1 mb-3">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-foreground">
-                        Company Update
-                    </span>
-                    {post.date && (
-                        <span className="text-xs text-muted-foreground">{post.date}</span>
-                    )}
-                </div>
-                {post.followers && (
-                    <p className="text-xs text-muted-foreground">
-                        {post.followers.toLocaleString()} followers
-                    </p>
-                )}
-            </div>
-
-            {/* Content */}
-            <div className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                {post.description}
-            </div>
-
-            {/* Reshared Content */}
-            {isReshare && (
-                <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border/50">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-xs">{post.resharedPostAuthor}</span>
-                    </div>
-                    {post.resharedPostDescription && (
-                        <p className="text-xs text-muted-foreground line-clamp-3 italic">
-                            {post.resharedPostDescription}
-                        </p>
-                    )}
-                </div>
+        <article
+            onClick={handleClick}
+            className={cn(
+                "group bg-card rounded-md border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:shadow-sm overflow-hidden",
+                linkedInUrl && "cursor-pointer"
             )}
-
-            {/* Actions Toolbar */}
-            <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border/30">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span role="img" aria-label="likes">👍</span>
-                    <span>{(post.reactionsCount || 0).toLocaleString()}</span>
+        >
+            <div className="flex">
+                {/* Left: Date */}
+                <div className="w-24 border-r border-border bg-muted/5 flex items-center justify-center py-3 shrink-0">
+                    <span className="text font-medium text-muted-foreground text-center px-2">
+                        {post.date || '—'}
+                    </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span role="img" aria-label="comments">💬</span>
-                    <span>{(post.commentsCount || 0).toLocaleString()}</span>
+                {/* Main Content */}
+                <div className="flex-1 px-4 py-3 min-w-0">
+                    {/* Content */}
+                    <p className="text-sm text-foreground/90 line-clamp-2 leading-relaxed">
+                        {post.description}
+                    </p>
+
+                    {/* Reshared Content */}
+                    {isReshare && (
+                        <div className="mt-2 px-3 py-2 bg-muted/30 rounded border border-border/50">
+                            <span className="text-[11px] font-medium text-muted-foreground">{post.resharedPostAuthor}</span>
+                            {post.resharedPostDescription && (
+                                <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                                    {post.resharedPostDescription}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Engagement at bottom */}
+                    <div className="flex items-center gap-4 mt-2">
+                        <div className="flex items-center gap-1">
+                            <Heart className="h-3.5 w-3.5 text-rose-500" />
+                            <span className="text-xs font-medium text-muted-foreground">{(post.reactionsCount || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="text-xs font-medium text-muted-foreground">{(post.commentsCount || 0).toLocaleString()}</span>
+                        </div>
+                    </div>
                 </div>
 
-                {post.urn && (
-                    <a
-                        href={`https://www.linkedin.com/feed/update/${post.urn}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-auto text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-                    >
-                        View Post
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                    </a>
+                {/* Arrow - diagonal indicates external */}
+                {linkedInUrl && (
+                    <div className="flex items-center justify-center w-8 border-l border-border bg-card">
+                        <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </div>
                 )}
             </div>
         </article>

@@ -66,7 +66,7 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal }: Explain
                     variants={container}
                     initial="hidden"
                     animate="show"
-                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    className="grid grid-cols-1 gap-2"
                 >
                     {fits_summary.map((fit, idx) => (
                         <motion.div key={fit.product_id} variants={item}>
@@ -158,12 +158,6 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal }: Explain
     );
 }
 
-// ----------------------------------------------------------------------
-// Sub-components
-// ----------------------------------------------------------------------
-
-
-
 function FitCard({ fit, onClick, index }: { fit: FitSummaryFit, onClick: () => void, index: number }) {
     // Normalize scores to 0-100
     const score = fit.combined_score <= 1 ? fit.combined_score * 100 : fit.combined_score;
@@ -173,63 +167,60 @@ function FitCard({ fit, onClick, index }: { fit: FitSummaryFit, onClick: () => v
     return (
         <div
             onClick={onClick}
-            className="group relative bg-card rounded-lg border border-border p-0 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm hover:shadow-md overflow-hidden"
+            className="group relative bg-card rounded-md border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer hover:shadow-sm overflow-hidden"
         >
-            <div className="flex flex-col sm:flex-row h-full">
+            <div className="flex items-center h-full">
                 {/* Left: Score & Product Title */}
-                <div className="flex-1 p-5 flex items-start gap-5">
-                    <div className="flex flex-col items-center justify-center h-14 w-14 rounded-full border-2 border-muted bg-muted/30 font-bold text-lg text-foreground shrink-0">
+                <div className="flex-1 px-4 py-1 flex items-center gap-4">
+                    <div className="flex items-center justify-center h-10 w-10 rounded-full border border-muted bg-muted/30 font-semibold text-sm text-foreground shrink-0">
                         {Math.round(score)}
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-lg text-foreground">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm text-foreground truncate">
                             {fit.product_name}
                         </h3>
-                        <div className="flex flex-wrap gap-1.5 mt-2">
+                        <div className="flex flex-wrap gap-1 mt-1">
                             {fit.top_drivers && fit.top_drivers.length > 0 ? (
                                 fit.top_drivers.slice(0, 3).map((driver, i) => (
-                                    <span key={i} className="inline-flex items-center text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border">
+                                    <span key={i} className="inline-flex items-center text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
                                         {driver}
                                     </span>
                                 ))
                             ) : (
-                                <span className="text-xs text-muted-foreground">No key drivers</span>
+                                <span className="text-[10px] text-muted-foreground">No key drivers</span>
                             )}
                             {fit.top_drivers && fit.top_drivers.length > 3 && (
-                                <span className="text-[10px] text-muted-foreground self-center">+{fit.top_drivers.length - 3}</span>
+                                <span className="text-[10px] text-muted-foreground">+{fit.top_drivers.length - 3}</span>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Right: Metrics & Action */}
-                <div className="sm:w-64 border-t sm:border-t-0 sm:border-l border-border bg-muted/10 p-5 flex flex-col justify-center gap-4">
-                    <div className="space-y-3">
-                        {/* Mini Meters */}
-                        <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground font-medium">Likelihood</span>
-                            <div className="flex items-center gap-2">
-                                <div className="h-1.5 w-16 bg-muted rounded-full overflow-hidden">
-                                    <div className="h-full bg-foreground/70 rounded-full" style={{ width: `${likelihood}%` }} />
-                                </div>
-                                <span className="w-8 text-right font-mono text-foreground">{Math.round(likelihood)}%</span>
+                {/* Right: Metrics */}
+                <div className="w-48 border-l border-border bg-muted/5 px-4 py-3 flex flex-col justify-center gap-2">
+                    <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Likelihood</span>
+                        <div className="flex items-center gap-2">
+                            <div className="h-1 w-12 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-foreground/60 rounded-full" style={{ width: `${likelihood}%` }} />
                             </div>
+                            <span className="w-7 text-right font-mono text-[11px] text-foreground">{Math.round(likelihood)}%</span>
                         </div>
-                        <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground font-medium">Urgency</span>
-                            <div className="flex items-center gap-2">
-                                <div className="h-1.5 w-16 bg-muted rounded-full overflow-hidden">
-                                    <div className="h-full bg-foreground/70 rounded-full" style={{ width: `${urgency}%` }} />
-                                </div>
-                                <span className="w-8 text-right font-mono text-foreground">{Math.round(urgency)}%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Urgency</span>
+                        <div className="flex items-center gap-2">
+                            <div className="h-1 w-12 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-foreground/60 rounded-full" style={{ width: `${urgency}%` }} />
                             </div>
+                            <span className="w-7 text-right font-mono text-[11px] text-foreground">{Math.round(urgency)}%</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Arrow Icon absolutely positioned or flexed */}
-                <div className="hidden sm:flex items-center justify-center w-10 border-l border-border bg-card">
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                {/* Arrow Icon */}
+                <div className="flex items-center justify-center w-8 border-l border-border bg-card">
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                 </div>
             </div>
         </div>
@@ -244,7 +235,7 @@ function SignalCard({ signal, type, onClick }: { signal: SignalInterest | Signal
             onClick={onClick}
             className="group relative overflow-hidden transition-all hover:shadow-md cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 flex flex-col h-full"
         >
-            <CardContent className="p-4 flex flex-col h-full">
+            <CardContent className="px-4 py-1 flex flex-col h-full">
                 <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                         {type === 'interest' ? (

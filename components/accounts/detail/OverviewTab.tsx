@@ -86,29 +86,6 @@ export function OverviewTab({ company }: OverviewTabProps) {
                 </section>
             )}
 
-            {/* Funding timeline */}
-            {company.funding_rounds && company.funding_rounds.length > 0 && (
-                <section>
-                    <SectionHeader title="Funding" />
-                    <div className="pl-4 space-y-0">
-                        {company.funding_rounds.map((round, i) => (
-                            <div key={i} className="flex items-center gap-4 py-3 border-b border-border/50 last:border-0 border-dashed">
-                                <div className="w-2.5 h-2.5 rounded-full bg-blue-500/50 ring-4 ring-blue-500/10" />
-                                <div className="flex-1">
-                                    <span className="font-medium text-sm">{round.round_type || 'Funding'}</span>
-                                    {round.date && <span className="text-muted-foreground ml-2 text-xs">· {round.date}</span>}
-                                </div>
-                                {round.amount && (
-                                    <span className="text-sm font-bold text-foreground font-mono">
-                                        ${(round.amount / 1_000_000).toFixed(0)}M
-                                    </span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            )}
-
             {/* Contact */}
             {(company.website_url || (company.emails && company.emails.length > 0)) && (
                 <section>

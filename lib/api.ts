@@ -351,11 +351,12 @@ export async function deletePlaybook(playbookId: number): Promise<void> {
 }
 
 export async function getCompanyPlaybooks(domain: string): Promise<CompanyPlaybooksResponse> {
-    return fetchAPI<CompanyPlaybooksResponse>(`/api/v1/playbooks/company/${encodeURIComponent(domain)}`);
+    return fetchAPI<CompanyPlaybooksResponse>(`/api/v1/companies/${encodeURIComponent(domain)}/playbooks`);
 }
 
-export async function getCompanyPlaybook(domain: string, playbookId: number): Promise<PlaybookRead> {
-    return fetchAPI<PlaybookRead>(`/api/v1/playbooks/company/${encodeURIComponent(domain)}/${playbookId}`);
+export async function getCompanyPlaybook(_domain: string, playbookId: number): Promise<PlaybookRead> {
+    // Note: domain parameter kept for API compatibility but playbooks are fetched by ID directly
+    return fetchAPI<PlaybookRead>(`/api/v1/playbooks/${playbookId}`);
 }
 
 export async function generatePlaybooks(
