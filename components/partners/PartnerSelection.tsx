@@ -6,7 +6,7 @@ import { Partner } from '@/lib/schemas/campaign';
 import { Search, Check, Building2, Zap, Briefcase, Globe } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MOCK_PARTNERS } from '../mockPartners';
+import { MOCK_PARTNERS } from './mockPartners';
 
 
 interface PartnerSelectionProps {

@@ -1,7 +1,7 @@
 // Updates Tab Component
 import { EmptyState, SectionHeader } from './components';
-import { cn } from '@/lib/utils';
-import { Heart, MessageSquare, ArrowUpRight } from 'lucide-react';
+import { ListCard } from './ListCard';
+import { Heart, MessageSquare } from 'lucide-react';
 
 // UpdatePost interface matches the schema structure
 interface UpdatePost {
@@ -59,60 +59,39 @@ function UpdateCard({ post }: { post: UpdatePost }) {
     };
 
     return (
-        <article
-            onClick={handleClick}
-            className={cn(
-                "group bg-card rounded-md border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:shadow-sm overflow-hidden",
-                linkedInUrl && "cursor-pointer"
-            )}
+        <ListCard
+            leftColumn={post.date || '—'}
+            onClick={linkedInUrl ? handleClick : undefined}
+            rightIcon={linkedInUrl ? 'external' : 'none'}
         >
-            <div className="flex">
-                {/* Left: Date */}
-                <div className="w-24 border-r border-border bg-muted/5 flex items-center justify-center py-3 shrink-0">
-                    <span className="text font-medium text-muted-foreground text-center px-2">
-                        {post.date || '—'}
-                    </span>
-                </div>
+            {/* Content */}
+            <p className="text-sm text-foreground/90 line-clamp-2 leading-relaxed">
+                {post.description}
+            </p>
 
-                {/* Main Content */}
-                <div className="flex-1 px-4 py-3 min-w-0">
-                    {/* Content */}
-                    <p className="text-sm text-foreground/90 line-clamp-2 leading-relaxed">
-                        {post.description}
-                    </p>
-
-                    {/* Reshared Content */}
-                    {isReshare && (
-                        <div className="mt-2 px-3 py-2 bg-muted/30 rounded border border-border/50">
-                            <span className="text-[11px] font-medium text-muted-foreground">{post.resharedPostAuthor}</span>
-                            {post.resharedPostDescription && (
-                                <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
-                                    {post.resharedPostDescription}
-                                </p>
-                            )}
-                        </div>
+            {/* Reshared Content */}
+            {isReshare && (
+                <div className="mt-2 px-3 py-2 bg-muted/30 rounded border border-border/50">
+                    <span className="text-[11px] font-medium text-muted-foreground">{post.resharedPostAuthor}</span>
+                    {post.resharedPostDescription && (
+                        <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                            {post.resharedPostDescription}
+                        </p>
                     )}
-
-                    {/* Engagement at bottom */}
-                    <div className="flex items-center gap-4 mt-2">
-                        <div className="flex items-center gap-1">
-                            <Heart className="h-3.5 w-3.5 text-rose-500" />
-                            <span className="text-xs font-medium text-muted-foreground">{(post.reactionsCount || 0).toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
-                            <span className="text-xs font-medium text-muted-foreground">{(post.commentsCount || 0).toLocaleString()}</span>
-                        </div>
-                    </div>
                 </div>
+            )}
 
-                {/* Arrow - diagonal indicates external */}
-                {linkedInUrl && (
-                    <div className="flex items-center justify-center w-8 border-l border-border bg-card">
-                        <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </div>
-                )}
+            {/* Engagement at bottom */}
+            <div className="flex items-center gap-4 mt-2">
+                <div className="flex items-center gap-1">
+                    <Heart className="h-3.5 w-3.5 text-rose-500" />
+                    <span className="text-xs font-medium text-muted-foreground">{(post.reactionsCount || 0).toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-xs font-medium text-muted-foreground">{(post.commentsCount || 0).toLocaleString()}</span>
+                </div>
             </div>
-        </article>
+        </ListCard>
     );
 }

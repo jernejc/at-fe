@@ -1,11 +1,11 @@
 // Playbooks Tab Component - Updated styling to match Explainability tab
 
 import { useState, useEffect, useMemo } from 'react';
-import type { PlaybookSummary, PlaybookRead, PlaybookContactResponse, EmployeeSummary } from '@/lib/schemas';
+import type { PlaybookSummary, PlaybookRead, PlaybookContactResponse, EmployeeSummary, PlaybookContext } from '@/lib/schemas';
 import { getCompanyPlaybook, getEmployees } from '@/lib/api';
 import { SectionHeader } from './components';
-import { TabHeaderWithAction } from './EnrichedEmptyState';
 import { cn } from '@/lib/utils';
+import { staggerContainerFast, slideInFromLeft, staggerContainer, fadeInUp } from '@/lib/animations';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -32,11 +32,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
-export interface PlaybookContext {
-    role_category?: string | null;
-    value_prop?: string | null;
-    fit_score?: number | null;
-}
+export { type PlaybookContext } from '@/lib/schemas';
 
 interface PlaybooksTabProps {
     playbooks: PlaybookSummary[];
@@ -52,36 +48,11 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
     const [loadingDetail, setLoadingDetail] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Animation variants
-    const container = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.05
-            }
-        }
-    };
-
-    const item = {
-        hidden: { opacity: 0, x: -10 },
-        show: { opacity: 1, x: 0, transition: { duration: 0.2 } }
-    };
-
-    const detailContainer = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
-
-    const detailItem = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
-    };
+    // Use shared animation variants
+    const container = staggerContainerFast;
+    const item = slideInFromLeft;
+    const detailContainer = staggerContainer;
+    const detailItem = fadeInUp;
 
     const handleEmployeeClick = async (contact: PlaybookContactResponse) => {
         // Capture context

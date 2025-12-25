@@ -63,6 +63,7 @@ export type {
     PlaybookRegenerateRequest,
     PlaybookRegenerateResponse,
     BulkPlaybookGenerationResponse,
+    PlaybookContext,
 } from './playbook';
 
 // Signal types

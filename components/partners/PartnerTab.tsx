@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Partner, MembershipRead } from '@/lib/schemas/campaign';
+import { Partner, MembershipRead, MembershipWithProgress } from '@/lib/schemas/campaign';
 import { getCampaignCompanies } from '@/lib/api';
 import { Building2, Zap, Briefcase, Globe, ExternalLink, Shuffle, LayoutGrid, TableProperties, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { PartnerOverviewCard } from './PartnerOverviewCard';
 import { PartnerAssignmentsView } from './PartnerAssignmentsView';
 import { AutoAssignDialog } from './AutoAssignDialog';
+import { PartnerDetailSheet } from './PartnerDetailSheet';
 import { DEFAULT_CAMPAIGN_PARTNERS } from './mockPartners';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +24,48 @@ export function PartnerTab({ campaignSlug, onCompanyClick }: PartnerTabProps) {
     const [companies, setCompanies] = useState<MembershipRead[]>([]);
     const [loading, setLoading] = useState(true);
     const [autoAssignDialogOpen, setAutoAssignDialogOpen] = useState(false);
+
+    // Partner Detail Sheet state
+    const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+    const [partnerDetailOpen, setPartnerDetailOpen] = useState(false);
+
+    // Outreach statuses for mock enrichment
+    const OUTREACH_STATUSES: MembershipWithProgress['outreach_status'][] = [
+        'not_started', 'draft', 'sent', 'replied', 'meeting_booked'
+    ];
+
+    // Get accounts for selected partner from actual campaign companies
+    // Enriched with mock outreach progress data
+    const selectedPartnerAccounts = useMemo<MembershipWithProgress[]>(() => {
+        if (!selectedPartner) return [];
+
+        // Filter actual campaign companies by partner assignment
+        const assignedCompanies = companies.filter(c => c.partner_id === selectedPartner.id);
+
+        // Enrich with mock outreach progress
+        return assignedCompanies.map((c, idx) => ({
+            ...c,
+            outreach_status: OUTREACH_STATUSES[idx % OUTREACH_STATUSES.length],
+            outreach_sent_at: idx % 3 !== 0
+                ? new Date(Date.now() - (idx * 2 + 1) * 86400000).toISOString()
+                : undefined,
+            decision_makers_count: Math.floor((idx + 1) % 5) + 1,
+            last_activity: new Date(Date.now() - idx * 43200000).toISOString(),
+        }));
+    }, [selectedPartner, companies]);
+
+    // Handle partner card click
+    const handlePartnerClick = (partner: Partner) => {
+        setSelectedPartner(partner);
+        setPartnerDetailOpen(true);
+    };
+
+    // Handle account click from partner detail (opens main account detail)
+    const handlePartnerAccountClick = (domain: string) => {
+        // Close partner detail and open account detail
+        setPartnerDetailOpen(false);
+        onCompanyClick?.(domain);
+    };
 
     // Load companies data
     useEffect(() => {
@@ -148,6 +191,7 @@ export function PartnerTab({ campaignSlug, onCompanyClick }: PartnerTabProps) {
                             <PartnerOverviewCard
                                 key={partner.id}
                                 partner={partner}
+                                onClick={() => handlePartnerClick(partner)}
                             />
                         ))}
                     </div>
@@ -214,6 +258,15 @@ export function PartnerTab({ campaignSlug, onCompanyClick }: PartnerTabProps) {
                 open={autoAssignDialogOpen}
                 onClose={() => setAutoAssignDialogOpen(false)}
                 onConfirm={handleAutoAssign}
+            />
+
+            {/* Partner Detail Sheet */}
+            <PartnerDetailSheet
+                partner={selectedPartner}
+                open={partnerDetailOpen}
+                onClose={() => setPartnerDetailOpen(false)}
+                assignedCompanies={selectedPartnerAccounts}
+                onCompanyClick={handlePartnerAccountClick}
             />
         </div>
     );

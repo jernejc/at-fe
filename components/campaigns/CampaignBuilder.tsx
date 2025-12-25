@@ -9,7 +9,7 @@ import type { CompanySummary } from '@/lib/schemas';
 import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { PartnerSelection } from './builder/PartnerSelection';
+import { PartnerSelection } from '@/components/partners';
 import { SearchInput } from './builder/SearchInput';
 import { StatsCard } from './builder/StatsCard';
 import { AccountDetail } from '@/components/accounts';

@@ -245,3 +245,12 @@ export interface CampaignDraft {
     partners?: Partner[];
 }
 
+// Outreach progress tracking (for partner detail view)
+export type OutreachStatus = 'not_started' | 'draft' | 'sent' | 'replied' | 'meeting_booked';
+
+export interface MembershipWithProgress extends MembershipRead {
+    outreach_status: OutreachStatus;
+    outreach_sent_at?: string;
+    decision_makers_count: number;
+    last_activity?: string;
+}

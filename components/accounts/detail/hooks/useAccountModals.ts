@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { getEmployee, getFitBreakdown, getSignalProvenance } from '@/lib/api';
-import { EmployeeRead, EmployeeSummary, FitScore, CompanyExplainabilityResponse, JobPostingSummary } from '@/lib/schemas';
+import { EmployeeRead, EmployeeSummary, FitScore, CompanyExplainabilityResponse, JobPostingSummary, PlaybookContext } from '@/lib/schemas';
 import { SignalProvenanceResponse } from '@/lib/schemas/provenance';
 
 interface EmployeeModalState {
@@ -26,12 +26,6 @@ interface SignalModalState {
 interface JobModalState {
     job: JobPostingSummary | null;
     open: boolean;
-}
-
-interface PlaybookContext {
-    role_category?: string | null;
-    value_prop?: string | null;
-    fit_score?: number | null;
 }
 
 interface UseAccountModalsReturn {

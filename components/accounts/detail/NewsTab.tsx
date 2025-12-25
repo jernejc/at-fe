@@ -1,11 +1,11 @@
 // News Tab Component with Pagination
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import type { NewsArticleSummary } from '@/lib/schemas';
+import { formatRelativeDate } from '@/lib/utils';
 import { EmptyState, SectionHeader } from './components';
-import { formatRelativeDate } from './utils';
+import { LoadMoreSection } from './LoadMoreSection';
 
 interface NewsTabProps {
     news: NewsArticleSummary[];
@@ -68,18 +68,14 @@ export function NewsTab({ news, total, onLoadMore, loadingMore }: NewsTabProps) 
             </Card>
 
             {/* Load More Button */}
-            {total > news.length && onLoadMore && (
-                <div className="flex flex-col items-center gap-2 pt-4">
-                    <p className="text-sm text-muted-foreground">Showing {news.length} of {total} articles</p>
-                    <Button
-                        variant="ghost"
-                        onClick={onLoadMore}
-                        disabled={loadingMore}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    >
-                        {loadingMore ? 'Loading...' : 'Load More'}
-                    </Button>
-                </div>
+            {onLoadMore && (
+                <LoadMoreSection
+                    currentCount={news.length}
+                    totalCount={total}
+                    onLoadMore={onLoadMore}
+                    loadingMore={loadingMore ?? false}
+                    itemLabel="articles"
+                />
             )}
         </div>
     );

@@ -11,6 +11,16 @@ export interface PlaybookSummary {
     regenerated_at?: string | null;
 }
 
+/**
+ * Context for playbook employee interactions.
+ * Used when viewing employee details from playbook context.
+ */
+export interface PlaybookContext {
+    role_category?: string | null;
+    value_prop?: string | null;
+    fit_score?: number | null;
+}
+
 export interface OutreachTemplateResponse {
     id: number;
     recipient: string | null;

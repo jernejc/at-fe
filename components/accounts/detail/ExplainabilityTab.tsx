@@ -6,11 +6,10 @@ import {
 } from '@/lib/schemas';
 import { SectionHeader } from './components';
 import { TabHeaderWithAction } from './EnrichedEmptyState';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import { cn, normalizeScore } from '@/lib/utils';
+import { staggerContainer, fadeInUp } from '@/lib/animations';
 import {
     Target,
     Zap,
@@ -39,21 +38,6 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
         onSelectFit(productId);
     };
 
-    const container = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
-
-    const item = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
-    };
-
     const handleSignalClick = (signalId: number) => {
         onSelectSignal(signalId);
     };
@@ -73,13 +57,13 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
                 )}
 
                 <motion.div
-                    variants={container}
+                    variants={staggerContainer}
                     initial="hidden"
                     animate="show"
                     className="grid grid-cols-1 gap-2"
                 >
                     {fits_summary.map((fit, idx) => (
-                        <motion.div key={fit.product_id} variants={item}>
+                        <motion.div key={fit.product_id} variants={fadeInUp}>
                             <FitCard
                                 fit={fit}
                                 onClick={() => handleFitClick(fit.product_id)}
@@ -170,9 +154,9 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
 
 function FitCard({ fit, onClick, index }: { fit: FitSummaryFit, onClick: () => void, index: number }) {
     // Normalize scores to 0-100
-    const score = fit.combined_score <= 1 ? fit.combined_score * 100 : fit.combined_score;
-    const likelihood = fit.likelihood_score <= 1 ? fit.likelihood_score * 100 : fit.likelihood_score;
-    const urgency = fit.urgency_score <= 1 ? fit.urgency_score * 100 : fit.urgency_score;
+    const score = normalizeScore(fit.combined_score);
+    const likelihood = normalizeScore(fit.likelihood_score);
+    const urgency = normalizeScore(fit.urgency_score);
 
     return (
         <div
