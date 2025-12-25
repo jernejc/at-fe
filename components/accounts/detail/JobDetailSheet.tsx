@@ -23,12 +23,12 @@ export function JobDetailSheet({ job, isOpen, onClose }: JobDetailSheetProps) {
     if (!job) return null;
 
     return (
-        <Sheet open={isOpen} onOpenChange={onClose} modal={true}>
+        <Sheet open={isOpen} onOpenChange={onClose}>
             <SheetContent
                 side="right"
                 className="p-0 flex flex-col h-full bg-background border-l shadow-xl"
-                style={{ width: '100%', maxWidth: '650px', zIndex: 200 }}
-                overlayClassName="!z-[200]"
+                style={{ width: '100%', maxWidth: '650px', zIndex: 60 }}
+                overlayClassName="!z-[60]"
             >
                 {/* Header Section */}
                 <div className="p-6 border-b shrink-0 bg-muted/5 space-y-4">

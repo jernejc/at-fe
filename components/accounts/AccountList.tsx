@@ -7,21 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/ui/Header";
 import { AccountCard, AccountCardSkeleton } from "./AccountCard";
 import {
-    getCompanies,
-    getPlaybooks,
     getProducts,
-    PRODUCT_GROUPS,
+    getProductCandidates,
+    getCompanies,
     getCampaigns,
     addCompaniesBulk,
 } from "@/lib/api";
 import type {
-    CompanySummary,
-    PlaybookSummary,
-    CompanyFilters,
     ProductSummary,
+    CandidateFitSummary,
+    CompanySummary,
     CampaignSummary,
 } from "@/lib/schemas";
-import { Loader2, Plus, Sparkles, FolderPlus } from "lucide-react";
+import { Loader2, Plus, FolderPlus, Package, Building2 } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -41,23 +39,53 @@ import { Label } from "@/components/ui/label";
 
 type ScoreFilter = "all" | "hot" | "warm" | "cold";
 
+// Color palette for product tabs
+const PRODUCT_COLORS = [
+    "#8b5cf6", // violet
+    "#3b82f6", // blue
+    "#10b981", // emerald
+    "#f59e0b", // amber
+    "#ef4444", // red
+    "#ec4899", // pink
+    "#06b6d4", // cyan
+    "#84cc16", // lime
+];
+
+// Unified account type for display
+interface AccountItem {
+    company_id: number;
+    company_domain: string;
+    company_name: string;
+    industry: string | null;
+    employee_count: number | null;
+    hq_country: string | null;
+    logo_url: string | null;
+    combined_score: number | null;
+    urgency_score: number | null;
+    top_drivers: string[] | null;
+    calculated_at: string | null;
+    top_contact: {
+        full_name: string;
+        current_title: string | null;
+        avatar_url: string | null;
+    } | null;
+}
+
 interface AccountListProps {
     productGroup?: string;
-    onAccountClick?: (company: CompanySummary) => void;
+    onAccountClick?: (account: AccountItem) => void;
 }
 
 export function AccountList({
     productGroup,
     onAccountClick,
 }: AccountListProps) {
-    const [companies, setCompanies] = useState<CompanySummary[]>([]);
-    const [playbooks, setPlaybooks] = useState<Record<number, PlaybookSummary>>(
-        {}
-    );
     const [products, setProducts] = useState<ProductSummary[]>([]);
+    const [accounts, setAccounts] = useState<AccountItem[]>([]);
+    const [selectedProductId, setSelectedProductId] = useState<string>("all");
     const [loading, setLoading] = useState(true);
+    const [loadingAccounts, setLoadingAccounts] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [activeProductGroup, setActiveProductGroup] = useState<string>("all");
     const [scoreFilter, setScoreFilter] = useState<ScoreFilter>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -71,108 +99,168 @@ export function AccountList({
     );
     const [addingToCampaign, setAddingToCampaign] = useState(false);
 
-    // Fetch companies, playbooks, and products
+    // Fetch products on mount
     useEffect(() => {
-        async function fetchData() {
+        async function fetchProducts() {
             setLoading(true);
             setError(null);
 
             try {
-                const filters: CompanyFilters = {
-                    page: 1,
-                    page_size: 50,
-                    sort_by: "updated_at",
-                    sort_order: "desc",
-                };
-
-                const [companiesRes, playbooksRes, productsRes] = await Promise.all([
-                    getCompanies(filters),
-                    getPlaybooks({
-                        page_size: 100,
-                        product_group:
-                            activeProductGroup === "all" ? undefined : activeProductGroup,
-                    }),
-                    getProducts(1, 100),
-                ]);
-
-                setCompanies(companiesRes.items);
-                setTotalCount(companiesRes.total);
+                const productsRes = await getProducts(1, 100);
                 setProducts(productsRes.items);
+            } catch (err) {
+                setError(
+                    err instanceof Error ? err.message : "Failed to fetch products"
+                );
+                console.error("Error fetching products:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
 
-                // Create lookup map for playbooks by company_id
-                const playbookMap: Record<number, PlaybookSummary> = {};
-                playbooksRes.items.forEach((pb) => {
-                    // Use highest fit score if multiple playbooks for same company
-                    if (
-                        !playbookMap[pb.company_id] ||
-                        (pb.fit_score || 0) > (playbookMap[pb.company_id].fit_score || 0)
-                    ) {
-                        playbookMap[pb.company_id] = pb;
-                    }
-                });
-                setPlaybooks(playbookMap);
+        fetchProducts();
+    }, []);
+
+    // Fetch accounts when product selection changes
+    useEffect(() => {
+        async function fetchAccounts() {
+            setLoadingAccounts(true);
+            setError(null);
+
+            try {
+                if (selectedProductId === "all") {
+                    // Fetch all companies
+                    const response = await getCompanies({
+                        page: 1,
+                        page_size: 100,
+                        sort_by: "updated_at",
+                        sort_order: "desc",
+                    });
+
+                    // Map CompanySummary to AccountItem
+                    const items: AccountItem[] = response.items.map((company: CompanySummary) => ({
+                        company_id: company.id,
+                        company_domain: company.domain,
+                        company_name: company.name,
+                        industry: company.industry,
+                        employee_count: company.employee_count,
+                        hq_country: company.hq_country,
+                        logo_url: company.logo_url || (company.logo_base64
+                            ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
+                            : null),
+                        combined_score: null,
+                        urgency_score: null,
+                        top_drivers: null,
+                        calculated_at: company.updated_at,
+                        top_contact: company.top_contact ? {
+                            full_name: company.top_contact.full_name,
+                            current_title: company.top_contact.current_title,
+                            avatar_url: company.top_contact.avatar_url,
+                        } : null,
+                    }));
+
+                    setAccounts(items);
+                    setTotalCount(response.total);
+                } else {
+                    // Fetch candidates for specific product
+                    const productId = Number(selectedProductId);
+                    const response = await getProductCandidates(productId, {
+                        page: 1,
+                        page_size: 100,
+                    });
+
+                    // Map CandidateFitSummary to AccountItem
+                    const items: AccountItem[] = response.candidates.map((candidate: CandidateFitSummary) => ({
+                        company_id: candidate.company_id,
+                        company_domain: candidate.company_domain,
+                        company_name: candidate.company_name,
+                        industry: candidate.industry || null,
+                        employee_count: candidate.employee_count || null,
+                        hq_country: candidate.hq_country || null,
+                        logo_url: candidate.logo_url || (candidate.logo_base64
+                            ? (candidate.logo_base64.startsWith('data:') ? candidate.logo_base64 : `data:image/png;base64,${candidate.logo_base64}`)
+                            : null),
+                        combined_score: candidate.combined_score,
+                        urgency_score: candidate.urgency_score,
+                        top_drivers: candidate.top_drivers,
+                        calculated_at: candidate.calculated_at,
+                        top_contact: candidate.top_contact ? {
+                            full_name: candidate.top_contact.full_name,
+                            current_title: candidate.top_contact.current_title || null,
+                            avatar_url: candidate.top_contact.avatar_url || null,
+                        } : null,
+                    }));
+
+                    setAccounts(items);
+                    setTotalCount(response.total);
+                }
             } catch (err) {
                 setError(
                     err instanceof Error ? err.message : "Failed to fetch accounts"
                 );
                 console.error("Error fetching accounts:", err);
             } finally {
-                setLoading(false);
+                setLoadingAccounts(false);
             }
         }
 
-        fetchData();
-    }, [activeProductGroup]);
+        fetchAccounts();
+    }, [selectedProductId]);
 
-    // Filter and sort companies
-    const filteredCompanies = useMemo(() => {
-        const result = companies.filter((company) => {
-            const playbook = playbooks[company.id];
-            const score = Math.round((playbook?.fit_score || 0) * 100);
-
-            // Score filter
-            if (scoreFilter === "hot" && score < 80) return false;
-            if (scoreFilter === "warm" && (score < 60 || score >= 80)) return false;
-            if (scoreFilter === "cold" && score >= 60) return false;
+    // Filter and sort accounts
+    const filteredAccounts = useMemo(() => {
+        const result = accounts.filter((account) => {
+            // Score filter (only apply if we have scores)
+            if (account.combined_score !== null) {
+                const score = Math.round(account.combined_score * 100);
+                if (scoreFilter === "hot" && score < 80) return false;
+                if (scoreFilter === "warm" && (score < 60 || score >= 80)) return false;
+                if (scoreFilter === "cold" && score >= 60) return false;
+            } else if (scoreFilter !== "all") {
+                // If no score and filter is not "all", exclude
+                return false;
+            }
 
             // Search filter
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
-                const matchesName = company.name.toLowerCase().includes(query);
-                const matchesIndustry = company.industry?.toLowerCase().includes(query);
-                const matchesLocation =
-                    company.hq_city?.toLowerCase().includes(query) ||
-                    company.hq_country?.toLowerCase().includes(query);
+                const matchesName = account.company_name.toLowerCase().includes(query);
+                const matchesIndustry = account.industry?.toLowerCase().includes(query);
+                const matchesLocation = account.hq_country?.toLowerCase().includes(query);
                 if (!matchesName && !matchesIndustry && !matchesLocation) return false;
             }
 
             return true;
         });
 
-        // Sort by score descending
+        // Sort by score descending if available, otherwise by name
         return result.sort((a, b) => {
-            const scoreA = playbooks[a.id]?.fit_score || 0;
-            const scoreB = playbooks[b.id]?.fit_score || 0;
-            return scoreB - scoreA;
+            if (a.combined_score !== null && b.combined_score !== null) {
+                return b.combined_score - a.combined_score;
+            }
+            if (a.combined_score !== null) return -1;
+            if (b.combined_score !== null) return 1;
+            return a.company_name.localeCompare(b.company_name);
         });
-    }, [companies, playbooks, scoreFilter, searchQuery]);
+    }, [accounts, scoreFilter, searchQuery]);
 
     // Count by score category
     const scoreCounts = useMemo(() => {
-        const counts = { all: companies.length, hot: 0, warm: 0, cold: 0 };
-        companies.forEach((company) => {
-            const playbook = playbooks[company.id];
-            const score = Math.round((playbook?.fit_score || 0) * 100);
-            if (score >= 80) counts.hot++;
-            else if (score >= 60) counts.warm++;
-            else counts.cold++;
+        const counts = { all: accounts.length, hot: 0, warm: 0, cold: 0 };
+        accounts.forEach((account) => {
+            if (account.combined_score !== null) {
+                const score = Math.round(account.combined_score * 100);
+                if (score >= 80) counts.hot++;
+                else if (score >= 60) counts.warm++;
+                else counts.cold++;
+            }
         });
         return counts;
-    }, [companies, playbooks]);
+    }, [accounts]);
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedIds(new Set(filteredCompanies.map((c) => c.id)));
+            setSelectedIds(new Set(filteredAccounts.map((a) => a.company_id)));
         } else {
             setSelectedIds(new Set());
         }
@@ -202,9 +290,9 @@ export function AccountList({
 
         setAddingToCampaign(true);
         try {
-            const selectedDomains = filteredCompanies
-                .filter((c) => selectedIds.has(c.id))
-                .map((c) => c.domain);
+            const selectedDomains = filteredAccounts
+                .filter((a) => selectedIds.has(a.company_id))
+                .map((a) => a.company_domain);
 
             const result = await addCompaniesBulk(
                 selectedCampaignId,
@@ -227,76 +315,94 @@ export function AccountList({
         }
     };
 
+    const selectedProduct = products.find((p) => p.id.toString() === selectedProductId);
+
+    // Get color for product tab
+    const getProductColor = (index: number) => PRODUCT_COLORS[index % PRODUCT_COLORS.length];
+
+    const isAllAccounts = selectedProductId === "all";
+
     return (
         <div className="flex flex-col h-full bg-slate-50/30 dark:bg-slate-900/10">
-            {/* 1. Main Application Header - "LookAcross" Brand + Product Tabs */}
+            {/* 1. Main Application Header */}
             <Header />
 
-            {/* 1.5. Product Group Navigation - Context Switching (Scrollable) */}
+            {/* 1.5. Product Navigation - Select Product to View Candidates */}
             <div className="bg-white dark:bg-slate-900 border-b border-border/60 z-10 relative h-12">
                 {/* Fade gradient on right edge for scroll indication */}
                 <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none z-10" />
 
                 <div className="max-w-[1600px] mx-auto px-6 h-full flex items-stretch justify-between gap-4">
                     <div className="overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 h-full">
-                        <Tabs
-                            value={activeProductGroup}
-                            onValueChange={setActiveProductGroup}
-                            className="w-max h-full"
-                        >
-                            <TabsList
-                                className="bg-transparent !h-full p-0 gap-6 w-max rounded-none flex-nowrap"
-                                style={{ border: "none" }}
+                        {loading ? (
+                            <div className="flex items-center h-full gap-4">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="h-6 w-32 bg-muted rounded animate-pulse" />
+                                ))}
+                            </div>
+                        ) : (
+                            <Tabs
+                                value={selectedProductId}
+                                onValueChange={setSelectedProductId}
+                                className="w-max h-full"
                             >
-                                <TabsTrigger
-                                    value="all"
-                                    className="relative h-full rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap flex items-center"
-                                    style={{
-                                        border: "none",
-                                        borderBottom:
-                                            activeProductGroup === "all"
-                                                ? "2px solid #2563eb"
-                                                : "2px solid transparent",
-                                        color: activeProductGroup === "all" ? "#2563eb" : undefined,
-                                        background: "transparent",
-                                        boxShadow: "none",
-                                        outline: "none",
-                                    }}
+                                <TabsList
+                                    className="bg-transparent !h-full p-0 gap-6 w-max rounded-none flex-nowrap"
+                                    style={{ border: "none" }}
                                 >
-                                    All Accounts
-                                </TabsTrigger>
-                                {PRODUCT_GROUPS.map((group) => (
+                                    {/* All Accounts Tab */}
                                     <TabsTrigger
-                                        key={group.id}
-                                        value={group.id}
-                                        className="relative !h-full rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap group flex items-center"
+                                        value="all"
+                                        className="relative h-full rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap flex items-center"
                                         style={{
                                             border: "none",
-                                            borderBottom:
-                                                activeProductGroup === group.id
-                                                    ? `2px solid ${group.color}`
-                                                    : "2px solid transparent",
-                                            color:
-                                                activeProductGroup === group.id
-                                                    ? group.color
-                                                    : undefined,
+                                            borderBottom: isAllAccounts
+                                                ? "2px solid #2563eb"
+                                                : "2px solid transparent",
+                                            color: isAllAccounts ? "#2563eb" : undefined,
                                             background: "transparent",
                                             boxShadow: "none",
                                             outline: "none",
                                         }}
                                     >
-                                        <span
-                                            className="w-2 h-2 rounded-full mr-2 transition-all group-hover:scale-110"
-                                            style={{
-                                                backgroundColor: group.color,
-                                                opacity: activeProductGroup === group.id ? 1 : 0.5,
-                                            }}
-                                        />
-                                        {group.name}
+                                        <Building2 className="w-4 h-4 mr-2" style={{ opacity: isAllAccounts ? 1 : 0.5 }} />
+                                        All Accounts
                                     </TabsTrigger>
-                                ))}
-                            </TabsList>
-                        </Tabs>
+
+                                    {/* Product Tabs */}
+                                    {products.map((product, index) => {
+                                        const color = getProductColor(index);
+                                        const isSelected = selectedProductId === product.id.toString();
+                                        return (
+                                            <TabsTrigger
+                                                key={product.id}
+                                                value={product.id.toString()}
+                                                className="relative !h-full rounded-none px-1 font-medium text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap group flex items-center"
+                                                style={{
+                                                    border: "none",
+                                                    borderBottom: isSelected
+                                                        ? `2px solid ${color}`
+                                                        : "2px solid transparent",
+                                                    color: isSelected ? color : undefined,
+                                                    background: "transparent",
+                                                    boxShadow: "none",
+                                                    outline: "none",
+                                                }}
+                                            >
+                                                <span
+                                                    className="w-2 h-2 rounded-full mr-2 transition-all group-hover:scale-110"
+                                                    style={{
+                                                        backgroundColor: color,
+                                                        opacity: isSelected ? 1 : 0.5,
+                                                    }}
+                                                />
+                                                {product.name}
+                                            </TabsTrigger>
+                                        );
+                                    })}
+                                </TabsList>
+                            </Tabs>
+                        )}
                     </div>
 
                     {/* Add Product Button - Pinned Right */}
@@ -346,7 +452,7 @@ export function AccountList({
 
                     <div className="h-6 w-px bg-border/60 mx-1" />
 
-                    {/* Filter Tabs with Counts */}
+                    {/* Filter Tabs with Counts - Only show Hot/Warm for product views */}
                     <Tabs
                         value={scoreFilter}
                         onValueChange={(v) => setScoreFilter(v as ScoreFilter)}
@@ -359,20 +465,24 @@ export function AccountList({
                                     ({scoreCounts.all})
                                 </span>
                             </TabsTrigger>
-                            <TabsTrigger
-                                value="hot"
-                                className="text-xs px-3 font-medium text-emerald-700 dark:text-emerald-400 data-[state=active]:bg-emerald-50 dark:data-[state=active]:bg-emerald-900/20 data-[state=active]:shadow-none"
-                            >
-                                Hot{" "}
-                                <span className="ml-1.5 opacity-70">({scoreCounts.hot})</span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="warm"
-                                className="text-xs px-3 font-medium text-amber-700 dark:text-amber-400 data-[state=active]:bg-amber-50 dark:data-[state=active]:bg-amber-900/20 data-[state=active]:shadow-none"
-                            >
-                                Warm{" "}
-                                <span className="ml-1.5 opacity-70">({scoreCounts.warm})</span>
-                            </TabsTrigger>
+                            {!isAllAccounts && (
+                                <>
+                                    <TabsTrigger
+                                        value="hot"
+                                        className="text-xs px-3 font-medium text-emerald-700 dark:text-emerald-400 data-[state=active]:bg-emerald-50 dark:data-[state=active]:bg-emerald-900/20 data-[state=active]:shadow-none"
+                                    >
+                                        Hot{" "}
+                                        <span className="ml-1.5 opacity-70">({scoreCounts.hot})</span>
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="warm"
+                                        className="text-xs px-3 font-medium text-amber-700 dark:text-amber-400 data-[state=active]:bg-amber-50 dark:data-[state=active]:bg-amber-900/20 data-[state=active]:shadow-none"
+                                    >
+                                        Warm{" "}
+                                        <span className="ml-1.5 opacity-70">({scoreCounts.warm})</span>
+                                    </TabsTrigger>
+                                </>
+                            )}
                         </TabsList>
                     </Tabs>
 
@@ -387,9 +497,9 @@ export function AccountList({
                                 {/* Primary Action - New Campaign */}
                                 <Button
                                     onClick={() => {
-                                        const selectedDomains = filteredCompanies
-                                            .filter((c) => selectedIds.has(c.id))
-                                            .map((c) => c.domain)
+                                        const selectedDomains = filteredAccounts
+                                            .filter((a) => selectedIds.has(a.company_id))
+                                            .map((a) => a.company_domain)
                                             .join(",");
                                         window.location.href = `/campaigns/new?domains=${encodeURIComponent(
                                             selectedDomains
@@ -481,22 +591,27 @@ export function AccountList({
                             type="checkbox"
                             className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                             checked={
-                                filteredCompanies.length > 0 &&
-                                selectedIds.size === filteredCompanies.length
+                                filteredAccounts.length > 0 &&
+                                selectedIds.size === filteredAccounts.length
                             }
                             onChange={(e) => handleSelectAll(e.target.checked)}
-                            disabled={filteredCompanies.length === 0}
+                            disabled={filteredAccounts.length === 0}
                         />
-                        <span>Sorted by Fit Score</span>
+                        <span>
+                            {isAllAccounts ? "Sorted by Last Updated" : "Sorted by Fit Score"}
+                        </span>
+                        {selectedProduct && (
+                            <span className="text-blue-600">• {selectedProduct.name}</span>
+                        )}
                     </div>
-                    <span>{filteredCompanies.length} results</span>
+                    <span>{filteredAccounts.length} results</span>
                 </div>
             </div>
 
             {/* Account List */}
             <div className="flex-1 overflow-auto bg-white/50 dark:bg-slate-950/20">
                 <div className="max-w-[1600px] mx-auto min-h-full border-x border-border/40 bg-white dark:bg-slate-900/50">
-                    {loading ? (
+                    {loading || loadingAccounts ? (
                         <div>
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <AccountCardSkeleton key={i} />
@@ -506,20 +621,28 @@ export function AccountList({
                         <div className="flex items-center justify-center h-64 text-destructive">
                             <p>{error}</p>
                         </div>
-                    ) : filteredCompanies.length === 0 ? (
-                        <div className="flex items-center justify-center h-64 text-muted-foreground">
-                            <p>No accounts found matching your filters</p>
+                    ) : filteredAccounts.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-64 text-muted-foreground gap-4">
+                            <Building2 className="w-12 h-12 opacity-40" />
+                            <div className="text-center">
+                                <p className="font-medium">
+                                    {isAllAccounts ? "No accounts found" : "No candidates found"}
+                                </p>
+                                <p className="text-sm opacity-70">
+                                    {isAllAccounts
+                                        ? "Add companies to get started"
+                                        : "Try adjusting your filters or selecting a different product"}
+                                </p>
+                            </div>
                         </div>
                     ) : (
-                        filteredCompanies.map((company) => (
+                        filteredAccounts.map((account) => (
                             <AccountCard
-                                key={company.id}
-                                company={company}
-                                playbook={playbooks[company.id]}
-                                keyContact={company.top_contact || undefined}
-                                selected={selectedIds.has(company.id)}
-                                onSelect={(selected) => handleSelect(company.id, selected)}
-                                onClick={() => onAccountClick?.(company)}
+                                key={account.company_id}
+                                account={account}
+                                selected={selectedIds.has(account.company_id)}
+                                onSelect={(selected) => handleSelect(account.company_id, selected)}
+                                onClick={() => onAccountClick?.(account)}
                             />
                         ))
                     )}

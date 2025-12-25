@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useCallback } from 'react';
 import {
     CompanyRead,
     CompanyExplainabilityResponse,
@@ -9,13 +9,16 @@ import {
     NewsArticleSummary,
     EmployeeSummary,
 } from '@/lib/schemas';
+import { ProcessingOptions } from '@/lib/api';
 import { OverviewTab } from './OverviewTab';
 import { ExplainabilityTab } from './ExplainabilityTab';
-import { PlaybooksTab } from './PlaybooksTab';
+import { PlaybooksTab, PlaybookContext } from './PlaybooksTab';
 import { PeopleTab } from './PeopleTab';
 import { JobsTab } from './JobsTab';
 import { NewsTab } from './NewsTab';
 import { UpdatesTab } from './UpdatesTab';
+import { EnrichedEmptyState } from './EnrichedEmptyState';
+import { Target, Sparkles, Users, Briefcase, Newspaper } from 'lucide-react';
 
 interface AccountDetailContentProps {
     activeTab: string;
@@ -32,11 +35,16 @@ interface AccountDetailContentProps {
     onSelectEmployee: (employee: EmployeeSummary) => void;
     onSelectFit: (productId: number) => void;
     onSelectSignal: (signalId: number) => void;
+    onSelectJob: (job: JobPostingSummary) => void;
+    onSelectPlaybookEmployee: (employeeId: number | null, preview: { name: string; title?: string }, context: PlaybookContext) => void;
     onLoadMoreJobs: () => Promise<void>;
     onLoadMoreNews: () => Promise<void>;
     loadingMoreJobs: boolean;
     loadingMoreNews: boolean;
     employeeCount: number;
+    onProcess: (options?: ProcessingOptions) => Promise<void>;
+    onRegenerateExplainability: () => Promise<void>;
+    onRegeneratePlaybooks: () => Promise<void>;
 }
 
 function AnimatedPanel({ children }: { children: ReactNode }) {
@@ -62,11 +70,16 @@ export function AccountDetailContent({
     onSelectEmployee,
     onSelectFit,
     onSelectSignal,
+    onSelectJob,
+    onSelectPlaybookEmployee,
     onLoadMoreJobs,
     onLoadMoreNews,
     loadingMoreJobs,
     loadingMoreNews,
     employeeCount,
+    onProcess,
+    onRegenerateExplainability,
+    onRegeneratePlaybooks,
 }: AccountDetailContentProps) {
     const hasExplainability = !!explainability;
     const hasPlaybooks = playbooks.length > 0;
@@ -74,6 +87,19 @@ export function AccountDetailContent({
     const hasJobs = jobsTotal > 0;
     const hasNews = newsTotal > 0;
     const hasUpdates = (company.updates?.length || 0) > 0;
+
+    // Contextual processing handlers
+    const handleGenerateSignals = useCallback(() =>
+        onProcess({ generate_signals: true, generate_fits: true }), [onProcess]);
+
+    const handleGeneratePlaybooks = useCallback(() =>
+        onProcess({ generate_playbook: true }), [onProcess]);
+
+    const handleEnrichEmployees = useCallback(() =>
+        onProcess({ include_employees: true }), [onProcess]);
+
+    const handleFetchJobs = useCallback(() =>
+        onProcess({ include_jobs: true }), [onProcess]);
 
     return (
         <div className="flex-1 overflow-y-auto overflow-x-hidden isolate">
@@ -84,56 +110,112 @@ export function AccountDetailContent({
                     </AnimatedPanel>
                 )}
 
-                {activeTab === 'explainability' && hasExplainability && explainability && (
+                {activeTab === 'explainability' && (
                     <AnimatedPanel>
-                        <ExplainabilityTab
-                            data={explainability}
-                            onSelectFit={onSelectFit}
-                            onSelectSignal={onSelectSignal}
-                        />
+                        {hasExplainability && explainability ? (
+                            <ExplainabilityTab
+                                data={explainability}
+                                onSelectFit={onSelectFit}
+                                onSelectSignal={onSelectSignal}
+                                onProcess={onRegenerateExplainability}
+                            />
+                        ) : (
+                            <EnrichedEmptyState
+                                icon={<Target className="w-8 h-8" />}
+                                title="No fit scores or signals detected"
+                                description="Run AI analysis to generate signals and calculate fit scores for your products."
+                                actionLabel="Generate Signals & Fits"
+                                onAction={handleGenerateSignals}
+                            />
+                        )}
                     </AnimatedPanel>
                 )}
 
-                {activeTab === 'playbooks' && hasPlaybooks && (
+                {activeTab === 'playbooks' && (
                     <AnimatedPanel>
-                        <PlaybooksTab
-                            playbooks={playbooks}
-                            availableEmployees={[]}
-                            domain={domain}
-                        />
+                        {hasPlaybooks ? (
+                            <PlaybooksTab
+                                playbooks={playbooks}
+                                availableEmployees={[]}
+                                domain={domain}
+                                onSelectEmployee={onSelectPlaybookEmployee}
+                                onProcess={onRegeneratePlaybooks}
+                            />
+                        ) : (
+                            <EnrichedEmptyState
+                                icon={<Sparkles className="w-8 h-8" />}
+                                title="No sales playbooks generated"
+                                description="Generate AI-powered playbooks with discovery questions, objection handling, and personalized outreach templates."
+                                actionLabel="Generate Playbooks"
+                                onAction={handleGeneratePlaybooks}
+                            />
+                        )}
                     </AnimatedPanel>
                 )}
 
-                {activeTab === 'people' && hasPeople && (
+                {activeTab === 'people' && (
                     <AnimatedPanel>
-                        <PeopleTab
-                            decisionMakers={decisionMakers}
-                            employees={employees}
-                            total={employeeCount}
-                            onSelectEmployee={onSelectEmployee}
-                        />
+                        {hasPeople ? (
+                            <PeopleTab
+                                decisionMakers={decisionMakers}
+                                employees={employees}
+                                total={employeeCount}
+                                onSelectEmployee={onSelectEmployee}
+                                onProcess={handleEnrichEmployees}
+                            />
+                        ) : (
+                            <EnrichedEmptyState
+                                icon={<Users className="w-8 h-8" />}
+                                title="No employees found"
+                                description="Enrich this company to discover key contacts, decision makers, and their professional backgrounds."
+                                actionLabel="Enrich Employees"
+                                onAction={handleEnrichEmployees}
+                            />
+                        )}
                     </AnimatedPanel>
                 )}
 
-                {activeTab === 'jobs' && hasJobs && (
+                {activeTab === 'jobs' && (
                     <AnimatedPanel>
-                        <JobsTab
-                            jobs={jobs}
-                            total={jobsTotal}
-                            onLoadMore={onLoadMoreJobs}
-                            loadingMore={loadingMoreJobs}
-                        />
+                        {hasJobs ? (
+                            <JobsTab
+                                jobs={jobs}
+                                total={jobsTotal}
+                                onLoadMore={onLoadMoreJobs}
+                                loadingMore={loadingMoreJobs}
+                                onSelectJob={onSelectJob}
+                                onProcess={handleFetchJobs}
+                            />
+                        ) : (
+                            <EnrichedEmptyState
+                                icon={<Briefcase className="w-8 h-8" />}
+                                title="No job postings found"
+                                description="Fetch job postings to understand hiring priorities, technology stack, and growth signals."
+                                actionLabel="Fetch Jobs"
+                                onAction={handleFetchJobs}
+                            />
+                        )}
                     </AnimatedPanel>
                 )}
 
-                {activeTab === 'news' && hasNews && (
+                {activeTab === 'news' && (
                     <AnimatedPanel>
-                        <NewsTab
-                            news={news}
-                            total={newsTotal}
-                            onLoadMore={onLoadMoreNews}
-                            loadingMore={loadingMoreNews}
-                        />
+                        {hasNews ? (
+                            <NewsTab
+                                news={news}
+                                total={newsTotal}
+                                onLoadMore={onLoadMoreNews}
+                                loadingMore={loadingMoreNews}
+                            />
+                        ) : (
+                            <EnrichedEmptyState
+                                icon={<Newspaper className="w-8 h-8" />}
+                                title="No news articles found"
+                                description="News articles and company updates will appear here when available from our data sources."
+                                actionLabel="Refresh Data"
+                                onAction={() => onProcess({ refresh_data: true })}
+                            />
+                        )}
                     </AnimatedPanel>
                 )}
 

@@ -3,31 +3,46 @@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScoreBadge } from './ScoreBadge';
-import type { CompanySummary, PlaybookSummary, EmployeeSummary } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
-import { MetricPill } from './detail/components';
 import { formatCompactNumber } from './detail/utils';
 
+// Unified account type for display
+interface AccountItem {
+    company_id: number;
+    company_domain: string;
+    company_name: string;
+    industry: string | null;
+    employee_count: number | null;
+    hq_country: string | null;
+    logo_url: string | null;
+    combined_score: number | null;
+    urgency_score: number | null;
+    top_drivers: string[] | null;
+    calculated_at: string | null;
+    top_contact: {
+        full_name: string;
+        current_title: string | null;
+        avatar_url: string | null;
+    } | null;
+}
+
 interface AccountCardProps {
-    company: CompanySummary;
-    playbook?: PlaybookSummary;
-    keyContact?: EmployeeSummary;
+    account: AccountItem;
     selected?: boolean;
     onSelect?: (selected: boolean) => void;
     onClick?: () => void;
 }
 
 export function AccountCard({
-    company,
-    playbook,
-    keyContact,
+    account,
     selected = false,
     onSelect,
     onClick,
 }: AccountCardProps) {
-    const fitScore = playbook?.fit_score ?? 0;
-    const fitUrgency = playbook?.fit_urgency ?? 0;
-    const contactsCount = playbook?.contacts_count ?? 0;
+    // Fit scores (may be null for "All Accounts" view)
+    const hasScore = account.combined_score !== null;
+    const fitScore = account.combined_score ?? 0;
+    const urgencyScore = account.urgency_score ?? 0;
 
     // Format relative date
     const formatRelativeDate = (dateStr: string): string => {
@@ -45,7 +60,7 @@ export function AccountCard({
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    // Get freshness color based on updated_at
+    // Get freshness color based on calculated_at
     const getFreshnessColor = (dateStr: string): string => {
         const date = new Date(dateStr);
         const now = new Date();
@@ -57,16 +72,16 @@ export function AccountCard({
     };
 
     // Get company initials for fallback
-    const companyInitials = company.name
+    const companyInitials = account.company_name
         .split(' ')
         .map(w => w[0])
         .slice(0, 2)
         .join('')
         .toUpperCase();
 
-    // Get key contact initials for fallback
-    const contactInitials = keyContact?.full_name
-        ? keyContact.full_name
+    // Get contact initials for fallback
+    const contactInitials = account.top_contact?.full_name
+        ? account.top_contact.full_name
             .split(' ')
             .map(w => w[0])
             .slice(0, 2)
@@ -74,12 +89,8 @@ export function AccountCard({
             .toUpperCase()
         : '';
 
-    // Calculate company maturity/location for display
-    const location = company.hq_city ? `${company.hq_city}${company.hq_country ? `, ${company.hq_country}` : ''}` : null;
-
-    const lastUpdated = company.updated_at ? formatRelativeDate(company.updated_at) : null;
-    const freshnessColor = company.updated_at ? getFreshnessColor(company.updated_at) : 'text-muted-foreground';
-    const hasPlaybook = playbook !== undefined;
+    const lastUpdated = account.calculated_at ? formatRelativeDate(account.calculated_at) : null;
+    const freshnessColor = account.calculated_at ? getFreshnessColor(account.calculated_at) : 'text-muted-foreground';
 
     return (
         <div
@@ -112,12 +123,10 @@ export function AccountCard({
             {/* Company Logo - Larger & Boxed */}
             <div className="relative shrink-0 rounded-xl p-0.5 bg-white dark:bg-slate-800 shadow-sm border border-border/60 mt-1">
                 <Avatar className="w-14 h-14 rounded-lg after:hidden">
-                    {(company.logo_base64 || company.logo_url) && (
+                    {account.logo_url && (
                         <AvatarImage
-                            src={company.logo_base64
-                                ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
-                                : company.logo_url!}
-                            alt={company.name}
+                            src={account.logo_url}
+                            alt={account.company_name}
                             className="object-contain rounded-lg"
                         />
                     )}
@@ -134,10 +143,10 @@ export function AccountCard({
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-bold text-lg text-foreground truncate leading-tight group-hover:text-blue-600 transition-colors">
-                            {company.name}
+                            {account.company_name}
                         </h3>
                         {/* Urgency Dot if Hot */}
-                        {(playbook?.fit_urgency || 0) >= 8 && (
+                        {hasScore && urgencyScore >= 8 && (
                             <span className="relative flex h-2.5 w-2.5" title="High Urgency">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
@@ -146,32 +155,32 @@ export function AccountCard({
                     </div>
 
                     <div className="flex items-center gap-x-3 gap-y-1 text-sm text-muted-foreground flex-wrap leading-tight">
-                        {company.industry && (
+                        {account.industry && (
                             <span className="font-medium text-foreground/70 truncate max-w-[200px]">
-                                {company.industry}
+                                {account.industry}
                             </span>
                         )}
 
-                        {location && (
+                        {account.hq_country && (
                             <span className="flex items-center gap-1">
                                 <span className="text-border/60">•</span>
-                                <span className="truncate max-w-[150px]">{location}</span>
+                                <span className="truncate max-w-[150px]">{account.hq_country}</span>
                             </span>
                         )}
 
-                        {company.employee_count && (
+                        {account.employee_count && (
                             <span className="flex items-center gap-1">
                                 <span className="text-border/60">•</span>
-                                <span>{formatCompactNumber(company.employee_count)} employees</span>
+                                <span>{formatCompactNumber(account.employee_count)} employees</span>
                             </span>
                         )}
                     </div>
                 </div>
 
-                {/* Playbook Status Row - Real Data */}
+                {/* Status Row - Urgency + Top Drivers */}
                 <div className="flex flex-wrap items-center gap-3 text-xs">
                     {/* Urgency Indicator */}
-                    {fitUrgency >= 8 && (
+                    {hasScore && urgencyScore >= 8 && (
                         <Badge variant="destructive" className="gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 hover:bg-emerald-200">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -180,49 +189,38 @@ export function AccountCard({
                             High Intent
                         </Badge>
                     )}
-                    {fitUrgency >= 5 && fitUrgency < 8 && (
+                    {hasScore && urgencyScore >= 5 && urgencyScore < 8 && (
                         <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 hover:bg-amber-200">
                             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                             Warming Up
                         </Badge>
                     )}
 
-                    {/* Contacts Ready */}
-                    {hasPlaybook && contactsCount > 0 && (
-                        <Badge variant="outline" className="gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 hover:bg-blue-100">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            {contactsCount} contact{contactsCount !== 1 ? 's' : ''} ready
-                        </Badge>
-                    )}
-
-                    {/* Playbook Badge */}
-                    {hasPlaybook && contactsCount === 0 && (
-                        <Badge variant="outline" className="gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Playbook ready
-                        </Badge>
+                    {/* Top Drivers as Pills */}
+                    {account.top_drivers && account.top_drivers.length > 0 && (
+                        account.top_drivers.slice(0, 3).map((driver, i) => (
+                            <Badge key={i} variant="outline" className="px-2.5 py-1 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200">
+                                {driver}
+                            </Badge>
+                        ))
                     )}
                 </div>
             </div>
 
-            {/* Right Side: Key Contact & Score */}
+            {/* Right Side: Key Contact, Score & Timestamps */}
             <div className="flex items-start gap-8 shrink-0">
 
                 {/* Key Contact Preview (if available) */}
                 <div className="hidden xl:flex flex-col items-end gap-1 text-right min-w-[140px]">
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Top Contact</span>
-                    {keyContact ? (
+                    {account.top_contact ? (
                         <div className="flex items-center gap-2 justify-end group/contact p-1 rounded hover:bg-muted/50 transition-colors -mr-1">
                             <div className="flex flex-col items-end">
-                                <span className="text-sm font-medium text-foreground leading-none">{keyContact.full_name}</span>
-                                <span className="text-xs text-muted-foreground truncate max-w-[120px]">{keyContact.current_title}</span>
+                                <span className="text-sm font-medium text-foreground leading-none">{account.top_contact.full_name}</span>
+                                <span className="text-xs text-muted-foreground truncate max-w-[120px]">{account.top_contact.current_title}</span>
                             </div>
                             <Avatar className="w-8 h-8 border border-border">
-                                {keyContact.avatar_url && <AvatarImage src={keyContact.avatar_url} />}
+                                {account.top_contact.avatar_url && <AvatarImage src={account.top_contact.avatar_url} />}
                                 <AvatarFallback className="text-[10px]">{contactInitials}</AvatarFallback>
                             </Avatar>
                         </div>
@@ -236,8 +234,16 @@ export function AccountCard({
 
                 {/* Score & Urgency */}
                 <div className="flex flex-col items-end gap-1 min-w-[80px]">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Fit Score</span>
-                    <ScoreBadge score={Math.round(fitScore * 100)} size="lg" className="text-base px-3 py-1" />
+                    {hasScore ? (
+                        <>
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Fit Score</span>
+                            <ScoreBadge score={Math.round(fitScore * 100)} size="lg" className="text-base px-3 py-1" />
+                        </>
+                    ) : (
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                            No fit score
+                        </span>
+                    )}
                     {lastUpdated && (
                         <span className={cn("flex items-center gap-1 text-[10px]", freshnessColor)}>
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

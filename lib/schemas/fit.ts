@@ -74,6 +74,12 @@ export interface CandidateFitSummary {
     employee_count?: number | null;
     hq_country?: string | null;
     logo_url?: string | null;
+    logo_base64?: string | null;
+    top_contact?: {
+        full_name: string;
+        current_title?: string | null;
+        avatar_url?: string | null;
+    } | null;
     likelihood_score: number;
     urgency_score: number;
     combined_score: number;

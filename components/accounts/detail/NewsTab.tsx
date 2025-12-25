@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import type { NewsArticleSummary } from '@/lib/schemas';
-import { EmptyState } from './components';
+import { EmptyState, SectionHeader } from './components';
 import { formatRelativeDate } from './utils';
 
 interface NewsTabProps {
@@ -17,21 +17,9 @@ interface NewsTabProps {
 export function NewsTab({ news, total, onLoadMore, loadingMore }: NewsTabProps) {
     if (news.length === 0) return <EmptyState>No news articles</EmptyState>;
 
-    // Group by event type
-    const eventTypes = [...new Set(news.map(n => n.event_type).filter(Boolean))];
-
     return (
         <div className="space-y-6">
-            {/* Event type filters/summary */}
-            {eventTypes.length > 0 && (
-                <div className="flex gap-2 flex-wrap">
-                    {eventTypes.map(type => (
-                        <Badge key={type} variant="secondary" className="bg-violet-50 text-violet-700 border-violet-100 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800">
-                            {type}
-                        </Badge>
-                    ))}
-                </div>
-            )}
+            <SectionHeader title="News" count={news.length} color="bg-violet-600" />
 
             {/* News list - Standardized Container */}
             <Card className="overflow-hidden shadow-sm">

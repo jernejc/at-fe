@@ -1,5 +1,5 @@
 // Updates Tab Component
-import { EmptyState } from './components';
+import { EmptyState, SectionHeader } from './components';
 import { cn } from '@/lib/utils';
 import { Heart, MessageSquare, ArrowUpRight } from 'lucide-react';
 
@@ -37,10 +37,13 @@ export function UpdatesTab({ updates }: UpdatesTabProps) {
     });
 
     return (
-        <div className="space-y-2">
-            {sortedPosts.map((post, i) => (
-                <UpdateCard key={i} post={post} />
-            ))}
+        <div className="space-y-6">
+            <SectionHeader title="Recent Updates" count={sortedPosts.length} color="bg-sky-600" />
+            <div className="space-y-2">
+                {sortedPosts.map((post, i) => (
+                    <UpdateCard key={i} post={post} />
+                ))}
+            </div>
         </div>
     );
 }

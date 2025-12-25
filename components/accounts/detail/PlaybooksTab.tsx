@@ -1,21 +1,20 @@
-// Playbooks Tab Component - Standard List Styling
+// Playbooks Tab Component - Updated styling to match Explainability tab
 
 import { useState, useEffect, useMemo } from 'react';
-import type { PlaybookSummary, PlaybookRead, EmployeeRead, PlaybookContactResponse, EmployeeSummary } from '@/lib/schemas';
-import { getCompanyPlaybook, getEmployee, getEmployees } from '@/lib/api';
-import { EmptyState, SectionHeader } from './components';
-import { EmployeeDetailModal } from './EmployeeDetailModal';
+import type { PlaybookSummary, PlaybookRead, PlaybookContactResponse, EmployeeSummary } from '@/lib/schemas';
+import { getCompanyPlaybook, getEmployees } from '@/lib/api';
+import { SectionHeader } from './components';
+import { TabHeaderWithAction } from './EnrichedEmptyState';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Search,
     Zap,
     Target,
     ShieldAlert,
-    MessageCircle,
     Briefcase,
     Hash,
     ChevronRight,
@@ -23,54 +22,83 @@ import {
     Users,
     Lightbulb,
     TrendingUp,
-    AlertTriangle,
     Mail,
-    Send,
-    UserCheck,
     Copy,
-    Check,
-    ExternalLink
+    ExternalLink,
+    Clock,
+    Sparkles,
+    RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+
+export interface PlaybookContext {
+    role_category?: string | null;
+    value_prop?: string | null;
+    fit_score?: number | null;
+}
 
 interface PlaybooksTabProps {
     playbooks: PlaybookSummary[];
     availableEmployees?: EmployeeSummary[];
     domain?: string;
+    onSelectEmployee: (employeeId: number | null, preview: { name: string; title?: string }, context: PlaybookContext) => void;
+    onProcess?: () => Promise<void>;
 }
 
-export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: PlaybooksTabProps) {
+export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSelectEmployee, onProcess }: PlaybooksTabProps) {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [playbookDetail, setPlaybookDetail] = useState<PlaybookRead | null>(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Employee Detail State
-    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeRead | null>(null);
-    const [selectedContext, setSelectedContext] = useState<{ role_category?: string | null; value_prop?: string | null; fit_score?: number | null } | null>(null);
-    const [detailModalOpen, setDetailModalOpen] = useState(false);
-    const [loadingEmployeeDetail, setLoadingEmployeeDetail] = useState(false);
+    // Animation variants
+    const container = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.05
+            }
+        }
+    };
+
+    const item = {
+        hidden: { opacity: 0, x: -10 },
+        show: { opacity: 1, x: 0, transition: { duration: 0.2 } }
+    };
+
+    const detailContainer = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const detailItem = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 }
+    };
 
     const handleEmployeeClick = async (contact: PlaybookContactResponse) => {
-        setLoadingEmployeeDetail(true);
-
-        // Capture context regardless of full profile
-        setSelectedContext({
+        // Capture context
+        const context: PlaybookContext = {
             role_category: contact.role_category,
             value_prop: contact.value_prop,
             fit_score: contact.fit_score
-        });
+        };
 
         // Clean up name if it contains prefixes like "Name:"
         const cleanName = contact.name.replace(/^Name:\s*/i, '').trim();
 
-        // Initialize with available contact data
         // Try to find matching employee ID if missing
         let employeeId = contact.employee_id;
         let matchedEmployee: EmployeeSummary | undefined;
 
         if (!employeeId && availableEmployees) {
-            // Simple match by name - could be improved with fuzziness if needed
             matchedEmployee = availableEmployees.find(e =>
                 e.full_name.toLowerCase() === cleanName.toLowerCase()
             );
@@ -82,7 +110,6 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
         // If still no ID, try searching via API as a fallback
         if (!employeeId && domain) {
             try {
-                // Search specifically for employees in this company
                 const response = await getEmployees({
                     search: cleanName,
                     domain: domain,
@@ -90,7 +117,6 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                 });
 
                 if (response.items && response.items.length > 0) {
-                    // Start finding best match
                     const bestMatch = response.items.find(e =>
                         e.full_name.toLowerCase() === cleanName.toLowerCase() ||
                         e.current_title?.toLowerCase() === contact.title?.toLowerCase()
@@ -99,8 +125,6 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                     if (bestMatch) {
                         employeeId = bestMatch.id;
                     } else if (response.items.length > 0) {
-                        // If no exact name match but we found results in this domain with strict search, take the first one
-                        // This handles slight name variations
                         employeeId = response.items[0].id;
                     }
                 }
@@ -109,34 +133,12 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
             }
         }
 
-        // Initialize with available contact data (merging with matched employee preview if found)
-        setSelectedEmployee({
-            id: employeeId || 0,
-            full_name: matchedEmployee?.full_name || cleanName,
-            current_title: matchedEmployee?.current_title || contact.title,
-            avatar_url: matchedEmployee?.avatar_url,
-            // Add other compatible fields if available or leave types loose as partial
-        } as unknown as EmployeeRead);
-
-        setDetailModalOpen(true);
-
-        if (employeeId) {
-            try {
-                const response = await getEmployee(employeeId);
-                if (response.employee) {
-                    setSelectedEmployee(prev => ({ ...prev, ...response.employee } as EmployeeRead));
-                }
-            } catch (error) {
-                console.error('Failed to load employee details:', error);
-            }
-        }
-
-        setLoadingEmployeeDetail(false);
-    };
-
-    const handleCloseModal = () => {
-        setDetailModalOpen(false);
-        setTimeout(() => setSelectedEmployee(null), 300);
+        // Call the parent-provided handler with the employee info
+        onSelectEmployee(
+            employeeId || null,
+            { name: matchedEmployee?.full_name || cleanName, title: matchedEmployee?.current_title || contact.title || undefined },
+            context
+        );
     };
 
     const sortedPlaybooks = useMemo(() => {
@@ -169,20 +171,30 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
             .finally(() => setLoadingDetail(false));
     }, [selectedId, domain]);
 
-    if (playbooks.length === 0) {
-        return <EmptyState>No playbooks generated yet</EmptyState>;
-    }
-
     return (
-        <div className="flex h-[calc(100vh-220px)] min-h-[500px] rounded-xl border border-border/60 overflow-hidden bg-card shadow-sm">
+        <div className="flex h-[calc(100vh-220px)] min-h-[500px] rounded-xl border border-border/60 overflow-hidden bg-card shadow-sm animate-in fade-in duration-700">
             {/* Sidebar - Pro List Style */}
             <div className="w-[300px] flex flex-col border-r border-border/60 bg-muted/10">
                 <div className="p-4 border-b border-border/60 space-y-3 bg-card">
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-sm flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-primary" />
                             Strategies
                         </h3>
-                        <span className="text-xs text-muted-foreground font-medium">{sortedPlaybooks.length}</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">{sortedPlaybooks.length}</span>
+                            {onProcess && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => onProcess()}
+                                    title="Regenerate Playbooks"
+                                >
+                                    <RefreshCw className="w-3 h-3" />
+                                </Button>
+                            )}
+                        </div>
                     </div>
                     <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -196,24 +208,30 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                 </div>
 
                 <ScrollArea className="flex-1">
-                    <div className="divide-y divide-border/60">
+                    <motion.div
+                        variants={container}
+                        initial="hidden"
+                        animate="show"
+                        className="divide-y divide-border/60"
+                    >
                         {sortedPlaybooks.map((pb) => {
                             const isSelected = selectedId === pb.id;
                             const score = Number(pb.fit_score) || 0;
 
                             return (
-                                <button
+                                <motion.button
                                     key={pb.id}
+                                    variants={item}
                                     onClick={() => setSelectedId(pb.id)}
                                     className={cn(
-                                        "w-full text-left p-4 transition-colors group flex items-start gap-4 relative",
+                                        "w-full text-left p-4 transition-all group flex items-start gap-4 relative",
                                         isSelected
-                                            ? "bg-card z-10"
+                                            ? "bg-card z-10 shadow-sm"
                                             : "hover:bg-muted/30 bg-muted/5 text-muted-foreground"
                                     )}
                                 >
                                     {isSelected && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600" />
+                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
                                     )}
                                     <div className="flex-1 min-w-0">
                                         <div className={cn("font-medium text-sm truncate mb-1.5", isSelected ? "text-foreground" : "text-foreground/80")}>
@@ -235,8 +253,11 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                                             )}
                                         </div>
                                     </div>
-                                    {isSelected && <ChevronRight className="w-4 h-4 mt-1 text-blue-600" />}
-                                </button>
+                                    <ChevronRight className={cn(
+                                        "w-4 h-4 mt-1 transition-all",
+                                        isSelected ? "text-primary translate-x-0.5" : "text-muted-foreground/50 group-hover:translate-x-0.5"
+                                    )} />
+                                </motion.button>
                             );
                         })}
                         {sortedPlaybooks.length === 0 && (
@@ -244,7 +265,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                                 No results found
                             </div>
                         )}
-                    </div>
+                    </motion.div>
                 </ScrollArea>
             </div>
 
@@ -261,59 +282,67 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                     </div>
                 ) : playbookDetail ? (
                     <ScrollArea className="h-full">
-                        <div className="p-8 max-w-4xl mx-auto space-y-10 pb-20">
+                        <motion.div
+                            variants={detailContainer}
+                            initial="hidden"
+                            animate="show"
+                            className="p-8 max-w-4xl mx-auto space-y-10 pb-20"
+                        >
 
                             {/* Header */}
-                            {/* Header */}
-                            <div className="border-b border-border/40 pb-8">
-                                <h2 className="text-2xl font-bold tracking-tight text-foreground mb-4">
-                                    {playbookDetail.product_group}
-                                </h2>
-                                <div className="flex items-center gap-4">
+                            <motion.div variants={detailItem} className="flex items-start justify-between gap-4 mb-6">
+                                <div className="min-w-0">
+                                    <h2 className="text-lg font-semibold text-foreground mb-1">
+                                        {playbookDetail.product_group}
+                                    </h2>
+                                    <p className="text-sm text-muted-foreground">
+                                        {playbookDetail.contacts?.length || 0} stakeholders identified
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
                                     {playbookDetail.fit_score !== null && (
-                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800">
-                                            <Target className="w-4 h-4" />
-                                            <span className="text-sm font-semibold">Fit Score: {Number(playbookDetail.fit_score).toFixed(2)}</span>
+                                        <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-md border border-emerald-100 dark:border-emerald-800/30">
+                                            <Target className="w-3 h-3" />
+                                            {(Number(playbookDetail.fit_score) * 100).toFixed(0)}%
                                         </div>
                                     )}
                                     {playbookDetail.fit_urgency && (
-                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">
-                                            <Zap className="w-4 h-4" />
-                                            <span className="text-sm font-semibold">Urgency: {playbookDetail.fit_urgency}</span>
+                                        <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 rounded-md border border-amber-100 dark:border-amber-800/30">
+                                            <Zap className="w-3 h-3" />
+                                            {playbookDetail.fit_urgency}/10
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Signal Basis (Context) */}
                             {playbookDetail.generation_metadata?.signal_basis && (
-                                <section>
+                                <motion.section variants={detailItem}>
                                     <SectionHeader title="Why This Account?" />
-                                    <div className="space-y-6">
+                                    <div className="space-y-5 pl-4">
                                         {/* Top Events */}
                                         {playbookDetail.generation_metadata.signal_basis.top_events?.length > 0 && (
-                                            <div className="space-y-3">
-                                                <h4 className="text-sm font-medium flex items-center gap-2 text-foreground/80">
-                                                    <TrendingUp className="w-4 h-4 text-blue-500" />
-                                                    Recent Signals & Events
+                                            <div className="space-y-2">
+                                                <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                                    Recent Signals
                                                 </h4>
-                                                <div className="grid gap-3">
+                                                <div className="space-y-2">
                                                     {playbookDetail.generation_metadata.signal_basis.top_events.map((event, i) => (
-                                                        <div key={i} className="p-3 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg text-sm">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <span className="font-medium text-blue-700 dark:text-blue-400 capitalize">
-                                                                    {event.category.replace('_', ' ')}
-                                                                </span>
-                                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                                    <span>Confidence: {(event.confidence * 100).toFixed(0)}%</span>
+                                                        <div key={i} className="flex items-start gap-3 text-sm group">
+                                                            <TrendingUp className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="font-medium text-foreground capitalize">
+                                                                        {event.category.replace('_', ' ')}
+                                                                    </span>
                                                                     {event.urgency >= 7 && (
-                                                                        <span className="flex items-center text-amber-600 dark:text-amber-500 font-medium">
-                                                                            <Zap className="w-3 h-3 mr-0.5" /> High Urgency
-                                                                        </span>
+                                                                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                                            <Zap className="w-2.5 h-2.5 mr-0.5" /> Urgent
+                                                                        </Badge>
                                                                     )}
                                                                 </div>
+                                                                <p className="text-muted-foreground text-sm mt-0.5 leading-relaxed">{event.influence_on_strategy}</p>
                                                             </div>
-                                                            <p className="text-muted-foreground mb-2">{event.influence_on_strategy}</p>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -322,43 +351,41 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
 
                                         {/* Top Interests */}
                                         {playbookDetail.generation_metadata.signal_basis.top_interests?.length > 0 && (
-                                            <div className="space-y-3">
-                                                <h4 className="text-sm font-medium flex items-center gap-2 text-foreground/80">
-                                                    <Lightbulb className="w-4 h-4 text-amber-500" />
+                                            <div className="space-y-2">
+                                                <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                                     Strategic Interests
                                                 </h4>
-                                                <div className="flex flex-wrap gap-2">
+                                                <div className="flex flex-wrap gap-1.5">
                                                     {playbookDetail.generation_metadata.signal_basis.top_interests.map((interest, i) => (
-                                                        <Badge
+                                                        <span
                                                             key={i}
-                                                            variant="outline"
-                                                            className="px-3 py-1 bg-amber-50/50 text-amber-800 border-amber-200 dark:bg-amber-900/10 dark:text-amber-400 dark:border-amber-900/40"
+                                                            className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-muted/50 text-foreground/80 rounded-md"
                                                         >
                                                             {interest.category.replace('_', ' ')}
-                                                            <span className="ml-1.5 opacity-60 text-xs">
+                                                            <span className="ml-1.5 text-muted-foreground font-normal">
                                                                 {interest.strength}/10
                                                             </span>
-                                                        </Badge>
+                                                        </span>
                                                     ))}
                                                 </div>
                                             </div>
                                         )}
                                     </div>
-                                </section>
+                                </motion.section>
                             )}
 
                             {/* Elevator Pitch */}
                             {playbookDetail.elevator_pitch && (
-                                <section>
+                                <motion.section variants={detailItem}>
                                     <SectionHeader title="Elevator Pitch" />
-                                    <blockquote className="pl-4 border-l-2 border-blue-200 dark:border-blue-800 italic text-muted-foreground leading-relaxed">
+                                    <blockquote className="pl-4 border-l-2 border-primary/30 italic text-muted-foreground leading-relaxed">
                                         "{playbookDetail.elevator_pitch}"
                                     </blockquote>
-                                </section>
+                                </motion.section>
                             )}
 
                             {/* Reasoning & Value */}
-                            <div className="grid md:grid-cols-2 gap-8">
+                            <motion.div variants={detailItem} className="grid md:grid-cols-2 gap-8">
                                 {playbookDetail.fit_reasoning && (
                                     <section>
                                         <SectionHeader title="Strategic Rationale" />
@@ -375,18 +402,21 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                                         </p>
                                     </section>
                                 )}
-                            </div>
+                            </motion.div>
 
                             {/* Key Stakeholders */}
                             {playbookDetail.contacts && playbookDetail.contacts.length > 0 && (
-                                <section>
-                                    <SectionHeader title="Key Stakeholders to Target" />
-                                    <div className="grid gap-6">
+                                <motion.section variants={detailItem} className="pt-8 border-t border-border/40">
+                                    <SectionHeader title="Key Stakeholders to Target" count={playbookDetail.contacts.length} />
+                                    <div className="grid gap-4">
                                         {playbookDetail.contacts.map((contact) => (
-                                            <div key={contact.id} className="border border-border/60 rounded-xl overflow-hidden bg-card shadow-sm">
+                                            <Card
+                                                key={contact.id}
+                                                className="overflow-hidden group transition-all hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700"
+                                            >
                                                 <div className="p-4 bg-muted/20 border-b border-border/60 flex items-start gap-4">
-                                                    <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 w-10 h-10 flex items-center justify-center shrink-0">
-                                                        <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                                    <div className="rounded-full bg-primary/10 w-10 h-10 flex items-center justify-center shrink-0">
+                                                        <Users className="w-5 h-5 text-primary" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between gap-4 mb-1">
@@ -410,7 +440,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-8 w-8 text-muted-foreground hover:text-blue-600"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-primary"
                                                         onClick={() => handleEmployeeClick(contact)}
                                                         title="View Full Profile"
                                                     >
@@ -418,7 +448,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                                                     </Button>
                                                 </div>
 
-                                                <div className="p-4 space-y-4">
+                                                <CardContent className="p-4 space-y-4">
                                                     {contact.value_prop && (
                                                         <div className="text-sm">
                                                             <span className="font-medium text-foreground/90 block mb-1">Why them?</span>
@@ -450,74 +480,90 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain }: Pla
                                                             ))}
                                                         </div>
                                                     )}
-                                                </div>
-                                            </div>
+                                                </CardContent>
+                                            </Card>
                                         ))}
                                     </div>
-                                </section>
+                                </motion.section>
                             )}
 
                             {/* Discovery Questions */}
                             {playbookDetail.discovery_questions && playbookDetail.discovery_questions.length > 0 && (
-                                <section>
-                                    <SectionHeader title="Discovery Questions" />
+                                <motion.section variants={detailItem}>
+                                    <SectionHeader title="Discovery Questions" count={playbookDetail.discovery_questions.length} />
                                     <div className="space-y-2 pl-4">
                                         {(playbookDetail.discovery_questions as string[]).map((q, i) => (
-                                            <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-                                                <FileText className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                                            <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 group hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
+                                                <FileText className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                                                 <span className="text-foreground/90">{q}</span>
                                             </div>
                                         ))}
                                     </div>
-                                </section>
+                                </motion.section>
                             )}
 
                             {/* Objections */}
                             {playbookDetail.objection_handling && Object.keys(playbookDetail.objection_handling).length > 0 && (
-                                <section>
-                                    <SectionHeader title="Objection Handling" />
+                                <motion.section variants={detailItem}>
+                                    <SectionHeader title="Objection Handling" count={Object.keys(playbookDetail.objection_handling).length} />
                                     <div className="grid md:grid-cols-2 gap-4 pl-4">
                                         {Object.entries(playbookDetail.objection_handling).map(([obj, response], i) => (
-                                            <div key={i} className="p-4 rounded-lg bg-orange-50/50 dark:bg-orange-950/10 border border-orange-100 dark:border-orange-900/30">
-                                                <div className="flex gap-2 mb-2 font-medium text-sm text-orange-900 dark:text-orange-400">
-                                                    <ShieldAlert className="w-4 h-4 shrink-0" />
-                                                    "{obj}"
-                                                </div>
-                                                <p className="text-sm text-muted-foreground ml-6">
-                                                    {String(response)}
-                                                </p>
-                                            </div>
+                                            <Card key={i} className="overflow-hidden bg-orange-50/50 dark:bg-orange-950/10 border-orange-100 dark:border-orange-900/30 hover:border-orange-200 dark:hover:border-orange-800 transition-colors">
+                                                <CardContent className="p-4">
+                                                    <div className="flex gap-2 mb-2 font-medium text-sm text-orange-900 dark:text-orange-400">
+                                                        <ShieldAlert className="w-4 h-4 shrink-0" />
+                                                        "{obj}"
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground ml-6">
+                                                        {String(response)}
+                                                    </p>
+                                                </CardContent>
+                                            </Card>
                                         ))}
                                     </div>
-                                </section>
+                                </motion.section>
                             )}
 
                             {/* Channels */}
                             {playbookDetail.recommended_channels && playbookDetail.recommended_channels.length > 0 && (
-                                <section>
-                                    <SectionHeader title="Channels" />
+                                <motion.section variants={detailItem}>
+                                    <SectionHeader title="Recommended Channels" count={playbookDetail.recommended_channels.length} />
                                     <div className="flex flex-wrap gap-2 pl-4">
                                         {(playbookDetail.recommended_channels as string[]).map((ch, i) => (
-                                            <Badge key={i} variant="outline" className="px-3 py-1 font-normal bg-slate-50 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                                            <Badge key={i} variant="outline" className="px-3 py-1.5 font-normal bg-slate-50 text-slate-600 dark:bg-slate-900 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                                                 <Hash className="w-3 h-3 mr-1 opacity-50" />
                                                 {ch}
                                             </Badge>
                                         ))}
                                     </div>
-                                </section>
+                                </motion.section>
                             )}
-                        </div>
+
+                            {/* Generation Metadata Footer */}
+                            {playbookDetail.generation_metadata && (
+                                <motion.div variants={detailItem} className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground bg-muted/20 -mx-8 px-8 pb-6 -mb-20">
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex items-center gap-2" title="AI Generated">
+                                            <Sparkles className="h-3.5 w-3.5" />
+                                            <span>AI-Generated Playbook</span>
+                                        </div>
+                                        {playbookDetail.contacts && (
+                                            <div className="flex items-center gap-2" title="Stakeholders">
+                                                <Users className="h-3.5 w-3.5" />
+                                                <span>{playbookDetail.contacts.length} Stakeholders Identified</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="h-3.5 w-3.5" />
+                                        <span>Last updated: {playbookDetail.regenerated_at ? new Date(playbookDetail.regenerated_at).toLocaleDateString() : 'Unknown'}</span>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </motion.div>
                     </ScrollArea>
                 ) : null}
             </div>
-
-            <EmployeeDetailModal
-                employee={selectedEmployee}
-                open={detailModalOpen}
-                onClose={handleCloseModal}
-                isLoading={loadingEmployeeDetail}
-                playbookContext={selectedContext}
-            />
         </div>
     );
 }

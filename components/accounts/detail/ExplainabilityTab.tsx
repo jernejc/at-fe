@@ -5,6 +5,7 @@ import {
     FitSummaryFit
 } from '@/lib/schemas';
 import { SectionHeader } from './components';
+import { TabHeaderWithAction } from './EnrichedEmptyState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -28,9 +29,10 @@ interface ExplainabilityTabProps {
     data: CompanyExplainabilityResponse;
     onSelectFit: (productId: number) => void;
     onSelectSignal: (signalId: number) => void;
+    onProcess?: () => Promise<void>;
 }
 
-export function ExplainabilityTab({ data, onSelectFit, onSelectSignal }: ExplainabilityTabProps) {
+export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess }: ExplainabilityTabProps) {
     const { signals_summary, fits_summary, data_coverage, freshness, company_domain } = data;
 
     const handleFitClick = (productId: number) => {
@@ -60,7 +62,15 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal }: Explain
         <div className="space-y-8 animate-in fade-in duration-700">
             {/* Main Content: Fit Scores */}
             <div className="space-y-6">
-                <SectionHeader title="Product Fit" />
+                {onProcess ? (
+                    <TabHeaderWithAction
+                        title="Product Fit"
+                        actionLabel="Regenerate"
+                        onAction={onProcess}
+                    />
+                ) : (
+                    <SectionHeader title="Product Fit" />
+                )}
 
                 <motion.div
                     variants={container}

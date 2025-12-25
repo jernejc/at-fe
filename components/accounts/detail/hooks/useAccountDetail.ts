@@ -34,6 +34,8 @@ interface UseAccountDetailReturn {
     loadingMoreJobs: boolean;
     loadingMoreNews: boolean;
     refetch: () => void;
+    refetchExplainability: () => Promise<void>;
+    refetchPlaybooks: () => Promise<void>;
 }
 
 export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDetailReturn {
@@ -132,6 +134,28 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
         }
     };
 
+    // Targeted refetch for explainability (fits & signals) only
+    const refetchExplainability = useCallback(async () => {
+        if (!domain) return;
+        try {
+            const result = await getCompanyExplainability(domain);
+            setExplainability(result);
+        } catch (error) {
+            console.error("Failed to refetch explainability", error);
+        }
+    }, [domain]);
+
+    // Targeted refetch for playbooks only
+    const refetchPlaybooks = useCallback(async () => {
+        if (!domain) return;
+        try {
+            const result = await getCompanyPlaybooks(domain);
+            setPlaybooks(result.playbooks);
+        } catch (error) {
+            console.error("Failed to refetch playbooks", error);
+        }
+    }, [domain]);
+
     return {
         data,
         playbooks,
@@ -148,5 +172,7 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
         loadingMoreJobs,
         loadingMoreNews,
         refetch: loadData,
+        refetchExplainability,
+        refetchPlaybooks,
     };
 }

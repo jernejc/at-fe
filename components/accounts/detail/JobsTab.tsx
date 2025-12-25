@@ -1,14 +1,13 @@
 // Jobs Tab Component with Pagination
 
-import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { JobPostingSummary } from '@/lib/schemas';
-import { EmptyState, SectionHeader } from './components';
+import { SectionHeader } from './components';
+import { TabHeaderWithAction } from './EnrichedEmptyState';
 import { formatRelativeDate } from './utils';
-import { JobDetailSheet } from './JobDetailSheet';
 import { MapPin, Briefcase, Globe, ArrowRight } from 'lucide-react';
 
 
@@ -17,18 +16,11 @@ interface JobsTabProps {
     total: number;
     onLoadMore?: () => void;
     loadingMore?: boolean;
+    onSelectJob: (job: JobPostingSummary) => void;
+    onProcess?: () => Promise<void>;
 }
 
-export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) {
-    const [selectedJob, setSelectedJob] = useState<JobPostingSummary | null>(null);
-    const [detailOpen, setDetailOpen] = useState(false);
-
-    const handleJobClick = (job: JobPostingSummary) => {
-        setSelectedJob(job);
-        setDetailOpen(true);
-    };
-
-    if (jobs.length === 0) return <EmptyState>No open positions</EmptyState>;
+export function JobsTab({ jobs, total, onLoadMore, loadingMore, onSelectJob, onProcess }: JobsTabProps) {
 
     // Group by department logic
     const byDept = jobs.reduce((acc, job) => {
@@ -44,6 +36,8 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            <SectionHeader title="Open Positions" count={total} color="bg-emerald-600" />
+
             {showGrouping ? (
                 departments.map(dept => (
                     <section key={dept} className="space-y-3">
@@ -53,7 +47,7 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
                                 <JobCard
                                     key={job.id}
                                     job={job}
-                                    onClick={() => handleJobClick(job)}
+                                    onClick={() => onSelectJob(job)}
                                 />
                             ))}
                         </div>
@@ -65,7 +59,7 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
                         <JobCard
                             key={job.id}
                             job={job}
-                            onClick={() => handleJobClick(job)}
+                            onClick={() => onSelectJob(job)}
                         />
                     ))}
                 </div>
@@ -85,12 +79,6 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore }: JobsTabProps) 
                     </Button>
                 </div>
             )}
-
-            <JobDetailSheet
-                job={selectedJob}
-                isOpen={detailOpen}
-                onClose={() => setDetailOpen(false)}
-            />
         </div>
     );
 }

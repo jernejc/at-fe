@@ -1,19 +1,18 @@
 // People Tab Component
 import { EmployeeSummary } from '@/lib/schemas';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { EmptyState, SectionHeader } from './components';
+import { SectionHeader } from './components';
+import { TabHeaderWithAction } from './EnrichedEmptyState';
 import { cn } from '@/lib/utils';
 
 interface PeopleTabProps {
     decisionMakers: EmployeeSummary[];
     employees: EmployeeSummary[];
     total: number;
+    onProcess?: () => Promise<void>;
 }
 
-export function PeopleTab({ decisionMakers, employees, total, onSelectEmployee }: PeopleTabProps & { onSelectEmployee: (employee: EmployeeSummary) => void }) {
-    if (decisionMakers.length === 0 && employees.length === 0) {
-        return <EmptyState>No employees found</EmptyState>;
-    }
+export function PeopleTab({ decisionMakers, employees, total, onSelectEmployee, onProcess }: PeopleTabProps & { onSelectEmployee: (employee: EmployeeSummary) => void }) {
 
     return (
         <div className="space-y-6">

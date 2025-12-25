@@ -65,6 +65,24 @@ import type {
 
 // ============= API Functions =============
 
+// Custom error class to carry API error details
+export class APIError extends Error {
+    status: number;
+    statusText: string;
+    detail: string | null;
+
+    constructor(status: number, statusText: string, detail: string | null = null) {
+        const message = detail
+            ? `${status}: ${detail}`
+            : `API Error: ${status} ${statusText}`;
+        super(message);
+        this.name = 'APIError';
+        this.status = status;
+        this.statusText = statusText;
+        this.detail = detail;
+    }
+}
+
 async function fetchAPI<T>(endpoint: string, options?: RequestInit, baseUrl: string = API_BASE): Promise<T> {
     const response = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
@@ -75,7 +93,22 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit, baseUrl: str
     });
 
     if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        // Try to parse error body for detail message
+        let detail: string | null = null;
+        try {
+            const errorBody = await response.json();
+            // Handle FastAPI's standard error format: { "detail": "..." }
+            if (errorBody && typeof errorBody.detail === 'string') {
+                detail = errorBody.detail;
+            } else if (errorBody && typeof errorBody.message === 'string') {
+                detail = errorBody.message;
+            } else if (errorBody && typeof errorBody.error === 'string') {
+                detail = errorBody.error;
+            }
+        } catch {
+            // Response body wasn't JSON or couldn't be parsed
+        }
+        throw new APIError(response.status, response.statusText, detail);
     }
 
     return response.json();
@@ -486,7 +519,7 @@ export async function startProcessing(domain: string, options?: ProcessingOption
         include_employees: options?.include_employees,
         include_jobs: options?.include_jobs,
         max_employees: options?.max_employees,
-        refresh_data: options?.refresh_data ?? options?.force ?? true, // Default to true if not specified
+        refresh_data: (options?.refresh_data || options?.force) ? true : undefined,
         generate_signals: options?.generate_signals ?? true,
         generate_fits: options?.generate_fits ?? true,
         generate_playbook: options?.generate_playbook ?? false,

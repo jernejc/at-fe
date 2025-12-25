@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Play, Loader2, CheckCircle2, Terminal } from 'lucide-react';
+import { X, Play, Loader2, CheckCircle2, Terminal, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { startProcessing, API_BASE } from '@/lib/api';
@@ -180,7 +180,7 @@ export function ProcessingStatus() {
             }
 
             // 2. Listen for updates via SSE
-            const streamPath = `/processing/${encodeURIComponent(processId)}/stream`;
+            const streamPath = `/api/v1/companies/${encodeURIComponent(domain)}/process/${encodeURIComponent(processId)}/stream`;
 
             const evtSource = new EventSource(`${API_BASE}${streamPath}`);
             eventSourceRef.current = evtSource;
@@ -221,7 +221,11 @@ export function ProcessingStatus() {
 
         } catch (error) {
             console.error('Failed to start processing:', error);
-            addLog('Failed to start processing command.', 'error');
+            // Extract the detailed error message if available
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'Failed to start processing command.';
+            addLog(errorMessage, 'error');
             setStatus('error');
             setIsProcessing(false);
         }
@@ -321,59 +325,67 @@ export function ProcessingStatus() {
 
                                     {showOptions && (
                                         <div className="grid grid-cols-2 gap-3 mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-border/50">
-                                            <label className="flex items-center gap-2 cursor-pointer group col-span-2 border-b border-border/40 pb-2 mb-1">
+                                            <label className={`flex items-center gap-2 cursor-pointer group col-span-2 ${options.full_details ? '' : 'border-b border-border/40 pb-2 mb-1'}`}>
                                                 <input
                                                     type="checkbox"
                                                     checked={options.full_details}
                                                     onChange={(e) => setOptions({
                                                         ...options,
                                                         full_details: e.target.checked,
-                                                        // Auto-select dependent options if detailed is chosen
-                                                        include_employees: e.target.checked ? true : options.include_employees,
-                                                        include_posts: e.target.checked ? true : options.include_posts,
-                                                        include_jobs: e.target.checked ? true : options.include_jobs,
+                                                        // Auto-select dependent options if detailed is chosen, reset if unchecked
+                                                        include_employees: e.target.checked,
+                                                        include_posts: e.target.checked,
+                                                        include_jobs: e.target.checked,
                                                     })}
                                                     disabled={isProcessing}
                                                     className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
                                                 />
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">Full Detail Deep Dive</span>
-                                                    <span className="text-[10px] text-muted-foreground">Sets target depth to 'detailed' and enables all collection</span>
+                                                <div className="flex flex-col flex-1">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">Full Detail Deep Dive</span>
+                                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                                                    </div>
+                                                    <span className="text-[10px] text-muted-foreground">Enables all collection — may consume a lot of credits</span>
                                                 </div>
                                             </label>
 
-                                            <label className="flex items-center gap-2 cursor-pointer group">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={options.include_employees}
-                                                    onChange={(e) => setOptions({ ...options, include_employees: e.target.checked })}
-                                                    disabled={isProcessing}
-                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
-                                                />
-                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Include Employees</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer group">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={options.include_posts}
-                                                    onChange={(e) => setOptions({ ...options, include_posts: e.target.checked })}
-                                                    disabled={isProcessing}
-                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
-                                                />
-                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Include Posts</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer group">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={options.include_jobs}
-                                                    onChange={(e) => setOptions({ ...options, include_jobs: e.target.checked })}
-                                                    disabled={isProcessing}
-                                                    className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary"
-                                                />
-                                                <span className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Include Jobs</span>
-                                            </label>
+                                            {/* Show include options when full_details is enabled */}
+                                            {options.full_details && (
+                                                <div className="col-span-2 flex items-center gap-4 pl-6 pb-2 border-b border-border/40 mb-1">
+                                                    <span className="text-[10px] text-muted-foreground">Collect:</span>
+                                                    <label className="flex items-center gap-1.5 cursor-pointer group">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={options.include_employees}
+                                                            onChange={(e) => setOptions({ ...options, include_employees: e.target.checked })}
+                                                            disabled={isProcessing}
+                                                            className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary w-3 h-3"
+                                                        />
+                                                        <span className="text-[11px] text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Employees</span>
+                                                    </label>
+                                                    <label className="flex items-center gap-1.5 cursor-pointer group">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={options.include_posts}
+                                                            onChange={(e) => setOptions({ ...options, include_posts: e.target.checked })}
+                                                            disabled={isProcessing}
+                                                            className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary w-3 h-3"
+                                                        />
+                                                        <span className="text-[11px] text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Posts</span>
+                                                    </label>
+                                                    <label className="flex items-center gap-1.5 cursor-pointer group">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={options.include_jobs}
+                                                            onChange={(e) => setOptions({ ...options, include_jobs: e.target.checked })}
+                                                            disabled={isProcessing}
+                                                            className="rounded border-slate-300 text-primary focus:ring-primary/20 accent-primary w-3 h-3"
+                                                        />
+                                                        <span className="text-[11px] text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200">Jobs</span>
+                                                    </label>
+                                                </div>
+                                            )}
 
-                                            <div className="col-span-2 h-px bg-border/40 my-1" />
 
                                             <label className="flex items-center gap-2 cursor-pointer group">
                                                 <input
