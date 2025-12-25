@@ -7,7 +7,7 @@ import { getCampaign, getCampaignOverview, getCampaignCompanies, getCampaignComp
 import type { CampaignRead, CampaignOverview, MembershipRead, CampaignComparison } from '@/lib/schemas';
 import { ArrowLeft, Loader2, Building2, TrendingUp, ChevronRight, Download, Settings, Trash2, Calendar, Target, Activity } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
-import { CompanyRowCompact, PartnerTab } from '@/components/campaigns';
+import { CompanyRowCompact, PartnerTab, FunnelVisualization } from '@/components/campaigns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Header } from '@/components/ui/Header';
@@ -279,31 +279,63 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                         <TabsContent value="overview" className="mt-0 animate-in fade-in-50">
                             {overview && (
                                 <div className="space-y-6">
-                                    {/* Hero Section */}
-                                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                                        <div className="p-6 pb-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="space-y-1">
-                                                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Campaign Progress</h3>
-                                                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                        {overview.processed_count} of {overview.company_count} companies analyzed
-                                                    </p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums">{progressPercent}%</div>
-                                                    {avgFitScore && (
-                                                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                                                            Avg fit: <span className="font-semibold text-slate-700 dark:text-slate-300">{avgFitScore}%</span>
-                                                        </div>
+                                    {/* Mini Funnel */}
+                                    <div className="flex items-center justify-between py-2.5 px-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Pipeline</span>
+                                        <div className="flex items-center gap-1">
+                                            {/* Mini funnel stages - inline compact view */}
+                                            {[
+                                                { label: 'Total', value: overview.company_count, color: 'text-slate-900 dark:text-white' },
+                                                { label: 'Analyzed', value: overview.processed_count, color: 'text-blue-600 dark:text-blue-400' },
+                                                { label: 'Scored', value: Object.values(overview.fit_distribution || {}).reduce((sum, v) => sum + v, 0) - (overview.fit_distribution?.unscored || 0), color: 'text-violet-600 dark:text-violet-400' },
+                                                { label: 'High Fit', value: (overview.fit_distribution?.['80-100'] || 0) + (overview.fit_distribution?.['60-80'] || 0), color: 'text-emerald-600 dark:text-emerald-400' },
+                                            ].map((stage, idx, arr) => (
+                                                <div key={stage.label} className="flex items-center">
+                                                    <div className="flex flex-col items-center px-3">
+                                                        <span className={`text-sm font-semibold tabular-nums ${stage.color}`}>{stage.value}</span>
+                                                        <span className="text-[10px] text-slate-400">{stage.label}</span>
+                                                    </div>
+                                                    {idx < arr.length - 1 && (
+                                                        <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600" />
                                                     )}
                                                 </div>
-                                            </div>
+                                            ))}
                                         </div>
-                                        <div className="h-1.5 bg-slate-100 dark:bg-slate-800">
-                                            <div
-                                                className="h-full bg-blue-500 transition-all duration-1000 ease-out"
-                                                style={{ width: `${progressPercent}%` }}
-                                            />
+                                    </div>
+
+                                    {/* Partner Stats */}
+                                    <div className="flex items-center justify-between py-3 px-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Partner Assignments</span>
+                                        <div className="flex items-center gap-4 text-sm">
+                                            {(() => {
+                                                const assignedCount = companies.filter(c => c.partner_id).length;
+                                                const unassignedCount = companies.length - assignedCount;
+                                                const uniquePartners = new Set(companies.filter(c => c.partner_id).map(c => c.partner_id)).size;
+                                                return (
+                                                    <>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{assignedCount}</span>
+                                                            <span className="text-slate-500 dark:text-slate-400">assigned</span>
+                                                        </div>
+                                                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className={`font-semibold ${unassignedCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>{unassignedCount}</span>
+                                                            <span className="text-slate-500 dark:text-slate-400">pending</span>
+                                                        </div>
+                                                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="font-semibold text-slate-900 dark:text-white">{uniquePartners}</span>
+                                                            <span className="text-slate-500 dark:text-slate-400">partners active</span>
+                                                        </div>
+                                                    </>
+                                                );
+                                            })()}
+                                            <button
+                                                onClick={() => setActiveTab('partners')}
+                                                className="ml-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                            >
+                                                Manage →
+                                            </button>
                                         </div>
                                     </div>
 
@@ -311,12 +343,13 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                                         {/* Left column - Top Companies */}
                                         <div className="lg:col-span-3 space-y-6">
-                                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-                                                    <h3 className="font-semibold text-slate-900 dark:text-white">Top Companies</h3>
+                                            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                                    <h3 className="font-medium text-sm text-slate-900 dark:text-white">Top Companies by Fit</h3>
+                                                    <span className="text-xs text-slate-400">{overview.top_companies?.length || 0} shown</span>
                                                 </div>
                                                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                    {overview.top_companies && overview.top_companies.length > 0 ? overview.top_companies.slice(0, 10).map((company, idx) => (
+                                                    {overview.top_companies && overview.top_companies.length > 0 ? overview.top_companies.slice(0, 8).map((company, idx) => (
                                                         <CompanyRowCompact
                                                             key={company.id}
                                                             name={company.company_name || company.domain}
@@ -324,6 +357,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                                             rank={idx + 1}
                                                             fitScore={company.cached_fit_score}
                                                             logoBase64={company.logo_base64}
+                                                            partnerName={company.partner_name}
                                                             onClick={() => handleCompanyClick(company.domain)}
                                                             className="cursor-pointer"
                                                         />
@@ -333,32 +367,31 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                                         </div>
                                                     )}
                                                 </div>
-
                                             </div>
                                         </div>
 
                                         {/* Right column - Stats sidebar */}
-                                        <div className="lg:col-span-2 space-y-6">
+                                        <div className="lg:col-span-2 space-y-4">
                                             {/* Industry Breakdown */}
                                             {overview.industry_breakdown && Object.keys(overview.industry_breakdown).length > 0 && (
-                                                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                                                    <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                                                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Industries</h3>
+                                                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                                                        <h3 className="font-medium text-sm text-slate-900 dark:text-white">Industries</h3>
                                                     </div>
-                                                    <div className="p-5">
-                                                        <div className="flex flex-wrap gap-2">
+                                                    <div className="p-4">
+                                                        <div className="flex flex-wrap gap-1.5">
                                                             {Object.entries(overview.industry_breakdown)
                                                                 .filter(([_, count]) => count > 0)
                                                                 .sort((a, b) => b[1] - a[1])
                                                                 .slice(0, 8)
                                                                 .map(([industry, count]) => (
-                                                                    <Badge
+                                                                    <span
                                                                         key={industry}
-                                                                        className="px-3 py-1.5 font-semibold text-slate-500 whitespace-nowrap bg-slate-50 border border-slate-100 hover:bg-slate-100 h-auto"
+                                                                        className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded"
                                                                     >
                                                                         {industry}
                                                                         <span className="text-slate-400 dark:text-slate-500">{count}</span>
-                                                                    </Badge>
+                                                                    </span>
                                                                 ))}
                                                         </div>
                                                     </div>
@@ -367,11 +400,11 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
                                             {/* Fit Distribution */}
                                             {overview.fit_distribution && Object.values(overview.fit_distribution).some(v => v > 0) && (
-                                                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                                                    <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                                                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Fit Distribution</h3>
+                                                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                                                        <h3 className="font-medium text-sm text-slate-900 dark:text-white">Fit Distribution</h3>
                                                     </div>
-                                                    <div className="p-5 space-y-4">
+                                                    <div className="p-4 space-y-2.5">
                                                         {Object.entries(overview.fit_distribution)
                                                             .filter(([key]) => key !== 'unscored')
                                                             .sort((a, b) => {
@@ -385,14 +418,14 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                                                 const colorClass = getFitColor(range);
 
                                                                 return (
-                                                                    <div key={range} className="space-y-1.5">
+                                                                    <div key={range} className="space-y-1">
                                                                         <div className="flex items-center justify-between text-xs">
-                                                                            <span className="font-medium text-slate-700 dark:text-slate-300">{range}% Match</span>
-                                                                            <span className="text-slate-500 dark:text-slate-400">{count} companies</span>
+                                                                            <span className="text-slate-600 dark:text-slate-400">{range}%</span>
+                                                                            <span className="text-slate-400 dark:text-slate-500">{count}</span>
                                                                         </div>
-                                                                        <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                                        <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                                                             <div
-                                                                                className={`h-full rounded-full transition-all duration-1000 ${colorClass}`}
+                                                                                className={`h-full rounded-full transition-all duration-500 ${colorClass}`}
                                                                                 style={{ width: `${percentage}%` }}
                                                                             />
                                                                         </div>
@@ -400,20 +433,10 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                                                 );
                                                             })}
                                                         {overview.fit_distribution.unscored > 0 && (
-                                                            <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
-                                                                <div className="space-y-1.5">
-                                                                    <div className="flex items-center justify-between text-xs">
-                                                                        <span className="font-medium text-slate-500 dark:text-slate-400">Unscored</span>
-                                                                        <span className="text-slate-400 dark:text-slate-500">{overview.fit_distribution.unscored} companies</span>
-                                                                    </div>
-                                                                    <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                                        <div
-                                                                            className="h-full bg-slate-300 dark:bg-slate-600 rounded-full"
-                                                                            style={{
-                                                                                width: `${(overview.fit_distribution.unscored / Object.values(overview.fit_distribution).reduce((sum, val) => sum + val, 0)) * 100}%`
-                                                                            }}
-                                                                        />
-                                                                    </div>
+                                                            <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
+                                                                <div className="flex items-center justify-between text-xs text-slate-400">
+                                                                    <span>Unscored</span>
+                                                                    <span>{overview.fit_distribution.unscored}</span>
                                                                 </div>
                                                             </div>
                                                         )}
@@ -421,7 +444,25 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                                 </div>
                                             )}
 
-
+                                            {/* Segments */}
+                                            {overview.segments && overview.segments.length > 0 && (
+                                                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                                                        <h3 className="font-medium text-sm text-slate-900 dark:text-white">Segments</h3>
+                                                    </div>
+                                                    <div className="p-4 space-y-2">
+                                                        {overview.segments.slice(0, 5).map((segment) => (
+                                                            <div key={segment.name} className="flex items-center justify-between text-sm">
+                                                                <span className="text-slate-600 dark:text-slate-400">{segment.name}</span>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-medium text-slate-900 dark:text-white">{segment.count}</span>
+                                                                    <span className="text-xs text-slate-400">({segment.percentage.toFixed(0)}%)</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -429,10 +470,32 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                         </TabsContent>
 
                         {/* Companies Tab */}
-                        <TabsContent value="companies" className="mt-0 animate-in fade-in-50">
+                        <TabsContent value="companies" className="mt-0 animate-in fade-in-50 space-y-6">
+                            {/* Funnel Visualization */}
                             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                                 <div className="mb-4">
-                                    <h2 className="text-base font-semibold text-slate-900 dark:text-white">Companies in Campaign</h2>
+                                    <h2 className="text-base font-semibold text-slate-900 dark:text-white">Campaign Funnel</h2>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Company progression through qualification stages
+                                    </p>
+                                </div>
+                                <FunnelVisualization
+                                    slug={slug}
+                                    productId={campaign?.target_product_id ?? undefined}
+                                />
+                            </div>
+
+                            {/* Companies List */}
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                                <div className="mb-4 flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+                                            Companies in Campaign
+                                        </h2>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                                            {companies.length} companies • {companies.filter(c => c.partner_id).length} assigned to partners
+                                        </p>
+                                    </div>
                                 </div>
                                 {companies.length > 0 ? (
                                     <div className="divide-y divide-slate-100 dark:divide-slate-800 -mx-2">
@@ -447,6 +510,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                                 segment={membership.segment}
                                                 fitScore={membership.cached_fit_score}
                                                 logoBase64={membership.logo_base64}
+                                                partnerName={membership.partner_name}
                                                 onClick={() => handleCompanyClick(membership.domain)}
                                                 className="cursor-pointer"
                                             />
@@ -532,7 +596,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
                         {/* Partners Tab */}
                         <TabsContent value="partners" className="mt-0 animate-in fade-in-50">
-                            <PartnerTab campaignSlug={slug} />
+                            <PartnerTab campaignSlug={slug} onCompanyClick={handleCompanyClick} />
                         </TabsContent>
                     </Tabs>
                 </div>

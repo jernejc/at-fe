@@ -144,6 +144,8 @@ export type {
     ImportResult,
     CampaignImport,
     CampaignFilters,
+    FunnelStage,
+    CampaignFunnel,
 } from './campaign';
 
 // Explainability types

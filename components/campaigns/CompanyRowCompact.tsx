@@ -17,6 +17,10 @@ export interface CompanyRowCompactProps {
     hqCountry?: string | null;
     segment?: string | null;
 
+    // Partner info
+    partnerName?: string | null;
+    partnerLogoUrl?: string | null;
+
     // Display options
     rank?: number;
     fitScore?: number | null;
@@ -39,6 +43,8 @@ export function CompanyRowCompact({
     employeeCount,
     hqCountry,
     segment,
+    partnerName,
+    partnerLogoUrl,
     rank,
     fitScore,
     onClick,
@@ -132,6 +138,26 @@ export function CompanyRowCompact({
                 <span className="hidden md:inline-flex px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs font-medium shrink-0">
                     {segment}
                 </span>
+            )}
+
+            {/* Partner Badge (optional) */}
+            {partnerName && (
+                <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shrink-0">
+                    {partnerLogoUrl ? (
+                        <img
+                            src={partnerLogoUrl}
+                            alt={partnerName}
+                            className="w-4 h-4 rounded object-contain"
+                        />
+                    ) : (
+                        <div className="w-4 h-4 rounded bg-blue-200 dark:bg-blue-800 flex items-center justify-center text-[8px] font-bold text-blue-600 dark:text-blue-300">
+                            {partnerName.charAt(0)}
+                        </div>
+                    )}
+                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300 max-w-[80px] truncate">
+                        {partnerName}
+                    </span>
+                </div>
             )}
 
             {/* Fit Score (optional) */}

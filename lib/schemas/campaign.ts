@@ -95,6 +95,9 @@ export interface MembershipRead {
     priority: number;
     logo_base64?: string | null;
     created_at: string;
+    // Partner assignment fields
+    partner_id?: string | null;
+    partner_name?: string | null;
 }
 
 export interface MembershipCreate {
@@ -107,6 +110,7 @@ export interface MembershipUpdate {
     notes?: string | null;
     priority?: number | null;
     segment?: string | null;
+    partner_id?: string | null;
 }
 
 export interface BulkAddResult {
@@ -189,6 +193,23 @@ export interface CampaignFilters {
     sort_order?: 'asc' | 'desc';
 }
 
+// Funnel metrics
+export interface FunnelStage {
+    name: string;
+    count: number;
+    percentage: number;
+    criteria: string;
+}
+
+export interface CampaignFunnel {
+    campaign_id: number;
+    campaign_name: string;
+    product_id: number | null;
+    stages: FunnelStage[];
+    total_companies: number;
+    conversion_rate: number;
+}
+
 // UI-only filter types for the campaign builder
 export type CampaignFilterType = 'natural_query' | 'industry' | 'size_min' | 'size_max' | 'country' | 'domain_list';
 
@@ -210,6 +231,10 @@ export interface Partner {
     description: string;
     status: 'active' | 'inactive';
     match_score: number;
+    // Enhanced fields for assignment tracking
+    capacity?: number;
+    assigned_count?: number;
+    industries?: string[];
 }
 
 export interface CampaignDraft {

@@ -682,3 +682,14 @@ export async function processCampaign(
         body: JSON.stringify(options || {}),
     });
 }
+
+// Funnel metrics
+import type { CampaignFunnel } from './schemas';
+
+export async function getCampaignFunnel(
+    slug: string,
+    productId?: number
+): Promise<CampaignFunnel> {
+    const query = buildQueryString({ product_id: productId });
+    return fetchAPI<CampaignFunnel>(`/api/v1/campaigns/${encodeURIComponent(slug)}/funnel${query}`);
+}

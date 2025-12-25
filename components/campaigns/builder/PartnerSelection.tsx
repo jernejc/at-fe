@@ -6,59 +6,8 @@ import { Partner } from '@/lib/schemas/campaign';
 import { Search, Check, Building2, Zap, Briefcase, Globe } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { MOCK_PARTNERS } from '../mockPartners';
 
-// Mock Data
-const MOCK_PARTNERS: Partner[] = [
-    {
-        id: 'p1',
-        name: 'Acme Growth Agency',
-        type: 'agency',
-        description: 'Specializes in B2B SaaS growth and lead generation.',
-        status: 'active',
-        match_score: 98,
-        logo_url: '/logos/agency1.png'
-    },
-    {
-        id: 'p2',
-        name: 'TechFlow Solutions',
-        type: 'technology',
-        description: 'Integration partner for CRM and marketing automation.',
-        status: 'active',
-        match_score: 95,
-    },
-    {
-        id: 'p3',
-        name: 'Global Consulting Group',
-        type: 'consulting',
-        description: 'Strategic advisory for enterprise market expansion.',
-        status: 'active',
-        match_score: 88,
-    },
-    {
-        id: 'p4',
-        name: 'CloudResellers Inc.',
-        type: 'reseller',
-        description: 'Distributor for cloud infrastructure and software.',
-        status: 'active',
-        match_score: 82,
-    },
-    {
-        id: 'p5',
-        name: 'MarketReach',
-        type: 'agency',
-        description: 'Full-service digital marketing agency for startups.',
-        status: 'active',
-        match_score: 75,
-    },
-    {
-        id: 'p6',
-        name: 'DataSync Systems',
-        type: 'technology',
-        description: 'Data enrichment and synchronization services.',
-        status: 'active',
-        match_score: 72,
-    }
-];
 
 interface PartnerSelectionProps {
     selectedPartners: Partner[];
