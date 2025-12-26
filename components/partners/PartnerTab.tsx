@@ -61,9 +61,8 @@ export function PartnerTab({ campaignSlug, onCompanyClick }: PartnerTabProps) {
     };
 
     // Handle account click from partner detail (opens main account detail)
+    // Keep partner sheet open so AccountDetail modal stacks on top
     const handlePartnerAccountClick = (domain: string) => {
-        // Close partner detail and open account detail
-        setPartnerDetailOpen(false);
         onCompanyClick?.(domain);
     };
 

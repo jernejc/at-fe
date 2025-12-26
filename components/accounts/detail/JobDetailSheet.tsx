@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { JobPostingSummary } from '@/lib/schemas';
-import { formatRelativeDate } from './utils';
+import { formatRelativeDate } from '@/lib/utils';
 import { Building2, MapPin, Clock, Briefcase, Globe, ArrowUpRight, Share2, CheckCircle2 } from 'lucide-react';
 
 interface JobDetailSheetProps {

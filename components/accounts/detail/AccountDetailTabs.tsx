@@ -1,7 +1,7 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatCompactNumber } from './utils';
+import { formatCompactNumber } from '@/lib/utils';
 
 interface TabCounts {
     playbooks: number;

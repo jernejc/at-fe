@@ -4,7 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScoreBadge } from './ScoreBadge';
 import { cn } from '@/lib/utils';
-import { formatCompactNumber } from './detail/utils';
+import { formatCompactNumber } from '@/lib/utils';
 
 // Unified account type for display
 interface AccountItem {

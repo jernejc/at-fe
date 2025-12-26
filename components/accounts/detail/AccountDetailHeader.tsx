@@ -2,7 +2,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 import { SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { MetricPill } from './components';
-import { formatCompactNumber } from './utils';
+import { formatCompactNumber } from '@/lib/utils';
 import type { CompanyRead } from '@/lib/schemas';
 
 interface AccountDetailHeaderProps {
