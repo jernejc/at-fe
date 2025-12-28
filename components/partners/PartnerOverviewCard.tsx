@@ -94,12 +94,12 @@ export function PartnerOverviewCard({ partner, onClick, isSelected }: PartnerOve
                                 <span className="font-medium">{assigned}</span>
                                 <span className="text-slate-400">/ {capacity}</span>
                             </div>
-                            {partner.match_score >= 90 && (
+                            {/*partner.match_score >= 90 && (
                                 <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                     <TrendingUp className="w-4 h-4" />
                                     <span className="font-medium">{partner.match_score}%</span>
                                 </div>
-                            )}
+                            )*/}
                         </div>
 
                         {/* Capacity Bar */}

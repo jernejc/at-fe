@@ -21,13 +21,13 @@ interface AccountDetailProps {
 export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     const [activeTab, setActiveTab] = useState('overview');
 
-    // Data fetching
     const {
         data,
         playbooks,
         explainability,
         decisionMakers,
         employees,
+        employeesTotal,
         jobs,
         jobsTotal,
         news,
@@ -35,8 +35,10 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
         loading,
         loadMoreJobs,
         loadMoreNews,
+        loadMoreEmployees,
         loadingMoreJobs,
         loadingMoreNews,
+        loadingMoreEmployees,
         refetch,
         refetchExplainability,
         refetchPlaybooks,
@@ -164,6 +166,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                                 playbooks={playbooks}
                                 decisionMakers={decisionMakers}
                                 employees={employees}
+                                employeesTotal={employeesTotal}
                                 jobs={jobs}
                                 jobsTotal={jobsTotal}
                                 news={news}
@@ -175,8 +178,10 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                                 onSelectPlaybookEmployee={handlePlaybookEmployeeClick}
                                 onLoadMoreJobs={loadMoreJobs}
                                 onLoadMoreNews={loadMoreNews}
+                                onLoadMoreEmployees={loadMoreEmployees}
                                 loadingMoreJobs={loadingMoreJobs}
                                 loadingMoreNews={loadingMoreNews}
+                                loadingMoreEmployees={loadingMoreEmployees}
                                 employeeCount={data?.counts.employees || 0}
                                 onProcess={handleProcess}
                                 onRegenerateExplainability={handleRegenerateExplainability}

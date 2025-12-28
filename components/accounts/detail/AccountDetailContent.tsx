@@ -29,6 +29,7 @@ interface AccountDetailContentProps {
     playbooks: PlaybookSummary[];
     decisionMakers: EmployeeSummary[];
     employees: EmployeeSummary[];
+    employeesTotal: number;
     jobs: JobPostingSummary[];
     jobsTotal: number;
     news: NewsArticleSummary[];
@@ -40,8 +41,10 @@ interface AccountDetailContentProps {
     onSelectPlaybookEmployee: (employeeId: number | null, preview: { name: string; title?: string }, context: PlaybookContext) => void;
     onLoadMoreJobs: () => Promise<void>;
     onLoadMoreNews: () => Promise<void>;
+    onLoadMoreEmployees: () => Promise<void>;
     loadingMoreJobs: boolean;
     loadingMoreNews: boolean;
+    loadingMoreEmployees: boolean;
     employeeCount: number;
     onProcess: (options?: ProcessingOptions) => Promise<void>;
     onRegenerateExplainability: (productId?: number) => Promise<void>;
@@ -66,6 +69,7 @@ export function AccountDetailContent({
     playbooks,
     decisionMakers,
     employees,
+    employeesTotal,
     jobs,
     jobsTotal,
     news,
@@ -77,8 +81,10 @@ export function AccountDetailContent({
     onSelectPlaybookEmployee,
     onLoadMoreJobs,
     onLoadMoreNews,
+    onLoadMoreEmployees,
     loadingMoreJobs,
     loadingMoreNews,
+    loadingMoreEmployees,
     employeeCount,
     onProcess,
     onRegenerateExplainability,
@@ -164,8 +170,11 @@ export function AccountDetailContent({
                             <PeopleTab
                                 decisionMakers={decisionMakers}
                                 employees={employees}
+                                employeesTotal={employeesTotal}
                                 total={employeeCount}
                                 onSelectEmployee={onSelectEmployee}
+                                onLoadMore={onLoadMoreEmployees}
+                                loadingMore={loadingMoreEmployees}
                                 onProcess={handleEnrichEmployees}
                             />
                         ) : (

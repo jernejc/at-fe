@@ -4,21 +4,43 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { SectionHeader } from './components';
 import { TabHeaderWithAction } from './EnrichedEmptyState';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 interface PeopleTabProps {
     decisionMakers: EmployeeSummary[];
     employees: EmployeeSummary[];
+    employeesTotal: number;
     total: number;
+    onLoadMore?: () => Promise<void>;
+    loadingMore?: boolean;
     onProcess?: () => Promise<void>;
 }
 
-export function PeopleTab({ decisionMakers, employees, total, onSelectEmployee, onProcess }: PeopleTabProps & { onSelectEmployee: (employee: EmployeeSummary) => void }) {
+export function PeopleTab({
+    decisionMakers,
+    employees,
+    employeesTotal,
+    total,
+    onSelectEmployee,
+    onLoadMore,
+    loadingMore = false,
+    onProcess
+}: PeopleTabProps & { onSelectEmployee: (employee: EmployeeSummary) => void }) {
+
+    // Calculate how many more team members can be loaded
+    const teamTotal = employeesTotal - decisionMakers.length;
+    const hasMoreEmployees = employees.length < teamTotal;
 
     return (
         <div className="space-y-6">
             {decisionMakers.length > 0 && (
                 <section>
-                    <SectionHeader title="Key Contacts" color="bg-amber-500" />
+                    <SectionHeader title="Key Contacts" color="bg-amber-500">
+                        <span className="text-sm text-muted-foreground ml-auto">
+                            {decisionMakers.length} contact{decisionMakers.length !== 1 ? 's' : ''}
+                        </span>
+                    </SectionHeader>
                     <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-white dark:bg-slate-900">
                         {decisionMakers.map((e) => (
                             <PersonRow
@@ -36,7 +58,7 @@ export function PeopleTab({ decisionMakers, employees, total, onSelectEmployee, 
                 <section>
                     <SectionHeader title="Team" color="bg-blue-600">
                         <span className="text-sm text-muted-foreground ml-auto">
-                            Showing {employees.length} of {total - decisionMakers.length}
+                            Showing {employees.length} of {teamTotal > 0 ? teamTotal : total}
                         </span>
                     </SectionHeader>
                     <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-white dark:bg-slate-900">
@@ -48,6 +70,26 @@ export function PeopleTab({ decisionMakers, employees, total, onSelectEmployee, 
                             />
                         ))}
                     </div>
+
+                    {hasMoreEmployees && onLoadMore && (
+                        <div className="flex justify-center mt-4">
+                            <Button
+                                variant="outline"
+                                onClick={onLoadMore}
+                                disabled={loadingMore}
+                                className="gap-2"
+                            >
+                                {loadingMore ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Loading...
+                                    </>
+                                ) : (
+                                    `Load More (${teamTotal - employees.length} remaining)`
+                                )}
+                            </Button>
+                        </div>
+                    )}
                 </section>
             )}
         </div>

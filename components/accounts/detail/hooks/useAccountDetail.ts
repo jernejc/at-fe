@@ -26,6 +26,7 @@ interface UseAccountDetailReturn {
     explainability: CompanyExplainabilityResponse | null;
     decisionMakers: EmployeeSummary[];
     employees: EmployeeSummary[];
+    employeesTotal: number;
     jobs: JobPostingSummary[];
     jobsTotal: number;
     news: NewsArticleSummary[];
@@ -33,8 +34,10 @@ interface UseAccountDetailReturn {
     loading: boolean;
     loadMoreJobs: () => Promise<void>;
     loadMoreNews: () => Promise<void>;
+    loadMoreEmployees: () => Promise<void>;
     loadingMoreJobs: boolean;
     loadingMoreNews: boolean;
+    loadingMoreEmployees: boolean;
     refetch: () => void;
     refetchExplainability: () => Promise<void>;
     refetchPlaybooks: () => Promise<void>;
@@ -49,6 +52,9 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
 
     const [decisionMakers, setDecisionMakers] = useState<EmployeeSummary[]>([]);
     const [employees, setEmployees] = useState<EmployeeSummary[]>([]);
+    const [employeesPage, setEmployeesPage] = useState(1);
+    const [employeesTotal, setEmployeesTotal] = useState(0);
+    const [loadingMoreEmployees, setLoadingMoreEmployees] = useState(false);
 
     const [jobs, setJobs] = useState<JobPostingSummary[]>([]);
     const [jobsPage, setJobsPage] = useState(1);
@@ -74,18 +80,23 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
                 setPlaybooks([]);
                 setDecisionMakers([]);
                 setEmployees([]);
+                setEmployeesTotal(0);
                 setJobs([]);
                 setNews([]);
+                setEmployeesPage(1);
                 setJobsPage(1);
                 setNewsPage(1);
 
                 Promise.all([
-                    // Fetch decision makers
-                    getCompanyEmployees(domain, 1, 20, { is_decision_maker: true })
+                    // Fetch ALL decision makers (key contacts) - use max API limit of 100
+                    getCompanyEmployees(domain, 1, 100, { is_decision_maker: true })
                         .then(res => setDecisionMakers(res.items)),
-                    // Fetch regular employees
-                    getCompanyEmployees(domain, 1, 20)
-                        .then(res => setEmployees(res.items)),
+                    // Fetch regular employees (non-decision makers) with higher default limit
+                    getCompanyEmployees(domain, 1, 100, { is_decision_maker: false })
+                        .then(res => {
+                            setEmployees(res.items);
+                            setEmployeesTotal(res.total);
+                        }),
                     getCompanyPlaybooks(domain).then(res => setPlaybooks(res.playbooks)),
                     getCompanyJobs(domain, 1).then(res => {
                         setJobs(res.items);
@@ -142,6 +153,21 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
         }
     };
 
+    const loadMoreEmployees = async () => {
+        if (loadingMoreEmployees) return;
+        setLoadingMoreEmployees(true);
+        try {
+            const nextPage = employeesPage + 1;
+            const res = await getCompanyEmployees(domain, nextPage, 100, { is_decision_maker: false });
+            setEmployees(prev => [...prev, ...res.items]);
+            setEmployeesPage(nextPage);
+        } catch (error) {
+            console.error("Failed to load more employees", error);
+        } finally {
+            setLoadingMoreEmployees(false);
+        }
+    };
+
     // Targeted refetch for explainability (fits & signals) only
     const refetchExplainability = useCallback(async () => {
         if (!domain) return;
@@ -170,6 +196,7 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
         explainability,
         decisionMakers,
         employees,
+        employeesTotal,
         jobs,
         jobsTotal,
         news,
@@ -177,8 +204,10 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
         loading,
         loadMoreJobs,
         loadMoreNews,
+        loadMoreEmployees,
         loadingMoreJobs,
         loadingMoreNews,
+        loadingMoreEmployees,
         refetch: loadData,
         refetchExplainability,
         refetchPlaybooks,

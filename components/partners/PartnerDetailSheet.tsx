@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { OutreachPipeline } from './OutreachPipeline';
 import { PartnerMetrics } from './PartnerMetrics';
 import { RecentActivity } from './RecentActivity';
+import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
 import {
     Building2,
     Users,
@@ -318,123 +319,23 @@ export function PartnerDetailSheet({
 
                                 {/* Accounts List */}
                                 <div className="space-y-3">
-                                    {filteredCompanies.map((company) => {
-                                        const statusConfig = OUTREACH_CONFIG[company.outreach_status];
-                                        const StatusIcon = statusConfig.icon;
-                                        const hasFitScore = company.cached_fit_score != null;
-                                        const fitScorePercent = hasFitScore ? Math.round(company.cached_fit_score! * 100) : null;
-
-                                        // Format last activity
-                                        const formatLastActivity = (dateStr?: string) => {
-                                            if (!dateStr) return null;
-                                            const date = new Date(dateStr);
-                                            const now = new Date();
-                                            const diffMs = now.getTime() - date.getTime();
-                                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                                            const diffDays = Math.floor(diffHours / 24);
-
-                                            if (diffHours < 1) return 'Just now';
-                                            if (diffHours < 24) return `${diffHours}h ago`;
-                                            if (diffDays === 1) return 'Yesterday';
-                                            if (diffDays < 7) return `${diffDays}d ago`;
-                                            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                                        };
-
-                                        const lastActivity = formatLastActivity(company.last_activity);
-
-                                        const getFitTierStyle = (score: number | null) => {
-                                            if (score === null) return 'bg-slate-100 dark:bg-slate-800 text-slate-500';
-                                            if (score >= 80) return 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400';
-                                            if (score >= 60) return 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
-                                            if (score >= 40) return 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400';
-                                            return 'bg-slate-100 dark:bg-slate-800 text-slate-500';
-                                        };
-
-                                        return (
-                                            <button
-                                                key={company.id}
-                                                onClick={() => onCompanyClick(company.domain)}
-                                                className="w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all text-left group"
-                                            >
-                                                <div className="flex items-start gap-4">
-                                                    {/* Company Logo */}
-                                                    <div className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
-                                                        {company.logo_base64 ? (
-                                                            <img
-                                                                src={`data:image/png;base64,${company.logo_base64}`}
-                                                                alt=""
-                                                                className="w-8 h-8 object-contain"
-                                                            />
-                                                        ) : (
-                                                            <img
-                                                                src={`https://www.google.com/s2/favicons?domain=${company.domain}&sz=64`}
-                                                                alt=""
-                                                                className="w-7 h-7 object-contain"
-                                                                onError={(e) => {
-                                                                    (e.target as HTMLImageElement).style.display = 'none';
-                                                                }}
-                                                            />
-                                                        )}
-                                                    </div>
-
-                                                    {/* Company Info */}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                                                                {company.company_name || company.domain}
-                                                            </span>
-                                                            <div className={cn(
-                                                                "shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                                                                statusConfig.bgColor,
-                                                                statusConfig.color
-                                                            )}>
-                                                                <StatusIcon className="w-3 h-3" />
-                                                                {statusConfig.shortLabel}
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                                                            {company.industry || 'Unknown Industry'}
-                                                        </div>
-                                                        <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 dark:text-slate-500">
-                                                            {company.employee_count && (
-                                                                <div className="flex items-center gap-1">
-                                                                    <Users className="w-3.5 h-3.5" />
-                                                                    <span>{company.employee_count.toLocaleString()}</span>
-                                                                </div>
-                                                            )}
-                                                            {company.hq_country && (
-                                                                <div className="flex items-center gap-1">
-                                                                    <MapPin className="w-3.5 h-3.5" />
-                                                                    <span>{company.hq_country}</span>
-                                                                </div>
-                                                            )}
-                                                            {lastActivity && (
-                                                                <div className="flex items-center gap-1">
-                                                                    <Clock className="w-3.5 h-3.5" />
-                                                                    <span>{lastActivity}</span>
-                                                                </div>
-                                                            )}
-                                                            <div className="flex items-center gap-1">
-                                                                <Target className="w-3.5 h-3.5" />
-                                                                <span>{company.decision_makers_count} contacts</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Fit Score & Arrow */}
-                                                    <div className="flex items-center gap-3 shrink-0">
-                                                        <div className={cn(
-                                                            "px-3 py-1.5 rounded-lg text-sm font-bold",
-                                                            getFitTierStyle(fitScorePercent)
-                                                        )}>
-                                                            {fitScorePercent != null ? `${fitScorePercent}%` : '–'}
-                                                        </div>
-                                                        <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all" />
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
+                                    {filteredCompanies.map((company) => (
+                                        <CompanyRowCompact
+                                            key={company.id}
+                                            name={company.company_name || company.domain}
+                                            domain={company.domain}
+                                            logoBase64={company.logo_base64}
+                                            industry={company.industry}
+                                            employeeCount={company.employee_count}
+                                            hqCountry={company.hq_country}
+                                            outreachStatus={company.outreach_status}
+                                            lastActivity={company.last_activity}
+                                            decisionMakersCount={company.decision_makers_count}
+                                            fitScore={company.cached_fit_score}
+                                            onClick={() => onCompanyClick(company.domain)}
+                                            variant="card"
+                                        />
+                                    ))}
 
                                     {filteredCompanies.length === 0 && (
                                         <div className="bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">

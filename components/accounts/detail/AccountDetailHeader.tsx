@@ -29,19 +29,19 @@ export function AccountDetailHeader({ company }: AccountDetailHeaderProps) {
 
             <div className="relative p-5 py-7 pt-8 max-w-7xl mx-auto w-full">
                 <div className="flex gap-5 items-start">
-                    {/* Logo with elevated container - Compact */}
-                    <div className="relative rounded-lg p-1 bg-white dark:bg-slate-800 shadow-sm border border-border/60 shrink-0">
-                        <Avatar className="w-16 h-16 rounded-md">
+                    {/* Logo with elevated container - Consistent with AccountCard */}
+                    <div className="relative shrink-0 rounded-xl p-0.5 bg-white dark:bg-slate-800 shadow-sm border border-border/60">
+                        <Avatar className="w-16 h-16 rounded-lg after:hidden">
                             {(company.logo_base64 || company.logo_url) && (
                                 <AvatarImage
                                     src={company.logo_base64
                                         ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
                                         : company.logo_url!}
                                     alt={company.name}
-                                    className="object-contain"
+                                    className="object-contain rounded-lg"
                                 />
                             )}
-                            <AvatarFallback className="text-xl font-bold bg-slate-50 text-slate-700 dark:bg-slate-900 dark:text-slate-300 rounded-md">
+                            <AvatarFallback className="text-xl font-bold bg-slate-50 text-slate-700 dark:bg-slate-900 dark:text-slate-300 rounded-lg">
                                 {(company.name || '??').slice(0, 2).toUpperCase()}
                             </AvatarFallback>
                         </Avatar>

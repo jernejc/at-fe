@@ -6,7 +6,7 @@ export { CompaniesTab } from './CompaniesTab';
 export { ComparisonTab } from './ComparisonTab';
 export { ChatFilterInput } from './builder/ChatFilterInput';
 export { FilterPill, FilterPillSkeleton } from './builder/FilterPill';
-export { CompanyRowCompact, CompanyRowCompactSkeleton } from './CompanyRowCompact';
+export { CompanyRowCompact, CompanyRowCompactSkeleton, type OutreachStatus } from './CompanyRowCompact';
 export { FunnelVisualization } from './FunnelVisualization';
 export { AddCompanyButton } from './AddCompanyButton';
 
