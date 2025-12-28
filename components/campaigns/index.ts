@@ -1,11 +1,15 @@
+// Campaign list & homepage
+export { CampaignsList } from './CampaignsList';
+export { CampaignCardPreview } from './CampaignCardPreview';
+export { ProductSection } from './ProductSection';
+export { ProductAssignmentDialog } from './ProductAssignmentDialog';
+export { CampaignCreateWizard } from './CampaignCreateWizard';
 
-export { CampaignBuilder } from './CampaignBuilder';
+// Campaign detail
 export { CampaignHeader } from './CampaignHeader';
 export { OverviewTab } from './OverviewTab';
 export { CompaniesTab } from './CompaniesTab';
 export { ComparisonTab } from './ComparisonTab';
-export { ChatFilterInput } from './builder/ChatFilterInput';
-export { FilterPill, FilterPillSkeleton } from './builder/FilterPill';
 export { CompanyRowCompact, CompanyRowCompactSkeleton, type OutreachStatus } from './CompanyRowCompact';
 export { FunnelVisualization } from './FunnelVisualization';
 export { AddCompanyButton } from './AddCompanyButton';

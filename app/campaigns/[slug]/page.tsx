@@ -1,15 +1,46 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCampaign, getCampaignOverview, getCampaignCompanies, getCampaignComparison, deleteCampaign } from '@/lib/api';
-import type { CampaignRead, CampaignOverview, MembershipRead, CampaignComparison } from '@/lib/schemas';
+import { getCampaign, getCampaignOverview, getCampaignCompanies, getCampaignComparison, deleteCampaign, updateCampaign, getCompanies } from '@/lib/api';
+import type { CampaignRead, CampaignOverview, MembershipRead, CampaignComparison, CampaignFilterUI, CompanyFilters, CompanySummary, CompanySummaryWithFit } from '@/lib/schemas';
 import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
 import { CampaignHeader, OverviewTab, CompaniesTab, ComparisonTab, PartnerTab } from '@/components/campaigns';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/ui/Header';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
+
+// Convert CampaignFilterUI array to CompanyFilters for API
+function filtersToCompanyFilters(filters: CampaignFilterUI[], productId?: number | null): CompanyFilters {
+    const companyFilters: CompanyFilters = {
+        page: 1,
+        page_size: 100,
+    };
+
+    if (productId) {
+        companyFilters.product_id = productId;
+    }
+
+    for (const filter of filters) {
+        switch (filter.type) {
+            case 'industry':
+                companyFilters.industry = filter.value;
+                break;
+            case 'country':
+                companyFilters.country = filter.value;
+                break;
+            case 'size_min':
+                companyFilters.min_employees = parseInt(filter.value) || undefined;
+                break;
+            case 'size_max':
+                companyFilters.max_employees = parseInt(filter.value) || undefined;
+                break;
+        }
+    }
+
+    return companyFilters;
+}
 
 interface CampaignPageProps {
     params: Promise<{
@@ -34,6 +65,99 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
     // Delete state
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Filter state
+    const [filters, setFilters] = useState<CampaignFilterUI[]>([]);
+    const [isSavingFilters, setIsSavingFilters] = useState(false);
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Dynamic companies based on filters
+    const [dynamicCompanies, setDynamicCompanies] = useState<(CompanySummary | CompanySummaryWithFit)[]>([]);
+    const [dynamicCompaniesTotal, setDynamicCompaniesTotal] = useState(0);
+    const [loadingDynamicCompanies, setLoadingDynamicCompanies] = useState(false);
+    const fetchCompaniesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Extract filters from campaign.target_criteria when campaign loads
+    useEffect(() => {
+        if (campaign?.target_criteria?.filters) {
+            setFilters(campaign.target_criteria.filters);
+        } else {
+            setFilters([]);
+        }
+    }, [campaign]);
+
+    // Fetch companies dynamically based on filters
+    const fetchDynamicCompanies = useCallback(async () => {
+        if (filters.length === 0) {
+            setDynamicCompanies([]);
+            setDynamicCompaniesTotal(0);
+            return;
+        }
+
+        setLoadingDynamicCompanies(true);
+        try {
+            const companyFilters = filtersToCompanyFilters(filters, campaign?.target_product_id);
+            const result = await getCompanies(companyFilters);
+            setDynamicCompanies(result.items);
+            setDynamicCompaniesTotal(result.total);
+        } catch (err) {
+            console.error('Failed to fetch dynamic companies:', err);
+            setDynamicCompanies([]);
+            setDynamicCompaniesTotal(0);
+        } finally {
+            setLoadingDynamicCompanies(false);
+        }
+    }, [filters, campaign?.target_product_id]);
+
+    // Debounced fetch when filters change
+    useEffect(() => {
+        if (fetchCompaniesTimeoutRef.current) {
+            clearTimeout(fetchCompaniesTimeoutRef.current);
+        }
+
+        fetchCompaniesTimeoutRef.current = setTimeout(() => {
+            fetchDynamicCompanies();
+        }, 300);
+
+        return () => {
+            if (fetchCompaniesTimeoutRef.current) {
+                clearTimeout(fetchCompaniesTimeoutRef.current);
+            }
+        };
+    }, [fetchDynamicCompanies]);
+
+    // Handle filter changes with debounced save
+    const handleFiltersChange = useCallback((newFilters: CampaignFilterUI[]) => {
+        setFilters(newFilters);
+
+        // Debounce the save
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(async () => {
+            setIsSavingFilters(true);
+            try {
+                const updatedCampaign = await updateCampaign(slug, {
+                    target_criteria: { filters: newFilters },
+                });
+                setCampaign(updatedCampaign);
+            } catch (error) {
+                console.error('Failed to save filters:', error);
+            } finally {
+                setIsSavingFilters(false);
+            }
+        }, 500);
+    }, [slug]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleCompanyClick = (domain: string) => {
         setSelectedDomain(domain);
@@ -154,6 +278,11 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                     onTabChange={setActiveTab}
                     onDelete={handleDelete}
                     isDeleting={isDeleting}
+                    filters={filters}
+                    onFiltersChange={handleFiltersChange}
+                    isSavingFilters={isSavingFilters}
+                    dynamicCompanyCount={dynamicCompaniesTotal}
+                    loadingDynamicCompanies={loadingDynamicCompanies}
                 />
 
                 {/* Content Area */}
@@ -165,6 +294,9 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 <OverviewTab
                                     overview={overview}
                                     companies={companies}
+                                    dynamicCompanies={filters.length > 0 ? dynamicCompanies : undefined}
+                                    dynamicCompaniesTotal={dynamicCompaniesTotal}
+                                    loadingDynamicCompanies={loadingDynamicCompanies}
                                     onCompanyClick={handleCompanyClick}
                                     onManagePartners={() => setActiveTab('partners')}
                                 />
@@ -177,6 +309,9 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 slug={slug}
                                 productId={campaign.target_product_id ?? undefined}
                                 companies={companies}
+                                dynamicCompanies={filters.length > 0 ? dynamicCompanies : undefined}
+                                dynamicCompaniesTotal={dynamicCompaniesTotal}
+                                loadingDynamicCompanies={loadingDynamicCompanies}
                                 onCompanyClick={handleCompanyClick}
                                 onCompanyAdded={refreshData}
                             />

@@ -5,6 +5,9 @@ import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
 import { ProcessingStatus } from '@/components/processing/ProcessingStatus';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Search, Network } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import Logo from './Logo';
 
 export function Header() {
@@ -29,9 +32,26 @@ export function Header() {
                 <Logo />
 
                 {/* User Actions (Right) */}
-                <div className="flex items-center gap-6 justify-end shrink-0">
+                <div className="flex items-center gap-3 justify-end shrink-0">
                     <ProcessingStatus />
-                    <Link href="/a2a/diagram" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">A2A</Link>
+
+                    {/* Discovery Link */}
+                    <Link
+                        href="/discovery"
+                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-2')}
+                    >
+                        <Search className="w-4 h-4" />
+                        <span className="hidden sm:inline">Discovery</span>
+                    </Link>
+
+                    {/* A2A Link */}
+                    <Link
+                        href="/a2a/diagram"
+                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-2')}
+                    >
+                        <Network className="w-4 h-4" />
+                        <span className="hidden sm:inline">A2A</span>
+                    </Link>
 
                     {/* User Profile */}
                     <div className="relative">

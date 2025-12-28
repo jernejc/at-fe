@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import type { CampaignRead } from '@/lib/schemas';
+import type { CampaignRead, CampaignFilterUI } from '@/lib/schemas';
 import { Loader2, Building2, ChevronRight, Download, Settings, Trash2, Calendar, Target, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FilterBar } from './FilterBar';
 
 interface CampaignHeaderProps {
     campaign: CampaignRead;
@@ -13,6 +14,12 @@ interface CampaignHeaderProps {
     onTabChange: (tab: string) => void;
     onDelete: () => void;
     isDeleting: boolean;
+    filters: CampaignFilterUI[];
+    onFiltersChange: (filters: CampaignFilterUI[]) => void;
+    isSavingFilters?: boolean;
+    // Dynamic company data from filters
+    dynamicCompanyCount?: number;
+    loadingDynamicCompanies?: boolean;
 }
 
 export function CampaignHeader({
@@ -21,12 +28,21 @@ export function CampaignHeader({
     onTabChange,
     onDelete,
     isDeleting,
+    filters,
+    onFiltersChange,
+    isSavingFilters,
+    dynamicCompanyCount,
+    loadingDynamicCompanies,
 }: CampaignHeaderProps) {
+    // Use dynamic count if filters are active, otherwise use campaign count
+    const useDynamic = filters.length > 0 && dynamicCompanyCount !== undefined;
+    const displayCompanyCount = useDynamic ? dynamicCompanyCount : campaign.company_count;
+
     const avgFitScore = campaign.avg_fit_score ? Math.round(campaign.avg_fit_score * 100) : null;
     const progressPercent = Math.round((campaign.processed_count / Math.max(campaign.company_count, 1)) * 100);
 
     return (
-        <div className="relative overflow-hidden group border-b border-border/60 bg-white dark:bg-slate-900">
+        <div className="relative group border-b border-border/60 bg-white dark:bg-slate-900">
             {/* Subtle background gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white/50 to-blue-50/30 dark:from-slate-900/80 dark:via-slate-900/50 dark:to-blue-900/10 pointer-events-none" />
 
@@ -56,8 +72,12 @@ export function CampaignHeader({
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Building2 className="w-4 h-4 text-blue-500" />
-                                    <span className="text-foreground font-medium">{campaign.company_count}</span>
-                                    <span>companies</span>
+                                    {loadingDynamicCompanies ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
+                                    ) : (
+                                        <span className="text-foreground font-medium">{displayCompanyCount}</span>
+                                    )}
+                                    <span>{useDynamic ? 'matching' : 'companies'}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Activity className="w-4 h-4 text-emerald-500" />
@@ -78,6 +98,21 @@ export function CampaignHeader({
                                     {campaign.description}
                                 </p>
                             )}
+
+                            {/* Filter Bar */}
+                            <div className="pt-4 flex items-center gap-3">
+                                <FilterBar
+                                    filters={filters}
+                                    onFiltersChange={onFiltersChange}
+                                    disabled={isSavingFilters}
+                                />
+                                {isSavingFilters && (
+                                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Saving...</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -117,7 +152,7 @@ export function CampaignHeader({
                                 <TabsTrigger value="companies">
                                     Companies
                                     <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-                                        {campaign.company_count}
+                                        {loadingDynamicCompanies ? '...' : displayCompanyCount}
                                     </span>
                                 </TabsTrigger>
                                 <TabsTrigger value="partners">Partners</TabsTrigger>

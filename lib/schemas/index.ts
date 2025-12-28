@@ -147,6 +147,10 @@ export type {
     CampaignFilters,
     FunnelStage,
     CampaignFunnel,
+    CampaignFilterType,
+    CampaignFilterUI,
+    Partner,
+    PartnerType,
 } from './campaign';
 
 // Explainability types

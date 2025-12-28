@@ -1,12 +1,16 @@
 'use client';
 
-import type { CampaignOverview, MembershipRead } from '@/lib/schemas';
-import { ChevronRight } from 'lucide-react';
+import type { CampaignOverview, MembershipRead, CompanySummary, CompanySummaryWithFit } from '@/lib/schemas';
+import { ChevronRight, Loader2 } from 'lucide-react';
 import { CompanyRowCompact } from './CompanyRowCompact';
 
 interface OverviewTabProps {
     overview: CampaignOverview;
     companies: MembershipRead[];
+    // Dynamic companies from filters
+    dynamicCompanies?: (CompanySummary | CompanySummaryWithFit)[];
+    dynamicCompaniesTotal?: number;
+    loadingDynamicCompanies?: boolean;
     onCompanyClick: (domain: string) => void;
     onManagePartners: () => void;
 }
@@ -24,31 +28,53 @@ const getFitColor = (range: string) => {
 export function OverviewTab({
     overview,
     companies,
+    dynamicCompanies,
+    dynamicCompaniesTotal = 0,
+    loadingDynamicCompanies = false,
     onCompanyClick,
     onManagePartners,
 }: OverviewTabProps) {
+    const useDynamic = dynamicCompanies !== undefined;
+    const displayTotal = useDynamic ? dynamicCompaniesTotal : overview.company_count;
+
     return (
         <div className="space-y-6">
             {/* Mini Funnel */}
             <div className="flex items-center justify-between py-2.5 px-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Pipeline</span>
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    {useDynamic ? 'Filter Results' : 'Pipeline'}
+                </span>
                 <div className="flex items-center gap-1">
-                    {[
-                        { label: 'Total', value: overview.company_count, color: 'text-slate-900 dark:text-white' },
-                        { label: 'Analyzed', value: overview.processed_count, color: 'text-blue-600 dark:text-blue-400' },
-                        { label: 'Scored', value: Object.values(overview.fit_distribution || {}).reduce((sum, v) => sum + v, 0) - (overview.fit_distribution?.unscored || 0), color: 'text-violet-600 dark:text-violet-400' },
-                        { label: 'High Fit', value: (overview.fit_distribution?.['80-100'] || 0) + (overview.fit_distribution?.['60-80'] || 0), color: 'text-emerald-600 dark:text-emerald-400' },
-                    ].map((stage, idx, arr) => (
-                        <div key={stage.label} className="flex items-center">
-                            <div className="flex flex-col items-center px-3">
-                                <span className={`text-sm font-semibold tabular-nums ${stage.color}`}>{stage.value}</span>
-                                <span className="text-[10px] text-slate-400">{stage.label}</span>
-                            </div>
-                            {idx < arr.length - 1 && (
-                                <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600" />
-                            )}
+                    {loadingDynamicCompanies ? (
+                        <div className="flex items-center gap-2 px-3">
+                            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                            <span className="text-sm text-slate-400">Searching...</span>
                         </div>
-                    ))}
+                    ) : useDynamic ? (
+                        // Dynamic mode - simplified display
+                        <div className="flex flex-col items-center px-3">
+                            <span className="text-sm font-semibold tabular-nums text-slate-900 dark:text-white">{displayTotal}</span>
+                            <span className="text-[10px] text-slate-400">Matching</span>
+                        </div>
+                    ) : (
+                        // Static mode - full pipeline
+                        [
+                            { label: 'Total', value: overview.company_count, color: 'text-slate-900 dark:text-white' },
+                            { label: 'Analyzed', value: overview.processed_count, color: 'text-blue-600 dark:text-blue-400' },
+                            { label: 'Scored', value: Object.values(overview.fit_distribution || {}).reduce((sum, v) => sum + v, 0) - (overview.fit_distribution?.unscored || 0), color: 'text-violet-600 dark:text-violet-400' },
+                            { label: 'High Fit', value: (overview.fit_distribution?.['80-100'] || 0) + (overview.fit_distribution?.['60-80'] || 0), color: 'text-emerald-600 dark:text-emerald-400' },
+                        ].map((stage, idx, arr) => (
+                            <div key={stage.label} className="flex items-center">
+                                <div className="flex flex-col items-center px-3">
+                                    <span className={`text-sm font-semibold tabular-nums ${stage.color}`}>{stage.value}</span>
+                                    <span className="text-[10px] text-slate-400">{stage.label}</span>
+                                </div>
+                                {idx < arr.length - 1 && (
+                                    <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600" />
+                                )}
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
@@ -61,6 +87,8 @@ export function OverviewTab({
                 <div className="lg:col-span-3 space-y-6">
                     <TopCompaniesCard
                         topCompanies={overview.top_companies}
+                        dynamicCompanies={dynamicCompanies}
+                        loadingDynamicCompanies={loadingDynamicCompanies}
                         onCompanyClick={onCompanyClick}
                     />
                 </div>
@@ -119,34 +147,76 @@ function PartnerStatsBar({
 // Top Companies Card
 function TopCompaniesCard({
     topCompanies,
+    dynamicCompanies,
+    loadingDynamicCompanies,
     onCompanyClick,
 }: {
     topCompanies?: CampaignOverview['top_companies'];
+    dynamicCompanies?: (CompanySummary | CompanySummaryWithFit)[];
+    loadingDynamicCompanies?: boolean;
     onCompanyClick: (domain: string) => void;
 }) {
+    const useDynamic = dynamicCompanies !== undefined;
+    const displayCompanies = useDynamic ? dynamicCompanies : topCompanies;
+
     return (
         <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <h3 className="font-medium text-sm text-slate-900 dark:text-white">Top Companies by Fit</h3>
-                <span className="text-xs text-slate-400">{topCompanies?.length || 0} shown</span>
+                <h3 className="font-medium text-sm text-slate-900 dark:text-white">
+                    {useDynamic ? 'Matching Companies' : 'Top Companies by Fit'}
+                </h3>
+                {loadingDynamicCompanies ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                ) : (
+                    <span className="text-xs text-slate-400">{displayCompanies?.length || 0} shown</span>
+                )}
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {topCompanies && topCompanies.length > 0 ? topCompanies.slice(0, 8).map((company, idx) => (
-                    <CompanyRowCompact
-                        key={company.id}
-                        name={company.company_name || company.domain}
-                        domain={company.domain}
-                        rank={idx + 1}
-                        fitScore={company.cached_fit_score}
-                        logoBase64={company.logo_base64}
-                        partnerName={company.partner_name}
-                        onClick={() => onCompanyClick(company.domain)}
-                        className="cursor-pointer"
-                    />
-                )) : (
+                {loadingDynamicCompanies ? (
                     <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
-                        No companies yet. Add one to get started!
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+                        Searching companies...
                     </div>
+                ) : useDynamic ? (
+                    // Dynamic companies from filters
+                    dynamicCompanies && dynamicCompanies.length > 0 ? dynamicCompanies.slice(0, 8).map((company, idx) => (
+                        <CompanyRowCompact
+                            key={company.domain}
+                            name={company.name}
+                            domain={company.domain}
+                            rank={idx + 1}
+                            industry={company.industry}
+                            employeeCount={company.employee_count}
+                            hqCountry={company.hq_country}
+                            fitScore={'combined_score' in company ? company.combined_score : null}
+                            logoBase64={company.logo_base64}
+                            onClick={() => onCompanyClick(company.domain)}
+                            className="cursor-pointer"
+                        />
+                    )) : (
+                        <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                            No companies match your filters
+                        </div>
+                    )
+                ) : (
+                    // Static top companies
+                    topCompanies && topCompanies.length > 0 ? topCompanies.slice(0, 8).map((company, idx) => (
+                        <CompanyRowCompact
+                            key={company.id}
+                            name={company.company_name || company.domain}
+                            domain={company.domain}
+                            rank={idx + 1}
+                            fitScore={company.cached_fit_score}
+                            logoBase64={company.logo_base64}
+                            partnerName={company.partner_name}
+                            onClick={() => onCompanyClick(company.domain)}
+                            className="cursor-pointer"
+                        />
+                    )) : (
+                        <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                            No companies yet. Add one to get started!
+                        </div>
+                    )
                 )}
             </div>
         </div>

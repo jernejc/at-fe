@@ -74,11 +74,15 @@ interface AccountItem {
 interface AccountListProps {
     productGroup?: string;
     onAccountClick?: (account: AccountItem) => void;
+    hideHeader?: boolean;
+    compact?: boolean;
 }
 
 export function AccountList({
     productGroup,
     onAccountClick,
+    hideHeader = false,
+    compact = false,
 }: AccountListProps) {
     const [products, setProducts] = useState<ProductSummary[]>([]);
     const [accounts, setAccounts] = useState<AccountItem[]>([]);
@@ -94,6 +98,7 @@ export function AccountList({
     // Add to Campaign State
     const [showAddToCampaign, setShowAddToCampaign] = useState(false);
     const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
+
     const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
         null
     );
@@ -315,6 +320,13 @@ export function AccountList({
         }
     };
 
+    // Navigate to create campaign wizard
+    const handleNewCampaign = () => {
+        // Navigate to the create wizard with product preselection if available
+        const productParam = selectedProductId !== "all" ? `?product=${selectedProductId}` : '';
+        window.location.href = `/campaigns/new${productParam}`;
+    };
+
     const selectedProduct = products.find((p) => p.id.toString() === selectedProductId);
 
     // Get color for product tab
@@ -325,7 +337,7 @@ export function AccountList({
     return (
         <div className="flex flex-col h-full bg-slate-50/30 dark:bg-slate-900/10">
             {/* 1. Main Application Header */}
-            <Header />
+            {!hideHeader && <Header />}
 
             {/* 1.5. Product Navigation - Select Product to View Candidates */}
             <div className="bg-white dark:bg-slate-900 border-b border-border/60 z-10 relative h-12">
@@ -496,15 +508,7 @@ export function AccountList({
                             <div className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-1">
                                 {/* Primary Action - New Campaign */}
                                 <Button
-                                    onClick={() => {
-                                        const selectedDomains = filteredAccounts
-                                            .filter((a) => selectedIds.has(a.company_id))
-                                            .map((a) => a.company_domain)
-                                            .join(",");
-                                        window.location.href = `/campaigns/new?domains=${encodeURIComponent(
-                                            selectedDomains
-                                        )}`;
-                                    }}
+                                    onClick={handleNewCampaign}
                                     size="sm"
                                     className="gap-1.5 h-8 shadow-sm hover:shadow transition-all bg-blue-600 hover:bg-blue-700 text-white"
                                 >

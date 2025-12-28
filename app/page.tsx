@@ -1,40 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { AccountList, AccountDetail } from '@/components/accounts';
+import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-
-// Unified account type for display (matches AccountList)
-interface AccountItem {
-  company_id: number;
-  company_domain: string;
-  company_name: string;
-  industry: string | null;
-  employee_count: number | null;
-  hq_country: string | null;
-  logo_url: string | null;
-  combined_score: number | null;
-  urgency_score: number | null;
-  top_drivers: string[] | null;
-  calculated_at: string | null;
-  top_contact: {
-    full_name: string;
-    current_title: string | null;
-    avatar_url: string | null;
-  } | null;
-}
+import { Header } from '@/components/ui/Header';
+import { CampaignsList } from '@/components/campaigns/CampaignsList';
 
 export default function Dashboard() {
-  const [selectedAccount, setSelectedAccount] = useState<AccountItem | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
-
-  const handleAccountClick = (account: AccountItem) => {
-    setSelectedAccount(account);
-    setDetailOpen(true);
-  };
 
   useEffect(() => {
     if (status === "loading") return;
@@ -52,23 +26,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-background overflow-hidden">
-      {/* Main Content - Full Height */}
-      <main className="h-full">
-        <AccountList
-          productGroup="all"
-          onAccountClick={handleAccountClick}
-        />
+    <div className="min-h-screen bg-[#F8F9FB] dark:bg-slate-950 flex flex-col font-sans">
+      <Header />
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-[1600px] mx-auto px-6 py-8">
+          <CampaignsList />
+        </div>
       </main>
-
-      {/* Account Detail Dialog */}
-      {selectedAccount && (
-        <AccountDetail
-          domain={selectedAccount.company_domain}
-          open={detailOpen}
-          onClose={() => setDetailOpen(false)}
-        />
-      )}
     </div>
   );
 }
