@@ -78,18 +78,30 @@ export function EnrichedEmptyState({
     );
 }
 
+export interface ProductOption {
+    id: number;
+    name: string;
+}
+
 interface TabHeaderWithActionProps {
     title: string;
     count?: number;
     actionLabel: string;
-    onAction: () => Promise<void>;
+    onAction: (productId?: number) => Promise<void>;
     isLoading?: boolean;
     color?: string;
+    /** Optional list of products for dropdown selection */
+    products?: ProductOption[];
+    /** Currently selected product ID */
+    selectedProductId?: number;
+    /** Callback when product selection changes */
+    onProductChange?: (productId: number) => void;
 }
 
 /**
  * Section header with a regenerate/refresh action button.
  * Used when a tab has data but user may want to re-fetch or regenerate.
+ * Optionally supports a product dropdown for product-specific actions.
  */
 export function TabHeaderWithAction({
     title,
@@ -98,6 +110,9 @@ export function TabHeaderWithAction({
     onAction,
     isLoading: externalLoading,
     color = "bg-blue-600",
+    products,
+    selectedProductId,
+    onProductChange,
 }: TabHeaderWithActionProps) {
     const [internalLoading, setInternalLoading] = useState(false);
     const isLoading = externalLoading ?? internalLoading;
@@ -106,10 +121,15 @@ export function TabHeaderWithAction({
         if (isLoading) return;
         setInternalLoading(true);
         try {
-            await onAction();
+            await onAction(selectedProductId);
         } finally {
             setInternalLoading(false);
         }
+    };
+
+    const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const productId = parseInt(e.target.value, 10);
+        onProductChange?.(productId);
     };
 
     return (
@@ -118,19 +138,37 @@ export function TabHeaderWithAction({
             <h3 className="font-semibold">{title}</h3>
             {count !== undefined && <span className="text-sm text-muted-foreground">({count})</span>}
 
-            <button
-                onClick={handleClick}
-                disabled={isLoading}
-                className="ml-auto flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
-                title={actionLabel}
-            >
-                {isLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                    <RefreshCw className="w-3.5 h-3.5" />
+            <div className="ml-auto flex items-center gap-2">
+                {/* Product selector dropdown */}
+                {products && products.length > 0 && (
+                    <select
+                        value={selectedProductId ?? products[0]?.id}
+                        onChange={handleProductChange}
+                        disabled={isLoading}
+                        className="text-xs font-medium text-muted-foreground bg-transparent border border-border rounded-md px-2 py-1 hover:border-primary/50 focus:border-primary focus:outline-none transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                        {products.map((product) => (
+                            <option key={product.id} value={product.id}>
+                                {product.name}
+                            </option>
+                        ))}
+                    </select>
                 )}
-                <span className="hidden sm:inline">{actionLabel}</span>
-            </button>
+
+                <button
+                    onClick={handleClick}
+                    disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                    title={actionLabel}
+                >
+                    {isLoading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                        <RefreshCw className="w-3.5 h-3.5" />
+                    )}
+                    <span className="hidden sm:inline">{actionLabel}</span>
+                </button>
+            </div>
         </div>
     );
 }

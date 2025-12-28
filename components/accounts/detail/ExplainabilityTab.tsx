@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
     CompanyExplainabilityResponse,
     SignalInterest,
@@ -5,7 +6,7 @@ import {
     FitSummaryFit
 } from '@/lib/schemas';
 import { SectionHeader } from './components';
-import { TabHeaderWithAction } from './EnrichedEmptyState';
+import { TabHeaderWithAction, ProductOption } from './EnrichedEmptyState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { cn, normalizeScore } from '@/lib/utils';
@@ -28,11 +29,27 @@ interface ExplainabilityTabProps {
     data: CompanyExplainabilityResponse;
     onSelectFit: (productId: number) => void;
     onSelectSignal: (signalId: number) => void;
-    onProcess?: () => Promise<void>;
+    onProcess?: (productId: number) => Promise<void>;
+    /** All available products for score calculation */
+    allProducts?: ProductOption[];
 }
 
-export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess }: ExplainabilityTabProps) {
+export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess, allProducts }: ExplainabilityTabProps) {
     const { signals_summary, fits_summary, data_coverage, freshness, company_domain } = data;
+
+    // Track selected product, default to first product
+    const [selectedProductId, setSelectedProductId] = useState<number | undefined>(
+        allProducts && allProducts.length > 0 ? allProducts[0].id : undefined
+    );
+
+    // Update selected product if allProducts changes and current selection is invalid
+    useEffect(() => {
+        if (allProducts && allProducts.length > 0) {
+            if (!selectedProductId || !allProducts.some(p => p.id === selectedProductId)) {
+                setSelectedProductId(allProducts[0].id);
+            }
+        }
+    }, [allProducts, selectedProductId]);
 
     const handleFitClick = (productId: number) => {
         onSelectFit(productId);
@@ -42,15 +59,24 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
         onSelectSignal(signalId);
     };
 
+    const handleCalculateScore = async (productId?: number) => {
+        if (onProcess && productId !== undefined) {
+            await onProcess(productId);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
             {/* Main Content: Fit Scores */}
             <div className="space-y-6">
-                {onProcess ? (
+                {onProcess && allProducts && allProducts.length > 0 ? (
                     <TabHeaderWithAction
                         title="Product Fit"
-                        actionLabel="Regenerate"
-                        onAction={onProcess}
+                        actionLabel="Calculate Score"
+                        onAction={handleCalculateScore}
+                        products={allProducts}
+                        selectedProductId={selectedProductId}
+                        onProductChange={setSelectedProductId}
                     />
                 ) : (
                     <SectionHeader title="Product Fit" />

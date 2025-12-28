@@ -8,6 +8,7 @@ import {
     getCompanyJobs,
     getCompanyNews,
     getCompanyExplainability,
+    getProducts,
 } from '@/lib/api';
 import {
     CompanyDetailResponse,
@@ -16,6 +17,7 @@ import {
     JobPostingSummary,
     NewsArticleSummary,
     EmployeeSummary,
+    ProductSummary,
 } from '@/lib/schemas';
 
 interface UseAccountDetailReturn {
@@ -36,6 +38,8 @@ interface UseAccountDetailReturn {
     refetch: () => void;
     refetchExplainability: () => Promise<void>;
     refetchPlaybooks: () => Promise<void>;
+    /** All available products for score calculation */
+    allProducts: ProductSummary[];
 }
 
 export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDetailReturn {
@@ -55,6 +59,8 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
     const [newsPage, setNewsPage] = useState(1);
     const [newsTotal, setNewsTotal] = useState(0);
     const [loadingMoreNews, setLoadingMoreNews] = useState(false);
+
+    const [allProducts, setAllProducts] = useState<ProductSummary[]>([]);
 
     const [loading, setLoading] = useState(true);
 
@@ -89,7 +95,9 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
                         setNews(res.items);
                         setNewsTotal(res.total);
                     }),
-                    getCompanyExplainability(domain).then(setExplainability)
+                    getCompanyExplainability(domain).then(setExplainability),
+                    // Fetch all available products for score calculation
+                    getProducts(1, 100).then(res => setAllProducts(res.items))
                 ]).finally(() => setLoading(false));
             })
             .catch(err => {
@@ -174,5 +182,6 @@ export function useAccountDetail(domain: string, isOpen: boolean): UseAccountDet
         refetch: loadData,
         refetchExplainability,
         refetchPlaybooks,
+        allProducts,
     };
 }

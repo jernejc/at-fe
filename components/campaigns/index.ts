@@ -1,5 +1,9 @@
 
 export { CampaignBuilder } from './CampaignBuilder';
+export { CampaignHeader } from './CampaignHeader';
+export { OverviewTab } from './OverviewTab';
+export { CompaniesTab } from './CompaniesTab';
+export { ComparisonTab } from './ComparisonTab';
 export { ChatFilterInput } from './builder/ChatFilterInput';
 export { FilterPill, FilterPillSkeleton } from './builder/FilterPill';
 export { CompanyRowCompact, CompanyRowCompactSkeleton } from './CompanyRowCompact';

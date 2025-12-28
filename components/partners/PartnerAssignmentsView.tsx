@@ -22,7 +22,9 @@ export function PartnerAssignmentsView({
 }: PartnerAssignmentsViewProps) {
     const [filterPartnerId, setFilterPartnerId] = useState<string | 'all' | 'unassigned'>('all');
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [openUp, setOpenUp] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const triggerRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -95,7 +97,7 @@ export function PartnerAssignmentsView({
             </div>
 
             {/* Assignments List */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                     {filteredCompanies.map((company) => {
                         const assignedPartner = partners.find(p => p.id === company.partner_id);
@@ -150,7 +152,24 @@ export function PartnerAssignmentsView({
                                 {/* Partner Assignment Dropdown */}
                                 <div className="relative shrink-0" ref={openDropdown === company.domain ? dropdownRef : null}>
                                     <button
-                                        onClick={() => setOpenDropdown(openDropdown === company.domain ? null : company.domain)}
+                                        ref={(el) => {
+                                            if (el) triggerRefs.current.set(company.domain, el);
+                                        }}
+                                        onClick={() => {
+                                            if (openDropdown === company.domain) {
+                                                setOpenDropdown(null);
+                                            } else {
+                                                // Check if dropdown should open upward
+                                                const trigger = triggerRefs.current.get(company.domain);
+                                                if (trigger) {
+                                                    const rect = trigger.getBoundingClientRect();
+                                                    const dropdownHeight = 300; // Approximate dropdown height
+                                                    const spaceBelow = window.innerHeight - rect.bottom;
+                                                    setOpenUp(spaceBelow < dropdownHeight);
+                                                }
+                                                setOpenDropdown(company.domain);
+                                            }
+                                        }}
                                         className={cn(
                                             "flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors text-sm min-w-[180px]",
                                             assignedPartner
@@ -174,7 +193,12 @@ export function PartnerAssignmentsView({
 
                                     {/* Dropdown Menu */}
                                     {openDropdown === company.domain && (
-                                        <div className="absolute z-50 top-full right-0 mt-1 w-64 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                                        <div className={cn(
+                                            "absolute z-50 right-0 w-64 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl py-2 animate-in fade-in duration-150 max-h-[300px] overflow-y-auto",
+                                            openUp
+                                                ? "bottom-full mb-1 slide-in-from-bottom-2"
+                                                : "top-full mt-1 slide-in-from-top-2"
+                                        )}>
                                             <div className="px-3 py-1.5 text-xs font-medium text-slate-400 uppercase tracking-wider">
                                                 Assign to Partner
                                             </div>

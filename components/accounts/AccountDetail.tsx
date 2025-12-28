@@ -40,6 +40,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
         refetch,
         refetchExplainability,
         refetchPlaybooks,
+        allProducts,
     } = useAccountDetail(domain, open);
 
     // Modal management
@@ -83,7 +84,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     }, [domain, refetch]);
 
     // Targeted handler for regenerating signals/fits (no data refresh)
-    const handleRegenerateExplainability = useCallback(async () => {
+    const handleRegenerateExplainability = useCallback(async (productId?: number) => {
         if (!domain) return;
         const minLoading = new Promise(resolve => setTimeout(resolve, 800));
         try {
@@ -91,7 +92,8 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                 startProcessing(domain, {
                     generate_signals: true,
                     generate_fits: true,
-                    refresh_data: false
+                    refresh_data: false,
+                    product_id: productId
                 }),
                 minLoading
             ]);
@@ -179,6 +181,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                                 onProcess={handleProcess}
                                 onRegenerateExplainability={handleRegenerateExplainability}
                                 onRegeneratePlaybooks={handleRegeneratePlaybooks}
+                                allProducts={allProducts}
                             />
                         </div>
                     ) : (

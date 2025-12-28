@@ -2,6 +2,15 @@
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatCompactNumber } from '@/lib/utils';
+import {
+    LayoutDashboard,
+    Sparkles,
+    BookOpen,
+    Users,
+    Briefcase,
+    Newspaper,
+    Bell,
+} from 'lucide-react';
 
 interface TabCounts {
     playbooks: number;
@@ -43,42 +52,53 @@ export function AccountDetailTabs({
             <div className="max-w-7xl mx-auto w-full px-6">
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                     <TabsList variant="line" className="h-12 gap-6">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="overview" className="gap-2">
+                            <LayoutDashboard className="w-4 h-4" />
+                            Overview
+                        </TabsTrigger>
 
                         {hasExplainability && (
-                            <TabsTrigger value="explainability">Explainability</TabsTrigger>
+                            <TabsTrigger value="explainability" className="gap-2">
+                                <Sparkles className="w-4 h-4" />
+                                Explainability
+                            </TabsTrigger>
                         )}
 
                         {hasPlaybooks && (
-                            <TabsTrigger value="playbooks">
+                            <TabsTrigger value="playbooks" className="gap-2">
+                                <BookOpen className="w-4 h-4" />
                                 Playbooks
                                 <CountBadge count={counts.playbooks} />
                             </TabsTrigger>
                         )}
 
                         {hasPeople && (
-                            <TabsTrigger value="people">
+                            <TabsTrigger value="people" className="gap-2">
+                                <Users className="w-4 h-4" />
                                 People
                                 <CountBadge count={counts.employees} />
                             </TabsTrigger>
                         )}
 
                         {hasJobs && (
-                            <TabsTrigger value="jobs">
+                            <TabsTrigger value="jobs" className="gap-2">
+                                <Briefcase className="w-4 h-4" />
                                 Jobs
                                 <CountBadge count={counts.jobs} />
                             </TabsTrigger>
                         )}
 
                         {hasNews && (
-                            <TabsTrigger value="news">
+                            <TabsTrigger value="news" className="gap-2">
+                                <Newspaper className="w-4 h-4" />
                                 News
                                 <CountBadge count={counts.news} />
                             </TabsTrigger>
                         )}
 
                         {hasUpdates && (
-                            <TabsTrigger value="updates">
+                            <TabsTrigger value="updates" className="gap-2">
+                                <Bell className="w-4 h-4" />
                                 Updates
                                 <CountBadge count={counts.updates} />
                             </TabsTrigger>

@@ -3,6 +3,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Building2, Users, MapPin } from 'lucide-react';
+import { formatCompactNumber } from '@/lib/utils';
 
 export interface CompanyRowCompactProps {
     // Core data
@@ -26,12 +27,6 @@ export interface CompanyRowCompactProps {
     fitScore?: number | null;
     onClick?: () => void;
     className?: string;
-}
-
-function formatCompactNumber(num: number): string {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-    return num.toString();
 }
 
 export function CompanyRowCompact({

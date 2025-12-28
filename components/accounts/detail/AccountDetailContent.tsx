@@ -8,6 +8,7 @@ import {
     JobPostingSummary,
     NewsArticleSummary,
     EmployeeSummary,
+    ProductSummary,
 } from '@/lib/schemas';
 import { ProcessingOptions } from '@/lib/api';
 import { OverviewTab } from './OverviewTab';
@@ -43,8 +44,10 @@ interface AccountDetailContentProps {
     loadingMoreNews: boolean;
     employeeCount: number;
     onProcess: (options?: ProcessingOptions) => Promise<void>;
-    onRegenerateExplainability: () => Promise<void>;
+    onRegenerateExplainability: (productId?: number) => Promise<void>;
     onRegeneratePlaybooks: () => Promise<void>;
+    /** All available products for score calculation */
+    allProducts: ProductSummary[];
 }
 
 function AnimatedPanel({ children }: { children: ReactNode }) {
@@ -80,6 +83,7 @@ export function AccountDetailContent({
     onProcess,
     onRegenerateExplainability,
     onRegeneratePlaybooks,
+    allProducts,
 }: AccountDetailContentProps) {
     const hasExplainability = !!explainability;
     const hasPlaybooks = playbooks.length > 0;
@@ -118,6 +122,7 @@ export function AccountDetailContent({
                                 onSelectFit={onSelectFit}
                                 onSelectSignal={onSelectSignal}
                                 onProcess={onRegenerateExplainability}
+                                allProducts={allProducts.map(p => ({ id: p.id, name: p.name }))}
                             />
                         ) : (
                             <EnrichedEmptyState
