@@ -459,35 +459,129 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
 
                 {/* Step 3: Partners */}
                 {currentStep === 'review' && (
-                    <div className="max-w-xl mx-auto space-y-6">
+                    <div className="max-w-xl mx-auto space-y-8">
                         <div>
                             <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Assign partners</h1>
                             <p className="text-sm text-slate-500 mt-1">Choose partners and how to distribute companies</p>
                         </div>
 
-                        {/* Assignment Mode - Card options */}
-                        <div className="space-y-2 pb-2">
-                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Assignment mode</label>
-                            <div className="grid grid-cols-3 gap-3">
+                        {/* Partners List - Now first */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    Select partners {selectedPartnerIds.size > 0 && <span className="text-slate-400 font-normal">({selectedPartnerIds.size} selected)</span>}
+                                </label>
+                                <button
+                                    onClick={() => {
+                                        if (selectedPartnerIds.size === partners.length) {
+                                            setSelectedPartnerIds(new Set());
+                                        } else {
+                                            setSelectedPartnerIds(new Set(partners.map(p => p.id)));
+                                        }
+                                    }}
+                                    className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:underline transition-colors"
+                                >
+                                    {selectedPartnerIds.size === partners.length ? 'Deselect all' : 'Select all'}
+                                </button>
+                            </div>
+                            <div className="space-y-2">
+                                {partners.map((partner) => {
+                                    const isSelected = selectedPartnerIds.has(partner.id);
+                                    const TypeIcon = partner.type === 'consulting' ? Briefcase : partner.type === 'technology' ? Cpu : ShoppingBag;
+                                    const typeLabel = partner.type === 'consulting' ? 'Consulting' : partner.type === 'technology' ? 'Technology' : 'Reseller';
+
+                                    return (
+                                        <button
+                                            key={partner.id}
+                                            onClick={() => {
+                                                const next = new Set(selectedPartnerIds);
+                                                if (isSelected) next.delete(partner.id);
+                                                else next.add(partner.id);
+                                                setSelectedPartnerIds(next);
+                                            }}
+                                            className={cn(
+                                                "w-full rounded-xl border p-3 text-left transition-all duration-150",
+                                                isSelected
+                                                    ? "bg-slate-50 dark:bg-slate-800/50 border-slate-900 dark:border-slate-400 ring-1 ring-slate-900 dark:ring-slate-400"
+                                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {/* Checkbox */}
+                                                <div className={cn(
+                                                    "w-4 h-4 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0",
+                                                    isSelected
+                                                        ? "bg-slate-900 dark:bg-white border-slate-900 dark:border-white"
+                                                        : "border-slate-300 dark:border-slate-600"
+                                                )}>
+                                                    {isSelected && <Check className="w-2.5 h-2.5 text-white dark:text-slate-900" />}
+                                                </div>
+
+                                                {/* Logo */}
+                                                <div className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
+                                                    {partner.logo_url ? (
+                                                        <img
+                                                            src={partner.logo_url}
+                                                            alt=""
+                                                            className="w-5 h-5 object-contain"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                                            {partner.name.charAt(0)}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Partner Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-sm text-slate-900 dark:text-white">
+                                                            {partner.name}
+                                                        </span>
+                                                        <span className={cn(
+                                                            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium",
+                                                            partner.type === 'consulting' && "bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400",
+                                                            partner.type === 'technology' && "bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400",
+                                                            partner.type === 'reseller' && "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
+                                                        )}>
+                                                            <TypeIcon className="w-2.5 h-2.5" />
+                                                            {typeLabel}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                                        {partner.industries && partner.industries.length > 0 && (
+                                                            <span className="truncate max-w-[140px]">{partner.industries.slice(0, 2).join(', ')}</span>
+                                                        )}
+                                                        {partner.capacity && (
+                                                            <span className="flex items-center gap-1 shrink-0">
+                                                                <Users className="w-3 h-3" />
+                                                                {partner.capacity - (partner.assigned_count || 0)} slots
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Match Score */}
+                                                {partner.match_score && (
+                                                    <div className="shrink-0 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                                        {partner.match_score}%
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Assignment Mode - Now second, more compact */}
+                        <div className="space-y-3">
+                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Distribution method</label>
+                            <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg w-full">
                                 {[
-                                    {
-                                        id: 'auto',
-                                        label: 'Auto-assign',
-                                        description: 'AI distributes accounts based on partner expertise and capacity',
-                                        icon: Wand2
-                                    },
-                                    {
-                                        id: 'manual',
-                                        label: 'Manual',
-                                        description: 'You assign accounts to partners after campaign creation',
-                                        icon: MousePointerClick
-                                    },
-                                    {
-                                        id: 'skip',
-                                        label: 'Skip for now',
-                                        description: 'Create campaign without partner assignments',
-                                        icon: Clock
-                                    },
+                                    { id: 'auto', label: 'Auto-assign', icon: Wand2 },
+                                    { id: 'manual', label: 'Manual', icon: MousePointerClick },
+                                    { id: 'skip', label: 'Skip', icon: Clock },
                                 ].map(mode => {
                                     const isSelected = assignmentMode === mode.id;
                                     const Icon = mode.icon;
@@ -496,154 +590,19 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                             key={mode.id}
                                             onClick={() => setAssignmentMode(mode.id as 'auto' | 'manual' | 'skip')}
                                             className={cn(
-                                                "flex flex-col items-center text-center p-4 rounded-xl border transition-all",
+                                                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all",
                                                 isSelected
-                                                    ? "bg-slate-50 dark:bg-slate-800/50 border-slate-900 dark:border-slate-400 ring-1 ring-slate-900 dark:ring-slate-400"
-                                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
+                                                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm"
+                                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                                             )}
                                         >
-                                            <div className={cn(
-                                                "w-10 h-10 rounded-lg flex items-center justify-center mb-2 transition-colors",
-                                                isSelected
-                                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
-                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
-                                            )}>
-                                                <Icon className="w-5 h-5" />
-                                            </div>
-                                            <span className={cn(
-                                                "text-sm font-medium transition-colors",
-                                                isSelected
-                                                    ? "text-slate-900 dark:text-white"
-                                                    : "text-slate-700 dark:text-slate-300"
-                                            )}>
-                                                {mode.label}
-                                            </span>
-                                            <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-tight">
-                                                {mode.description}
-                                            </span>
+                                            <Icon className="w-3.5 h-3.5" />
+                                            {mode.label}
                                         </button>
                                     );
                                 })}
                             </div>
                         </div>
-
-                        {/* Partners List */}
-                        {assignmentMode !== 'skip' && (
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Select partners {selectedPartnerIds.size > 0 && <span className="text-slate-400 font-normal">({selectedPartnerIds.size} selected)</span>}
-                                    </label>
-                                    <button
-                                        onClick={() => {
-                                            if (selectedPartnerIds.size === partners.length) {
-                                                setSelectedPartnerIds(new Set());
-                                            } else {
-                                                setSelectedPartnerIds(new Set(partners.map(p => p.id)));
-                                            }
-                                        }}
-                                        className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:underline transition-colors"
-                                    >
-                                        {selectedPartnerIds.size === partners.length ? 'Deselect all' : 'Select all'}
-                                    </button>
-                                </div>
-                                <div className="space-y-2">
-                                    {partners.map((partner) => {
-                                        const isSelected = selectedPartnerIds.has(partner.id);
-                                        const TypeIcon = partner.type === 'consulting' ? Briefcase : partner.type === 'technology' ? Cpu : ShoppingBag;
-                                        const typeLabel = partner.type === 'consulting' ? 'Consulting' : partner.type === 'technology' ? 'Technology' : 'Reseller';
-
-                                        return (
-                                            <button
-                                                key={partner.id}
-                                                onClick={() => {
-                                                    const next = new Set(selectedPartnerIds);
-                                                    if (isSelected) next.delete(partner.id);
-                                                    else next.add(partner.id);
-                                                    setSelectedPartnerIds(next);
-                                                }}
-                                                className={cn(
-                                                    "w-full rounded-xl border p-4 text-left transition-all duration-150",
-                                                    isSelected
-                                                        ? "bg-slate-50 dark:bg-slate-800/50 border-slate-900 dark:border-slate-400 ring-1 ring-slate-900 dark:ring-slate-400"
-                                                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
-                                                )}
-                                            >
-                                                <div className="flex items-start gap-4">
-                                                    {/* Checkbox */}
-                                                    <div className={cn(
-                                                        "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 mt-0.5",
-                                                        isSelected
-                                                            ? "bg-slate-900 dark:bg-white border-slate-900 dark:border-white"
-                                                            : "border-slate-300 dark:border-slate-600"
-                                                    )}>
-                                                        {isSelected && <Check className="w-3 h-3 text-white dark:text-slate-900" />}
-                                                    </div>
-
-                                                    {/* Logo */}
-                                                    <div className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
-                                                        {partner.logo_url ? (
-                                                            <img
-                                                                src={partner.logo_url}
-                                                                alt=""
-                                                                className="w-6 h-6 object-contain"
-                                                            />
-                                                        ) : (
-                                                            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-                                                                {partner.name.charAt(0)}
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Partner Info */}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                            <span className="font-semibold text-slate-900 dark:text-white">
-                                                                {partner.name}
-                                                            </span>
-                                                            <span className={cn(
-                                                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                                                                partner.type === 'consulting' && "bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400",
-                                                                partner.type === 'technology' && "bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400",
-                                                                partner.type === 'reseller' && "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
-                                                            )}>
-                                                                <TypeIcon className="w-3 h-3" />
-                                                                {typeLabel}
-                                                            </span>
-                                                            {partner.match_score && (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                                                                    <Gauge className="w-3 h-3" />
-                                                                    {partner.match_score}% match
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        {partner.description && (
-                                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                                                                {partner.description}
-                                                            </p>
-                                                        )}
-                                                        <div className="flex items-center gap-4 mt-2 text-xs text-slate-400 dark:text-slate-500">
-                                                            {partner.industries && partner.industries.length > 0 && (
-                                                                <span className="flex items-center gap-1">
-                                                                    <Building2 className="w-3.5 h-3.5" />
-                                                                    {partner.industries.slice(0, 2).join(', ')}
-                                                                </span>
-                                                            )}
-                                                            {partner.capacity && (
-                                                                <span className="flex items-center gap-1">
-                                                                    <Users className="w-3.5 h-3.5" />
-                                                                    {partner.capacity - (partner.assigned_count || 0)} available
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
 
                         {error && (
                             <div className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
@@ -653,7 +612,7 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
 
                         <button
                             onClick={handleCreate}
-                            disabled={creating}
+                            disabled={creating || (assignmentMode !== 'skip' && selectedPartnerIds.size === 0)}
                             className="w-full h-11 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
                             {creating ? (
