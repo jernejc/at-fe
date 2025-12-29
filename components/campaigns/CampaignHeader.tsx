@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { CampaignRead, CampaignFilterUI } from '@/lib/schemas';
+import type { CampaignTab } from '@/hooks/useCampaignPage';
 import { Loader2, Building2, ChevronRight, Download, Settings, Trash2, Calendar, Target, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,8 +11,8 @@ import { FilterBar } from './FilterBar';
 
 interface CampaignHeaderProps {
     campaign: CampaignRead;
-    activeTab: string;
-    onTabChange: (tab: string) => void;
+    activeTab: CampaignTab;
+    onTabChange: (tab: CampaignTab) => void;
     onDelete: () => void;
     isDeleting: boolean;
     filters: CampaignFilterUI[];
@@ -145,7 +146,7 @@ export function CampaignHeader({
 
                 {/* Tabs */}
                 <div className="pt-8">
-                    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+                    <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as CampaignTab)} className="w-full">
                         <div className="w-full border-b border-border">
                             <TabsList variant="line" className="w-full justify-start gap-8">
                                 <TabsTrigger value="overview">Overview</TabsTrigger>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { startProcessing, ProcessingOptions } from '@/lib/api';
+import { startProcessing, waitForProcessingComplete, ProcessingOptions } from '@/lib/api';
 import { useAccountDetail, useAccountModals } from './detail/hooks';
 import { AccountDetailHeader } from './detail/AccountDetailHeader';
 import { AccountDetailTabs } from './detail/AccountDetailTabs';
@@ -86,19 +86,22 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     }, [domain, refetch]);
 
     // Targeted handler for regenerating signals/fits (no data refresh)
-    const handleRegenerateExplainability = useCallback(async (productId?: number) => {
+    const handleRegenerateExplainability = useCallback(async () => {
         if (!domain) return;
-        const minLoading = new Promise(resolve => setTimeout(resolve, 800));
         try {
-            await Promise.all([
-                startProcessing(domain, {
-                    generate_signals: true,
-                    generate_fits: true,
-                    refresh_data: false,
-                    product_id: productId
-                }),
-                minLoading
-            ]);
+            // Start processing
+            const response = await startProcessing(domain, {
+                generate_signals: true,
+                generate_fits: true,
+                refresh_data: false,
+            });
+
+            // Wait for processing to complete via SSE stream
+            if (response?.process_id) {
+                await waitForProcessingComplete(domain, response.process_id);
+            }
+
+            // Now refresh the data
             await refetchExplainability();
         } catch (error) {
             console.error('Failed to regenerate signals/fits:', error);

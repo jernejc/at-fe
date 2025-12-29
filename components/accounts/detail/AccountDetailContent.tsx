@@ -47,7 +47,7 @@ interface AccountDetailContentProps {
     loadingMoreEmployees: boolean;
     employeeCount: number;
     onProcess: (options?: ProcessingOptions) => Promise<void>;
-    onRegenerateExplainability: (productId?: number) => Promise<void>;
+    onRegenerateExplainability: () => Promise<void>;
     onRegeneratePlaybooks: () => Promise<void>;
     /** All available products for score calculation */
     allProducts: ProductSummary[];
@@ -100,16 +100,11 @@ export function AccountDetailContent({
 
     // Contextual processing handlers
     const handleGenerateSignals = useCallback(() =>
-        onProcess({ generate_signals: true, generate_fits: true }), [onProcess]);
+        onProcess({ generate_signals: true, generate_fits: true, refresh_data: false }), [onProcess]);
 
     const handleGeneratePlaybooks = useCallback(() =>
-        onProcess({ generate_playbook: true }), [onProcess]);
+        onProcess({ generate_playbook: true, refresh_data: false }), [onProcess]);
 
-    const handleEnrichEmployees = useCallback(() =>
-        onProcess({ include_employees: true }), [onProcess]);
-
-    const handleFetchJobs = useCallback(() =>
-        onProcess({ include_jobs: true }), [onProcess]);
 
     return (
         <div className="flex-1 overflow-y-auto overflow-x-hidden isolate">
@@ -128,7 +123,6 @@ export function AccountDetailContent({
                                 onSelectFit={onSelectFit}
                                 onSelectSignal={onSelectSignal}
                                 onProcess={onRegenerateExplainability}
-                                allProducts={allProducts.map(p => ({ id: p.id, name: p.name }))}
                             />
                         ) : (
                             <EnrichedEmptyState
@@ -175,7 +169,6 @@ export function AccountDetailContent({
                                 onSelectEmployee={onSelectEmployee}
                                 onLoadMore={onLoadMoreEmployees}
                                 loadingMore={loadingMoreEmployees}
-                                onProcess={handleEnrichEmployees}
                             />
                         ) : (
                             <EnrichedEmptyState
@@ -183,7 +176,7 @@ export function AccountDetailContent({
                                 title="No employees found"
                                 description="Enrich this company to discover key contacts, decision makers, and their professional backgrounds."
                                 actionLabel="Enrich Employees"
-                                onAction={handleEnrichEmployees}
+                                onAction={() => onProcess({ include_employees: true })}
                             />
                         )}
                     </AnimatedPanel>
@@ -198,7 +191,6 @@ export function AccountDetailContent({
                                 onLoadMore={onLoadMoreJobs}
                                 loadingMore={loadingMoreJobs}
                                 onSelectJob={onSelectJob}
-                                onProcess={handleFetchJobs}
                             />
                         ) : (
                             <EnrichedEmptyState
@@ -206,7 +198,7 @@ export function AccountDetailContent({
                                 title="No job postings found"
                                 description="Fetch job postings to understand hiring priorities, technology stack, and growth signals."
                                 actionLabel="Fetch Jobs"
-                                onAction={handleFetchJobs}
+                                onAction={() => onProcess({ include_jobs: true })}
                             />
                         )}
                     </AnimatedPanel>

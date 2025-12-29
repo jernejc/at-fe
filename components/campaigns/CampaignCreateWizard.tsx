@@ -2,34 +2,30 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { createCampaign, getCompanies, getProductCandidates } from '@/lib/api';
+import { createCampaign, getCompanies } from '@/lib/api';
 import type { CampaignFilterUI, ProductSummary, Partner, CompanyFilters, CompanySummary, CompanySummaryWithFit } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import {
     Check,
+    ChevronDown,
     ChevronRight,
-    ChevronLeft,
-    Filter,
     Users,
     Loader2,
     Search,
     Building2,
     MapPin,
-    Globe,
-    Plus,
     X,
-    FileText,
-    Package,
+    ArrowLeft,
+    Star,
+    Briefcase,
+    Cpu,
+    ShoppingBag,
+    Gauge,
+    Wand2,
+    MousePointerClick,
+    Clock,
 } from 'lucide-react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { DEFAULT_CAMPAIGN_PARTNERS } from '@/components/partners/mockPartners';
 import { CompanyRowCompact } from './CompanyRowCompact';
 import { AccountDetail } from '@/components/accounts';
@@ -39,59 +35,24 @@ interface CampaignCreateWizardProps {
     preselectedProductId?: number | null;
 }
 
-type Step = 'details' | 'filters' | 'partners';
+type Step = 'details' | 'audience' | 'review';
 
-const STEPS: { id: Step; label: string; icon: React.ReactNode }[] = [
-    { id: 'details', label: 'Campaign Details', icon: <FileText className="w-4 h-4" /> },
-    { id: 'filters', label: 'Define Audience', icon: <Filter className="w-4 h-4" /> },
-    { id: 'partners', label: 'Assign Partners', icon: <Users className="w-4 h-4" /> },
-];
-
-const FILTER_OPTIONS: { type: CampaignFilterUI['type']; label: string; icon: React.ReactNode; placeholder: string }[] = [
-    { type: 'natural_query', label: 'Search Query', icon: <Search className="w-4 h-4" />, placeholder: 'e.g., "B2B SaaS companies"' },
-    { type: 'industry', label: 'Industry', icon: <Building2 className="w-4 h-4" />, placeholder: 'e.g., Technology, Healthcare' },
-    { type: 'size_min', label: 'Min Employees', icon: <Users className="w-4 h-4" />, placeholder: 'e.g., 100' },
-    { type: 'size_max', label: 'Max Employees', icon: <Users className="w-4 h-4" />, placeholder: 'e.g., 5000' },
-    { type: 'country', label: 'Country', icon: <MapPin className="w-4 h-4" />, placeholder: 'e.g., United States' },
-    { type: 'domain_list', label: 'Specific Domains', icon: <Globe className="w-4 h-4" />, placeholder: 'e.g., acme.com, example.com' },
-];
-
-// Convert CampaignFilterUI array to CompanyFilters for API
 function filtersToCompanyFilters(filters: CampaignFilterUI[], productId?: number | null): CompanyFilters {
-    const companyFilters: CompanyFilters = {
-        page: 1,
-        page_size: 10,
-    };
-
-    if (productId) {
-        companyFilters.product_id = productId;
-    }
+    const companyFilters: CompanyFilters = { page: 1, page_size: 20 };
+    if (productId) companyFilters.product_id = productId;
 
     for (const filter of filters) {
         switch (filter.type) {
-            case 'industry':
-                companyFilters.industry = filter.value;
-                break;
-            case 'country':
-                companyFilters.country = filter.value;
-                break;
-            case 'size_min':
-                companyFilters.min_employees = parseInt(filter.value) || undefined;
-                break;
-            case 'size_max':
-                companyFilters.max_employees = parseInt(filter.value) || undefined;
-                break;
-            // natural_query and domain_list handled separately
+            case 'industry': companyFilters.industry = filter.value; break;
+            case 'country': companyFilters.country = filter.value; break;
+            case 'size_min': companyFilters.min_employees = parseInt(filter.value) || undefined; break;
+            case 'size_max': companyFilters.max_employees = parseInt(filter.value) || undefined; break;
         }
     }
-
     return companyFilters;
 }
 
-export function CampaignCreateWizard({
-    products,
-    preselectedProductId,
-}: CampaignCreateWizardProps) {
+export function CampaignCreateWizard({ products, preselectedProductId }: CampaignCreateWizardProps) {
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState<Step>('details');
     const [creating, setCreating] = useState(false);
@@ -101,532 +62,599 @@ export function CampaignCreateWizard({
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [productId, setProductId] = useState<number | null>(preselectedProductId || null);
+    const [productOpen, setProductOpen] = useState(false);
 
-    // Step 2: Filters
+    // Step 2: Audience
+    const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState<CampaignFilterUI[]>([]);
-    const [addingFilter, setAddingFilter] = useState(false);
-    const [selectedFilterType, setSelectedFilterType] = useState<CampaignFilterUI['type'] | null>(null);
-    const [filterValue, setFilterValue] = useState('');
+    const [activeFilterType, setActiveFilterType] = useState<string | null>(null);
+    const [filterInputValue, setFilterInputValue] = useState('');
 
     // Company preview
     const [previewCompanies, setPreviewCompanies] = useState<(CompanySummary | CompanySummaryWithFit)[]>([]);
     const [previewTotal, setPreviewTotal] = useState<number>(0);
     const [loadingPreview, setLoadingPreview] = useState(false);
+    const [showCount, setShowCount] = useState(5);
 
-    // Account detail sheet
+    // Account detail
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
-
-    const handleCompanyClick = (domain: string) => {
-        setSelectedDomain(domain);
-        setDetailOpen(true);
-    };
 
     // Step 3: Partners
     const [partners] = useState<Partner[]>(DEFAULT_CAMPAIGN_PARTNERS);
     const [selectedPartnerIds, setSelectedPartnerIds] = useState<Set<string>>(new Set());
+    const [assignmentMode, setAssignmentMode] = useState<'auto' | 'manual' | 'skip'>('auto');
 
-    // Fetch company preview when filters change
+    const selectedProduct = products.find(p => p.id === productId);
+    const canProceedFromDetails = name.trim() && productId;
+    const hasAudience = searchQuery.trim() || filters.length > 0;
+
     const fetchCompanyPreview = useCallback(async () => {
-        if (filters.length === 0) {
+        if (!hasAudience) {
             setPreviewCompanies([]);
             setPreviewTotal(0);
             return;
         }
-
         setLoadingPreview(true);
         try {
-            const companyFilters = filtersToCompanyFilters(filters, productId);
-            const result = await getCompanies(companyFilters);
+            const result = await getCompanies(filtersToCompanyFilters(filters, productId));
             setPreviewCompanies(result.items);
             setPreviewTotal(result.total);
-        } catch (err) {
-            console.error('Failed to fetch company preview:', err);
+        } catch {
             setPreviewCompanies([]);
             setPreviewTotal(0);
         } finally {
             setLoadingPreview(false);
         }
-    }, [filters, productId]);
+    }, [filters, productId, hasAudience]);
 
     useEffect(() => {
-        // Debounce the preview fetch
         const timer = setTimeout(() => {
-            if (currentStep === 'filters') {
-                fetchCompanyPreview();
-            }
-        }, 300);
-
+            if (currentStep === 'audience') fetchCompanyPreview();
+        }, 400);
         return () => clearTimeout(timer);
-    }, [filters, productId, currentStep, fetchCompanyPreview]);
+    }, [filters, productId, currentStep, fetchCompanyPreview, searchQuery]);
 
-    const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
-
-    const canProceedFromDetails = name.trim() && productId;
-    const canProceedFromFilters = filters.length > 0;
-
-    const handleAddFilter = () => {
-        if (!selectedFilterType || !filterValue.trim()) return;
-
-        const newFilter: CampaignFilterUI = {
-            id: `${selectedFilterType}-${Date.now()}`,
-            type: selectedFilterType,
-            value: filterValue.trim(),
-            displayLabel: `${FILTER_OPTIONS.find(o => o.type === selectedFilterType)?.label}: ${filterValue.trim()}`,
+    const addFilter = (type: string, value: string) => {
+        if (!value.trim()) return;
+        const labels: Record<string, string> = {
+            industry: 'Industry',
+            country: 'Country',
+            size_min: 'Min employees',
+            size_max: 'Max employees',
+            fit_min: 'Min fit score',
         };
-
+        const newFilter: CampaignFilterUI = {
+            id: `${type}-${Date.now()}`,
+            type: type as CampaignFilterUI['type'],
+            value: value.trim(),
+            displayLabel: `${labels[type] || type}: ${value.trim()}`,
+        };
         setFilters([...filters, newFilter]);
-        setSelectedFilterType(null);
-        setFilterValue('');
-        setAddingFilter(false);
-    };
-
-    const handleRemoveFilter = (id: string) => {
-        setFilters(filters.filter(f => f.id !== id));
-    };
-
-    const handleTogglePartner = (partnerId: string) => {
-        const newSelected = new Set(selectedPartnerIds);
-        if (newSelected.has(partnerId)) {
-            newSelected.delete(partnerId);
-        } else {
-            newSelected.add(partnerId);
-        }
-        setSelectedPartnerIds(newSelected);
-    };
-
-    const handleNext = () => {
-        if (currentStep === 'details' && canProceedFromDetails) {
-            setCurrentStep('filters');
-        } else if (currentStep === 'filters' && canProceedFromFilters) {
-            setCurrentStep('partners');
-        }
-    };
-
-    const handleBack = () => {
-        if (currentStep === 'filters') {
-            setCurrentStep('details');
-        } else if (currentStep === 'partners') {
-            setCurrentStep('filters');
-        }
+        setActiveFilterType(null);
+        setFilterInputValue('');
     };
 
     const handleCreate = async () => {
-        if (!name.trim() || !productId || filters.length === 0) return;
-
+        if (!name.trim() || !productId) return;
         setCreating(true);
         setError(null);
+
+        const allFilters = searchQuery.trim()
+            ? [{ id: 'search', type: 'natural_query' as const, value: searchQuery, displayLabel: searchQuery }, ...filters]
+            : filters;
 
         try {
             const campaign = await createCampaign({
                 name: name.trim(),
                 description: description.trim() || undefined,
                 target_product_id: productId,
-                target_criteria: { filters },
+                target_criteria: { filters: allFilters },
             });
-
-            // TODO: Save selected partners if needed
             router.push(`/campaigns/${campaign.slug}`);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create campaign');
-            console.error('Error creating campaign:', err);
             setCreating(false);
         }
     };
 
-    const currentOption = FILTER_OPTIONS.find(o => o.type === selectedFilterType);
-    const selectedProduct = products.find(p => p.id === productId);
-
     return (
-        <div className="max-w-3xl mx-auto px-6 py-12">
-            {/* Header */}
-            <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                    Create New Campaign
-                </h1>
-                <p className="text-slate-500 dark:text-slate-400">
-                    Set up your campaign in a few simple steps
-                </p>
-            </div>
+        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 dark:bg-slate-950">
+            {/* Header with Breadcrumb Steps */}
+            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => router.push('/campaigns')}
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </Button>
 
-            {/* Step Indicator */}
-            <div className="flex items-center justify-center gap-2 mb-12">
-                {STEPS.map((step, index) => (
-                    <div key={step.id} className="flex items-center">
-                        <StepIndicator
-                            step={index + 1}
-                            label={step.label}
-                            icon={step.icon}
-                            isActive={currentStep === step.id}
-                            isComplete={currentStepIndex > index}
-                        />
-                        {index < STEPS.length - 1 && (
-                            <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 mx-2" />
-                        )}
+                    {/* Breadcrumb Steps */}
+                    <div className="flex items-center">
+                        {[
+                            { id: 'details', label: 'Details' },
+                            { id: 'audience', label: 'Audience' },
+                            { id: 'review', label: 'Partners' },
+                        ].map((step, index, arr) => {
+                            const stepIndex = arr.findIndex(s => s.id === currentStep);
+                            const isComplete = index < stepIndex;
+                            const isCurrent = index === stepIndex;
+
+                            return (
+                                <div key={step.id} className="flex items-center">
+                                    <button
+                                        onClick={() => {
+                                            if (isComplete) setCurrentStep(step.id as Step);
+                                        }}
+                                        disabled={!isComplete}
+                                        className={cn(
+                                            "flex items-center gap-1.5 px-2 py-1 rounded text-sm transition-colors",
+                                            isCurrent && "font-medium text-slate-900 dark:text-white",
+                                            isComplete && "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer",
+                                            !isCurrent && !isComplete && "text-slate-400 cursor-default"
+                                        )}
+                                    >
+                                        {isComplete && <Check className="w-3.5 h-3.5 text-slate-400" />}
+                                        {step.label}
+                                    </button>
+                                    {index < arr.length - 1 && (
+                                        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 mx-1" />
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
-                ))}
+
+                    <div className="w-9" /> {/* Spacer */}
+                </div>
             </div>
 
-            {/* Step 1: Details */}
-            {currentStep === 'details' && (
-                <div className="space-y-6 animate-in fade-in-50 slide-in-from-right-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
-                            Campaign Details
-                        </h2>
+            <div className="max-w-3xl mx-auto px-6 py-8">
+                {/* Step 1: Details */}
+                {currentStep === 'details' && (
+                    <div className="max-w-xl mx-auto space-y-6">
+                        <div>
+                            <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
+                                Campaign details
+                            </h1>
+                            <p className="text-sm text-slate-500 mt-1">
+                                Name your campaign and select a product
+                            </p>
+                        </div>
 
-                        <div className="space-y-5">
-                            {/* Product */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Product <span className="text-red-500">*</span>
-                                </label>
-                                <Select
-                                    value={productId?.toString() || ''}
-                                    onValueChange={(value) => setProductId(value ? parseInt(value) : null)}
-                                >
-                                    <SelectTrigger className="w-full h-11">
-                                        <SelectValue>
-                                            {selectedProduct ? (
-                                                <span className="flex items-center gap-2">
-                                                    <Package className="w-4 h-4 text-slate-400" />
-                                                    {selectedProduct.name}
-                                                </span>
-                                            ) : (
-                                                <span className="text-muted-foreground">Select a product</span>
-                                            )}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {products.map((product) => (
-                                            <SelectItem key={product.id} value={product.id.toString()}>
-                                                <div className="flex items-center gap-2">
-                                                    <Package className="w-4 h-4 text-slate-400" />
-                                                    {product.name}
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-slate-500">
-                                    The product this campaign will promote
-                                </p>
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Product</label>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setProductOpen(!productOpen)}
+                                        className="w-full h-10 px-3 flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                    >
+                                        <span className={selectedProduct ? "text-slate-900 dark:text-white" : "text-slate-400"}>
+                                            {selectedProduct?.name || "Select product"}
+                                        </span>
+                                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                                    </button>
+                                    {productOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-10" onClick={() => setProductOpen(false)} />
+                                            <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1">
+                                                {products.map((p) => (
+                                                    <button
+                                                        key={p.id}
+                                                        onClick={() => { setProductId(p.id); setProductOpen(false); }}
+                                                        className={cn(
+                                                            "w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700/50",
+                                                            productId === p.id && "bg-slate-100 dark:bg-slate-700"
+                                                        )}
+                                                    >
+                                                        {p.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Name */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Campaign Name <span className="text-red-500">*</span>
-                                </label>
-                                <Input
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Campaign name</label>
+                                <input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="e.g., Q1 Enterprise Outreach"
-                                    className="h-11"
+                                    className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
 
-                            {/* Description */}
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Description <span className="text-slate-400 text-xs">(optional)</span>
+                                    Description <span className="text-slate-400 font-normal">(optional)</span>
                                 </label>
-                                <Input
+                                <input
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Brief description of campaign goals"
-                                    className="h-11"
+                                    placeholder="Brief description"
+                                    className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                         </div>
-                    </div>
 
-                    {/* Next Button */}
-                    <div className="flex justify-end">
-                        <Button
-                            onClick={handleNext}
+                        <button
+                            onClick={() => setCurrentStep('audience')}
                             disabled={!canProceedFromDetails}
-                            className="gap-2 h-11 px-6"
+                            className="w-full h-10 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                         >
                             Continue
                             <ChevronRight className="w-4 h-4" />
-                        </Button>
+                        </button>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Step 2: Filters */}
-            {currentStep === 'filters' && (
-                <div className="space-y-6 animate-in fade-in-50 slide-in-from-right-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                            Who are you targeting?
-                        </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                            Add filters to define your ideal customer profile. Companies matching these criteria will be included in your campaign.
-                        </p>
+                {/* Step 2: Audience */}
+                {currentStep === 'audience' && (
+                    <div className="max-w-xl mx-auto space-y-6">
+                        <div>
+                            <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
+                                Define audience
+                            </h1>
+                            <p className="text-sm text-slate-500 mt-1">
+                                Search for companies or add filters
+                            </p>
+                        </div>
 
-                        {/* Current Filters */}
+                        {/* Search */}
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search companies... e.g., 'B2B SaaS in healthcare'"
+                                className="w-full h-12 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        {/* Active Filters */}
                         {filters.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-6">
-                                {filters.map(filter => (
-                                    <div
-                                        key={filter.id}
-                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-sm"
-                                    >
-                                        <span className="text-blue-700 dark:text-blue-300 font-medium">
-                                            {filter.displayLabel}
-                                        </span>
-                                        <button
-                                            onClick={() => handleRemoveFilter(filter.id)}
-                                            className="text-blue-400 hover:text-blue-600 dark:hover:text-blue-200"
-                                        >
+                            <div className="flex flex-wrap items-center gap-2">
+                                {filters.map(f => (
+                                    <span key={f.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm">
+                                        {f.displayLabel}
+                                        <button onClick={() => setFilters(filters.filter(x => x.id !== f.id))} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                                             <X className="w-3.5 h-3.5" />
                                         </button>
-                                    </div>
+                                    </span>
                                 ))}
                             </div>
                         )}
 
-                        {/* Add Filter UI */}
-                        {!addingFilter ? (
-                            <Button
-                                variant="outline"
-                                onClick={() => setAddingFilter(true)}
-                                className="gap-2 border-dashed"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add Filter
-                            </Button>
-                        ) : (
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-4">
-                                {!selectedFilterType ? (
-                                    <>
-                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                                            Choose filter type:
-                                        </p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {FILTER_OPTIONS.map(option => (
+                        {/* Add Filters */}
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm text-slate-500">Add filter:</span>
+                            <div className="flex items-center gap-2">
+                                {['industry', 'country', 'size_min', 'fit_min'].map(type => {
+                                    const config: Record<string, { label: string; icon: React.ReactNode; placeholder: string }> = {
+                                        industry: { label: 'Industry', icon: <Building2 className="w-3.5 h-3.5" />, placeholder: 'e.g., Technology' },
+                                        country: { label: 'Country', icon: <MapPin className="w-3.5 h-3.5" />, placeholder: 'e.g., United States' },
+                                        size_min: { label: 'Min Size', icon: <Users className="w-3.5 h-3.5" />, placeholder: 'e.g., 100' },
+                                        fit_min: { label: 'Min Fit', icon: <Star className="w-3.5 h-3.5" />, placeholder: 'e.g., 70' },
+                                    };
+                                    const c = config[type];
+                                    const isActive = activeFilterType === type;
+
+                                    return (
+                                        <div key={type} className="relative">
+                                            <button
+                                                onClick={() => setActiveFilterType(isActive ? null : type)}
+                                                className={cn(
+                                                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors",
+                                                    isActive
+                                                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                                                        : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
+                                                )}
+                                            >
+                                                {c.icon}
+                                                {c.label}
+                                            </button>
+
+                                            {isActive && (
+                                                <>
+                                                    <div className="fixed inset-0 z-10" onClick={() => { setActiveFilterType(null); setFilterInputValue(''); }} />
+                                                    <div className="absolute z-20 top-full left-0 mt-2 p-3 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 min-w-[200px]">
+                                                        <input
+                                                            autoFocus
+                                                            value={filterInputValue}
+                                                            onChange={(e) => setFilterInputValue(e.target.value)}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' && filterInputValue.trim()) {
+                                                                    addFilter(type, filterInputValue);
+                                                                }
+                                                                if (e.key === 'Escape') {
+                                                                    setActiveFilterType(null);
+                                                                    setFilterInputValue('');
+                                                                }
+                                                            }}
+                                                            placeholder={c.placeholder}
+                                                            className="w-full h-9 px-3 rounded-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                        <div className="flex justify-end mt-2">
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => addFilter(type, filterInputValue)}
+                                                                disabled={!filterInputValue.trim()}
+                                                            >
+                                                                Add
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Continue Button */}
+                        <button
+                            onClick={() => setCurrentStep('review')}
+                            disabled={!hasAudience}
+                            className="w-full h-10 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+                        >
+                            Continue with {previewTotal.toLocaleString()} companies
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+
+                        {/* Company Preview */}
+                        {hasAudience && (
+                            <div>
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        Preview
+                                    </span>
+                                    {loadingPreview ? (
+                                        <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                                    ) : (
+                                        <span className="text-sm text-slate-500">{previewTotal.toLocaleString()} companies</span>
+                                    )}
+                                </div>
+                                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+                                    {previewCompanies.length > 0 ? (
+                                        <>
+                                            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                {previewCompanies.slice(0, showCount).map((company) => (
+                                                    <CompanyRowCompact
+                                                        key={company.domain}
+                                                        name={company.name}
+                                                        domain={company.domain}
+                                                        industry={company.industry}
+                                                        fitScore={'combined_score' in company ? company.combined_score : null}
+                                                        logoBase64={company.logo_base64}
+                                                        onClick={() => { setSelectedDomain(company.domain); setDetailOpen(true); }}
+                                                        className="cursor-pointer"
+                                                    />
+                                                ))}
+                                            </div>
+                                            {previewTotal > showCount && (
                                                 <button
-                                                    key={option.type}
-                                                    onClick={() => setSelectedFilterType(option.type)}
-                                                    className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors text-left"
+                                                    onClick={() => setShowCount(showCount + 10)}
+                                                    className="w-full px-4 py-2.5 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                                 >
-                                                    <span className="text-slate-400">{option.icon}</span>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                        {option.label}
-                                                    </span>
+                                                    Show more
                                                 </button>
-                                            ))}
+                                            )}
+                                        </>
+                                    ) : !loadingPreview && (
+                                        <div className="px-4 py-8 text-center text-sm text-slate-500">
+                                            No companies match
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setAddingFilter(false)}
-                                            className="mt-2"
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <span className="text-slate-400">{currentOption?.icon}</span>
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                {currentOption?.label}
-                                            </span>
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={filterValue}
-                                            onChange={(e) => setFilterValue(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleAddFilter()}
-                                            placeholder={currentOption?.placeholder}
-                                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            autoFocus
-                                        />
-                                        <div className="flex gap-2 mt-3">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setSelectedFilterType(null);
-                                                    setFilterValue('');
-                                                }}
-                                            >
-                                                Back
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={handleAddFilter}
-                                                disabled={!filterValue.trim()}
-                                            >
-                                                Add
-                                            </Button>
-                                        </div>
-                                    </>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
+                )}
 
-                    {/* Company Preview */}
-                    {filters.length > 0 && (
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                                        Matching Companies
-                                    </h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                                        {loadingPreview ? 'Searching...' : `${previewTotal} companies match your filters`}
-                                    </p>
-                                </div>
-                                {loadingPreview && (
-                                    <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
-                                )}
-                            </div>
-
-                            {previewCompanies.length > 0 ? (
-                                <div className="divide-y divide-slate-100 dark:divide-slate-800 -mx-2">
-                                    {previewCompanies.slice(0, 5).map((company) => (
-                                        <CompanyRowCompact
-                                            key={company.domain}
-                                            name={company.name}
-                                            domain={company.domain}
-                                            industry={company.industry}
-                                            employeeCount={company.employee_count}
-                                            hqCountry={company.hq_country}
-                                            fitScore={'combined_score' in company ? company.combined_score : null}
-                                            logoBase64={company.logo_base64}
-                                            onClick={() => handleCompanyClick(company.domain)}
-                                            className="cursor-pointer"
-                                        />
-                                    ))}
-                                    {previewTotal > 5 && (
-                                        <p className="text-center text-sm text-slate-500 dark:text-slate-400 pt-4">
-                                            + {previewTotal - 5} more companies
-                                        </p>
-                                    )}
-                                </div>
-                            ) : !loadingPreview && (
-                                <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                                    <Building2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                    <p>No companies match these filters</p>
-                                    <p className="text-xs mt-1">Try adjusting your criteria</p>
-                                </div>
-                            )}
+                {/* Step 3: Partners */}
+                {currentStep === 'review' && (
+                    <div className="max-w-xl mx-auto space-y-6">
+                        <div>
+                            <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Assign partners</h1>
+                            <p className="text-sm text-slate-500 mt-1">Choose partners and how to distribute companies</p>
                         </div>
-                    )}
 
-                    {/* Navigation */}
-                    <div className="flex justify-between">
-                        <Button variant="ghost" onClick={handleBack} className="gap-2">
-                            <ChevronLeft className="w-4 h-4" />
-                            Back
-                        </Button>
-                        <Button
-                            onClick={handleNext}
-                            disabled={!canProceedFromFilters}
-                            className="gap-2 h-11 px-6"
-                        >
-                            Continue
-                            <ChevronRight className="w-4 h-4" />
-                        </Button>
-                    </div>
-
-                    {filters.length === 0 && (
-                        <p className="text-center text-sm text-slate-400">
-                            Add at least one filter to continue
-                        </p>
-                    )}
-                </div>
-            )}
-
-            {/* Step 3: Partners */}
-            {currentStep === 'partners' && (
-                <div className="space-y-6 animate-in fade-in-50 slide-in-from-right-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                            Select Partners
-                        </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                            Choose partners who will help you reach these accounts. This step is optional - you can assign partners later.
-                        </p>
-
-                        {/* Summary */}
-                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-3 mb-6">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-600 dark:text-slate-400">
-                                    Campaign: <span className="font-semibold text-slate-900 dark:text-white">{name}</span>
-                                </span>
-                                {selectedPartnerIds.size > 0 && (
-                                    <span className="text-blue-600 dark:text-blue-400 font-medium">
-                                        {selectedPartnerIds.size} partner{selectedPartnerIds.size > 1 ? 's' : ''} selected
-                                    </span>
-                                )}
+                        {/* Assignment Mode - Card options */}
+                        <div className="space-y-2 pb-2">
+                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Assignment mode</label>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[
+                                    {
+                                        id: 'auto',
+                                        label: 'Auto-assign',
+                                        description: 'AI distributes accounts based on partner expertise and capacity',
+                                        icon: Wand2
+                                    },
+                                    {
+                                        id: 'manual',
+                                        label: 'Manual',
+                                        description: 'You assign accounts to partners after campaign creation',
+                                        icon: MousePointerClick
+                                    },
+                                    {
+                                        id: 'skip',
+                                        label: 'Skip for now',
+                                        description: 'Create campaign without partner assignments',
+                                        icon: Clock
+                                    },
+                                ].map(mode => {
+                                    const isSelected = assignmentMode === mode.id;
+                                    const Icon = mode.icon;
+                                    return (
+                                        <button
+                                            key={mode.id}
+                                            onClick={() => setAssignmentMode(mode.id as 'auto' | 'manual' | 'skip')}
+                                            className={cn(
+                                                "flex flex-col items-center text-center p-4 rounded-xl border transition-all",
+                                                isSelected
+                                                    ? "bg-slate-50 dark:bg-slate-800/50 border-slate-900 dark:border-slate-400 ring-1 ring-slate-900 dark:ring-slate-400"
+                                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-10 h-10 rounded-lg flex items-center justify-center mb-2 transition-colors",
+                                                isSelected
+                                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                                            )}>
+                                                <Icon className="w-5 h-5" />
+                                            </div>
+                                            <span className={cn(
+                                                "text-sm font-medium transition-colors",
+                                                isSelected
+                                                    ? "text-slate-900 dark:text-white"
+                                                    : "text-slate-700 dark:text-slate-300"
+                                            )}>
+                                                {mode.label}
+                                            </span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-tight">
+                                                {mode.description}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Partner Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {partners.map(partner => (
-                                <div
-                                    key={partner.id}
-                                    onClick={() => handleTogglePartner(partner.id)}
-                                    className={cn(
-                                        "relative cursor-pointer rounded-xl border-2 p-4 transition-all",
-                                        selectedPartnerIds.has(partner.id)
-                                            ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/10"
-                                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                                    )}
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <div className={cn(
-                                            "w-10 h-10 rounded-lg flex items-center justify-center",
-                                            selectedPartnerIds.has(partner.id)
-                                                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
-                                                : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                                        )}>
-                                            <Building2 className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-slate-900 dark:text-white">
-                                                {partner.name}
-                                            </h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
-                                                {partner.description}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {selectedPartnerIds.has(partner.id) && (
-                                        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                                            <Check className="w-3 h-3 text-white" />
-                                        </div>
-                                    )}
+                        {/* Partners List */}
+                        {assignmentMode !== 'skip' && (
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        Select partners {selectedPartnerIds.size > 0 && <span className="text-slate-400 font-normal">({selectedPartnerIds.size} selected)</span>}
+                                    </label>
+                                    <button
+                                        onClick={() => {
+                                            if (selectedPartnerIds.size === partners.length) {
+                                                setSelectedPartnerIds(new Set());
+                                            } else {
+                                                setSelectedPartnerIds(new Set(partners.map(p => p.id)));
+                                            }
+                                        }}
+                                        className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:underline transition-colors"
+                                    >
+                                        {selectedPartnerIds.size === partners.length ? 'Deselect all' : 'Select all'}
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                                <div className="space-y-2">
+                                    {partners.map((partner) => {
+                                        const isSelected = selectedPartnerIds.has(partner.id);
+                                        const TypeIcon = partner.type === 'consulting' ? Briefcase : partner.type === 'technology' ? Cpu : ShoppingBag;
+                                        const typeLabel = partner.type === 'consulting' ? 'Consulting' : partner.type === 'technology' ? 'Technology' : 'Reseller';
 
-                    {/* Error */}
-                    {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3">
-                            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-                        </div>
-                    )}
+                                        return (
+                                            <button
+                                                key={partner.id}
+                                                onClick={() => {
+                                                    const next = new Set(selectedPartnerIds);
+                                                    if (isSelected) next.delete(partner.id);
+                                                    else next.add(partner.id);
+                                                    setSelectedPartnerIds(next);
+                                                }}
+                                                className={cn(
+                                                    "w-full rounded-xl border p-4 text-left transition-all duration-150",
+                                                    isSelected
+                                                        ? "bg-slate-50 dark:bg-slate-800/50 border-slate-900 dark:border-slate-400 ring-1 ring-slate-900 dark:ring-slate-400"
+                                                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
+                                                )}
+                                            >
+                                                <div className="flex items-start gap-4">
+                                                    {/* Checkbox */}
+                                                    <div className={cn(
+                                                        "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 mt-0.5",
+                                                        isSelected
+                                                            ? "bg-slate-900 dark:bg-white border-slate-900 dark:border-white"
+                                                            : "border-slate-300 dark:border-slate-600"
+                                                    )}>
+                                                        {isSelected && <Check className="w-3 h-3 text-white dark:text-slate-900" />}
+                                                    </div>
 
-                    {/* Navigation */}
-                    <div className="flex justify-between">
-                        <Button variant="ghost" onClick={handleBack} className="gap-2">
-                            <ChevronLeft className="w-4 h-4" />
-                            Back
-                        </Button>
-                        <Button
+                                                    {/* Logo */}
+                                                    <div className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
+                                                        {partner.logo_url ? (
+                                                            <img
+                                                                src={partner.logo_url}
+                                                                alt=""
+                                                                className="w-6 h-6 object-contain"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                                                                {partner.name.charAt(0)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Partner Info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <span className="font-semibold text-slate-900 dark:text-white">
+                                                                {partner.name}
+                                                            </span>
+                                                            <span className={cn(
+                                                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                                                                partner.type === 'consulting' && "bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400",
+                                                                partner.type === 'technology' && "bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400",
+                                                                partner.type === 'reseller' && "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
+                                                            )}>
+                                                                <TypeIcon className="w-3 h-3" />
+                                                                {typeLabel}
+                                                            </span>
+                                                            {partner.match_score && (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                                                                    <Gauge className="w-3 h-3" />
+                                                                    {partner.match_score}% match
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {partner.description && (
+                                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                                                                {partner.description}
+                                                            </p>
+                                                        )}
+                                                        <div className="flex items-center gap-4 mt-2 text-xs text-slate-400 dark:text-slate-500">
+                                                            {partner.industries && partner.industries.length > 0 && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <Building2 className="w-3.5 h-3.5" />
+                                                                    {partner.industries.slice(0, 2).join(', ')}
+                                                                </span>
+                                                            )}
+                                                            {partner.capacity && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <Users className="w-3.5 h-3.5" />
+                                                                    {partner.capacity - (partner.assigned_count || 0)} available
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
+                                {error}
+                            </div>
+                        )}
+
+                        <button
                             onClick={handleCreate}
                             disabled={creating}
-                            className="gap-2 h-11 px-6"
+                            className="w-full h-11 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
                             {creating ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -634,58 +662,14 @@ export function CampaignCreateWizard({
                                 <Check className="w-4 h-4" />
                             )}
                             Create Campaign
-                        </Button>
+                        </button>
                     </div>
-                </div>
-            )}
-
-            {/* Account Detail Sheet */}
-            {selectedDomain && (
-                <AccountDetail
-                    domain={selectedDomain}
-                    open={detailOpen}
-                    onClose={() => setDetailOpen(false)}
-                />
-            )}
-        </div>
-    );
-}
-
-function StepIndicator({
-    step,
-    label,
-    icon,
-    isActive,
-    isComplete,
-}: {
-    step: number;
-    label: string;
-    icon: React.ReactNode;
-    isActive: boolean;
-    isComplete: boolean;
-}) {
-    return (
-        <div className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors",
-            isActive && "bg-blue-50 dark:bg-blue-900/20",
-            isComplete && "bg-green-50 dark:bg-green-900/20"
-        )}>
-            <div className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors",
-                isActive && "bg-blue-500 text-white",
-                isComplete && "bg-green-500 text-white",
-                !isActive && !isComplete && "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
-            )}>
-                {isComplete ? <Check className="w-3.5 h-3.5" /> : step}
+                )}
             </div>
-            <span className={cn(
-                "text-sm font-medium hidden sm:inline",
-                isActive && "text-blue-700 dark:text-blue-300",
-                isComplete && "text-green-700 dark:text-green-300",
-                !isActive && !isComplete && "text-slate-500 dark:text-slate-400"
-            )}>
-                {label}
-            </span>
+
+            {selectedDomain && (
+                <AccountDetail domain={selectedDomain} open={detailOpen} onClose={() => setDetailOpen(false)} />
+            )}
         </div>
     );
 }

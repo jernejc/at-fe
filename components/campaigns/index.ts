@@ -7,7 +7,7 @@ export { CampaignCreateWizard } from './CampaignCreateWizard';
 
 // Campaign detail
 export { CampaignHeader } from './CampaignHeader';
-export { OverviewTab } from './OverviewTab';
+export { OverviewTab, OverviewTabSkeleton, type DrillDownFilter } from './OverviewTab';
 export { CompaniesTab } from './CompaniesTab';
 export { ComparisonTab } from './ComparisonTab';
 export { CompanyRowCompact, CompanyRowCompactSkeleton, type OutreachStatus } from './CompanyRowCompact';
