@@ -33,7 +33,7 @@ interface ExplainabilityTabProps {
 }
 
 export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess }: ExplainabilityTabProps) {
-    const { signals_summary, fits_summary, data_coverage, freshness, company_domain } = data;
+    const { signals_summary, fits_summary, data_coverage, freshness } = data;
 
     const handleFitClick = (productId: number) => {
         onSelectFit(productId);
