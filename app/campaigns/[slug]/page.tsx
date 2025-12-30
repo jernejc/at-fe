@@ -4,7 +4,7 @@ import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
-import { CampaignHeader, OverviewTab, OverviewTabSkeleton, CompaniesTab, ComparisonTab, PartnerTab, type DrillDownFilter } from '@/components/campaigns';
+import { CampaignHeader, OverviewTab, OverviewTabSkeleton, CompaniesTab, AnalysisTab, PartnerTab, type DrillDownFilter } from '@/components/campaigns';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/ui/Header';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -126,11 +126,6 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                     onTabChange={setActiveTab}
                     onDelete={handleDelete}
                     isDeleting={isDeleting}
-                    filters={filters}
-                    onFiltersChange={handleFiltersChange}
-                    isSavingFilters={isSavingFilters}
-                    dynamicCompanyCount={dynamicCompaniesTotal}
-                    loadingDynamicCompanies={loadingDynamicCompanies}
                 />
 
                 {/* Content Area */}
@@ -159,19 +154,31 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                         <TabsContent value="companies" className="mt-0 animate-in fade-in-50">
                             <CompaniesTab
                                 slug={slug}
-                                productId={campaign.target_product_id ?? undefined}
                                 companies={companies}
                                 dynamicCompanies={filters.length > 0 ? dynamicCompanies : undefined}
                                 dynamicCompaniesTotal={dynamicCompaniesTotal}
                                 loadingDynamicCompanies={loadingDynamicCompanies}
                                 onCompanyClick={handleCompanyClick}
                                 onCompanyAdded={refreshData}
+                                filters={filters}
+                                onFiltersChange={handleFiltersChange}
+                                isSavingFilters={isSavingFilters}
                             />
                         </TabsContent>
 
-                        {/* Comparison Tab */}
-                        <TabsContent value="comparison" className="mt-0 animate-in fade-in-50">
-                            <ComparisonTab comparison={comparison} />
+                        {/* Analysis Tab */}
+                        <TabsContent value="analysis" className="mt-0 animate-in fade-in-50">
+                            {overview ? (
+                                <AnalysisTab
+                                    slug={slug}
+                                    productId={campaign.target_product_id ?? undefined}
+                                    overview={overview}
+                                    comparison={comparison}
+                                    onCompanyClick={handleCompanyClick}
+                                />
+                            ) : (
+                                <div className="text-center py-12 text-slate-500">Loading analysis...</div>
+                            )}
                         </TabsContent>
 
                         {/* Partners Tab */}

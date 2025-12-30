@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
     CompanyExplainabilityResponse,
     SignalInterest,
@@ -29,11 +30,12 @@ interface ExplainabilityTabProps {
     onSelectFit: (productId: number) => void;
     onSelectSignal: (signalId: number) => void;
     /** Callback to regenerate signals and fits for all products */
-    onProcess?: () => Promise<void>;
+    onProcess?: (onProgress?: (status: string) => void) => Promise<void>;
 }
 
 export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess }: ExplainabilityTabProps) {
     const { signals_summary, fits_summary, data_coverage, freshness } = data;
+    const [processingStatus, setProcessingStatus] = useState<string | undefined>(undefined);
 
     const handleFitClick = (productId: number) => {
         onSelectFit(productId);
@@ -45,7 +47,14 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
 
     const handleRecalculate = async () => {
         if (onProcess) {
-            await onProcess();
+            setProcessingStatus('Starting...');
+            try {
+                await onProcess((status) => {
+                    setProcessingStatus(status);
+                });
+            } finally {
+                setProcessingStatus(undefined);
+            }
         }
     };
 
@@ -58,6 +67,7 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
                         title="Product Fit"
                         actionLabel="Recalculate All"
                         onAction={handleRecalculate}
+                        loadingStatus={processingStatus}
                     />
                 ) : (
                     <SectionHeader title="Product Fit" />

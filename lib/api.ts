@@ -387,6 +387,16 @@ export async function getCompanyPlaybooks(domain: string): Promise<CompanyPlaybo
     return fetchAPI<CompanyPlaybooksResponse>(`/api/v1/companies/${encodeURIComponent(domain)}/playbooks`);
 }
 
+export async function generateCompanyPlaybook(
+    domain: string,
+    productId: number
+): Promise<{ process_id: string; status: string }> {
+    return fetchAPI(`/api/v1/companies/${encodeURIComponent(domain)}/generate-playbook`, {
+        method: 'POST',
+        body: JSON.stringify({ product_id: productId }),
+    });
+}
+
 export async function getCompanyPlaybook(_domain: string, playbookId: number): Promise<PlaybookRead> {
     // Note: domain parameter kept for API compatibility but playbooks are fetched by ID directly
     return fetchAPI<PlaybookRead>(`/api/v1/playbooks/${playbookId}`);

@@ -18,7 +18,7 @@ import { PeopleTab } from './PeopleTab';
 import { JobsTab } from './JobsTab';
 import { NewsTab } from './NewsTab';
 import { UpdatesTab } from './UpdatesTab';
-import { EnrichedEmptyState } from './EnrichedEmptyState';
+import { EnrichedEmptyState, PlaybookEmptyState } from './EnrichedEmptyState';
 import { Target, Sparkles, Users, Briefcase, Newspaper } from 'lucide-react';
 
 interface AccountDetailContentProps {
@@ -47,8 +47,8 @@ interface AccountDetailContentProps {
     loadingMoreEmployees: boolean;
     employeeCount: number;
     onProcess: (options?: ProcessingOptions) => Promise<void>;
-    onRegenerateExplainability: () => Promise<void>;
-    onRegeneratePlaybooks: () => Promise<void>;
+    onRegenerateExplainability: (onProgress?: (status: string) => void) => Promise<void>;
+    onRegeneratePlaybooks: (productId?: number) => Promise<void>;
     /** All available products for score calculation */
     allProducts: ProductSummary[];
 }
@@ -102,8 +102,7 @@ export function AccountDetailContent({
     const handleGenerateSignals = useCallback(() =>
         onProcess({ generate_signals: true, generate_fits: true, refresh_data: false }), [onProcess]);
 
-    const handleGeneratePlaybooks = useCallback(() =>
-        onProcess({ generate_playbook: true, refresh_data: false }), [onProcess]);
+
 
 
     return (
@@ -145,14 +144,13 @@ export function AccountDetailContent({
                                 domain={domain}
                                 onSelectEmployee={onSelectPlaybookEmployee}
                                 onProcess={onRegeneratePlaybooks}
+                                allProducts={allProducts}
+                                onGeneratePlaybook={onRegeneratePlaybooks}
                             />
                         ) : (
-                            <EnrichedEmptyState
-                                icon={<Sparkles className="w-8 h-8" />}
-                                title="No sales playbooks generated"
-                                description="Generate AI-powered playbooks with discovery questions, objection handling, and personalized outreach templates."
-                                actionLabel="Generate Playbooks"
-                                onAction={handleGeneratePlaybooks}
+                            <PlaybookEmptyState
+                                products={allProducts.map(p => ({ id: p.id, name: p.name }))}
+                                onAction={onRegeneratePlaybooks}
                             />
                         )}
                     </AnimatedPanel>

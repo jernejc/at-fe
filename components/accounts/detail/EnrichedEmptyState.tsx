@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -43,17 +43,11 @@ export function EnrichedEmptyState({
 
     return (
         <div className={cn(
-            "flex flex-col items-center justify-center py-16 px-8 text-center",
+            "flex flex-col items-center justify-center py-16 px-8 text-center min-h-[400px]",
             "bg-gradient-to-b from-slate-50/50 to-slate-100/30 dark:from-slate-900/30 dark:to-slate-950/50",
             "rounded-xl border border-dashed border-slate-200 dark:border-slate-800",
             className
         )}>
-            <div className="p-4 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-100 dark:border-slate-700 mb-4">
-                <div className="text-slate-400 dark:text-slate-500">
-                    {icon}
-                </div>
-            </div>
-
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">
                 {title}
             </h3>
@@ -65,14 +59,13 @@ export function EnrichedEmptyState({
             <Button
                 onClick={handleClick}
                 disabled={isLoading}
-                className="gap-2 shadow-sm"
+                variant="secondary"
+                className="bg-slate-800 hover:bg-slate-700 text-white dark:bg-slate-700 dark:hover:bg-slate-600"
             >
                 {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                    <RefreshCw className="w-4 h-4" />
-                )}
-                {isLoading ? 'Processing...' : actionLabel}
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : null}
+                {isLoading ? 'Generating...' : actionLabel}
             </Button>
         </div>
     );
@@ -96,6 +89,8 @@ interface TabHeaderWithActionProps {
     selectedProductId?: number;
     /** Callback when product selection changes */
     onProductChange?: (productId: number) => void;
+    /** Optional text to display during loading state */
+    loadingStatus?: string;
 }
 
 /**
@@ -113,6 +108,7 @@ export function TabHeaderWithAction({
     products,
     selectedProductId,
     onProductChange,
+    loadingStatus,
 }: TabHeaderWithActionProps) {
     const [internalLoading, setInternalLoading] = useState(false);
     const isLoading = externalLoading ?? internalLoading;
@@ -166,9 +162,92 @@ export function TabHeaderWithAction({
                     ) : (
                         <RefreshCw className="w-3.5 h-3.5" />
                     )}
-                    <span className="hidden sm:inline">{actionLabel}</span>
+                    <span className="hidden sm:inline">{isLoading && loadingStatus ? loadingStatus : actionLabel}</span>
                 </button>
             </div>
+        </div>
+    );
+}
+
+interface PlaybookEmptyStateProps {
+    products: ProductOption[];
+    onAction: (productId: number) => Promise<void>;
+    className?: string;
+}
+
+/**
+ * Empty state for playbooks tab with product selector.
+ * Requires product selection since API needs product_id for playbook generation.
+ */
+export function PlaybookEmptyState({
+    products,
+    onAction,
+    className,
+}: PlaybookEmptyStateProps) {
+    const [selectedProductId, setSelectedProductId] = useState<number | null>(
+        products.length > 0 ? products[0].id : null
+    );
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleClick = async () => {
+        if (isLoading || !selectedProductId) return;
+        setIsLoading(true);
+        try {
+            await onAction(selectedProductId);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const hasProducts = products.length > 0;
+
+    return (
+        <div className={cn(
+            "flex flex-col items-center justify-center py-16 px-8 text-center min-h-[400px]",
+            "bg-gradient-to-b from-slate-50/50 to-slate-100/30 dark:from-slate-900/30 dark:to-slate-950/50",
+            "rounded-xl border border-dashed border-slate-200 dark:border-slate-800",
+            className
+        )}>
+            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                No sales playbooks generated
+            </h3>
+
+            <p className="text-sm text-muted-foreground max-w-sm mb-6 leading-relaxed">
+                Generate AI-powered playbooks with discovery questions, objection handling, and personalized outreach templates.
+            </p>
+
+            {hasProducts ? (
+                <div className="flex items-center gap-3">
+                    <select
+                        value={selectedProductId ?? ''}
+                        onChange={(e) => setSelectedProductId(parseInt(e.target.value, 10))}
+                        disabled={isLoading}
+                        className="text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                    >
+                        {products.map((product) => (
+                            <option key={product.id} value={product.id}>
+                                {product.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <Button
+                        onClick={handleClick}
+                        disabled={isLoading || !selectedProductId}
+                        variant="secondary"
+                        className="bg-slate-800 hover:bg-slate-700 text-white dark:bg-slate-700 dark:hover:bg-slate-600"
+                    >
+                        {isLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : null}
+                        {isLoading ? 'Generating...' : 'Generate Playbook'}
+                    </Button>
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground">
+                    No products available. Create a product first to generate playbooks.
+                </p>
+            )}
         </div>
     );
 }

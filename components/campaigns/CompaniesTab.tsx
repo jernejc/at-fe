@@ -1,83 +1,101 @@
 'use client';
 
-import type { MembershipRead, CompanySummary, CompanySummaryWithFit } from '@/lib/schemas';
-import { FunnelVisualization } from './FunnelVisualization';
+import { useMemo } from 'react';
+import type { MembershipRead, CompanySummary, CompanySummaryWithFit, CampaignFilterUI } from '@/lib/schemas';
 import { CompanyRowCompact } from './CompanyRowCompact';
 import { AddCompanyButton } from './AddCompanyButton';
+import { FilterBar } from './FilterBar';
 import { Loader2 } from 'lucide-react';
 
 interface CompaniesTabProps {
     slug: string;
-    productId?: number;
     companies: MembershipRead[];
-    // Dynamic companies from filters
     dynamicCompanies?: (CompanySummary | CompanySummaryWithFit)[];
     dynamicCompaniesTotal?: number;
     loadingDynamicCompanies?: boolean;
     onCompanyClick: (domain: string) => void;
     onCompanyAdded: () => void;
+    filters: CampaignFilterUI[];
+    onFiltersChange: (filters: CampaignFilterUI[]) => void;
+    isSavingFilters?: boolean;
 }
 
 export function CompaniesTab({
     slug,
-    productId,
     companies,
     dynamicCompanies,
     dynamicCompaniesTotal = 0,
     loadingDynamicCompanies = false,
     onCompanyClick,
     onCompanyAdded,
+    filters,
+    onFiltersChange,
+    isSavingFilters,
 }: CompaniesTabProps) {
-    // Use dynamic companies if available, otherwise fall back to membership-based companies
     const useDynamic = dynamicCompanies !== undefined;
-    const displayCompanies = useDynamic ? dynamicCompanies : companies;
     const totalCount = useDynamic ? dynamicCompaniesTotal : companies.length;
 
+    // Sort companies by fit score (highest first)
+    const sortedCompanies = useMemo(() => {
+        return [...companies].sort((a, b) => {
+            const scoreA = a.cached_fit_score ?? 0;
+            const scoreB = b.cached_fit_score ?? 0;
+            return scoreB - scoreA;
+        });
+    }, [companies]);
+
+    const sortedDynamicCompanies = useMemo(() => {
+        if (!dynamicCompanies) return undefined;
+        return [...dynamicCompanies].sort((a, b) => {
+            const scoreA = 'combined_score' in a ? (a.combined_score ?? 0) : 0;
+            const scoreB = 'combined_score' in b ? (b.combined_score ?? 0) : 0;
+            return scoreB - scoreA;
+        });
+    }, [dynamicCompanies]);
+
     return (
-        <div className="space-y-6">
-            {/* Funnel Visualization - only show for membership-based campaigns */}
-            {!useDynamic && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                    <div className="mb-4">
-                        <h2 className="text-base font-semibold text-slate-900 dark:text-white">Campaign Funnel</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                            Company progression through qualification stages
-                        </p>
+        <div className="space-y-4">
+            {/* Filter Bar */}
+            <div className="flex items-center gap-3">
+                <FilterBar
+                    filters={filters}
+                    onFiltersChange={onFiltersChange}
+                    disabled={isSavingFilters}
+                />
+                {isSavingFilters && (
+                    <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
                     </div>
-                    <FunnelVisualization
-                        slug={slug}
-                        productId={productId}
-                    />
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Companies List */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                <div className="mb-4 flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                        <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                            {useDynamic ? 'Matching Companies' : 'Companies in Campaign'}
-                        </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                        <h3 className="font-medium text-sm text-slate-900 dark:text-white">
+                            {useDynamic ? 'Matching Companies' : 'All Companies'}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                             {loadingDynamicCompanies ? (
                                 'Searching...'
                             ) : useDynamic ? (
                                 `${totalCount} companies match your filters`
                             ) : (
-                                `${companies.length} companies • ${companies.filter(c => c.partner_id).length} assigned to partners`
+                                `${companies.length} companies · ${companies.filter(c => c.partner_id).length} assigned`
                             )}
                         </p>
                     </div>
                     {loadingDynamicCompanies && (
-                        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
                     )}
                 </div>
 
-                {displayCompanies && displayCompanies.length > 0 ? (
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800 -mx-2">
+                {(useDynamic ? (sortedDynamicCompanies?.length ?? 0) : sortedCompanies.length) > 0 ? (
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
                         {useDynamic ? (
-                            // Render dynamic companies (CompanySummary)
-                            dynamicCompanies!.map((company) => (
+                            sortedDynamicCompanies!.map((company) => (
                                 <CompanyRowCompact
                                     key={company.domain}
                                     name={company.name}
@@ -88,12 +106,11 @@ export function CompaniesTab({
                                     fitScore={'combined_score' in company ? company.combined_score : null}
                                     logoBase64={company.logo_base64}
                                     onClick={() => onCompanyClick(company.domain)}
-                                    className="cursor-pointer"
+                                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                 />
                             ))
                         ) : (
-                            // Render membership-based companies
-                            companies.map((membership) => (
+                            sortedCompanies.map((membership) => (
                                 <CompanyRowCompact
                                     key={membership.id}
                                     name={membership.company_name || membership.domain}
@@ -106,7 +123,7 @@ export function CompaniesTab({
                                     logoBase64={membership.logo_base64}
                                     partnerName={membership.partner_name}
                                     onClick={() => onCompanyClick(membership.domain)}
-                                    className="cursor-pointer"
+                                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                 />
                             ))
                         )}
@@ -120,19 +137,22 @@ export function CompaniesTab({
                     </div>
                 )}
 
-                {/* Show total count if there are more */}
-                {useDynamic && dynamicCompanies && dynamicCompanies.length < totalCount && (
-                    <p className="text-center text-sm text-slate-500 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-800 mt-4">
-                        Showing {dynamicCompanies.length} of {totalCount} matching companies
-                    </p>
+                {useDynamic && sortedDynamicCompanies && sortedDynamicCompanies.length < totalCount && (
+                    <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800">
+                        <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+                            Showing {sortedDynamicCompanies.length} of {totalCount} matching companies
+                        </p>
+                    </div>
                 )}
             </div>
 
-            {/* Add Company Button - only show for non-dynamic mode */}
+            {/* Add Company Button */}
             {!useDynamic && (
-                <div className="mt-4">
-                    <AddCompanyButton slug={slug} onCompanyAdded={onCompanyAdded} className="h-12 bg-white dark:bg-slate-900 border-dashed" />
-                </div>
+                <AddCompanyButton
+                    slug={slug}
+                    onCompanyAdded={onCompanyAdded}
+                    className="h-10 bg-white dark:bg-slate-900 border-dashed"
+                />
             )}
         </div>
     );

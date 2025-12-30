@@ -51,7 +51,7 @@ export function AccountDetailTabs({
         <div className="border-b bg-background sticky top-0 z-30">
             <div className="max-w-7xl mx-auto w-full px-6">
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                    <TabsList variant="line" className="h-12 gap-6">
+                    <TabsList variant="line" className="h-12 w-full justify-around">
                         <TabsTrigger value="overview" className="gap-2">
                             <LayoutDashboard className="w-4 h-4" />
                             Overview
@@ -64,13 +64,11 @@ export function AccountDetailTabs({
                             </TabsTrigger>
                         )}
 
-                        {hasPlaybooks && (
-                            <TabsTrigger value="playbooks" className="gap-2">
-                                <BookOpen className="w-4 h-4" />
-                                Playbooks
-                                <CountBadge count={counts.playbooks} />
-                            </TabsTrigger>
-                        )}
+                        <TabsTrigger value="playbooks" className="gap-2">
+                            <BookOpen className="w-4 h-4" />
+                            Playbooks
+                            {hasPlaybooks && <CountBadge count={counts.playbooks} />}
+                        </TabsTrigger>
 
                         {hasPeople && (
                             <TabsTrigger value="people" className="gap-2">

@@ -182,7 +182,7 @@ function ContributorCard({ contributor }: { contributor: SignalContributor }) {
                     {contributor.employee_name}
                 </div>
                 {(contributor.title || contributor.seniority_level) && (
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-xs text-muted-foreground line-clamp-2">
                         {contributor.title}
                         {contributor.title && contributor.seniority_level && " • "}
                         <span className="capitalize">{contributor.seniority_level}</span>

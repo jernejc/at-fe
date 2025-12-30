@@ -141,7 +141,7 @@ export function CampaignsList() {
                         </div>
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                Campaigns
+                                Workloads
                             </h1>
                             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                 {campaigns.length} campaign{campaigns.length !== 1 ? 's' : ''} across {products.length} product{products.length !== 1 ? 's' : ''}
@@ -166,7 +166,7 @@ export function CampaignsList() {
             {hasNoCampaigns ? (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-12 text-center">
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                        No campaigns yet
+                        No workloads yet
                     </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                         Create your first campaign to start targeting accounts

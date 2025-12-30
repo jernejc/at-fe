@@ -1,7 +1,7 @@
 // Playbooks Tab Component - Updated styling to match Explainability tab
 
 import { useState, useEffect, useMemo } from 'react';
-import type { PlaybookSummary, PlaybookRead, PlaybookContactResponse, EmployeeSummary, PlaybookContext } from '@/lib/schemas';
+import type { PlaybookSummary, PlaybookRead, PlaybookContactResponse, EmployeeSummary, PlaybookContext, ProductSummary } from '@/lib/schemas';
 import { getCompanyPlaybook, getEmployees } from '@/lib/api';
 import { SectionHeader } from './components';
 import { cn } from '@/lib/utils';
@@ -40,13 +40,20 @@ interface PlaybooksTabProps {
     domain?: string;
     onSelectEmployee: (employeeId: number | null, preview: { name: string; title?: string }, context: PlaybookContext) => void;
     onProcess?: () => Promise<void>;
+    /** Available products for generating new playbooks */
+    allProducts?: ProductSummary[];
+    /** Callback to generate a playbook for a specific product */
+    onGeneratePlaybook?: (productId: number) => Promise<void>;
 }
 
-export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSelectEmployee, onProcess }: PlaybooksTabProps) {
+export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSelectEmployee, onProcess, allProducts = [], onGeneratePlaybook }: PlaybooksTabProps) {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [playbookDetail, setPlaybookDetail] = useState<PlaybookRead | null>(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [showProductMenu, setShowProductMenu] = useState(false);
+    const [selectedProductToGenerate, setSelectedProductToGenerate] = useState<number | null>(null);
 
     // Use shared animation variants
     const container = staggerContainerFast;
@@ -117,6 +124,23 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
             .sort((a, b) => (Number(b.fit_score) || 0) - (Number(a.fit_score) || 0))
             .filter(p => !searchQuery || p.product_group.toLowerCase().includes(searchQuery.toLowerCase()));
     }, [playbooks, searchQuery]);
+
+    // Find products that don't have a playbook yet
+    const productsWithoutPlaybook = useMemo(() => {
+        const existingProductNames = new Set(playbooks.map(p => p.product_group.toLowerCase()));
+        return allProducts.filter(p => !existingProductNames.has(p.name.toLowerCase()));
+    }, [allProducts, playbooks]);
+
+    const handleGenerateNew = async (productId: number) => {
+        if (!onGeneratePlaybook || isGenerating) return;
+        setIsGenerating(true);
+        setShowProductMenu(false);
+        try {
+            await onGeneratePlaybook(productId);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     useEffect(() => {
         if (selectedId === null && sortedPlaybooks.length > 0) {
@@ -234,6 +258,38 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                         {sortedPlaybooks.length === 0 && (
                             <div className="text-center py-8 text-sm text-muted-foreground">
                                 No results found
+                            </div>
+                        )}
+
+                        {/* Generate for other products */}
+                        {productsWithoutPlaybook.length > 0 && onGeneratePlaybook && (
+                            <div className="p-3 border-t border-border/40">
+                                <div className="space-y-2">
+                                    <select
+                                        value={selectedProductToGenerate ?? productsWithoutPlaybook[0]?.id ?? ''}
+                                        onChange={(e) => setSelectedProductToGenerate(parseInt(e.target.value, 10))}
+                                        disabled={isGenerating}
+                                        className="w-full text-xs bg-muted/30 border border-border/60 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50 truncate"
+                                    >
+                                        {productsWithoutPlaybook.map((product) => (
+                                            <option key={product.id} value={product.id}>
+                                                {product.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        disabled={isGenerating}
+                                        onClick={() => handleGenerateNew(selectedProductToGenerate ?? productsWithoutPlaybook[0]?.id)}
+                                        className="w-full h-7 text-xs"
+                                    >
+                                        {isGenerating ? (
+                                            <RefreshCw className="w-3 h-3 animate-spin mr-1.5" />
+                                        ) : null}
+                                        {isGenerating ? 'Generating...' : 'Generate Playbook'}
+                                    </Button>
+                                </div>
                             </div>
                         )}
                     </motion.div>

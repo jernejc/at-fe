@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { startProcessing, waitForProcessingComplete, ProcessingOptions } from '@/lib/api';
+import { startProcessing, waitForProcessingComplete, generateCompanyPlaybook, ProcessingOptions } from '@/lib/api';
 import { useAccountDetail, useAccountModals } from './detail/hooks';
 import { AccountDetailHeader } from './detail/AccountDetailHeader';
 import { AccountDetailTabs } from './detail/AccountDetailTabs';
@@ -86,7 +86,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     }, [domain, refetch]);
 
     // Targeted handler for regenerating signals/fits (no data refresh)
-    const handleRegenerateExplainability = useCallback(async () => {
+    const handleRegenerateExplainability = useCallback(async (onProgress?: (status: string) => void) => {
         if (!domain) return;
         try {
             // Start processing
@@ -98,7 +98,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
 
             // Wait for processing to complete via SSE stream
             if (response?.process_id) {
-                await waitForProcessingComplete(domain, response.process_id);
+                await waitForProcessingComplete(domain, response.process_id, onProgress);
             }
 
             // Now refresh the data
@@ -110,17 +110,18 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
     }, [domain, refetchExplainability]);
 
     // Targeted handler for regenerating playbooks (no data refresh)
-    const handleRegeneratePlaybooks = useCallback(async () => {
-        if (!domain) return;
-        const minLoading = new Promise(resolve => setTimeout(resolve, 800));
+    const handleRegeneratePlaybooks = useCallback(async (productId?: number, onProgress?: (status: string) => void) => {
+        if (!domain || !productId) return;
         try {
-            await Promise.all([
-                startProcessing(domain, {
-                    generate_playbook: true,
-                    refresh_data: false
-                }),
-                minLoading
-            ]);
+            // Use dedicated generate-playbook endpoint
+            const response = await generateCompanyPlaybook(domain, productId);
+
+            // Wait for processing to complete via SSE stream
+            if (response?.process_id) {
+                await waitForProcessingComplete(domain, response.process_id, onProgress);
+            }
+
+            // Now refresh the playbooks data
             await refetchPlaybooks();
         } catch (error) {
             console.error('Failed to regenerate playbooks:', error);

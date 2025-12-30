@@ -54,7 +54,7 @@ function filtersToCompanyFilters(filters: CampaignFilterUI[], productId?: number
     return companyFilters;
 }
 
-export type CampaignTab = 'overview' | 'companies' | 'comparison' | 'partners';
+export type CampaignTab = 'overview' | 'companies' | 'analysis' | 'partners';
 
 interface UseCampaignPageOptions {
     slug: string;
@@ -303,7 +303,7 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
                 if (activeTab === 'companies' && companies.length === 0) {
                     const result = await getCampaignCompanies(slug, { page_size: 50 });
                     setCompanies(result.items);
-                } else if (activeTab === 'comparison' && !comparison) {
+                } else if (activeTab === 'analysis' && !comparison) {
                     const result = await getCampaignComparison(slug, { limit: 50 });
                     setComparison(result);
                 }
