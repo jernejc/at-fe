@@ -192,74 +192,15 @@ export function OverviewTab({
     onViewAllCompanies,
     onDrillDown,
 }: OverviewTabProps) {
-    // Generate mock partner data from overview.top_companies or create mock entries from company_count
-    const enrichedCompanies = useMemo(() => {
-        // First try to use actual companies if they have data
-        if (companies.length > 0) {
-            const hasPartnerData = companies.some(c => c.partner_id);
-            if (hasPartnerData) return companies;
-            // Enrich existing companies with mock partners
-            return companies.map((company, idx) => {
-                const shouldAssign = idx < 3 || (idx % 5 !== 4);
-                if (shouldAssign) {
-                    return {
-                        ...company,
-                        partner_id: `partner-${(idx % MOCK_PARTNER_NAMES.length) + 1}`,
-                        partner_name: MOCK_PARTNER_NAMES[idx % MOCK_PARTNER_NAMES.length],
-                    };
-                }
-                return company;
-            });
-        }
+    // Use actual companies or fall back to top_companies
+    const displayCompanies = useMemo(() => {
+        if (companies.length > 0) return companies;
+        return overview.top_companies || [];
+    }, [companies, overview.top_companies]);
 
-        // Fall back to top_companies from overview
-        const topCompanies = overview.top_companies || [];
-        if (topCompanies.length > 0) {
-            const hasPartnerData = topCompanies.some(c => c.partner_id);
-            if (hasPartnerData) return topCompanies;
-            // Enrich with mock partners
-            return topCompanies.map((company, idx) => {
-                const shouldAssign = idx < 3 || (idx % 5 !== 4);
-                if (shouldAssign) {
-                    return {
-                        ...company,
-                        partner_id: `partner-${(idx % MOCK_PARTNER_NAMES.length) + 1}`,
-                        partner_name: MOCK_PARTNER_NAMES[idx % MOCK_PARTNER_NAMES.length],
-                    };
-                }
-                return company;
-            });
-        }
-
-        // Generate completely mock entries based on company_count
-        const count = overview.company_count || 0;
-        if (count === 0) return [];
-
-        return Array.from({ length: count }, (_, idx) => ({
-            id: idx + 1,
-            company_id: idx + 1,
-            domain: `company-${idx + 1}.com`,
-            company_name: `Sample Company ${idx + 1}`,
-            industry: ['Technology', 'Finance', 'Healthcare', 'Manufacturing'][idx % 4],
-            employee_count: 100 + idx * 50,
-            hq_country: 'US',
-            segment: null,
-            cached_fit_score: 0.4 + Math.random() * 0.4,
-            cached_likelihood_score: null,
-            cached_urgency_score: null,
-            is_processed: true,
-            notes: null,
-            priority: 0,
-            logo_base64: null,
-            created_at: new Date().toISOString(),
-            partner_id: idx < 6 ? `partner-${(idx % MOCK_PARTNER_NAMES.length) + 1}` : null,
-            partner_name: idx < 6 ? MOCK_PARTNER_NAMES[idx % MOCK_PARTNER_NAMES.length] : null,
-        }));
-    }, [companies, overview.top_companies, overview.company_count]);
-
-    const pipeline = useMemo(() => generateMockPipeline(enrichedCompanies.length > 0 ? enrichedCompanies :
-        Array.from({ length: overview.company_count || 0 }) as MembershipRead[]), [enrichedCompanies, overview.company_count]);
-    const accountsNeedingAttention = useMemo(() => generateAccountsNeedingAttention(enrichedCompanies), [enrichedCompanies]);
+    const pipeline = useMemo(() => generateMockPipeline(displayCompanies.length > 0 ? displayCompanies :
+        Array.from({ length: overview.company_count || 0 }) as MembershipRead[]), [displayCompanies, overview.company_count]);
+    const accountsNeedingAttention = useMemo(() => generateAccountsNeedingAttention(displayCompanies), [displayCompanies]);
 
     return (
         <div className="space-y-6">

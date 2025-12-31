@@ -25,115 +25,8 @@ import type {
 } from '@/lib/schemas';
 
 // ============================================================================
-// Mock Data Generation (temporary - to be removed when API is ready)
+// Helpers
 // ============================================================================
-
-const MOCK_PARTNER_NAMES = [
-    'Acme Solutions',
-    'TechForward Partners',
-    'CloudScale Consulting',
-    'DataDriven Agency',
-    'Growth Accelerators',
-    'Innovation Labs',
-];
-
-function generateMockFitDistribution(companies: MembershipRead[]): FitDistribution {
-    // Generate realistic distribution based on actual data
-    const total = companies.length;
-
-    if (total === 0) {
-        // Empty state - return zeros
-        return {
-            '80-100': 0,
-            '60-80': 0,
-            '40-60': 0,
-            '20-40': 0,
-            '0-20': 0,
-            unscored: 0,
-        };
-    }
-
-    // Bell-curve-ish distribution favoring middle scores
-    return {
-        '80-100': Math.round(total * 0.12),
-        '60-80': Math.round(total * 0.25),
-        '40-60': Math.round(total * 0.30),
-        '20-40': Math.round(total * 0.20),
-        '0-20': Math.round(total * 0.08),
-        unscored: Math.round(total * 0.05),
-    };
-}
-
-function generateMockPartnerData(companies: MembershipRead[]): MembershipRead[] {
-    // Assign ~60% of companies to random partners
-    return companies.map((company, idx) => {
-        if (Math.random() < 0.6) {
-            const partnerIdx = idx % MOCK_PARTNER_NAMES.length;
-            return {
-                ...company,
-                partner_id: `partner-${partnerIdx + 1}`,
-                partner_name: MOCK_PARTNER_NAMES[partnerIdx],
-            };
-        }
-        return company;
-    });
-}
-
-function enrichOverviewWithMockData(
-    overview: CampaignOverview,
-    companies: MembershipRead[]
-): CampaignOverview {
-    const hasRealFitData = overview.fit_distribution &&
-        Object.values(overview.fit_distribution).some(v => v > 0);
-
-    // Use companies if available, otherwise fall back to top_companies
-    const dataSource = companies.length > 0 ? companies : (overview.top_companies || []);
-
-    // Calculate actual company count from available sources - no artificial minimum
-    // But ensure at least 28 for mock/demo purposes if everything is empty
-    const actualCompanyCount = Math.max(
-        overview.company_count,
-        overview.top_companies?.length || 0,
-        companies.length,
-        28 // Mock fallback
-    );
-
-    // Generate mock fit distribution based on available data source
-    const mockFitDistribution = generateMockFitDistributionFromCount(actualCompanyCount);
-
-    return {
-        ...overview,
-        company_count: actualCompanyCount,
-        processed_count: Math.max(overview.processed_count, Math.round(actualCompanyCount * 0.75)),
-        fit_distribution: hasRealFitData
-            ? overview.fit_distribution
-            : mockFitDistribution,
-    };
-}
-
-// Generate fit distribution based on a count rather than an array
-function generateMockFitDistributionFromCount(total: number): FitDistribution {
-    if (total === 0) {
-        return {
-            '80-100': 0,
-            '60-80': 0,
-            '40-60': 0,
-            '20-40': 0,
-            '0-20': 0,
-            unscored: 0,
-        };
-    }
-
-    // Bell-curve-ish distribution favoring middle scores
-    return {
-        '80-100': Math.round(total * 0.12),
-        '60-80': Math.round(total * 0.25),
-        '40-60': Math.round(total * 0.30),
-        '20-40': Math.round(total * 0.20),
-        '0-20': Math.round(total * 0.08),
-        unscored: Math.round(total * 0.05),
-    };
-}
 
 // Convert CampaignFilterUI array to CompanyFilters for API
 function filtersToCompanyFilters(filters: CampaignFilterUI[], productId?: number | null): CompanyFilters {
@@ -354,20 +247,12 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
             const overviewData = await getCampaignOverview(slug);
 
             // Refresh companies list if it's already loaded or we are on that tab
-            let newCompanies = companies;
             if (activeTab === 'companies' || companies.length > 0) {
                 const result = await getCampaignCompanies(slug, { page_size: 50 });
-                // Enrich companies with mock partner data if API returns none
-                const hasPartnerData = result.items.some(c => c.partner_id);
-                newCompanies = hasPartnerData
-                    ? result.items
-                    : generateMockPartnerData(result.items);
-                setCompanies(newCompanies);
+                setCompanies(result.items);
             }
 
-            // Enrich overview with mock data if API returns empty values
-            const enrichedOverview = enrichOverviewWithMockData(overviewData, newCompanies);
-            setOverview(enrichedOverview);
+            setOverview(overviewData);
         } catch (error) {
             console.error('Failed to refresh data', error);
             toast.error('Failed to refresh data', {
@@ -405,9 +290,7 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
                     getCampaignOverview(slug),
                 ]);
                 setCampaign(campaignData);
-                // Enrich overview with mock data if API returns empty values
-                const enrichedOverview = enrichOverviewWithMockData(overviewData, []);
-                setOverview(enrichedOverview);
+                setOverview(overviewData);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load campaign');
                 console.error('Error fetching campaign:', err);
@@ -426,11 +309,7 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
                 if (activeTab === 'companies' && companies.length === 0) {
                     const result = await getCampaignCompanies(slug, { page_size: 50 });
                     // Enrich companies with mock partner data if API returns none
-                    const hasPartnerData = result.items.some(c => c.partner_id);
-                    const enrichedCompanies = hasPartnerData
-                        ? result.items
-                        : generateMockPartnerData(result.items);
-                    setCompanies(enrichedCompanies);
+                    setCompanies(result.items);
                 } else if (activeTab === 'analysis' && !comparison) {
                     const result = await getCampaignComparison(slug, { limit: 50 });
                     setComparison(result);
@@ -446,16 +325,11 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
     }, [activeTab, slug, loading, campaign, companies.length, comparison]);
 
     // Re-enrich overview when companies load to get better fit distribution estimates
-    useEffect(() => {
+    /* useEffect(() => {
         if (overview && companies.length > 0) {
-            const enrichedOverview = enrichOverviewWithMockData(overview, companies);
-            // Only update if values actually changed
-            if (enrichedOverview.company_count !== overview.company_count ||
-                JSON.stringify(enrichedOverview.fit_distribution) !== JSON.stringify(overview.fit_distribution)) {
-                setOverview(enrichedOverview);
-            }
+           // We don't need to re-enrich with mock data anymore
         }
-    }, [companies.length]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [companies.length]); */
 
     return {
         // Core data

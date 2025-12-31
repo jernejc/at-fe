@@ -94,75 +94,8 @@ export default function CampaignPage({ params }: CampaignPageProps) {
             }));
         }
 
-        // Only generate mock data if we're in a "demo" state (no real companies but overview implies some)
-        const mockCount = overview?.company_count || 0;
-        if (mockCount === 0) return [];
-
-        // Generate 28 mock companies (or whatever the count is)
-        // 1. Flatten assigned mock accounts
-        const mockAssigned = Object.values(MOCK_PARTNER_ACCOUNTS).flat().map((c, i) => ({
-            id: i + 1, // Unique ID
-            company_id: c.company_id,
-            domain: c.domain,
-            company_name: c.company_name,
-            industry: c.industry,
-            employee_count: c.employee_count,
-            hq_country: c.hq_country,
-            segment: c.segment,
-            logo_base64: null,
-            partner_id: c.partner_id,
-            partner_name: c.partner_name,
-            cached_fit_score: c.cached_fit_score,
-            cached_likelihood_score: c.cached_likelihood_score,
-            cached_urgency_score: c.cached_urgency_score,
-            created_at: c.created_at,
-            status: 'active' as const,
-            is_processed: true,
-            notes: null,
-            priority: c.priority,
-        }));
-
-        // 2. Generate unassigned companies to fill the gap
-        // We know MOCK_PARTNER_ACCOUNTS has ~16. If we need 28, generate 12 more.
-        const unassignedBase = [
-            { domain: 'cloudflare.com', name: 'Cloudflare', industry: 'Technology', fit: 0.89 },
-            { domain: 'shopify.com', name: 'Shopify', industry: 'E-commerce', fit: 0.85 },
-            { domain: 'zoom.us', name: 'Zoom', industry: 'Technology', fit: 0.82 },
-            { domain: 'slack.com', name: 'Slack', industry: 'Technology', fit: 0.91 },
-            { domain: 'hubspot.com', name: 'HubSpot', industry: 'Software', fit: 0.88 },
-            { domain: 'box.com', name: 'Box', industry: 'Technology', fit: 0.76 },
-            { domain: 'dropbox.com', name: 'Dropbox', industry: 'Technology', fit: 0.74 },
-            { domain: 'pagerduty.com', name: 'PagerDuty', industry: 'Technology', fit: 0.81 },
-            { domain: 'okta.com', name: 'Okta', industry: 'Security', fit: 0.93 },
-            { domain: 'zendesk.com', name: 'Zendesk', industry: 'Support', fit: 0.79 },
-            { domain: 'intercom.com', name: 'Intercom', industry: 'Support', fit: 0.77 },
-            { domain: 'asana.com', name: 'Asana', industry: 'Productivity', fit: 0.75 }
-        ];
-
-        const mockUnassigned = unassignedBase.map((c, idx) => ({
-            id: 10000 + idx,
-            company_id: 9000 + idx,
-            domain: c.domain,
-            company_name: c.name,
-            industry: c.industry,
-            employee_count: 1000 + idx * 500,
-            hq_country: 'United States',
-            segment: idx % 2 === 0 ? 'Enterprise' : 'Mid-Market',
-            logo_base64: null,
-            partner_id: null,
-            partner_name: null,
-            cached_fit_score: c.fit,
-            cached_likelihood_score: Math.random(),
-            cached_urgency_score: Math.random(),
-            created_at: new Date().toISOString(),
-            status: 'active' as const,
-            is_processed: true,
-            notes: null,
-            priority: 1,
-        }));
-
-        return [...mockAssigned, ...mockUnassigned];
-    }, [companies, overview]);
+        return [];
+    }, [companies, dynamicCompanies]);
 
     // Handle drill-down filtering from overview charts
     const handleDrillDown = (filter: DrillDownFilter) => {
