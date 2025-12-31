@@ -10,20 +10,26 @@ import { PartnerOverviewCard } from './PartnerOverviewCard';
 import { PartnerAssignmentsView } from './PartnerAssignmentsView';
 import { AutoAssignDialog } from './AutoAssignDialog';
 import { PartnerDetailSheet } from './PartnerDetailSheet';
-import { DEFAULT_CAMPAIGN_PARTNERS } from './mockPartners';
+import { DEFAULT_CAMPAIGN_PARTNERS, MOCK_PARTNER_ACCOUNTS, MOCK_PARTNERS } from './mockPartners';
 import { cn } from '@/lib/utils';
 
 interface PartnerTabProps {
     campaignSlug: string;
+    companies: MembershipRead[];
     onCompanyClick?: (domain: string) => void;
 }
 
-export function PartnerTab({ campaignSlug, onCompanyClick }: PartnerTabProps) {
+export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompanyClick }: PartnerTabProps) {
     const [activeSubTab, setActiveSubTab] = useState<'overview' | 'assignments'>('overview');
     const [partners, setPartners] = useState<Partner[]>(DEFAULT_CAMPAIGN_PARTNERS);
-    const [companies, setCompanies] = useState<MembershipRead[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [companies, setCompanies] = useState<MembershipRead[]>(initialCompanies);
+    const [loading, setLoading] = useState(false);
     const [autoAssignDialogOpen, setAutoAssignDialogOpen] = useState(false);
+
+    // Sync state with props
+    useEffect(() => {
+        setCompanies(initialCompanies);
+    }, [initialCompanies]);
 
     // Partner Detail Sheet state
     const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
@@ -65,21 +71,6 @@ export function PartnerTab({ campaignSlug, onCompanyClick }: PartnerTabProps) {
     const handlePartnerAccountClick = (domain: string) => {
         onCompanyClick?.(domain);
     };
-
-    // Load companies data
-    useEffect(() => {
-        async function loadCompanies() {
-            try {
-                const result = await getCampaignCompanies(campaignSlug, { page_size: 100 });
-                setCompanies(result.items);
-            } catch (err) {
-                console.error('Failed to load companies:', err);
-            } finally {
-                setLoading(false);
-            }
-        }
-        loadCompanies();
-    }, [campaignSlug]);
 
     // Calculate partner stats based on current assignments
     const partnersWithStats = useMemo(() => {

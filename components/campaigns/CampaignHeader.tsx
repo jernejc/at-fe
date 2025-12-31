@@ -7,6 +7,7 @@ import { Loader2, Building2, ChevronRight, Trash2, Target, Activity, LayoutDashb
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DEFAULT_CAMPAIGN_PARTNERS } from '@/components/partners/mockPartners';
 
 interface CampaignHeaderProps {
     campaign: CampaignRead;
@@ -14,6 +15,10 @@ interface CampaignHeaderProps {
     onTabChange: (tab: CampaignTab) => void;
     onDelete: () => void;
     isDeleting: boolean;
+    /** Override company count (for dynamic filter campaigns) */
+    companyCount?: number;
+    /** Number of partners assigned */
+    partnerCount?: number;
 }
 
 export function CampaignHeader({
@@ -22,9 +27,14 @@ export function CampaignHeader({
     onTabChange,
     onDelete,
     isDeleting,
+    companyCount,
+    partnerCount,
 }: CampaignHeaderProps) {
+    // Use provided count or fall back to campaign data / mock data
+    const displayCompanyCount = companyCount ?? campaign.company_count;
+    const displayPartnerCount = partnerCount || DEFAULT_CAMPAIGN_PARTNERS.length;
     const avgFitScore = campaign.avg_fit_score ? Math.round(campaign.avg_fit_score * 100) : null;
-    const progressPercent = Math.round((campaign.processed_count / Math.max(campaign.company_count, 1)) * 100);
+    const progressPercent = Math.round((campaign.processed_count / Math.max(displayCompanyCount, 1)) * 100);
 
     return (
         <div className="relative group border-b border-border/60 bg-white dark:bg-slate-900">
@@ -51,23 +61,45 @@ export function CampaignHeader({
                             </div>
 
                             <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground pt-3">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2" title="Total Companies">
                                     <Building2 className="w-4 h-4 text-blue-500" />
-                                    <span className="text-foreground font-medium">{campaign.company_count}</span>
+                                    <span className="text-foreground font-medium">{displayCompanyCount}</span>
                                     <span>companies</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Activity className="w-4 h-4 text-emerald-500" />
-                                    <span className="text-foreground font-medium">{progressPercent}%</span>
-                                    <span>analyzed</span>
-                                </div>
-                                {avgFitScore && (
-                                    <div className="flex items-center gap-2">
-                                        <Target className="w-4 h-4 text-amber-500" />
+
+                                {/* Processing Status - Only show if not fully processed */}
+                                {displayCompanyCount > 0 && campaign.processed_count < displayCompanyCount && (
+                                    <div className="flex items-center gap-2" title="Processing Progress">
+                                        <Activity className="w-4 h-4 text-amber-500" />
+                                        <span className="text-foreground font-medium">
+                                            {Math.round((campaign.processed_count / displayCompanyCount) * 100)}%
+                                        </span>
+                                        <span>processed</span>
+                                    </div>
+                                )}
+
+                                {/* Average Fit Score */}
+                                {avgFitScore !== null && (
+                                    <div className="flex items-center gap-2" title="Average Fit Score">
+                                        <Target className="w-4 h-4 text-emerald-500" />
                                         <span className="text-foreground font-medium">{avgFitScore}%</span>
                                         <span>avg fit</span>
                                     </div>
                                 )}
+
+                                {/* Owner */}
+                                {campaign.owner && (
+                                    <div className="flex items-center gap-2" title="Campaign Owner">
+                                        <Users className="w-4 h-4 text-indigo-400" />
+                                        <span className="text-foreground font-medium">{campaign.owner}</span>
+                                    </div>
+                                )}
+
+                                {/* Created Date */}
+                                <div className="flex items-center gap-2" title={`Created ${new Date(campaign.created_at).toLocaleDateString()}`}>
+                                    <BarChart3 className="w-4 h-4 text-slate-400" />
+                                    <span>Created {new Date(campaign.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -102,12 +134,15 @@ export function CampaignHeader({
                                 <Building2 className="w-4 h-4" />
                                 Companies
                                 <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-                                    {campaign.company_count}
+                                    {displayCompanyCount}
                                 </span>
                             </TabsTrigger>
                             <TabsTrigger value="partners">
                                 <Users className="w-4 h-4" />
                                 Partners
+                                <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                    {displayPartnerCount}
+                                </span>
                             </TabsTrigger>
                             <TabsTrigger value="analysis">
                                 <BarChart3 className="w-4 h-4" />

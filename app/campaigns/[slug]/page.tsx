@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
@@ -10,7 +10,8 @@ import { Header } from '@/components/ui/Header';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useCampaignPage } from '@/hooks/useCampaignPage';
 import { toast } from 'sonner';
-import type { CampaignFilterUI } from '@/lib/schemas';
+import { MOCK_PARTNER_ACCOUNTS } from '@/components/partners/mockPartners';
+import type { CampaignFilterUI, MembershipRead } from '@/lib/schemas';
 
 interface CampaignPageProps {
     params: Promise<{
@@ -60,6 +61,108 @@ export default function CampaignPage({ params }: CampaignPageProps) {
         // Data refresh
         refreshData,
     } = useCampaignPage({ slug });
+
+    // Consistent company data for Partner Tab
+    // Priority:
+    // 1. Memberships (companies that are part of the campaign)
+    // 2. Dynamic companies (search/filter results) - mapped to be assignable
+    // 3. Fallback only if absolutely nothing else exists
+    const partnerTabCompanies = useMemo<MembershipRead[]>(() => {
+        if (companies.length > 0) return companies;
+
+        if (dynamicCompanies && dynamicCompanies.length > 0) {
+            return dynamicCompanies.map((c, idx) => ({
+                id: 20000 + idx, // Temporary ID for prospects
+                company_id: 0,
+                domain: c.domain,
+                company_name: c.name,
+                industry: c.industry,
+                employee_count: c.employee_count,
+                hq_country: c.hq_country,
+                segment: null,
+                logo_base64: c.logo_base64,
+                partner_id: null,
+                partner_name: null,
+                cached_fit_score: 'combined_score' in c ? (c as any).combined_score : null,
+                cached_likelihood_score: null,
+                cached_urgency_score: null,
+                created_at: new Date().toISOString(),
+                status: 'active' as const,
+                is_processed: false,
+                notes: null,
+                priority: 0,
+            }));
+        }
+
+        // Only generate mock data if we're in a "demo" state (no real companies but overview implies some)
+        const mockCount = overview?.company_count || 0;
+        if (mockCount === 0) return [];
+
+        // Generate 28 mock companies (or whatever the count is)
+        // 1. Flatten assigned mock accounts
+        const mockAssigned = Object.values(MOCK_PARTNER_ACCOUNTS).flat().map((c, i) => ({
+            id: i + 1, // Unique ID
+            company_id: c.company_id,
+            domain: c.domain,
+            company_name: c.company_name,
+            industry: c.industry,
+            employee_count: c.employee_count,
+            hq_country: c.hq_country,
+            segment: c.segment,
+            logo_base64: null,
+            partner_id: c.partner_id,
+            partner_name: c.partner_name,
+            cached_fit_score: c.cached_fit_score,
+            cached_likelihood_score: c.cached_likelihood_score,
+            cached_urgency_score: c.cached_urgency_score,
+            created_at: c.created_at,
+            status: 'active' as const,
+            is_processed: true,
+            notes: null,
+            priority: c.priority,
+        }));
+
+        // 2. Generate unassigned companies to fill the gap
+        // We know MOCK_PARTNER_ACCOUNTS has ~16. If we need 28, generate 12 more.
+        const unassignedBase = [
+            { domain: 'cloudflare.com', name: 'Cloudflare', industry: 'Technology', fit: 0.89 },
+            { domain: 'shopify.com', name: 'Shopify', industry: 'E-commerce', fit: 0.85 },
+            { domain: 'zoom.us', name: 'Zoom', industry: 'Technology', fit: 0.82 },
+            { domain: 'slack.com', name: 'Slack', industry: 'Technology', fit: 0.91 },
+            { domain: 'hubspot.com', name: 'HubSpot', industry: 'Software', fit: 0.88 },
+            { domain: 'box.com', name: 'Box', industry: 'Technology', fit: 0.76 },
+            { domain: 'dropbox.com', name: 'Dropbox', industry: 'Technology', fit: 0.74 },
+            { domain: 'pagerduty.com', name: 'PagerDuty', industry: 'Technology', fit: 0.81 },
+            { domain: 'okta.com', name: 'Okta', industry: 'Security', fit: 0.93 },
+            { domain: 'zendesk.com', name: 'Zendesk', industry: 'Support', fit: 0.79 },
+            { domain: 'intercom.com', name: 'Intercom', industry: 'Support', fit: 0.77 },
+            { domain: 'asana.com', name: 'Asana', industry: 'Productivity', fit: 0.75 }
+        ];
+
+        const mockUnassigned = unassignedBase.map((c, idx) => ({
+            id: 10000 + idx,
+            company_id: 9000 + idx,
+            domain: c.domain,
+            company_name: c.name,
+            industry: c.industry,
+            employee_count: 1000 + idx * 500,
+            hq_country: 'United States',
+            segment: idx % 2 === 0 ? 'Enterprise' : 'Mid-Market',
+            logo_base64: null,
+            partner_id: null,
+            partner_name: null,
+            cached_fit_score: c.fit,
+            cached_likelihood_score: Math.random(),
+            cached_urgency_score: Math.random(),
+            created_at: new Date().toISOString(),
+            status: 'active' as const,
+            is_processed: true,
+            notes: null,
+            priority: 1,
+        }));
+
+        return [...mockAssigned, ...mockUnassigned];
+    }, [companies, overview]);
 
     // Handle drill-down filtering from overview charts
     const handleDrillDown = (filter: DrillDownFilter) => {
@@ -126,6 +229,8 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                     onTabChange={setActiveTab}
                     onDelete={handleDelete}
                     isDeleting={isDeleting}
+                    companyCount={overview?.company_count ?? dynamicCompaniesTotal ?? undefined}
+                    partnerCount={new Set(partnerTabCompanies.filter(c => c.partner_id).map(c => c.partner_id)).size}
                 />
 
                 {/* Content Area */}
@@ -183,7 +288,11 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
                         {/* Partners Tab */}
                         <TabsContent value="partners" className="mt-0 animate-in fade-in-50">
-                            <PartnerTab campaignSlug={slug} onCompanyClick={handleCompanyClick} />
+                            <PartnerTab
+                                campaignSlug={slug}
+                                companies={partnerTabCompanies}
+                                onCompanyClick={handleCompanyClick}
+                            />
                         </TabsContent>
                     </Tabs>
                 </div>

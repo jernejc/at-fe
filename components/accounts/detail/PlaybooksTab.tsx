@@ -3,13 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { PlaybookSummary, PlaybookRead, PlaybookContactResponse, EmployeeSummary, PlaybookContext, ProductSummary } from '@/lib/schemas';
 import { getCompanyPlaybook, getEmployees } from '@/lib/api';
-import { SectionHeader } from './components';
 import { cn } from '@/lib/utils';
 import { staggerContainerFast, slideInFromLeft, staggerContainer, fadeInUp } from '@/lib/animations';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Search,
     Zap,
@@ -21,7 +18,6 @@ import {
     FileText,
     Users,
     Lightbulb,
-    TrendingUp,
     Mail,
     Copy,
     ExternalLink,
@@ -176,20 +172,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                             <Sparkles className="w-4 h-4 text-primary" />
                             Strategies
                         </h3>
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">{sortedPlaybooks.length}</span>
-                            {onProcess && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => onProcess()}
-                                    title="Regenerate Playbooks"
-                                >
-                                    <RefreshCw className="w-3 h-3" />
-                                </Button>
-                            )}
-                        </div>
+                        <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">{sortedPlaybooks.length}</span>
                     </div>
                     <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -219,39 +202,40 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                     variants={item}
                                     onClick={() => setSelectedId(pb.id)}
                                     className={cn(
-                                        "w-full text-left p-4 transition-all group flex items-start gap-4 relative",
+                                        "w-full text-left p-3.5 transition-all group relative",
                                         isSelected
-                                            ? "bg-card z-10 shadow-sm"
-                                            : "hover:bg-muted/30 bg-muted/5 text-muted-foreground"
+                                            ? "bg-card"
+                                            : "hover:bg-muted/40"
                                     )}
                                 >
                                     {isSelected && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
+                                        <div className="absolute left-0 top-2 bottom-2 w-[3px] bg-primary rounded-full" />
                                     )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className={cn("font-medium text-sm truncate mb-1.5", isSelected ? "text-foreground" : "text-foreground/80")}>
-                                            {pb.product_group}
-                                        </div>
-                                        <div className="flex items-center gap-3 text-xs">
-                                            <span className={cn(
-                                                "font-semibold",
-                                                score >= 0.7 ? "text-emerald-600 dark:text-emerald-500" :
-                                                    score >= 0.4 ? "text-amber-600 dark:text-amber-500" : "text-muted-foreground"
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <div className={cn(
+                                                "font-medium text-sm truncate",
+                                                isSelected ? "text-foreground" : "text-foreground/70"
                                             )}>
-                                                {score.toFixed(2)} Match
-                                            </span>
-                                            {pb.fit_urgency && (
-                                                <span className="flex items-center gap-1 text-muted-foreground">
-                                                    <Zap className="w-3 h-3" />
-                                                    {pb.fit_urgency}
-                                                </span>
-                                            )}
+                                                {pb.product_group}
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                {score > 0 && (
+                                                    <span className={cn(
+                                                        "text-xs font-medium",
+                                                        score >= 0.7 ? "text-emerald-600 dark:text-emerald-400" :
+                                                            score >= 0.4 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
+                                                    )}>
+                                                        {Math.round(score * 100)}% fit
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
+                                        <ChevronRight className={cn(
+                                            "w-4 h-4 shrink-0 transition-transform",
+                                            isSelected ? "text-primary" : "text-muted-foreground/40 group-hover:translate-x-0.5"
+                                        )} />
                                     </div>
-                                    <ChevronRight className={cn(
-                                        "w-4 h-4 mt-1 transition-all",
-                                        isSelected ? "text-primary translate-x-0.5" : "text-muted-foreground/50 group-hover:translate-x-0.5"
-                                    )} />
                                 </motion.button>
                             );
                         })}
@@ -313,62 +297,61 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                             variants={detailContainer}
                             initial="hidden"
                             animate="show"
-                            className="p-8 max-w-4xl mx-auto space-y-10 pb-20"
+                            className="p-6 max-w-4xl mx-auto space-y-6 pb-16"
                         >
 
                             {/* Header */}
-                            <motion.div variants={detailItem} className="flex items-start justify-between gap-4 mb-6">
-                                <div className="min-w-0">
-                                    <h2 className="text-lg font-semibold text-foreground mb-1">
-                                        {playbookDetail.product_group}
-                                    </h2>
-                                    <p className="text-sm text-muted-foreground">
-                                        {playbookDetail.contacts?.length || 0} stakeholders identified
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                    {playbookDetail.fit_score !== null && (
-                                        <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-md border border-emerald-100 dark:border-emerald-800/30">
-                                            <Target className="w-3 h-3" />
-                                            {(Number(playbookDetail.fit_score) * 100).toFixed(0)}%
-                                        </div>
-                                    )}
-                                    {playbookDetail.fit_urgency && (
-                                        <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 rounded-md border border-amber-100 dark:border-amber-800/30">
-                                            <Zap className="w-3 h-3" />
-                                            {playbookDetail.fit_urgency}/10
-                                        </div>
-                                    )}
+                            <motion.div variants={detailItem} className="pb-6 border-b border-border/50">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="min-w-0">
+                                        <h2 className="text-xl font-semibold text-foreground tracking-tight">
+                                            {playbookDetail.product_group}
+                                        </h2>
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                            Sales strategy for this account
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {playbookDetail.fit_score !== null && Number(playbookDetail.fit_score) > 0 && (
+                                            <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-full">
+                                                <Target className="w-3.5 h-3.5" />
+                                                {Math.round(Number(playbookDetail.fit_score) * 100)}% fit
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </motion.div>
 
                             {/* Signal Basis (Context) */}
                             {playbookDetail.generation_metadata?.signal_basis && (
                                 <motion.section variants={detailItem}>
-                                    <SectionHeader title="Why This Account?" />
-                                    <div className="space-y-5 pl-4">
+                                    <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                                        <Lightbulb className="w-4 h-4 text-primary" />
+                                        Why This Account?
+                                    </h3>
+                                    <div className="grid gap-4 md:grid-cols-2">
                                         {/* Top Events */}
                                         {playbookDetail.generation_metadata.signal_basis.top_events?.length > 0 && (
-                                            <div className="space-y-2">
-                                                <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                            <div className="space-y-3 p-4 rounded-lg bg-muted/30 border border-border/50">
+                                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                                     Recent Signals
                                                 </h4>
-                                                <div className="space-y-2">
+                                                <div className="space-y-3">
                                                     {playbookDetail.generation_metadata.signal_basis.top_events.map((event, i) => (
-                                                        <div key={i} className="flex items-start gap-3 text-sm group">
-                                                            <TrendingUp className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                                                        <div key={i} className="flex items-start gap-2.5">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                                    <span className="font-medium text-foreground capitalize">
+                                                                    <span className="font-medium text-sm text-foreground capitalize">
                                                                         {event.category.replace('_', ' ')}
                                                                     </span>
                                                                     {event.urgency >= 7 && (
-                                                                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                                                                            <Zap className="w-2.5 h-2.5 mr-0.5" /> Urgent
-                                                                        </Badge>
+                                                                        <span className="text-[10px] font-medium px-1.5 py-0.5 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded">
+                                                                            Urgent
+                                                                        </span>
                                                                     )}
                                                                 </div>
-                                                                <p className="text-muted-foreground text-sm mt-0.5 leading-relaxed">{event.influence_on_strategy}</p>
+                                                                <p className="text-muted-foreground text-xs mt-1 leading-relaxed">{event.influence_on_strategy}</p>
                                                             </div>
                                                         </div>
                                                     ))}
@@ -378,20 +361,20 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
 
                                         {/* Top Interests */}
                                         {playbookDetail.generation_metadata.signal_basis.top_interests?.length > 0 && (
-                                            <div className="space-y-2">
-                                                <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                            <div className="space-y-3 p-4 rounded-lg bg-muted/30 border border-border/50">
+                                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                                     Strategic Interests
                                                 </h4>
-                                                <div className="flex flex-wrap gap-1.5">
+                                                <div className="flex flex-wrap gap-2">
                                                     {playbookDetail.generation_metadata.signal_basis.top_interests.map((interest, i) => (
                                                         <span
                                                             key={i}
-                                                            className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-muted/50 text-foreground/80 rounded-md"
+                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-background border border-border/60 rounded-md"
                                                         >
-                                                            {interest.category.replace('_', ' ')}
-                                                            <span className="ml-1.5 text-muted-foreground font-normal">
-                                                                {interest.strength}/10
-                                                            </span>
+                                                            <span className="font-medium text-foreground capitalize">{interest.category.replace('_', ' ')}</span>
+                                                            {interest.strength > 0 && (
+                                                                <span className="text-muted-foreground">{interest.strength}/10</span>
+                                                            )}
                                                         </span>
                                                     ))}
                                                 </div>
@@ -404,111 +387,131 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                             {/* Elevator Pitch */}
                             {playbookDetail.elevator_pitch && (
                                 <motion.section variants={detailItem}>
-                                    <SectionHeader title="Elevator Pitch" />
-                                    <blockquote className="pl-4 border-l-2 border-primary/30 italic text-muted-foreground leading-relaxed">
-                                        "{playbookDetail.elevator_pitch}"
-                                    </blockquote>
+                                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                                        Elevator Pitch
+                                    </h4>
+                                    <p className="text-sm text-foreground/80 leading-relaxed pl-3 border-l-2 border-primary/30">
+                                        {playbookDetail.elevator_pitch}
+                                    </p>
                                 </motion.section>
                             )}
 
                             {/* Reasoning & Value */}
-                            <motion.div variants={detailItem} className="grid md:grid-cols-2 gap-8">
-                                {playbookDetail.fit_reasoning && (
-                                    <section>
-                                        <SectionHeader title="Strategic Rationale" />
-                                        <p className="text-sm text-muted-foreground leading-relaxed pl-4">
-                                            {playbookDetail.fit_reasoning}
-                                        </p>
-                                    </section>
-                                )}
-                                {playbookDetail.value_proposition && (
-                                    <section>
-                                        <SectionHeader title="Value Proposition" />
-                                        <p className="text-sm text-muted-foreground leading-relaxed pl-4">
-                                            {playbookDetail.value_proposition}
-                                        </p>
-                                    </section>
-                                )}
-                            </motion.div>
+                            {(playbookDetail.fit_reasoning || playbookDetail.value_proposition) && (
+                                <motion.div variants={detailItem} className="space-y-4">
+                                    {playbookDetail.fit_reasoning && (
+                                        <div>
+                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                                                Strategic Rationale
+                                            </h4>
+                                            <p className="text-sm text-foreground/80 leading-relaxed">
+                                                {playbookDetail.fit_reasoning}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {playbookDetail.value_proposition && (
+                                        <div>
+                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                                                Value Proposition
+                                            </h4>
+                                            <p className="text-sm text-foreground/80 leading-relaxed">
+                                                {playbookDetail.value_proposition}
+                                            </p>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            )}
 
                             {/* Key Stakeholders */}
                             {playbookDetail.contacts && playbookDetail.contacts.length > 0 && (
-                                <motion.section variants={detailItem} className="pt-8 border-t border-border/40">
-                                    <SectionHeader title="Key Stakeholders to Target" count={playbookDetail.contacts.length} />
-                                    <div className="grid gap-4">
+                                <motion.section variants={detailItem} className="pt-6">
+                                    <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-primary" />
+                                        Key Stakeholders
+                                        <span className="text-xs font-normal text-muted-foreground ml-1">({playbookDetail.contacts.length})</span>
+                                    </h3>
+                                    <div className="space-y-3">
                                         {playbookDetail.contacts.map((contact) => (
-                                            <Card
+                                            <div
                                                 key={contact.id}
-                                                className="overflow-hidden group transition-all hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700"
+                                                className="rounded-lg border border-border/60 bg-card overflow-hidden hover:border-border transition-colors"
                                             >
-                                                <div className="p-4 bg-muted/20 border-b border-border/60 flex items-start gap-4">
-                                                    <div className="rounded-full bg-primary/10 w-10 h-10 flex items-center justify-center shrink-0">
-                                                        <Users className="w-5 h-5 text-primary" />
+                                                {/* Contact Header */}
+                                                <div className="p-4 flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0 text-sm font-medium text-primary">
+                                                        {contact.name.charAt(0)}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center justify-between gap-4 mb-1">
-                                                            <h4 className="font-semibold text-foreground truncate">{contact.name}</h4>
-                                                            {contact.fit_score !== null && (
-                                                                <Badge variant="secondary" className={cn(
-                                                                    "ml-auto shrink-0",
-                                                                    (contact.fit_score ?? 0) >= 0.8 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" : ""
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-medium text-sm text-foreground truncate">{contact.name}</h4>
+                                                            {contact.fit_score !== null && Number(contact.fit_score) > 0 && (
+                                                                <span className={cn(
+                                                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded",
+                                                                    (contact.fit_score ?? 0) >= 0.7
+                                                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                                                        : "bg-muted text-muted-foreground"
                                                                 )}>
-                                                                    {((contact.fit_score ?? 0) * 100).toFixed(0)}% Match
-                                                                </Badge>
+                                                                    {Math.round((contact.fit_score ?? 0) * 100)}%
+                                                                </span>
                                                             )}
                                                         </div>
-                                                        <div className="text-sm text-foreground/80 mb-0.5">{contact.title}</div>
-                                                        <div className="text-xs text-muted-foreground flex items-center gap-2">
-                                                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
-                                                                {contact.role_category}
-                                                            </Badge>
-                                                        </div>
+                                                        <p className="text-xs text-muted-foreground truncate">{contact.title}</p>
                                                     </div>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                                        onClick={() => handleEmployeeClick(contact)}
-                                                        title="View Full Profile"
-                                                    >
-                                                        <ExternalLink className="w-4 h-4" />
-                                                    </Button>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-muted/50 text-muted-foreground">
+                                                            {contact.role_category}
+                                                        </span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                                            onClick={() => handleEmployeeClick(contact)}
+                                                            title="View Profile"
+                                                        >
+                                                            <ExternalLink className="w-3.5 h-3.5" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
 
-                                                <CardContent className="p-4 space-y-4">
-                                                    {contact.value_prop && (
-                                                        <div className="text-sm">
-                                                            <span className="font-medium text-foreground/90 block mb-1">Why them?</span>
-                                                            <p className="text-muted-foreground leading-relaxed">{contact.value_prop}</p>
-                                                        </div>
-                                                    )}
+                                                {/* Contact Details */}
+                                                {(contact.value_prop || (contact.outreach_templates && contact.outreach_templates.length > 0)) && (
+                                                    <div className="px-4 pb-4 pt-0 space-y-3">
+                                                        {contact.value_prop && (
+                                                            <div className="text-xs text-muted-foreground pl-12">
+                                                                <span className="font-medium text-foreground/70">Why: </span>
+                                                                {contact.value_prop}
+                                                            </div>
+                                                        )}
 
-                                                    {contact.outreach_templates && contact.outreach_templates.length > 0 && (
-                                                        <div className="space-y-3 pt-2">
-                                                            <div className="text-xs font-semibold text-foreground/60 uppercase tracking-wider">Outreach Drafts</div>
-                                                            {contact.outreach_templates.map(template => (
-                                                                <div key={template.id} className="space-y-2">
-                                                                    {template.draft_message && (
-                                                                        <div className="text-sm p-3 bg-muted/30 rounded-md border border-border/50">
+                                                        {contact.outreach_templates && contact.outreach_templates.length > 0 && (
+                                                            <div className="pl-12 space-y-2">
+                                                                {contact.outreach_templates.map(template => (
+                                                                    template.draft_message && (
+                                                                        <div key={template.id} className="p-3 rounded-md bg-muted/30 border border-border/40">
                                                                             <div className="flex items-center justify-between mb-2">
-                                                                                <span className="font-medium flex items-center gap-1.5 text-xs text-foreground/70">
-                                                                                    <Mail className="w-3.5 h-3.5" /> Email Draft
+                                                                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                                                                    <Mail className="w-3 h-3" /> Email Draft
                                                                                 </span>
-                                                                                <Button variant="ghost" size="sm" className="h-6 gap-1 text-[10px]" onClick={() => navigator.clipboard.writeText(template.draft_message || '')}>
-                                                                                    <Copy className="w-3 h-3" /> Copy
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    className="h-5 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                                                                                    onClick={() => navigator.clipboard.writeText(template.draft_message || '')}
+                                                                                >
+                                                                                    <Copy className="w-2.5 h-2.5 mr-1" /> Copy
                                                                                 </Button>
                                                                             </div>
-                                                                            <div className="text-muted-foreground whitespace-pre-wrap font-mono text-xs leading-relaxed">
+                                                                            <p className="text-xs text-foreground/70 whitespace-pre-wrap leading-relaxed">
                                                                                 {template.draft_message}
-                                                                            </div>
+                                                                            </p>
                                                                         </div>
-                                                                    )}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </CardContent>
-                                            </Card>
+                                                                    )
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         ))}
                                     </div>
                                 </motion.section>
@@ -517,12 +520,15 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                             {/* Discovery Questions */}
                             {playbookDetail.discovery_questions && playbookDetail.discovery_questions.length > 0 && (
                                 <motion.section variants={detailItem}>
-                                    <SectionHeader title="Discovery Questions" count={playbookDetail.discovery_questions.length} />
-                                    <div className="space-y-2 pl-4">
+                                    <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                        <FileText className="w-4 h-4 text-primary" />
+                                        Discovery Questions
+                                    </h3>
+                                    <div className="space-y-2">
                                         {(playbookDetail.discovery_questions as string[]).map((q, i) => (
-                                            <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 group hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
-                                                <FileText className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                                <span className="text-foreground/90">{q}</span>
+                                            <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-muted/30 border border-border/40">
+                                                <span className="text-xs font-medium text-muted-foreground w-5 shrink-0">{i + 1}.</span>
+                                                <span className="text-foreground/80">{q}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -532,20 +538,22 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                             {/* Objections */}
                             {playbookDetail.objection_handling && Object.keys(playbookDetail.objection_handling).length > 0 && (
                                 <motion.section variants={detailItem}>
-                                    <SectionHeader title="Objection Handling" count={Object.keys(playbookDetail.objection_handling).length} />
-                                    <div className="grid md:grid-cols-2 gap-4 pl-4">
+                                    <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                        <ShieldAlert className="w-4 h-4 text-primary" />
+                                        Objection Handling
+                                    </h3>
+                                    <div className="space-y-3">
                                         {Object.entries(playbookDetail.objection_handling).map(([obj, response], i) => (
-                                            <Card key={i} className="overflow-hidden bg-orange-50/50 dark:bg-orange-950/10 border-orange-100 dark:border-orange-900/30 hover:border-orange-200 dark:hover:border-orange-800 transition-colors">
-                                                <CardContent className="p-4">
-                                                    <div className="flex gap-2 mb-2 font-medium text-sm text-orange-900 dark:text-orange-400">
-                                                        <ShieldAlert className="w-4 h-4 shrink-0" />
-                                                        "{obj}"
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground ml-6">
+                                            <div key={i} className="rounded-lg border border-border/50 overflow-hidden">
+                                                <div className="px-4 py-2.5 bg-amber-500/5 border-b border-border/40">
+                                                    <p className="text-sm font-medium text-foreground">"{obj}"</p>
+                                                </div>
+                                                <div className="px-4 py-3">
+                                                    <p className="text-sm text-muted-foreground leading-relaxed">
                                                         {String(response)}
                                                     </p>
-                                                </CardContent>
-                                            </Card>
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 </motion.section>
@@ -554,13 +562,15 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                             {/* Channels */}
                             {playbookDetail.recommended_channels && playbookDetail.recommended_channels.length > 0 && (
                                 <motion.section variants={detailItem}>
-                                    <SectionHeader title="Recommended Channels" count={playbookDetail.recommended_channels.length} />
-                                    <div className="flex flex-wrap gap-2 pl-4">
+                                    <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                        <Hash className="w-4 h-4 text-primary" />
+                                        Recommended Channels
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
                                         {(playbookDetail.recommended_channels as string[]).map((ch, i) => (
-                                            <Badge key={i} variant="outline" className="px-3 py-1.5 font-normal bg-slate-50 text-slate-600 dark:bg-slate-900 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                                <Hash className="w-3 h-3 mr-1 opacity-50" />
+                                            <span key={i} className="px-3 py-1.5 text-xs font-medium bg-muted/50 text-foreground/70 rounded-full border border-border/40">
                                                 {ch}
-                                            </Badge>
+                                            </span>
                                         ))}
                                     </div>
                                 </motion.section>
@@ -568,22 +578,22 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
 
                             {/* Generation Metadata Footer */}
                             {playbookDetail.generation_metadata && (
-                                <motion.div variants={detailItem} className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground bg-muted/20 -mx-8 px-8 pb-6 -mb-20">
-                                    <div className="flex items-center gap-6">
-                                        <div className="flex items-center gap-2" title="AI Generated">
-                                            <Sparkles className="h-3.5 w-3.5" />
-                                            <span>AI-Generated Playbook</span>
+                                <motion.div variants={detailItem} className="mt-10 pt-4 border-t border-border/40">
+                                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                                        <div className="flex items-center gap-4">
+                                            {playbookDetail.contacts && playbookDetail.contacts.length > 0 && (
+                                                <span className="flex items-center gap-1.5">
+                                                    <Users className="h-3 w-3" />
+                                                    {playbookDetail.contacts.length} stakeholders
+                                                </span>
+                                            )}
                                         </div>
-                                        {playbookDetail.contacts && (
-                                            <div className="flex items-center gap-2" title="Stakeholders">
-                                                <Users className="h-3.5 w-3.5" />
-                                                <span>{playbookDetail.contacts.length} Stakeholders Identified</span>
-                                            </div>
+                                        {playbookDetail.regenerated_at && (
+                                            <span className="flex items-center gap-1.5">
+                                                <Clock className="h-3 w-3" />
+                                                {new Date(playbookDetail.regenerated_at).toLocaleDateString()}
+                                            </span>
                                         )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="h-3.5 w-3.5" />
-                                        <span>Last updated: {playbookDetail.regenerated_at ? new Date(playbookDetail.regenerated_at).toLocaleDateString() : 'Unknown'}</span>
                                     </div>
                                 </motion.div>
                             )}

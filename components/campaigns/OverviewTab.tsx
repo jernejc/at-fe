@@ -32,6 +32,45 @@ interface OverviewTabProps {
 // Mock Data Generation (to be replaced with real API data)
 // ============================================================================
 
+const MOCK_PARTNER_NAMES = [
+    'Acme Solutions',
+    'TechForward Partners',
+    'CloudScale Consulting',
+    'DataDriven Agency',
+    'Growth Accelerators',
+    'Innovation Labs',
+];
+
+// Enrich companies with mock partner data when API doesn't return any
+function enrichCompaniesWithMockPartners(
+    companies: MembershipRead[],
+    topCompanies?: MembershipRead[]
+): MembershipRead[] {
+    // Use companies if available, otherwise fall back to topCompanies
+    const source = companies.length > 0 ? companies : (topCompanies || []);
+
+    if (source.length === 0) return [];
+
+    // Check if data already has partners
+    const hasPartnerData = source.some(c => c.partner_id);
+    if (hasPartnerData) return source;
+
+    // Assign partners deterministically based on index (~60% get partners)
+    return source.map((company, idx) => {
+        // Use a deterministic pattern: first 3 always get partners, then every other one roughly
+        const shouldAssign = idx < 3 || (idx % 5 !== 4);
+        if (shouldAssign) {
+            const partnerIdx = idx % MOCK_PARTNER_NAMES.length;
+            return {
+                ...company,
+                partner_id: `partner-${partnerIdx + 1}`,
+                partner_name: MOCK_PARTNER_NAMES[partnerIdx],
+            };
+        }
+        return company;
+    });
+}
+
 interface OutreachPipeline {
     not_started: number;
     contacted: number;
@@ -45,14 +84,16 @@ interface AccountNeedingAttention {
     industry: string | null;
     fitScore: number | null;
     logoBase64?: string | null;
-    reason: 'high_fit_not_contacted' | 'stale' | 'needs_followup';
+    reason: 'unassigned_high_fit' | 'high_fit_not_contacted' | 'stale' | 'needs_followup' | 'newly_added';
     reasonLabel: string;
 }
 
 function generateMockPipeline(companies: MembershipRead[]): OutreachPipeline {
     const total = companies.length;
     if (total === 0) {
-        return { not_started: 0, contacted: 0, responded: 0, meeting_booked: 0 };
+        // Provide reasonable mock defaults aligned with other cards (Total 28)
+        // 15 Not Started, 9 Contacted, 3 Responded, 1 Meeting
+        return { not_started: 15, contacted: 9, responded: 3, meeting_booked: 1 };
     }
 
     const meetingBooked = Math.floor(total * 0.05);
@@ -64,34 +105,63 @@ function generateMockPipeline(companies: MembershipRead[]): OutreachPipeline {
 }
 
 function generateAccountsNeedingAttention(companies: MembershipRead[]): AccountNeedingAttention[] {
-    // High-fit accounts not contacted (top priority)
-    const highFit = companies
-        .filter(c => c.cached_fit_score !== null && c.cached_fit_score >= 0.75)
-        .slice(0, 2)
+    // 1. Unassigned High Fit (Priority)
+    const highFitUnassigned = companies
+        .filter(c => !c.partner_id && (c.cached_fit_score || 0) >= 0.7)
+        .sort((a, b) => (b.cached_fit_score || 0) - (a.cached_fit_score || 0))
         .map(c => ({
             domain: c.domain,
             name: c.company_name || c.domain,
             industry: c.industry,
             fitScore: c.cached_fit_score,
             logoBase64: c.logo_base64,
-            reason: 'high_fit_not_contacted' as const,
-            reasonLabel: 'High fit, not contacted',
+            reason: 'unassigned_high_fit' as const,
+            reasonLabel: 'High fit, unassigned',
         }));
 
-    const stale = companies
-        .filter(c => c.cached_fit_score !== null && c.cached_fit_score >= 0.5 && c.cached_fit_score < 0.75)
-        .slice(0, 2)
+    // If we have enough unassigned, just return them
+    if (highFitUnassigned.length >= 4) return highFitUnassigned.slice(0, 4);
+
+    // 2. Newly Added High Potential (Last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const newAndPromising = companies
+        .filter(c =>
+            new Date(c.created_at) > sevenDaysAgo &&
+            (c.cached_fit_score || 0) >= 0.6 &&
+            !highFitUnassigned.find(h => h.domain === c.domain)
+        )
+        .sort((a, b) => (b.cached_fit_score || 0) - (a.cached_fit_score || 0))
         .map(c => ({
             domain: c.domain,
             name: c.company_name || c.domain,
             industry: c.industry,
             fitScore: c.cached_fit_score,
             logoBase64: c.logo_base64,
-            reason: 'stale' as const,
-            reasonLabel: 'No activity in 14+ days',
+            reason: 'newly_added' as const,
+            reasonLabel: 'New high potential',
         }));
 
-    return [...highFit, ...stale].slice(0, 4);
+    const result = [...highFitUnassigned, ...newAndPromising].slice(0, 4);
+
+    // 3. Fallback: Just highest fit if list is empty
+    if (result.length === 0 && companies.length > 0) {
+        return companies
+            .sort((a, b) => (b.cached_fit_score || 0) - (a.cached_fit_score || 0))
+            .slice(0, 4)
+            .map(c => ({
+                domain: c.domain,
+                name: c.company_name || c.domain,
+                industry: c.industry,
+                fitScore: c.cached_fit_score,
+                logoBase64: c.logo_base64,
+                reason: 'stale' as const,
+                reasonLabel: 'Review recommended',
+            }));
+    }
+
+    return result;
 }
 
 // ============================================================================
@@ -122,8 +192,74 @@ export function OverviewTab({
     onViewAllCompanies,
     onDrillDown,
 }: OverviewTabProps) {
-    const pipeline = useMemo(() => generateMockPipeline(companies), [companies]);
-    const accountsNeedingAttention = useMemo(() => generateAccountsNeedingAttention(companies), [companies]);
+    // Generate mock partner data from overview.top_companies or create mock entries from company_count
+    const enrichedCompanies = useMemo(() => {
+        // First try to use actual companies if they have data
+        if (companies.length > 0) {
+            const hasPartnerData = companies.some(c => c.partner_id);
+            if (hasPartnerData) return companies;
+            // Enrich existing companies with mock partners
+            return companies.map((company, idx) => {
+                const shouldAssign = idx < 3 || (idx % 5 !== 4);
+                if (shouldAssign) {
+                    return {
+                        ...company,
+                        partner_id: `partner-${(idx % MOCK_PARTNER_NAMES.length) + 1}`,
+                        partner_name: MOCK_PARTNER_NAMES[idx % MOCK_PARTNER_NAMES.length],
+                    };
+                }
+                return company;
+            });
+        }
+
+        // Fall back to top_companies from overview
+        const topCompanies = overview.top_companies || [];
+        if (topCompanies.length > 0) {
+            const hasPartnerData = topCompanies.some(c => c.partner_id);
+            if (hasPartnerData) return topCompanies;
+            // Enrich with mock partners
+            return topCompanies.map((company, idx) => {
+                const shouldAssign = idx < 3 || (idx % 5 !== 4);
+                if (shouldAssign) {
+                    return {
+                        ...company,
+                        partner_id: `partner-${(idx % MOCK_PARTNER_NAMES.length) + 1}`,
+                        partner_name: MOCK_PARTNER_NAMES[idx % MOCK_PARTNER_NAMES.length],
+                    };
+                }
+                return company;
+            });
+        }
+
+        // Generate completely mock entries based on company_count
+        const count = overview.company_count || 0;
+        if (count === 0) return [];
+
+        return Array.from({ length: count }, (_, idx) => ({
+            id: idx + 1,
+            company_id: idx + 1,
+            domain: `company-${idx + 1}.com`,
+            company_name: `Sample Company ${idx + 1}`,
+            industry: ['Technology', 'Finance', 'Healthcare', 'Manufacturing'][idx % 4],
+            employee_count: 100 + idx * 50,
+            hq_country: 'US',
+            segment: null,
+            cached_fit_score: 0.4 + Math.random() * 0.4,
+            cached_likelihood_score: null,
+            cached_urgency_score: null,
+            is_processed: true,
+            notes: null,
+            priority: 0,
+            logo_base64: null,
+            created_at: new Date().toISOString(),
+            partner_id: idx < 6 ? `partner-${(idx % MOCK_PARTNER_NAMES.length) + 1}` : null,
+            partner_name: idx < 6 ? MOCK_PARTNER_NAMES[idx % MOCK_PARTNER_NAMES.length] : null,
+        }));
+    }, [companies, overview.top_companies, overview.company_count]);
+
+    const pipeline = useMemo(() => generateMockPipeline(enrichedCompanies.length > 0 ? enrichedCompanies :
+        Array.from({ length: overview.company_count || 0 }) as MembershipRead[]), [enrichedCompanies, overview.company_count]);
+    const accountsNeedingAttention = useMemo(() => generateAccountsNeedingAttention(enrichedCompanies), [enrichedCompanies]);
 
     return (
         <div className="space-y-6">
@@ -146,8 +282,8 @@ export function OverviewTab({
                 {/* Right column - Partner Overview + Needs Attention + Fit Distribution */}
                 <div className="space-y-6">
                     <PartnerOverviewCard
-                        companies={companies}
                         onManagePartners={onManagePartners}
+                        totalCompanyCount={overview.company_count}
                     />
                     <NeedsAttentionCard
                         accounts={accountsNeedingAttention}
@@ -256,79 +392,77 @@ function OutreachPipelineCard({
 }
 
 // ============================================================================
-// Partner Overview Card
+// Partner Overview Card - Uses mock partner data directly
 // ============================================================================
 
+import { MOCK_PARTNERS, MOCK_PARTNER_ACCOUNTS, DEFAULT_CAMPAIGN_PARTNERS } from '@/components/partners/mockPartners';
+
 function PartnerOverviewCard({
-    companies,
     onManagePartners,
+    totalCompanyCount = 0,
 }: {
-    companies: MembershipRead[];
     onManagePartners: () => void;
+    totalCompanyCount?: number;
 }) {
-    const assigned = companies.filter(c => c.partner_id).length;
-    const unassigned = companies.length - assigned;
-    const partners = new Map<string, { name: string; count: number }>();
+    // Use DEFAULT_CAMPAIGN_PARTNERS (first 3) for this campaign
+    const campaignPartners = DEFAULT_CAMPAIGN_PARTNERS;
 
-    companies.forEach(c => {
-        if (c.partner_id && c.partner_name) {
-            const existing = partners.get(c.partner_id);
-            if (existing) {
-                existing.count++;
-            } else {
-                partners.set(c.partner_id, { name: c.partner_name, count: 1 });
-            }
-        }
-    });
 
-    const topPartners = Array.from(partners.values())
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 3);
+
+    // Get top partners with their assigned counts
+    const topPartners = campaignPartners.map(p => ({
+        id: p.id,
+        name: p.name,
+        logo_url: p.logo_url,
+        count: (MOCK_PARTNER_ACCOUNTS[p.id] || []).length,
+        capacity: p.capacity,
+    })).sort((a, b) => b.count - a.count);
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-slate-400" />
+                    <Users className="w-4 h-4 text-slate-500" />
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Partners</h3>
                 </div>
                 <button
                     onClick={onManagePartners}
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                 >
                     Manage
                 </button>
             </div>
-            <div className="p-4">
-                {/* Stats row */}
-                <div className="flex items-center gap-4 text-sm mb-4">
-                    <div>
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{assigned}</span>
-                        <span className="text-slate-500 dark:text-slate-400 ml-1">assigned</span>
-                    </div>
-                    <span className="text-slate-300 dark:text-slate-700">·</span>
-                    <div>
-                        <span className={cn(
-                            "font-semibold",
-                            unassigned > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-400"
-                        )}>{unassigned}</span>
-                        <span className="text-slate-500 dark:text-slate-400 ml-1">unassigned</span>
-                    </div>
-                </div>
-
-                {/* Top partners */}
-                {topPartners.length > 0 ? (
-                    <div className="space-y-2">
-                        {topPartners.map((partner, idx) => (
-                            <div key={idx} className="flex items-center justify-between text-sm">
-                                <span className="text-slate-700 dark:text-slate-300 truncate">{partner.name}</span>
-                                <span className="text-slate-500 dark:text-slate-400 tabular-nums">{partner.count}</span>
+            <div className="p-5 py-2">
+                {/* Top partners with logos */}
+                <div className="flex flex-col">
+                    {topPartners.map((partner, index) => (
+                        <div key={partner.id} className={cn(
+                            "group flex items-center justify-between text-sm py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-default px-2 -mx-2 rounded-md",
+                            index !== topPartners.length - 1 && "border-b border-slate-50 dark:border-slate-800"
+                        )}>
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-5 h-5 rounded bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                                    <img
+                                        src={partner.logo_url}
+                                        alt={partner.name}
+                                        className="w-3.5 h-3.5 object-contain"
+                                    />
+                                </div>
+                                <span className="font-medium text-slate-700 dark:text-slate-300 truncate group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-[13px]">
+                                    {partner.name}
+                                </span>
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-sm text-slate-500 dark:text-slate-400">No partners assigned yet</p>
-                )}
+                            <div className="flex items-center gap-2">
+                                <span className="text-slate-400 dark:text-slate-500 text-[11px]">
+                                    {partner.capacity ? Math.round((partner.count / partner.capacity) * 100) : 0}%
+                                </span>
+                                <span className="text-slate-600 dark:text-slate-400 font-medium tabular-nums shrink-0 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">
+                                    {partner.count}/{partner.capacity || '-'}
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -367,7 +501,7 @@ function TopCompaniesCard({
         : undefined;
 
     const displayCompanies = useDynamic ? sortedDynamicCompanies : topCompanies;
-    const shownCount = displayCompanies?.slice(0, 6).length || 0;
+    const shownCount = displayCompanies?.slice(0, 10).length || 0;
     const totalCount = useDynamic ? dynamicCompaniesTotal : totalCompanies;
     const hasMore = totalCount > shownCount;
 
@@ -375,7 +509,6 @@ function TopCompaniesCard({
         <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-slate-400" />
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Top Companies</h3>
                 </div>
                 <div className="flex items-center gap-3">
@@ -399,11 +532,11 @@ function TopCompaniesCard({
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {loadingDynamicCompanies ? (
-                    Array.from({ length: 5 }).map((_, i) => (
+                    Array.from({ length: 10 }).map((_, i) => (
                         <CompanyRowCompactSkeleton key={i} showRank />
                     ))
                 ) : useDynamic ? (
-                    sortedDynamicCompanies && sortedDynamicCompanies.length > 0 ? sortedDynamicCompanies.slice(0, 6).map((company, idx) => (
+                    sortedDynamicCompanies && sortedDynamicCompanies.length > 0 ? sortedDynamicCompanies.slice(0, 10).map((company, idx) => (
                         <CompanyRowCompact
                             key={company.domain}
                             name={company.name}
@@ -455,9 +588,11 @@ function TopCompaniesCard({
 // ============================================================================
 
 const ATTENTION_CONFIG = {
+    unassigned_high_fit: { icon: Users, color: 'text-amber-500' },
     high_fit_not_contacted: { icon: Flame, color: 'text-orange-500' },
     stale: { icon: Clock, color: 'text-slate-400' },
     needs_followup: { icon: MessageSquare, color: 'text-blue-500' },
+    newly_added: { icon: TrendingUp, color: 'text-emerald-500' },
 };
 
 function NeedsAttentionCard({
