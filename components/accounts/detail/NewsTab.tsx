@@ -1,7 +1,6 @@
 // News Tab Component with Pagination
 
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import type { NewsArticleSummary } from '@/lib/schemas';
 import { formatRelativeDate } from '@/lib/utils';
 import { EmptyState, SectionHeader } from './components';
@@ -21,16 +20,16 @@ export function NewsTab({ news, total, onLoadMore, loadingMore }: NewsTabProps) 
         <div className="space-y-6">
             <SectionHeader title="News" count={news.length} color="bg-violet-600" />
 
-            {/* News list - Standardized Container */}
-            <Card className="overflow-hidden shadow-sm">
-                <div className="divide-y divide-border/60">
+            {/* News list */}
+            <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
                     {news.map((article) => (
-                        <article key={article.id} className="group p-4 hover:bg-muted/30 transition-colors">
+                        <article key={article.id} className="group p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                             <div className="flex gap-4">
                                 {/* Date column */}
                                 <div className="shrink-0 w-16 text-right pt-0.5">
                                     {article.published_at && (
-                                        <div className="text-xs text-muted-foreground font-medium">
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                                             {formatRelativeDate(article.published_at)}
                                         </div>
                                     )}
@@ -40,17 +39,17 @@ export function NewsTab({ news, total, onLoadMore, loadingMore }: NewsTabProps) 
                                 <div className="flex-1">
                                     {article.url ? (
                                         <a href={article.url} target="_blank" rel="noopener"
-                                            className="text-base font-semibold text-foreground group-hover:text-blue-600 transition-colors leading-tight block">
+                                            className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors leading-tight block">
                                             {article.title || 'Untitled'}
                                             <span className="text-blue-500/50 group-hover:text-blue-600 ml-1.5 inline-block transition-colors">↗</span>
                                         </a>
                                     ) : (
-                                        <p className="text-base font-semibold text-foreground leading-tight">{article.title || 'Untitled'}</p>
+                                        <p className="text-base font-semibold text-slate-900 dark:text-white leading-tight">{article.title || 'Untitled'}</p>
                                     )}
                                     <div className="flex gap-3 mt-2 text-sm items-center">
                                         {article.source && (
-                                            <span className="text-muted-foreground flex items-center gap-1.5">
-                                                <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                                            <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                                <span className="w-1 h-1 rounded-full bg-slate-400" />
                                                 {article.source}
                                             </span>
                                         )}
@@ -65,7 +64,7 @@ export function NewsTab({ news, total, onLoadMore, loadingMore }: NewsTabProps) 
                         </article>
                     ))}
                 </div>
-            </Card>
+            </div>
 
             {/* Load More Button */}
             {onLoadMore && (

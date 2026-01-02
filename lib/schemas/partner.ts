@@ -110,3 +110,11 @@ export interface PartnerFilters {
     sort_by?: 'name' | 'created_at' | 'updated_at';
     sort_order?: 'asc' | 'desc';
 }
+
+// Partner suggestion for campaign creation
+export interface PartnerSuggestion {
+    partner: PartnerSummary;
+    match_score: number;
+    match_reasons: string[];
+    industry_overlap: string[];
+}

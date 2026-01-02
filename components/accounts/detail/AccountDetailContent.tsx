@@ -19,7 +19,7 @@ import { JobsTab } from './JobsTab';
 import { NewsTab } from './NewsTab';
 import { UpdatesTab } from './UpdatesTab';
 import { EnrichedEmptyState, PlaybookEmptyState } from './EnrichedEmptyState';
-import { Target, Sparkles, Users, Briefcase, Newspaper } from 'lucide-react';
+import { Target, Users, Briefcase, Newspaper } from 'lucide-react';
 
 interface AccountDetailContentProps {
     activeTab: string;
@@ -49,7 +49,6 @@ interface AccountDetailContentProps {
     onProcess: (options?: ProcessingOptions) => Promise<void>;
     onRegenerateExplainability: (onProgress?: (status: string) => void) => Promise<void>;
     onRegeneratePlaybooks: (productId?: number) => Promise<void>;
-    /** All available products for score calculation */
     allProducts: ProductSummary[];
 }
 
@@ -98,15 +97,11 @@ export function AccountDetailContent({
     const hasNews = newsTotal > 0;
     const hasUpdates = (company.updates?.length || 0) > 0;
 
-    // Contextual processing handlers
     const handleGenerateSignals = useCallback(() =>
         onProcess({ generate_signals: true, generate_fits: true, refresh_data: false }), [onProcess]);
 
-
-
-
     return (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden isolate">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden isolate bg-slate-50 dark:bg-slate-900">
             <div className="p-6 max-w-7xl mx-auto w-full">
                 {activeTab === 'overview' && (
                     <AnimatedPanel>

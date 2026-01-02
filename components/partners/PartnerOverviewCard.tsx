@@ -32,11 +32,11 @@ export function PartnerOverviewCard({ partner, onClick, isSelected }: PartnerOve
         <Card
             onClick={onClick}
             className={cn(
-                "group relative transition-all duration-200 overflow-hidden border",
+                "group relative transition-all duration-200 overflow-hidden border rounded-xl shadow-sm",
                 onClick && "cursor-pointer",
                 isSelected
                     ? "bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 ring-1 ring-blue-500/20 shadow-md"
-                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md"
             )}
         >
             <CardContent className="p-5">

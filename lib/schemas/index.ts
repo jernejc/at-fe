@@ -167,6 +167,7 @@ export type {
     BulkAssignResult as PartnerBulkAssignResult,
     PartnerFilters,
     PartnerAssignmentSummary,
+    PartnerSuggestion,
 } from './partner';
 
 // Explainability types

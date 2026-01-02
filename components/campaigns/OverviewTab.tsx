@@ -367,7 +367,7 @@ function OutreachPipelineCard({
     const total = Object.values(pipeline).reduce((sum, count) => sum + count, 0);
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
             {/* Step Progress */}
             <div className="flex items-start">
                 {PIPELINE_STAGES.map((stage, idx) => {
@@ -499,8 +499,8 @@ function PartnerOverviewCard({
     const topPartners = partners;
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-slate-500" />
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Partners</h3>
@@ -518,7 +518,7 @@ function PartnerOverviewCard({
                     {topPartners.map((partner, index) => (
                         <div key={partner.id} className={cn(
                             "group flex items-center justify-between text-sm py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-default px-2 -mx-2 rounded-md",
-                            index !== topPartners.length - 1 && "border-b border-slate-50 dark:border-slate-800"
+                            index !== topPartners.length - 1 && "border-b border-slate-50 dark:border-slate-700"
                         )}>
                             <div className="flex items-center gap-2.5 min-w-0">
                                 <div className="w-5 h-5 rounded bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
@@ -586,8 +586,8 @@ function TopCompaniesCard({
     const hasMore = totalCount > shownCount;
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Top Companies</h3>
                 </div>
@@ -610,7 +610,7 @@ function TopCompaniesCard({
                     )}
                 </div>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
                 {loadingDynamicCompanies ? (
                     Array.from({ length: 10 }).map((_, i) => (
                         <CompanyRowCompactSkeleton key={i} showRank />
@@ -686,8 +686,8 @@ function NeedsAttentionCard({
 }) {
     if (accounts.length === 0) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Needs Attention</h3>
                 </div>
                 <div className="p-6 text-center">
@@ -698,8 +698,8 @@ function NeedsAttentionCard({
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-amber-500" />
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Needs Attention</h3>
@@ -711,7 +711,7 @@ function NeedsAttentionCard({
                     View all
                 </button>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
                 {accounts.map((account) => {
                     const config = ATTENTION_CONFIG[account.reason];
                     const Icon = config.icon;
@@ -760,8 +760,8 @@ function FitDistributionCard({
 
     if (!hasData) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Fit Distribution</h3>
                 </div>
                 <div className="p-6 text-center">
@@ -775,8 +775,8 @@ function FitDistributionCard({
     const totalScored = Object.values(fitDistribution).reduce((sum, val) => sum + val, 0) - (fitDistribution.unscored || 0);
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                 <h3 className="font-medium text-sm text-slate-900 dark:text-white">Fit Distribution</h3>
             </div>
             <div className="p-4 space-y-2">
@@ -818,7 +818,7 @@ function FitDistributionCard({
                         );
                     })}
                 {fitDistribution.unscored > 0 && (
-                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700">
                         <div className="flex items-center justify-between text-xs text-slate-400">
                             <span>Unscored</span>
                             <span className="tabular-nums">{fitDistribution.unscored}</span>
@@ -842,8 +842,8 @@ export function OverviewTabSkeleton() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     {/* Pipeline skeleton */}
-                    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                             <div className={`h-4 w-28 rounded ${shimmer}`} />
                         </div>
                         <div className="p-4">
@@ -857,11 +857,11 @@ export function OverviewTabSkeleton() {
                     </div>
 
                     {/* Top companies skeleton */}
-                    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                             <div className={`h-4 w-36 rounded ${shimmer}`} />
                         </div>
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <div className="divide-y divide-slate-100 dark:divide-slate-700">
                             {Array.from({ length: 5 }).map((_, i) => (
                                 <CompanyRowCompactSkeleton key={i} showRank />
                             ))}
@@ -871,8 +871,8 @@ export function OverviewTabSkeleton() {
 
                 <div className="space-y-6">
                     {/* Partner overview skeleton */}
-                    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                             <div className={`h-4 w-20 rounded ${shimmer}`} />
                         </div>
                         <div className="p-4">
@@ -892,8 +892,8 @@ export function OverviewTabSkeleton() {
                     </div>
 
                     {/* Needs attention skeleton */}
-                    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                             <div className={`h-4 w-28 rounded ${shimmer}`} />
                         </div>
                         <div className="p-4 space-y-3">
@@ -910,8 +910,8 @@ export function OverviewTabSkeleton() {
                     </div>
 
                     {/* Fit distribution skeleton */}
-                    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                             <div className={`h-4 w-28 rounded ${shimmer}`} />
                         </div>
                         <div className="p-4 space-y-3">

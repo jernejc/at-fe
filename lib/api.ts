@@ -791,6 +791,7 @@ import type {
     CampaignPartnerCreate,
     PartnerFilters,
     PartnerBulkAssignResult,
+    PartnerSuggestion,
 } from './schemas';
 
 export async function getPartners(filters: PartnerFilters = {}): Promise<PaginatedResponse<PartnerSummary>> {
@@ -841,4 +842,15 @@ export async function unassignPartnerFromCampaign(slug: string, partnerId: numbe
         `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/${partnerId}`,
         { method: 'DELETE' }
     );
+}
+
+// Get partner suggestions based on company domains
+export async function suggestPartnersForCompanies(
+    domains: string[],
+    limit?: number
+): Promise<PartnerSuggestion[]> {
+    return fetchAPI<PartnerSuggestion[]>('/api/v1/partners/suggest_for_companies', {
+        method: 'POST',
+        body: JSON.stringify({ domains, limit }),
+    });
 }

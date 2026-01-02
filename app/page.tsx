@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Header } from '@/components/ui/Header';
-import { CampaignsList } from '@/components/campaigns/CampaignsList';
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Header } from "@/components/ui/Header";
+import { CampaignsList } from "@/components/campaigns/CampaignsList";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -26,7 +26,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] dark:bg-slate-950 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
       <Header />
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-[1600px] mx-auto px-6 py-8">

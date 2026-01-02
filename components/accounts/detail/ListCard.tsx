@@ -33,16 +33,16 @@ export function ListCard({
         <div
             onClick={onClick}
             className={cn(
-                "group relative bg-card rounded-md border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-all overflow-hidden",
-                isClickable && "cursor-pointer hover:shadow-sm",
+                "group relative rounded-lg border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all overflow-hidden bg-white dark:bg-slate-800",
+                isClickable && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50",
                 className
             )}
         >
             <div className="flex">
                 {/* Left Column */}
                 {leftColumn && (
-                    <div className="w-24 border-r border-border bg-muted/5 flex items-center justify-center py-3 shrink-0">
-                        <span className="text font-medium text-muted-foreground text-center px-2">
+                    <div className="w-24 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center py-3 shrink-0">
+                        <span className="text font-medium text-slate-500 dark:text-slate-400 text-center px-2">
                             {leftColumn}
                         </span>
                     </div>
@@ -55,11 +55,11 @@ export function ListCard({
 
                 {/* Right Icon */}
                 {rightIcon !== 'none' && (
-                    <div className="flex items-center justify-center w-8 border-l border-border bg-card">
+                    <div className="flex items-center justify-center w-8 border-l border-slate-200 dark:border-slate-700">
                         {rightIcon === 'external' ? (
-                            <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                         ) : (
-                            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                            <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                         )}
                     </div>
                 )}

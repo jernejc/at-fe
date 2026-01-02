@@ -25,12 +25,12 @@ export function AccountDetailHeader({ company }: AccountDetailHeaderProps) {
     const maturity = getMaturityIndicator();
 
     return (
-        <div className="relative overflow-hidden group border-b border-border/60">
+        <div className="relative overflow-hidden group border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
 
             <div className="relative p-5 py-7 pt-8 max-w-7xl mx-auto w-full">
                 <div className="flex gap-5 items-start">
                     {/* Logo with elevated container - Consistent with AccountCard */}
-                    <div className="relative shrink-0 rounded-xl p-0.5 bg-white dark:bg-slate-800 shadow-sm border border-border/60">
+                    <div className="relative shrink-0 rounded-xl p-0.5 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
                         <Avatar className="w-16 h-16 rounded-lg after:hidden">
                             {(company.logo_base64 || company.logo_url) && (
                                 <AvatarImage

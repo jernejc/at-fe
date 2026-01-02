@@ -37,11 +37,11 @@ export function PeopleTab({
             {decisionMakers.length > 0 && (
                 <section>
                     <SectionHeader title="Key Contacts" color="bg-amber-500">
-                        <span className="text-sm text-muted-foreground ml-auto">
+                        <span className="text-sm text-slate-500 dark:text-slate-400 ml-auto">
                             {decisionMakers.length} contact{decisionMakers.length !== 1 ? 's' : ''}
                         </span>
                     </SectionHeader>
-                    <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-white dark:bg-slate-900">
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden bg-white dark:bg-slate-800">
                         {decisionMakers.map((e) => (
                             <PersonRow
                                 key={e.id}
@@ -57,11 +57,11 @@ export function PeopleTab({
             {employees.length > 0 && (
                 <section>
                     <SectionHeader title="Team" color="bg-blue-600">
-                        <span className="text-sm text-muted-foreground ml-auto">
+                        <span className="text-sm text-slate-500 dark:text-slate-400 ml-auto">
                             Showing {employees.length} of {teamTotal > 0 ? teamTotal : total}
                         </span>
                     </SectionHeader>
-                    <div className="rounded-xl border border-border/60 divide-y divide-border/60 overflow-hidden shadow-sm bg-white dark:bg-slate-900">
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden bg-white dark:bg-slate-800">
                         {employees.map((e) => (
                             <PersonRow
                                 key={e.id}
@@ -111,9 +111,9 @@ function PersonRow({
     return (
         <div
             className={cn(
-                "flex items-center gap-4 p-4 bg-white dark:bg-slate-900 transition-colors",
+                "flex items-center gap-4 p-4 transition-colors",
                 onClick && "cursor-pointer",
-                highlight ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950 dark:hover:bg-amber-900" : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                highlight ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/50" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
             )}
             onClick={onClick}
         >
@@ -121,16 +121,16 @@ function PersonRow({
                 {person.avatar_url && <AvatarImage src={person.avatar_url} />}
                 <AvatarFallback className={cn(
                     "text-xs font-medium",
-                    highlight ? "bg-amber-100 text-amber-700" : "bg-muted"
+                    highlight ? "bg-amber-100 text-amber-700" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                 )}>
                     {person.full_name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{person.full_name}</p>
-                <p className="text-sm text-muted-foreground truncate">{person.current_title}</p>
+                <p className="font-medium truncate text-slate-900 dark:text-white">{person.full_name}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{person.current_title}</p>
                 {hasMetadata && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {person.department && <span className="text-blue-600">{person.department}</span>}
                         {person.department && (person.city || person.country) && <span>·</span>}
                         {(person.city || person.country) && (

@@ -29,7 +29,7 @@ interface AccountDetailTabsProps {
 
 function CountBadge({ count }: { count: number }) {
     return (
-        <span className="ml-1.5 text-[10px] font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+        <span className="ml-1.5 text-[10px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 px-1.5 py-0.5 rounded-full">
             {formatCompactNumber(count)}
         </span>
     );
@@ -48,7 +48,7 @@ export function AccountDetailTabs({
     const hasUpdates = counts.updates > 0;
 
     return (
-        <div className="border-b bg-background sticky top-0 z-30">
+        <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30">
             <div className="max-w-7xl mx-auto w-full px-6">
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                     <TabsList variant="line" className="h-12 w-full justify-around">

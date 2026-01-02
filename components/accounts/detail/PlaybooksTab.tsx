@@ -163,22 +163,22 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
     }, [selectedId, domain]);
 
     return (
-        <div className="flex h-[calc(100vh-220px)] min-h-[500px] rounded-xl border border-border/60 overflow-hidden bg-card shadow-sm animate-in fade-in duration-700">
-            {/* Sidebar - Pro List Style */}
-            <div className="w-[300px] flex flex-col border-r border-border/60 bg-muted/10">
-                <div className="p-4 border-b border-border/60 space-y-3 bg-card">
+        <div className="flex h-[calc(100vh-220px)] min-h-[500px] rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm animate-in fade-in duration-700 bg-white dark:bg-slate-900">
+            {/* Sidebar */}
+            <div className="w-[300px] flex flex-col border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700 space-y-3 bg-white dark:bg-slate-900">
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-sm flex items-center gap-2">
                             <Sparkles className="w-4 h-4 text-primary" />
                             Strategies
                         </h3>
-                        <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">{sortedPlaybooks.length}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{sortedPlaybooks.length}</span>
                     </div>
                     <div className="relative">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                         <Input
                             placeholder="Find a strategy..."
-                            className="pl-8 h-8 text-sm bg-muted/30 border-input shadow-none focus-visible:ring-1"
+                            className="pl-8 h-8 text-sm bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-none focus-visible:ring-1"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -190,7 +190,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                         variants={container}
                         initial="hidden"
                         animate="show"
-                        className="divide-y divide-border/60"
+                        className="divide-y divide-slate-100 dark:divide-slate-800"
                     >
                         {sortedPlaybooks.map((pb) => {
                             const isSelected = selectedId === pb.id;
@@ -204,8 +204,8 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                     className={cn(
                                         "w-full text-left p-3.5 transition-all group relative",
                                         isSelected
-                                            ? "bg-card"
-                                            : "hover:bg-muted/40"
+                                            ? "bg-white dark:bg-slate-900"
+                                            : "hover:bg-white/50 dark:hover:bg-slate-800/50"
                                     )}
                                 >
                                     {isSelected && (
@@ -215,7 +215,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                         <div className="flex-1 min-w-0">
                                             <div className={cn(
                                                 "font-medium text-sm truncate",
-                                                isSelected ? "text-foreground" : "text-foreground/70"
+                                                isSelected ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"
                                             )}>
                                                 {pb.product_group}
                                             </div>
@@ -224,7 +224,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                                     <span className={cn(
                                                         "text-xs font-medium",
                                                         score >= 0.7 ? "text-emerald-600 dark:text-emerald-400" :
-                                                            score >= 0.4 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
+                                                            score >= 0.4 ? "text-amber-600 dark:text-amber-400" : "text-slate-500 dark:text-slate-400"
                                                     )}>
                                                         {Math.round(score * 100)}% fit
                                                     </span>
@@ -233,27 +233,27 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                         </div>
                                         <ChevronRight className={cn(
                                             "w-4 h-4 shrink-0 transition-transform",
-                                            isSelected ? "text-primary" : "text-muted-foreground/40 group-hover:translate-x-0.5"
+                                            isSelected ? "text-blue-600 dark:text-blue-400" : "text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5"
                                         )} />
                                     </div>
                                 </motion.button>
                             );
                         })}
                         {sortedPlaybooks.length === 0 && (
-                            <div className="text-center py-8 text-sm text-muted-foreground">
+                            <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
                                 No results found
                             </div>
                         )}
 
                         {/* Generate for other products */}
                         {productsWithoutPlaybook.length > 0 && onGeneratePlaybook && (
-                            <div className="p-3 border-t border-border/40">
+                            <div className="p-3 border-t border-slate-200 dark:border-slate-700">
                                 <div className="space-y-2">
                                     <select
                                         value={selectedProductToGenerate ?? productsWithoutPlaybook[0]?.id ?? ''}
                                         onChange={(e) => setSelectedProductToGenerate(parseInt(e.target.value, 10))}
                                         disabled={isGenerating}
-                                        className="w-full text-xs bg-muted/30 border border-border/60 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50 truncate"
+                                        className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500/50 disabled:opacity-50 truncate text-slate-900 dark:text-white"
                                     >
                                         {productsWithoutPlaybook.map((product) => (
                                             <option key={product.id} value={product.id}>
@@ -281,9 +281,9 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
             </div>
 
             {/* Detail View */}
-            <div className="flex-1 flex flex-col min-w-0 bg-card">
+            <div className="flex-1 flex flex-col min-w-0">
                 {selectedId === null ? (
-                    <div className="h-full flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                    <div className="h-full flex flex-col items-center justify-center p-8 text-center text-slate-500 dark:text-slate-400">
                         <Briefcase className="w-12 h-12 stroke-[1.5] mb-4 opacity-20" />
                         <p>Select a strategy to view details</p>
                     </div>

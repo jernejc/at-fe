@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { getCampaigns, getProducts } from '@/lib/api';
 import type { CampaignSummary } from '@/lib/schemas';
 import type { ProductSummary } from '@/lib/schemas/product';
@@ -9,6 +10,7 @@ import { ProductSection } from './ProductSection';
 import { ProductAssignmentDialog } from './ProductAssignmentDialog';
 import { Loader2, FolderKanban, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { staggerContainer, fadeInUp } from '@/lib/animations';
 
 export function CampaignsList() {
     const router = useRouter();
@@ -93,20 +95,29 @@ export function CampaignsList() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center justify-center h-64"
+            >
                 <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-            </div>
+            </motion.div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="flex flex-col items-center justify-center h-64 gap-4"
+            >
                 <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{error}</p>
-                <Button onClick={() => window.location.reload()} size="lg">
+                <Button onClick={() => window.location.reload()} size="lg" className="rounded-xl">
                     Retry
                 </Button>
-            </div>
+            </motion.div>
         );
     }
 
@@ -132,13 +143,23 @@ export function CampaignsList() {
     return (
         <div className="space-y-6">
             {/* Page Header */}
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6"
+            >
                 {/* Left: Title */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100/50 dark:border-blue-900/50 shrink-0">
-                            <FolderKanban className="w-6 h-6" />
-                        </div>
+                        <motion.div 
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+                            className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 border border-slate-200 dark:border-slate-600 shadow-sm shrink-0"
+                        >
+                            <FolderKanban className="w-6 h-6 text-slate-600 dark:text-slate-300" />
+                        </motion.div>
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                                 Workloads
@@ -151,20 +172,28 @@ export function CampaignsList() {
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-3 shrink-0 pt-2">
+                <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.2 }}
+                    className="flex items-center gap-3 shrink-0 pt-2"
+                >
                     <Button
                         onClick={() => handleNewCampaign()}
-                        className="gap-2 h-10 px-5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow-md transition-all font-medium"
+                        className="gap-2 h-10 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-colors font-medium"
                     >
                         <Plus className="w-4 h-4" />
                         New Campaign
                     </Button>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
 
             {/* Empty State */}
             {hasNoCampaigns ? (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-12 text-center">
+                <motion.div 
+                    variants={fadeInUp}
+                    className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-12 text-center"
+                >
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                         No workloads yet
                     </h2>
@@ -173,45 +202,62 @@ export function CampaignsList() {
                     </p>
                     <Button
                         onClick={() => handleNewCampaign()}
-                        className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow-md transition-all"
+                        className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-colors"
                     >
                         Create Campaign
                     </Button>
-                </div>
+                </motion.div>
             ) : (
-                <div className="space-y-4">
+                <motion.div 
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="show"
+                    className="space-y-4"
+                >
                     {/* Unassigned Campaigns (show first if any) */}
                     {unassignedCampaigns.length > 0 && (
-                        <ProductSection
-                            product={null}
-                            campaigns={unassignedCampaigns}
-                            onAssignProduct={handleAssignProduct}
-                            defaultExpanded={true}
-                        />
+                        <motion.div variants={fadeInUp}>
+                            <ProductSection
+                                product={null}
+                                campaigns={unassignedCampaigns}
+                                onAssignProduct={handleAssignProduct}
+                                defaultExpanded={true}
+                            />
+                        </motion.div>
                     )}
 
                     {/* Products with Campaigns */}
-                    {productsWithCampaigns.map((product) => (
-                        <ProductSection
-                            key={product.id}
-                            product={product}
-                            campaigns={groupedCampaigns.get(product.id) || []}
-                            onNewCampaign={handleNewCampaign}
-                            defaultExpanded={true}
-                        />
+                    {productsWithCampaigns.map((product, index) => (
+                        <motion.div 
+                            key={product.id} 
+                            variants={fadeInUp}
+                            custom={index}
+                        >
+                            <ProductSection
+                                product={product}
+                                campaigns={groupedCampaigns.get(product.id) || []}
+                                onNewCampaign={handleNewCampaign}
+                                defaultExpanded={true}
+                            />
+                        </motion.div>
                     ))}
 
                     {/* Products without Campaigns (collapsed) */}
-                    {productsWithoutCampaigns.map((product) => (
-                        <ProductSection
-                            key={product.id}
-                            product={product}
-                            campaigns={[]}
-                            onNewCampaign={handleNewCampaign}
-                            defaultExpanded={false}
-                        />
+                    {productsWithoutCampaigns.map((product, index) => (
+                        <motion.div 
+                            key={product.id} 
+                            variants={fadeInUp}
+                            custom={index + productsWithCampaigns.length}
+                        >
+                            <ProductSection
+                                product={product}
+                                campaigns={[]}
+                                onNewCampaign={handleNewCampaign}
+                                defaultExpanded={false}
+                            />
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             )}
 
             {/* Dialogs */}

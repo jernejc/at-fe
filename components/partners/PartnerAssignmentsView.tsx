@@ -97,8 +97,8 @@ export function PartnerAssignmentsView({
             </div>
 
             {/* Assignments List */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="divide-y divide-slate-100 dark:divide-slate-700">
                     {filteredCompanies.map((company) => {
                         const assignedPartner = partners.find(p => p.id === company.partner_id);
 
@@ -223,7 +223,7 @@ export function PartnerAssignmentsView({
                                                 {!company.partner_id && <Check className="w-4 h-4 text-blue-500" />}
                                             </button>
 
-                                            <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                                            <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
 
                                             {partners.map(partner => (
                                                 <button

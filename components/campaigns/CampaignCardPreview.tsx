@@ -45,8 +45,8 @@ export function CampaignCardPreview({ campaign, onAssignProduct }: CampaignCardP
             onClick={handleClick}
             className={cn(
                 "group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800",
-                "p-4 hover:shadow-md transition-all cursor-pointer hover:border-slate-300 dark:hover:border-slate-700",
-                "min-w-[200px] max-w-[280px]"
+                "p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700",
+                "transition-colors min-w-[200px] max-w-[280px]"
             )}
         >
             {/* Campaign Name */}
@@ -81,7 +81,7 @@ export function CampaignCardPreview({ campaign, onAssignProduct }: CampaignCardP
             {/* Status & Date */}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <span className={cn(
-                    "text-xs px-2 py-0.5 rounded-md font-medium",
+                    "text-xs px-2 py-0.5 rounded-lg font-medium",
                     campaign.status === 'active' && "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
                     campaign.status === 'draft' && "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
                     campaign.status === 'archived' && "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-500"

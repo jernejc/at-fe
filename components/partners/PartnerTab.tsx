@@ -221,7 +221,7 @@ export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompan
                     </div>
 
                     {/* Summary Stats */}
-                    <div className="flex items-center justify-between py-3 px-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between py-3 px-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                         <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Assignment Summary</span>
                         <div className="flex items-center gap-6 text-sm">
                             <div className="flex items-center gap-1.5">

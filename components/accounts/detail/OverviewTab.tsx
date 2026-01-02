@@ -9,36 +9,19 @@ interface OverviewTabProps {
 
 export function OverviewTab({ company }: OverviewTabProps) {
     return (
-        <div className="space-y-6">
-            {/* About with accent line */}
+        <div className="space-y-8">
+            {/* About */}
             {company.description && (
                 <section>
                     <SectionHeader title="About" />
-                    <p className="text-muted-foreground leading-relaxed pl-4 text-sm">{company.description}</p>
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">{company.description}</p>
                 </section>
             )}
 
-            {/* Specialties */}
-            {company.specialties && company.specialties.length > 0 && (
-                <section>
-                    <SectionHeader title="Specialties" count={company.specialties.length} />
-                    <div className="flex flex-wrap gap-2 pl-4">
-                        {company.specialties.slice(0, 20).map((specialty, i) => (
-                            <span key={i} className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50 rounded-md">
-                                {specialty}
-                            </span>
-                        ))}
-                        {company.specialties.length > 20 && (
-                            <span className="px-3 py-1.5 text-xs text-muted-foreground">+{company.specialties.length - 20} more</span>
-                        )}
-                    </div>
-                </section>
-            )}
-
-            {/* Details grid with alternating colors */}
+            {/* Company Details - grid card */}
             <section>
                 <SectionHeader title="Company Details" />
-                <div className="grid grid-cols-2 md:grid-cols-4 border rounded-lg overflow-hidden">
+                <div className="grid grid-cols-2 md:grid-cols-4 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-800">
                     {company.industry && <DetailCell label="Industry" value={company.industry} />}
                     {company.company_type && <DetailCell label="Type" value={company.company_type} />}
                     {company.employee_count_range && <DetailCell label="Size" value={company.employee_count_range} />}
@@ -54,28 +37,45 @@ export function OverviewTab({ company }: OverviewTabProps) {
                 </div>
             </section>
 
-            {/* Tech stack with colored tags */}
-            {company.technologies && company.technologies.length > 0 && (
+            {/* Specialties */}
+            {company.specialties && company.specialties.length > 0 && (
                 <section>
-                    <SectionHeader title="Tech Stack" count={company.technologies.length} />
-                    <div className="flex flex-wrap gap-2 pl-4">
-                        {company.technologies.slice(0, 20).map((tech, i) => (
-                            <span key={i} className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50 rounded-md">
-                                {tech.technology}
+                    <SectionHeader title="Specialties" count={company.specialties.length} />
+                    <div className="flex flex-wrap gap-2">
+                        {company.specialties.slice(0, 20).map((specialty, i) => (
+                            <span key={i} className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-md">
+                                {specialty}
                             </span>
                         ))}
-                        {company.technologies.length > 20 && (
-                            <span className="px-3 py-1.5 text-xs text-muted-foreground">+{company.technologies.length - 20} more</span>
+                        {company.specialties.length > 20 && (
+                            <span className="px-3 py-1.5 text-xs text-slate-500">+{company.specialties.length - 20} more</span>
                         )}
                     </div>
                 </section>
             )}
 
-            {/* Ratings visual bars - Unified Colors */}
+            {/* Tech stack */}
+            {company.technologies && company.technologies.length > 0 && (
+                <section>
+                    <SectionHeader title="Tech Stack" count={company.technologies.length} color="bg-emerald-600" />
+                    <div className="flex flex-wrap gap-2">
+                        {company.technologies.slice(0, 20).map((tech, i) => (
+                            <span key={i} className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-md">
+                                {tech.technology}
+                            </span>
+                        ))}
+                        {company.technologies.length > 20 && (
+                            <span className="px-3 py-1.5 text-xs text-slate-500">+{company.technologies.length - 20} more</span>
+                        )}
+                    </div>
+                </section>
+            )}
+
+            {/* Ratings */}
             {company.rating_overall && (
                 <section>
-                    <SectionHeader title="Employee Ratings" count={company.reviews_count ? `${company.reviews_count.toLocaleString()} reviews` : undefined} />
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pl-4">
+                    <SectionHeader title="Employee Ratings" count={company.reviews_count ? `${company.reviews_count.toLocaleString()} reviews` : undefined} color="bg-amber-500" />
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <RatingBar label="Overall" value={company.rating_overall} color="bg-blue-600" />
                         <RatingBar label="Culture" value={company.rating_culture} color="bg-blue-500" />
                         <RatingBar label="Compensation" value={company.rating_compensation} color="bg-blue-500" />
@@ -89,8 +89,8 @@ export function OverviewTab({ company }: OverviewTabProps) {
             {/* Contact */}
             {(company.website_url || (company.emails && company.emails.length > 0)) && (
                 <section>
-                    <SectionHeader title="Contact" />
-                    <div className="pl-4 space-y-2">
+                    <SectionHeader title="Contact" color="bg-sky-500" />
+                    <div className="space-y-2">
                         {company.website_url && (
                             <a href={(company.website_url.startsWith('http') ? company.website_url : `https://${company.website_url}`)} target="_blank" rel="noopener" className="flex items-center gap-2 text-sm text-blue-600 hover:underline w-fit">
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>

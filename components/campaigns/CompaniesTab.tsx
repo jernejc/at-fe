@@ -71,8 +71,8 @@ export function CompaniesTab({
             </div>
 
             {/* Companies List */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                     <div>
                         <h3 className="font-medium text-sm text-slate-900 dark:text-white">
                             {useDynamic ? 'Matching Companies' : 'All Companies'}
@@ -93,7 +93,7 @@ export function CompaniesTab({
                 </div>
 
                 {(useDynamic ? (sortedDynamicCompanies?.length ?? 0) : sortedCompanies.length) > 0 ? (
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <div className="divide-y divide-slate-100 dark:divide-slate-700">
                         {useDynamic ? (
                             sortedDynamicCompanies!.map((company) => (
                                 <CompanyRowCompact
@@ -138,7 +138,7 @@ export function CompaniesTab({
                 )}
 
                 {useDynamic && sortedDynamicCompanies && sortedDynamicCompanies.length < totalCount && (
-                    <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800">
+                    <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700">
                         <p className="text-center text-xs text-slate-500 dark:text-slate-400">
                             Showing {sortedDynamicCompanies.length} of {totalCount} matching companies
                         </p>

@@ -36,11 +36,8 @@ export function CampaignHeader({
     const progressPercent = Math.round((campaign.processed_count / Math.max(displayCompanyCount, 1)) * 100);
 
     return (
-        <div className="relative group border-b border-border/60 bg-white dark:bg-slate-900">
-            {/* Subtle background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white/50 to-blue-50/30 dark:from-slate-900/80 dark:via-slate-900/50 dark:to-blue-900/10 pointer-events-none" />
-
-            <div className="relative px-6 pt-8 pb-0 max-w-[1600px] mx-auto w-full">
+        <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+            <div className="px-6 pt-8 pb-0 max-w-[1600px] mx-auto w-full">
                 <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
                     <Link href="/campaigns" className="hover:text-foreground transition-colors">Campaigns</Link>
                     <ChevronRight className="w-4 h-4" />

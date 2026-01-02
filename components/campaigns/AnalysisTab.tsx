@@ -34,8 +34,8 @@ export function AnalysisTab({
     return (
         <div className="space-y-6">
             {/* Campaign Funnel */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Campaign Funnel</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Company progression through qualification stages
@@ -68,8 +68,8 @@ function CompanyComparisonCard({
 }) {
     if (!comparison || comparison.companies.length === 0) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <h3 className="font-medium text-sm text-slate-900 dark:text-white">Company Analysis</h3>
                 </div>
                 <div className="p-6 text-center">
@@ -82,8 +82,8 @@ function CompanyComparisonCard({
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                 <h3 className="font-medium text-sm text-slate-900 dark:text-white">Company Analysis</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     {comparison.companies.length} companies with fit scores and signals
@@ -100,7 +100,7 @@ function CompanyComparisonCard({
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Top Signals</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {comparison.companies.map((company, idx) => (
                             <tr
                                 key={idx}
@@ -161,8 +161,8 @@ export function AnalysisTabSkeleton() {
     return (
         <div className="space-y-6">
             {/* Funnel skeleton */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <div className={`h-4 w-28 rounded ${shimmer}`} />
                 </div>
                 <div className="p-4">
@@ -175,8 +175,8 @@ export function AnalysisTabSkeleton() {
             </div>
 
             {/* Table skeleton */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <div className={`h-4 w-32 rounded ${shimmer}`} />
                 </div>
                 <div className="p-4 space-y-3">
