@@ -5,6 +5,11 @@ export { ProductSection } from './ProductSection';
 export { ProductAssignmentDialog } from './ProductAssignmentDialog';
 export { CampaignCreateWizard } from './CampaignCreateWizard';
 
+// Agentic search components
+export { SearchPhaseIndicator, SearchPhaseDotsInline } from './SearchPhaseIndicator';
+export { InterpretationCard } from './InterpretationCard';
+export { SearchInsightsPanel, SearchInsightsInline } from './SearchInsightsPanel';
+
 // Campaign detail
 export { CampaignHeader } from './CampaignHeader';
 export { OverviewTab, OverviewTabSkeleton, type DrillDownFilter } from './OverviewTab';

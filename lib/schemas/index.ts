@@ -122,7 +122,28 @@ export type {
 } from './product';
 
 // Search types
-export type { SearchResults } from './search';
+export type {
+    SearchResults,
+    // WebSocket Agentic Search types
+    WSSearchPhase,
+    WSMessageType,
+    WSSearchRequest,
+    WSSearchInterpretation,
+    WSTopInterest,
+    WSCompanyResult,
+    WSPartnerResult,
+    WSMatchedInterest,
+    WSPartnerSuggestion,
+    WSSearchInsights,
+    WSInterestFrequency,
+    WSPartnerSuggestionSummary,
+    WSBaseMessage,
+    WSAckMessage,
+    WSResultMessage,
+    WSErrorMessage,
+    WSCompleteMessage,
+    WSSearchMessage,
+} from './search';
 
 // Campaign types
 export type {

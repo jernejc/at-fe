@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createCampaign, getCompanies, getPartners, bulkAssignPartners, suggestPartnersForCompanies } from '@/lib/api';
-import type { CampaignFilterUI, ProductSummary, Partner, CompanyFilters, CompanySummary, CompanySummaryWithFit, PartnerSuggestion } from '@/lib/schemas';
+import type { CampaignFilterUI, ProductSummary, Partner, CompanyFilters, CompanySummary, CompanySummaryWithFit, PartnerSuggestion, WSCompanyResult, WSPartnerSuggestion } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -34,9 +34,16 @@ import {
     Clock,
     Zap,
     Globe,
+    Brain,
+    Target,
+    Award,
 } from 'lucide-react';
 import { CompanyRowCompact } from './CompanyRowCompact';
 import { AccountDetail } from '@/components/accounts';
+import { useAgenticSearch } from '@/hooks/useAgenticSearch';
+import { SearchPhaseIndicator } from './SearchPhaseIndicator';
+import { InterpretationCard } from './InterpretationCard';
+import { SearchInsightsPanel } from './SearchInsightsPanel';
 
 interface CampaignCreateWizardProps {
     products: ProductSummary[];
@@ -226,8 +233,65 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
     const [selectedPartnerIds, setSelectedPartnerIds] = useState<Set<string>>(new Set());
     const [assignmentMode, setAssignmentMode] = useState<'auto' | 'manual' | 'skip'>('auto');
 
+    // Agentic search
+    const [useAgenticMode, setUseAgenticMode] = useState(true);
+    const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+    
+    const {
+        state: agenticState,
+        search: triggerAgenticSearch,
+        reset: resetAgenticSearch,
+        isSearching: isAgenticSearching,
+    } = useAgenticSearch({
+        onComplete: (state) => {
+            // Convert WS companies to preview format
+            const wsCompanies: (CompanySummary | CompanySummaryWithFit)[] = state.companies.map(c => ({
+                id: c.company_id,
+                domain: c.domain,
+                name: c.name,
+                description: c.description,
+                industry: c.industry || null,
+                logo_base64: c.logo_base64 || null,
+                employee_count: c.employee_count || null,
+                combined_score: Math.round(c.match_score * 100),
+            }));
+            setPreviewCompanies(wsCompanies);
+            setPreviewTotal(state.totalResults);
+            
+            // Convert WS partner suggestions
+            if (state.partnerSuggestions.length > 0) {
+                const wsSuggestions: PartnerSuggestion[] = state.partnerSuggestions.map(s => ({
+                    partner: {
+                        id: s.partner_id,
+                        name: s.name,
+                        slug: s.slug,
+                        description: s.description,
+                        status: 'active' as const,
+                        logo_url: s.logo_url || null,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                    },
+                    match_score: Math.round(s.match_score * 100),
+                    match_reasons: s.matched_interests.map(i => i.reasoning).filter(Boolean),
+                    industry_overlap: s.matched_interests.map(i => i.interest),
+                }));
+                setSuggestedPartners(wsSuggestions);
+                
+                // Auto-select top 3
+                if (wsSuggestions.length > 0) {
+                    const topIds = wsSuggestions.slice(0, 3).map(s => s.partner.slug || String(s.partner.id));
+                    setSelectedPartnerIds(new Set(topIds));
+                }
+            }
+        },
+    });
+
     const selectedProduct = products.find(p => p.id === productId);
     const hasAudience = searchQuery.trim() || filters.length > 0;
+    
+    // Derived state for agentic search
+    const isAgenticPhaseActive = agenticState.phase !== 'idle' && agenticState.phase !== 'complete' && agenticState.phase !== 'error';
+    const hasAgenticResults = agenticState.companies.length > 0 || agenticState.phase === 'complete';
 
 
     // Auto-scroll to bottom
@@ -288,13 +352,30 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Fetch company preview
+    // Fetch company preview - uses agentic search for NL queries, REST for filters
     const fetchCompanyPreview = useCallback(async () => {
         if (!hasAudience) {
             setPreviewCompanies([]);
             setPreviewTotal(0);
+            resetAgenticSearch();
             return;
         }
+        
+        // Use agentic search for natural language queries
+        if (useAgenticMode && searchQuery.trim()) {
+            // Clear previous results when starting new search
+            setPreviewCompanies([]);
+            setPreviewTotal(0);
+            triggerAgenticSearch(searchQuery, {
+                entity_types: ['companies', 'partners'],
+                limit: 20,
+                include_partner_suggestions: true,
+                partner_suggestion_limit: 5,
+            });
+            return;
+        }
+        
+        // Fallback to REST API for filter-only queries
         setLoadingPreview(true);
         try {
             const result = await getCompanies(filtersToCompanyFilters(filters, productId));
@@ -312,14 +393,28 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
         } finally {
             setLoadingPreview(false);
         }
-    }, [filters, productId, hasAudience]);
+    }, [filters, productId, hasAudience, useAgenticMode, searchQuery, triggerAgenticSearch, resetAgenticSearch]);
 
+    // Debounced search trigger
     useEffect(() => {
         if (currentStep === 'audience' || currentStep === 'preview') {
-            const timer = setTimeout(fetchCompanyPreview, 400);
-            return () => clearTimeout(timer);
+            // Clear previous debounce
+            if (searchDebounceRef.current) {
+                clearTimeout(searchDebounceRef.current);
+            }
+            
+            // Debounce the search
+            searchDebounceRef.current = setTimeout(() => {
+                fetchCompanyPreview();
+            }, useAgenticMode && searchQuery.trim() ? 600 : 400);
+            
+            return () => {
+                if (searchDebounceRef.current) {
+                    clearTimeout(searchDebounceRef.current);
+                }
+            };
         }
-    }, [filters, productId, currentStep, fetchCompanyPreview, searchQuery]);
+    }, [filters, productId, currentStep, fetchCompanyPreview, searchQuery, useAgenticMode]);
 
     // Fetch partners on mount
     useEffect(() => {
@@ -779,121 +874,120 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                 {/* Audience Definition */}
                                 {currentStep === 'audience' && (
                                     <SystemMessage showAvatar={false}>
-                                        <div className="space-y-4">
-                                            {/* Natural language search */}
+                                        <div className="space-y-3">
+                                            {/* Search input with inline filters */}
                                             <motion.div 
-                                                className="relative"
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.2 }}
+                                                className="space-y-2"
                                             >
-                                                <motion.div
-                                                    animate={{ 
-                                                        rotate: searchQuery.length > 0 ? [0, 5, -5, 0] : 0,
-                                                        scale: searchQuery.length > 0 ? [1, 1.1, 1] : 1
-                                                    }}
-                                                    transition={{ duration: 0.3 }}
-                                                    className="absolute left-4 top-1/2 -translate-y-1/2"
-                                                >
-                                                    <Sparkles className="w-5 h-5 text-primary" />
-                                                </motion.div>
-                                                <input
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                    placeholder="Describe your ideal customer... e.g., 'B2B SaaS companies in healthcare with 100+ employees'"
-                                                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                                                />
-                                            </motion.div>
+                                                {/* Main search input */}
+                                                <div className="relative">
+                                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                        <Sparkles className="w-4 h-4 text-primary/60" />
+                                                    </div>
+                                                    <input
+                                                        value={searchQuery}
+                                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                                        placeholder="B2B SaaS companies in healthcare with 100+ employees..."
+                                                        className="w-full h-11 pl-10 pr-32 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    />
+                                                    {/* Loading indicator on the right */}
+                                                    {isAgenticPhaseActive && (
+                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                            <SearchPhaseIndicator phase={agenticState.phase} />
+                                                        </div>
+                                                    )}
+                                                </div>
 
-                                            {/* Quick filters */}
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="text-xs text-slate-500">Or filter by:</span>
-                                                {['industry', 'location', 'size_min', 'fit_min'].map(type => {
-                                                    const config: Record<string, { label: string; icon: React.ReactNode; placeholder: string; suggestions?: string[] }> = {
-                                                        industry: { 
-                                                            label: 'Industry', 
-                                                            icon: <Building2 className="w-3.5 h-3.5" />, 
-                                                            placeholder: 'e.g., Technology',
-                                                            suggestions: ['Technology', 'Healthcare', 'Financial Services', 'Manufacturing', 'Retail', 'Media']
-                                                        },
-                                                        location: { 
-                                                            label: 'Location', 
-                                                            icon: <MapPin className="w-3.5 h-3.5" />, 
-                                                            placeholder: 'e.g., United States',
-                                                            suggestions: ['United States', 'United Kingdom', 'Germany', 'France', 'Canada', 'Australia']
-                                                        },
-                                                        size_min: { 
-                                                            label: 'Size', 
-                                                            icon: <Users className="w-3.5 h-3.5" />, 
-                                                            placeholder: 'Min employees',
-                                                            suggestions: ['50', '100', '250', '500', '1000', '5000']
-                                                        },
-                                                        fit_min: { 
-                                                            label: 'Fit Score', 
-                                                            icon: <Zap className="w-3.5 h-3.5" />, 
-                                                            placeholder: 'Min score',
-                                                            suggestions: ['50', '60', '70', '80', '90']
-                                                        },
-                                                    };
-                                                    const c = config[type];
-                                                    const isActive = activeFilterType === type;
-
-                                                    return (
-                                                        <div key={type} className="relative">
+                                                {/* Compact filter row */}
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    {/* Active filters first */}
+                                                    {filters.map(f => (
+                                                        <motion.span
+                                                            key={f.id}
+                                                            initial={{ opacity: 0, scale: 0.9 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            className="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium"
+                                                        >
+                                                            {f.displayLabel}
                                                             <button
-                                                                onClick={() => setActiveFilterType(isActive ? null : type)}
-                                                                className={cn(
-                                                                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all",
-                                                                    isActive
-                                                                        ? "bg-primary text-white"
-                                                                        : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary"
-                                                                )}
+                                                                onClick={() => setFilters(filters.filter(x => x.id !== f.id))}
+                                                                className="p-0.5 rounded hover:bg-primary/20 transition-colors"
                                                             >
-                                                                {c.icon}
-                                                                {c.label}
+                                                                <X className="w-3 h-3" />
                                                             </button>
+                                                        </motion.span>
+                                                    ))}
+                                                    
+                                                    {/* Filter buttons */}
+                                                    {['industry', 'location', 'size_min'].map(type => {
+                                                        const config: Record<string, { label: string; icon: React.ReactNode; placeholder: string; suggestions?: string[] }> = {
+                                                            industry: { 
+                                                                label: 'Industry', 
+                                                                icon: <Building2 className="w-3 h-3" />, 
+                                                                placeholder: 'e.g., Technology',
+                                                                suggestions: ['Technology', 'Healthcare', 'Financial Services', 'Manufacturing', 'Retail']
+                                                            },
+                                                            location: { 
+                                                                label: 'Location', 
+                                                                icon: <MapPin className="w-3 h-3" />, 
+                                                                placeholder: 'e.g., United States',
+                                                                suggestions: ['United States', 'United Kingdom', 'Germany', 'Canada', 'Australia']
+                                                            },
+                                                            size_min: { 
+                                                                label: 'Size', 
+                                                                icon: <Users className="w-3 h-3" />, 
+                                                                placeholder: 'Min employees',
+                                                                suggestions: ['50', '100', '500', '1000']
+                                                            },
+                                                        };
+                                                        const c = config[type];
+                                                        const isActive = activeFilterType === type;
+                                                        const hasFilter = filters.some(f => f.type === type || (type === 'location' && f.type === 'country'));
 
-                                                            {isActive && (
-                                                                <>
-                                                                    <div className="fixed inset-0 z-40" onClick={() => { setActiveFilterType(null); setFilterInputValue(''); }} />
-                                                                    <motion.div 
-                                                                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                                                                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                                                                        className="absolute z-50 bottom-full left-0 mb-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 min-w-[240px] overflow-hidden"
-                                                                    >
-                                                                        {/* Header */}
-                                                                        <div className="px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
-                                                                            <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                                                {c.icon}
-                                                                                {c.label}
+                                                        if (hasFilter) return null;
+
+                                                        return (
+                                                            <div key={type} className="relative">
+                                                                <button
+                                                                    onClick={() => setActiveFilterType(isActive ? null : type)}
+                                                                    className={cn(
+                                                                        "inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all",
+                                                                        isActive
+                                                                            ? "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
+                                                                            : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                                    )}
+                                                                >
+                                                                    {c.icon}
+                                                                    {c.label}
+                                                                </button>
+
+                                                                {isActive && (
+                                                                    <>
+                                                                        <div className="fixed inset-0 z-40" onClick={() => { setActiveFilterType(null); setFilterInputValue(''); }} />
+                                                                        <motion.div 
+                                                                            initial={{ opacity: 0, y: 4 }}
+                                                                            animate={{ opacity: 1, y: 0 }}
+                                                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                                            className="absolute z-50 top-full left-0 mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 p-2 min-w-[200px]"
+                                                                        >
+                                                                            {/* Quick suggestions */}
+                                                                            <div className="flex flex-wrap gap-1 mb-2">
+                                                                                {c.suggestions?.map((suggestion) => (
+                                                                                    <button
+                                                                                        key={suggestion}
+                                                                                        onClick={() => addFilter(type === 'location' ? 'country' : type, suggestion)}
+                                                                                        className="px-2 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-colors"
+                                                                                    >
+                                                                                        {type === 'size_min' ? `${suggestion}+` : suggestion}
+                                                                                    </button>
+                                                                                ))}
                                                                             </div>
-                                                                        </div>
-                                                                        
-                                                                        {/* Quick suggestions */}
-                                                                        {c.suggestions && (
-                                                                            <div className="p-2 border-b border-slate-100 dark:border-slate-700">
-                                                                                <div className="flex flex-wrap gap-1.5">
-                                                                                    {c.suggestions.map((suggestion) => (
-                                                                                        <button
-                                                                                            key={suggestion}
-                                                                                            onClick={() => {
-                                                                                                addFilter(type === 'location' ? 'country' : type, suggestion);
-                                                                                            }}
-                                                                                            className="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-colors"
-                                                                                        >
-                                                                                            {type === 'size_min' || type === 'fit_min' ? `${suggestion}+` : suggestion}
-                                                                                        </button>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                        
-                                                                        {/* Custom input */}
-                                                                        <div className="p-3">
-                                                                            <div className="text-xs text-slate-500 mb-1.5">Or enter custom value</div>
-                                                                            <div className="flex gap-2">
+                                                                            
+                                                                            {/* Custom input */}
+                                                                            <div className="flex gap-1.5">
                                                                                 <input
                                                                                     autoFocus
                                                                                     value={filterInputValue}
@@ -908,45 +1002,36 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                                                         }
                                                                                     }}
                                                                                     placeholder={c.placeholder}
-                                                                                    className="flex-1 h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                                                                    className="flex-1 h-7 px-2 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
                                                                                 />
                                                                                 <Button
                                                                                     size="sm"
                                                                                     onClick={() => addFilter(type === 'location' ? 'country' : type, filterInputValue)}
                                                                                     disabled={!filterInputValue.trim()}
-                                                                                    className="h-8 px-3"
+                                                                                    className="h-7 px-2 text-xs"
                                                                                 >
                                                                                     Add
                                                                                 </Button>
                                                                             </div>
-                                                                        </div>
-                                                                    </motion.div>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-
-                                            {/* Active filters */}
-                                            {filters.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {filters.map(f => (
-                                                        <Badge key={f.id} variant="secondary" className="gap-1 pr-1">
-                                                            {f.displayLabel}
-                                                            <button
-                                                                onClick={() => setFilters(filters.filter(x => x.id !== f.id))}
-                                                                className="ml-1 p-0.5 rounded-full hover:bg-slate-300 dark:hover:bg-slate-600"
-                                                            >
-                                                                <X className="w-3 h-3" />
-                                                            </button>
-                                                        </Badge>
-                                                    ))}
+                                                                        </motion.div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
+                                            </motion.div>
+
+                                            {/* AI Interpretation */}
+                                            {useAgenticMode && searchQuery.trim() && (
+                                                <InterpretationCard
+                                                    interpretation={agenticState.interpretation}
+                                                    isLoading={agenticState.phase === 'interpreting' || agenticState.phase === 'connecting'}
+                                                />
                                             )}
 
-                                            {/* Preview */}
-                                            {hasAudience && (
+                                            {/* Preview - only show when we have results to display */}
+                                            {hasAudience && (previewCompanies.length > 0 || agenticState.companies.length > 0) && (
                                                 <motion.div
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
@@ -957,15 +1042,26 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                     <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                                                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                                                             <motion.div
-                                                                animate={{ scale: loadingPreview ? [1, 1.2, 1] : 1 }}
-                                                                transition={{ duration: 0.5, repeat: loadingPreview ? Infinity : 0 }}
+                                                                animate={{ scale: (loadingPreview || isAgenticSearching) ? [1, 1.2, 1] : 1 }}
+                                                                transition={{ duration: 0.5, repeat: (loadingPreview || isAgenticSearching) ? Infinity : 0 }}
                                                             >
-                                                                <Zap className="w-3.5 h-3.5 text-primary" />
+                                                                {useAgenticMode && searchQuery.trim() ? (
+                                                                    <Brain className="w-3.5 h-3.5 text-primary" />
+                                                                ) : (
+                                                                    <Zap className="w-3.5 h-3.5 text-primary" />
+                                                                )}
                                                             </motion.div>
-                                                            Live Preview
+                                                            Matching accounts
                                                         </span>
-                                                        {loadingPreview ? (
-                                                            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                                                        {(loadingPreview || isAgenticSearching) ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                                                                {isAgenticSearching && agenticState.companies.length > 0 && (
+                                                                    <span className="text-xs text-slate-400">
+                                                                        {agenticState.companies.length} found...
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         ) : (
                                                             <motion.span 
                                                                 key={previewTotal}
@@ -974,11 +1070,36 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                                 className="text-sm text-slate-500 flex items-center gap-1"
                                                             >
                                                                 {previewTotal.toLocaleString()} matches
+                                                                {agenticState.searchTimeMs > 0 && (
+                                                                    <span className="text-xs text-slate-400 ml-1">
+                                                                        ({(agenticState.searchTimeMs / 1000).toFixed(1)}s)
+                                                                    </span>
+                                                                )}
                                                             </motion.span>
                                                         )}
                                                     </div>
                                                     <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[200px] overflow-y-auto">
-                                                        {previewCompanies.slice(0, 5).map((company) => (
+                                                        {/* Streaming results during agentic search */}
+                                                        {isAgenticSearching && agenticState.companies.length > 0 ? (
+                                                            agenticState.companies.slice(0, 5).map((company, idx) => (
+                                                                <motion.div
+                                                                    key={company.domain}
+                                                                    initial={{ opacity: 0, x: -20 }}
+                                                                    animate={{ opacity: 1, x: 0 }}
+                                                                    transition={{ delay: idx * 0.05 }}
+                                                                >
+                                                                    <CompanyRowCompact
+                                                                        name={company.name}
+                                                                        domain={company.domain}
+                                                                        industry={company.industry}
+                                                                        fitScore={Math.round(company.match_score * 100)}
+                                                                        logoBase64={company.logo_base64}
+                                                                        onClick={() => { setSelectedDomain(company.domain); setDetailOpen(true); }}
+                                                                        className="cursor-pointer"
+                                                                    />
+                                                                </motion.div>
+                                                            ))
+                                                        ) : previewCompanies.slice(0, 5).map((company) => (
                                                             <CompanyRowCompact
                                                                 key={company.domain}
                                                                 name={company.name}
@@ -990,14 +1111,43 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                                 className="cursor-pointer"
                                                             />
                                                         ))}
-                                                        {previewCompanies.length === 0 && !loadingPreview && (
+                                                        {previewCompanies.length === 0 && !loadingPreview && !isAgenticSearching && agenticState.companies.length === 0 && (
                                                             <div className="px-4 py-6 text-center text-sm text-slate-500">
                                                                 No companies match your criteria yet
+                                                            </div>
+                                                        )}
+                                                        {isAgenticSearching && agenticState.companies.length === 0 && (
+                                                            <div className="px-4 py-6 text-center">
+                                                                <motion.div
+                                                                    animate={{ opacity: [0.5, 1, 0.5] }}
+                                                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                                                    className="text-sm text-slate-500"
+                                                                >
+                                                                    Searching with AI...
+                                                                </motion.div>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </Card>
                                                 </motion.div>
+                                            )}
+
+                                            {/* AI Insights Panel - shows after agentic search completes */}
+                                            {agenticState.phase === 'complete' && (agenticState.insights || agenticState.suggestedQueries.length > 0) && (
+                                                <SearchInsightsPanel
+                                                    insights={agenticState.insights}
+                                                    suggestedQueries={agenticState.suggestedQueries}
+                                                    refinementTips={agenticState.refinementTips}
+                                                    interestSummary={agenticState.interestSummary}
+                                                    searchTimeMs={agenticState.searchTimeMs}
+                                                    totalResults={agenticState.totalResults}
+                                                    onQueryClick={(query) => {
+                                                        setSearchQuery(query);
+                                                        // Trigger new search after state update
+                                                        setTimeout(() => triggerAgenticSearch(query), 100);
+                                                    }}
+                                                    className="mt-3"
+                                                />
                                             )}
 
                                             {/* Continue button */}
@@ -1075,10 +1225,13 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                                     AI Recommended
                                                                 </span>
                                                             </div>
-                                                            <div className="space-y-2">
+                                                            <div className="space-y-3">
                                                             {suggestedPartners.map((suggestion, index) => {
                                                                 const partner = suggestion.partner;
                                                                 const isSelected = selectedPartnerIds.has(partner.slug || String(partner.id));
+                                                                // Check if this came from WebSocket with detailed matching
+                                                                const wsMatch = agenticState.partnerSuggestions.find(s => s.partner_id === partner.id);
+                                                                const hasDetailedMatch = wsMatch && wsMatch.matched_interests && wsMatch.matched_interests.length > 0;
                                                                 
                                                                 return (
                                                                     <motion.button
@@ -1107,10 +1260,10 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                                                 : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
                                                                         )}
                                                                     >
-                                                                        <div className="flex items-center gap-3">
+                                                                        <div className="flex items-start gap-3">
                                                                             <motion.div 
                                                                                 className={cn(
-                                                                                    "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0",
+                                                                                    "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 mt-0.5",
                                                                                     isSelected
                                                                                         ? "bg-primary border-primary"
                                                                                         : "border-slate-300 dark:border-slate-600"
@@ -1143,22 +1296,80 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                                             </div>
                                                                             
                                                                             <div className="flex-1 min-w-0">
-                                                                                <div className="font-medium text-slate-900 dark:text-white text-sm">
-                                                                                    {partner.name}
+                                                                                <div className="flex items-center justify-between mb-1">
+                                                                                    <div className="font-medium text-slate-900 dark:text-white text-sm">
+                                                                                        {partner.name}
+                                                                                    </div>
+                                                                                    <motion.div 
+                                                                                        className="shrink-0 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-sm font-bold"
+                                                                                        initial={{ scale: 0.8, opacity: 0 }}
+                                                                                        animate={{ scale: 1, opacity: 1 }}
+                                                                                        transition={{ delay: 0.2 + (index * 0.1), type: "spring", stiffness: 400, damping: 20 }}
+                                                                                    >
+                                                                                        {suggestion.match_score}%
+                                                                                    </motion.div>
                                                                                 </div>
-                                                                                <div className="text-xs text-slate-500 mt-0.5 truncate">
+                                                                                
+                                                                                {/* Match reasons */}
+                                                                                <div className="text-xs text-slate-500 mb-2">
                                                                                     {suggestion.match_reasons.slice(0, 2).join(' • ')}
                                                                                 </div>
+                                                                                
+                                                                                {/* Enhanced matching info from WebSocket */}
+                                                                                {hasDetailedMatch && wsMatch && (
+                                                                                    <div className="space-y-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                                                                        {/* Interest Coverage Bar */}
+                                                                                        {wsMatch.interest_coverage > 0 && (
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                <span className="text-xs text-slate-400 whitespace-nowrap">Coverage</span>
+                                                                                                <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                                                                    <motion.div
+                                                                                                        initial={{ width: 0 }}
+                                                                                                        animate={{ width: `${Math.min(wsMatch.interest_coverage * 100, 100)}%` }}
+                                                                                                        transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
+                                                                                                        className="h-full bg-gradient-to-r from-primary to-emerald-500 rounded-full"
+                                                                                                    />
+                                                                                                </div>
+                                                                                                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                                                                                    {Math.round(wsMatch.interest_coverage * 100)}%
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+                                                                                        
+                                                                                        {/* Matched Interests */}
+                                                                                        <div className="flex flex-wrap gap-1">
+                                                                                            {wsMatch.matched_interests.slice(0, 3).map((mi, i) => (
+                                                                                                <span
+                                                                                                    key={mi.interest}
+                                                                                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-primary/10 text-primary"
+                                                                                                >
+                                                                                                    <Target className="w-2.5 h-2.5" />
+                                                                                                    {mi.interest.replace(/_/g, ' ')}
+                                                                                                </span>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                        
+                                                                                        {/* Certifications */}
+                                                                                        {wsMatch.matched_interests.some(mi => mi.certifications?.length > 0) && (
+                                                                                            <div className="flex flex-wrap gap-1">
+                                                                                                {wsMatch.matched_interests
+                                                                                                    .flatMap(mi => mi.certifications || [])
+                                                                                                    .filter((v, i, a) => a.indexOf(v) === i)
+                                                                                                    .slice(0, 4)
+                                                                                                    .map((cert) => (
+                                                                                                        <span
+                                                                                                            key={cert}
+                                                                                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400"
+                                                                                                        >
+                                                                                                            <Award className="w-2.5 h-2.5" />
+                                                                                                            {cert}
+                                                                                                        </span>
+                                                                                                    ))}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
-                                                                            
-                                                                            <motion.div 
-                                                                                className="shrink-0 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-sm font-bold"
-                                                                                initial={{ scale: 0.8, opacity: 0 }}
-                                                                                animate={{ scale: 1, opacity: 1 }}
-                                                                                transition={{ delay: 0.2 + (index * 0.1), type: "spring", stiffness: 400, damping: 20 }}
-                                                                            >
-                                                                                {suggestion.match_score}%
-                                                                            </motion.div>
                                                                         </div>
                                                                     </motion.button>
                                                                 );
