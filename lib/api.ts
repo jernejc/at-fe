@@ -61,6 +61,7 @@ import type {
     ImportResult,
     CampaignImport,
     CampaignFilters,
+    PartnerAssignmentSummary,
 } from './schemas';
 
 // ============= API Functions =============
@@ -778,4 +779,66 @@ export async function getCampaignFunnel(
 ): Promise<CampaignFunnel> {
     const query = buildQueryString({ product_id: productId });
     return fetchAPI<CampaignFunnel>(`/api/v1/campaigns/${encodeURIComponent(slug)}/funnel${query}`);
+}
+
+// ============= Partners =============
+
+import type {
+    PartnerSummary,
+    PartnerRead,
+    PartnerCreate,
+    CampaignPartnerRead,
+    CampaignPartnerCreate,
+    PartnerFilters,
+    PartnerBulkAssignResult,
+} from './schemas';
+
+export async function getPartners(filters: PartnerFilters = {}): Promise<PaginatedResponse<PartnerSummary>> {
+    const query = buildQueryString(filters as Record<string, unknown>);
+    return fetchAPI<PaginatedResponse<PartnerSummary>>(`/api/v1/partners${query}`);
+}
+
+export async function getPartner(idOrSlug: string | number): Promise<PartnerRead> {
+    return fetchAPI<PartnerRead>(`/api/v1/partners/${encodeURIComponent(String(idOrSlug))}`);
+}
+
+export async function createPartner(data: PartnerCreate): Promise<PartnerRead> {
+    return fetchAPI<PartnerRead>('/api/v1/partners', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function getCampaignPartners(slug: string): Promise<PartnerAssignmentSummary[]> {
+    return fetchAPI<PartnerAssignmentSummary[]>(
+        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners`
+    );
+}
+
+export async function assignPartnerToCampaign(
+    slug: string,
+    data: CampaignPartnerCreate
+): Promise<CampaignPartnerRead> {
+    return fetchAPI<CampaignPartnerRead>(
+        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners`,
+        { method: 'POST', body: JSON.stringify(data) }
+    );
+}
+
+export async function bulkAssignPartners(
+    slug: string,
+    partnerIds: number[],
+    assignedBy?: string
+): Promise<PartnerBulkAssignResult> {
+    return fetchAPI<PartnerBulkAssignResult>(
+        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/bulk`,
+        { method: 'POST', body: JSON.stringify({ partner_ids: partnerIds, assigned_by: assignedBy }) }
+    );
+}
+
+export async function unassignPartnerFromCampaign(slug: string, partnerId: number): Promise<void> {
+    await fetchAPI<void>(
+        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/${partnerId}`,
+        { method: 'DELETE' }
+    );
 }

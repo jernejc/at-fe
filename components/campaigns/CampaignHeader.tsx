@@ -7,7 +7,6 @@ import { Loader2, Building2, ChevronRight, Trash2, Target, Activity, LayoutDashb
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DEFAULT_CAMPAIGN_PARTNERS } from '@/components/partners/mockPartners';
 
 interface CampaignHeaderProps {
     campaign: CampaignRead;
@@ -30,9 +29,9 @@ export function CampaignHeader({
     companyCount,
     partnerCount,
 }: CampaignHeaderProps) {
-    // Use provided count or fall back to campaign data / mock data
+    // Use provided count or fall back to campaign data
     const displayCompanyCount = companyCount ?? campaign.company_count;
-    const displayPartnerCount = partnerCount || DEFAULT_CAMPAIGN_PARTNERS.length;
+    const displayPartnerCount = partnerCount ?? 0;
     const avgFitScore = campaign.avg_fit_score ? Math.round(campaign.avg_fit_score * 100) : null;
     const progressPercent = Math.round((campaign.processed_count / Math.max(displayCompanyCount, 1)) * 100);
 

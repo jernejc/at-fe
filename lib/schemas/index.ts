@@ -153,6 +153,22 @@ export type {
     PartnerType,
 } from './campaign';
 
+// Partner types
+export type {
+    PartnerSummary,
+    PartnerRead,
+    PartnerWithRelations,
+    CampaignAssignmentSummary,
+    PartnerCreate,
+    PartnerUpdate,
+    CampaignPartnerRead,
+    CampaignPartnerCreate,
+    CampaignPartnerUpdate,
+    BulkAssignResult as PartnerBulkAssignResult,
+    PartnerFilters,
+    PartnerAssignmentSummary,
+} from './partner';
+
 // Explainability types
 export type {
     CompanyExplainabilityResponse,

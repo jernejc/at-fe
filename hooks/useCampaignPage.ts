@@ -306,7 +306,7 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
     useEffect(() => {
         async function fetchTabData() {
             try {
-                if (activeTab === 'companies' && companies.length === 0) {
+                if ((activeTab === 'companies' || activeTab === 'overview') && companies.length === 0) {
                     const result = await getCampaignCompanies(slug, { page_size: 50 });
                     // Enrich companies with mock partner data if API returns none
                     setCompanies(result.items);

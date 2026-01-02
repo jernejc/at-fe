@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Partner, MembershipRead, MembershipWithProgress } from '@/lib/schemas/campaign';
-import { getCampaignCompanies } from '@/lib/api';
+import { Partner, PartnerType, MembershipRead, MembershipWithProgress } from '@/lib/schemas/campaign';
+import { getCampaignPartners } from '@/lib/api';
 import { Building2, Zap, Briefcase, Globe, ExternalLink, Shuffle, LayoutGrid, TableProperties, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -10,7 +10,6 @@ import { PartnerOverviewCard } from './PartnerOverviewCard';
 import { PartnerAssignmentsView } from './PartnerAssignmentsView';
 import { AutoAssignDialog } from './AutoAssignDialog';
 import { PartnerDetailSheet } from './PartnerDetailSheet';
-import { DEFAULT_CAMPAIGN_PARTNERS, MOCK_PARTNER_ACCOUNTS, MOCK_PARTNERS } from './mockPartners';
 import { cn } from '@/lib/utils';
 
 interface PartnerTabProps {
@@ -21,10 +20,45 @@ interface PartnerTabProps {
 
 export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompanyClick }: PartnerTabProps) {
     const [activeSubTab, setActiveSubTab] = useState<'overview' | 'assignments'>('overview');
-    const [partners, setPartners] = useState<Partner[]>(DEFAULT_CAMPAIGN_PARTNERS);
+    const [partners, setPartners] = useState<Partner[]>([]);
     const [companies, setCompanies] = useState<MembershipRead[]>(initialCompanies);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [autoAssignDialogOpen, setAutoAssignDialogOpen] = useState(false);
+
+    // Fetch campaign partners from the API
+    // The API now returns full partner details directly (PartnerAssignmentSummary)
+    useEffect(() => {
+        async function fetchPartners() {
+            try {
+                setLoading(true);
+                // Get campaign partners with full details
+                const partnerAssignments = await getCampaignPartners(campaignSlug);
+                
+                // Map API PartnerAssignmentSummary to UI Partner type
+                const mappedPartners: Partner[] = partnerAssignments.map((p) => ({
+                    id: String(p.partner_id),
+                    name: p.partner_name,
+                    type: (p.partner_type as PartnerType) || 'consulting',
+                    logo_url: p.partner_logo_url ?? undefined,
+                    description: p.partner_description ?? '',
+                    status: p.partner_status === 'active' ? 'active' : 'inactive',
+                    match_score: 90, // Default score since API doesn't return this
+                    capacity: p.partner_capacity ?? undefined,
+                    assigned_count: 0, // Will be calculated from companies
+                    industries: p.partner_industries ?? [],
+                }));
+                
+                setPartners(mappedPartners);
+            } catch (error) {
+                console.error('Failed to fetch campaign partners:', error);
+                setPartners([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        fetchPartners();
+    }, [campaignSlug]);
 
     // Sync state with props
     useEffect(() => {

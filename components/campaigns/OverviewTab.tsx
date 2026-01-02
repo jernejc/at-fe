@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { CampaignOverview, MembershipRead, CompanySummary, CompanySummaryWithFit } from '@/lib/schemas';
 import {
     ChevronRight, TrendingUp, ArrowRight, BarChart3, Flame, Clock, MessageSquare,
@@ -26,6 +26,7 @@ interface OverviewTabProps {
     onManagePartners: () => void;
     onViewAllCompanies: () => void;
     onDrillDown?: (filter: DrillDownFilter) => void;
+    campaignSlug?: string;
 }
 
 // ============================================================================
@@ -164,6 +165,37 @@ function generateAccountsNeedingAttention(companies: MembershipRead[]): AccountN
     return result;
 }
 
+// Calculate fit distribution from actual companies
+function calculateFitDistribution(companies: MembershipRead[]): CampaignOverview['fit_distribution'] {
+    const distribution = {
+        '80-100': 0,
+        '60-80': 0,
+        '40-60': 0,
+        '20-40': 0,
+        '0-20': 0,
+        unscored: 0
+    };
+
+    if (!companies || companies.length === 0) return distribution;
+
+    companies.forEach(company => {
+        const score = company.cached_fit_score;
+        if (score === null || score === undefined) {
+            distribution.unscored++;
+            return;
+        }
+
+        const percentage = score * 100;
+        if (percentage >= 80) distribution['80-100']++;
+        else if (percentage >= 60) distribution['60-80']++;
+        else if (percentage >= 40) distribution['40-60']++;
+        else if (percentage >= 20) distribution['20-40']++;
+        else distribution['0-20']++;
+    });
+
+    return distribution;
+}
+
 // ============================================================================
 // Color Helpers
 // ============================================================================
@@ -191,6 +223,7 @@ export function OverviewTab({
     onManagePartners,
     onViewAllCompanies,
     onDrillDown,
+    campaignSlug,
 }: OverviewTabProps) {
     // Use actual companies or fall back to top_companies
     const displayCompanies = useMemo(() => {
@@ -201,6 +234,77 @@ export function OverviewTab({
     const pipeline = useMemo(() => generateMockPipeline(displayCompanies.length > 0 ? displayCompanies :
         Array.from({ length: overview.company_count || 0 }) as MembershipRead[]), [displayCompanies, overview.company_count]);
     const accountsNeedingAttention = useMemo(() => generateAccountsNeedingAttention(displayCompanies), [displayCompanies]);
+
+    // Calculate fit distribution from loaded companies (better than potentially empty backend overview)
+    // We merge companies (loaded list) and top_companies (backend summary) to get the most complete picture available on client
+    const derivedFitDistribution = useMemo(() => {
+        const uniqueCompanies = new Map<string, MembershipRead>();
+        
+        // Add top companies first
+        if (overview.top_companies) {
+            overview.top_companies.forEach(c => uniqueCompanies.set(c.domain, c));
+        }
+
+        // Add loaded companies (may override top companies, or add new ones)
+        if (companies.length > 0) {
+            companies.forEach(c => {
+                const existing = uniqueCompanies.get(c.domain);
+                // Only overwrite if existing doesn't have a score, or if new one HAS a score
+                // (We want to preserve the score if we have it from top_companies but not from the general list)
+                if (!existing || (c.cached_fit_score !== null && c.cached_fit_score !== undefined)) {
+                    uniqueCompanies.set(c.domain, c);
+                } else if (existing && (existing.cached_fit_score === null || existing.cached_fit_score === undefined) && (c.cached_fit_score !== null && c.cached_fit_score !== undefined)) {
+                     // This case is covered by first condition (c has score)
+                     uniqueCompanies.set(c.domain, c);
+                }
+            });
+        }
+
+        // If searching/filtering, include dynamic companies too if they are mapped to format
+        // This is crucial if 'Top Companies' card is showing dynamic companies (filtered/searched results)
+        if (dynamicCompanies && dynamicCompanies.length > 0) {
+            dynamicCompanies.forEach(c => {
+                // Map CompanySummary or CompanySummaryWithFit to MembershipRead-like shape for score
+                const score = 'combined_score' in c ? c.combined_score : ('likelihood_score' in c ? c.likelihood_score : null); // Type guard approximation
+                
+                // If it has a score, we want to include it, possibly overriding existing unscored
+                if (score !== null && score !== undefined) {
+                    // Create a partial MembershipRead for calculation purposes
+                    const proxy: MembershipRead = {
+                        id: c.id,
+                        company_id: 0,
+                        domain: c.domain,
+                        company_name: c.name,
+                        industry: c.industry,
+                        employee_count: c.employee_count,
+                        hq_country: c.hq_country,
+                        segment: null,
+                        cached_fit_score: score,
+                        cached_likelihood_score: null,
+                        cached_urgency_score: null,
+                        is_processed: true,
+                        notes: null,
+                        priority: 0,
+                        created_at: c.updated_at
+                    };
+                    
+                    const existing = uniqueCompanies.get(c.domain);
+                    // Override if existing is null or unscored
+                    if (!existing || existing.cached_fit_score === null || existing.cached_fit_score === undefined) {
+                        uniqueCompanies.set(c.domain, proxy);
+                    }
+                }
+            });
+        }
+        
+        const mergedList = Array.from(uniqueCompanies.values());
+        return calculateFitDistribution(mergedList);
+    }, [companies, overview.top_companies, dynamicCompanies]);
+
+    // Use derived if it has data, otherwise fallback to overview (though derived likely better if we have companies)
+    const fitDistribution = Object.values(derivedFitDistribution).some(v => v > 0)
+        ? derivedFitDistribution
+        : overview.fit_distribution;
 
     return (
         <div className="space-y-6">
@@ -223,6 +327,7 @@ export function OverviewTab({
                 {/* Right column - Partner Overview + Needs Attention + Fit Distribution */}
                 <div className="space-y-6">
                     <PartnerOverviewCard
+                        campaignSlug={campaignSlug}
                         onManagePartners={onManagePartners}
                         totalCompanyCount={overview.company_count}
                     />
@@ -232,7 +337,7 @@ export function OverviewTab({
                         onViewAll={onViewAllCompanies}
                     />
                     <FitDistributionCard
-                        fitDistribution={overview.fit_distribution}
+                        fitDistribution={fitDistribution}
                         onDrillDown={onDrillDown}
                     />
                 </div>
@@ -333,31 +438,65 @@ function OutreachPipelineCard({
 }
 
 // ============================================================================
-// Partner Overview Card - Uses mock partner data directly
+// Partner Overview Card - Fetches real campaign partners from API
 // ============================================================================
 
-import { MOCK_PARTNERS, MOCK_PARTNER_ACCOUNTS, DEFAULT_CAMPAIGN_PARTNERS } from '@/components/partners/mockPartners';
+import { getCampaignPartners } from '@/lib/api';
+
+interface PartnerCardData {
+    id: string;
+    name: string;
+    logo_url: string | null;
+    count: number;
+    capacity: number | null;
+}
 
 function PartnerOverviewCard({
+    campaignSlug,
     onManagePartners,
     totalCompanyCount = 0,
 }: {
+    campaignSlug?: string;
     onManagePartners: () => void;
     totalCompanyCount?: number;
 }) {
-    // Use DEFAULT_CAMPAIGN_PARTNERS (first 3) for this campaign
-    const campaignPartners = DEFAULT_CAMPAIGN_PARTNERS;
+    const [partners, setPartners] = useState<PartnerCardData[]>([]);
+    const [loading, setLoading] = useState(true);
 
+    // The API now returns full partner details directly (PartnerAssignmentSummary)
+    useEffect(() => {
+        async function fetchPartners() {
+            if (!campaignSlug) {
+                setLoading(false);
+                return;
+            }
+            
+            try {
+                setLoading(true);
+                const partnerAssignments = await getCampaignPartners(campaignSlug);
+                
+                // Map API PartnerAssignmentSummary to PartnerCardData
+                const mappedPartners: PartnerCardData[] = partnerAssignments.map((p) => ({
+                    id: String(p.partner_id),
+                    name: p.partner_name,
+                    logo_url: p.partner_logo_url,
+                    count: 0, // Will be calculated from membership data if available
+                    capacity: p.partner_capacity,
+                }));
+                
+                setPartners(mappedPartners);
+            } catch (error) {
+                console.error('Failed to fetch partners:', error);
+                setPartners([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        fetchPartners();
+    }, [campaignSlug]);
 
-
-    // Get top partners with their assigned counts
-    const topPartners = campaignPartners.map(p => ({
-        id: p.id,
-        name: p.name,
-        logo_url: p.logo_url,
-        count: (MOCK_PARTNER_ACCOUNTS[p.id] || []).length,
-        capacity: p.capacity,
-    })).sort((a, b) => b.count - a.count);
+    const topPartners = partners;
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
@@ -384,7 +523,7 @@ function PartnerOverviewCard({
                             <div className="flex items-center gap-2.5 min-w-0">
                                 <div className="w-5 h-5 rounded bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
                                     <img
-                                        src={partner.logo_url}
+                                        src={partner.logo_url ?? undefined}
                                         alt={partner.name}
                                         className="w-3.5 h-3.5 object-contain"
                                     />

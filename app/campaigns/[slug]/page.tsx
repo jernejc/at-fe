@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useMemo } from 'react';
+import { use, useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
@@ -10,7 +10,7 @@ import { Header } from '@/components/ui/Header';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useCampaignPage } from '@/hooks/useCampaignPage';
 import { toast } from 'sonner';
-import { MOCK_PARTNER_ACCOUNTS } from '@/components/partners/mockPartners';
+import { getCampaignPartners } from '@/lib/api';
 import type { CampaignFilterUI, MembershipRead } from '@/lib/schemas';
 
 interface CampaignPageProps {
@@ -97,6 +97,20 @@ export default function CampaignPage({ params }: CampaignPageProps) {
         return [];
     }, [companies, dynamicCompanies]);
 
+    // Fetch partner count from API
+    const [partnerCount, setPartnerCount] = useState<number>(0);
+    useEffect(() => {
+        async function fetchPartnerCount() {
+            try {
+                const assignments = await getCampaignPartners(slug);
+                setPartnerCount(assignments.length);
+            } catch {
+                setPartnerCount(0);
+            }
+        }
+        fetchPartnerCount();
+    }, [slug]);
+
     // Handle drill-down filtering from overview charts
     const handleDrillDown = (filter: DrillDownFilter) => {
         if (filter.type === 'industry') {
@@ -163,7 +177,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                     onDelete={handleDelete}
                     isDeleting={isDeleting}
                     companyCount={overview?.company_count ?? dynamicCompaniesTotal ?? undefined}
-                    partnerCount={new Set(partnerTabCompanies.filter(c => c.partner_id).map(c => c.partner_id)).size}
+                    partnerCount={partnerCount}
                 />
 
                 {/* Content Area */}
@@ -182,6 +196,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                     onManagePartners={() => setActiveTab('partners')}
                                     onViewAllCompanies={() => setActiveTab('companies')}
                                     onDrillDown={handleDrillDown}
+                                    campaignSlug={slug}
                                 />
                             ) : (
                                 <OverviewTabSkeleton />

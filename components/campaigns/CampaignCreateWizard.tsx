@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { createCampaign, getCompanies } from '@/lib/api';
+import { createCampaign, getCompanies, getPartners, bulkAssignPartners } from '@/lib/api';
 import type { CampaignFilterUI, ProductSummary, Partner, CompanyFilters, CompanySummary, CompanySummaryWithFit } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -26,7 +26,6 @@ import {
     MousePointerClick,
     Clock,
 } from 'lucide-react';
-import { DEFAULT_CAMPAIGN_PARTNERS } from '@/components/partners/mockPartners';
 import { CompanyRowCompact } from './CompanyRowCompact';
 import { AccountDetail } from '@/components/accounts';
 
@@ -81,7 +80,8 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
     const [detailOpen, setDetailOpen] = useState(false);
 
     // Step 3: Partners
-    const [partners] = useState<Partner[]>(DEFAULT_CAMPAIGN_PARTNERS);
+    const [partners, setPartners] = useState<Partner[]>([]);
+    const [loadingPartners, setLoadingPartners] = useState(false);
     const [selectedPartnerIds, setSelectedPartnerIds] = useState<Set<string>>(new Set());
     const [assignmentMode, setAssignmentMode] = useState<'auto' | 'manual' | 'skip'>('auto');
 
@@ -135,6 +135,36 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
         setFilterInputValue('');
     };
 
+    // Fetch partners from API on mount
+    useEffect(() => {
+        async function fetchPartners() {
+            setLoadingPartners(true);
+            try {
+                const response = await getPartners({ page_size: 50 });
+                // Map API partners to UI Partner type
+                const mappedPartners: Partner[] = response.items.map(p => ({
+                    id: p.slug || String(p.id),
+                    name: p.name,
+                    type: 'consulting' as const,
+                    description: p.description || '',
+                    status: p.status === 'active' ? 'active' : 'inactive',
+                    match_score: 90,
+                    logo_url: p.logo_url || undefined,
+                    capacity: undefined,
+                    assigned_count: 0,
+                    industries: [],
+                }));
+                setPartners(mappedPartners);
+            } catch {
+                // Return empty list on error
+                setPartners([]);
+            } finally {
+                setLoadingPartners(false);
+            }
+        }
+        fetchPartners();
+    }, []);
+
     const handleCreate = async () => {
         if (!name.trim() || !productId) return;
         setCreating(true);
@@ -151,6 +181,25 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                 target_product_id: productId,
                 target_criteria: { filters: allFilters },
             });
+
+            // Assign partners to campaign if any selected
+            if (assignmentMode !== 'skip' && selectedPartnerIds.size > 0) {
+                try {
+                    // Convert partner slugs to IDs by fetching partners
+                    const partnerResponse = await getPartners({ page_size: 100 });
+                    const selectedIds = partnerResponse.items
+                        .filter(p => selectedPartnerIds.has(p.slug || String(p.id)))
+                        .map(p => p.id);
+                    
+                    if (selectedIds.length > 0) {
+                        await bulkAssignPartners(campaign.slug, selectedIds);
+                    }
+                } catch (partnerErr) {
+                    console.warn('Failed to assign partners:', partnerErr);
+                    // Continue anyway - campaign was created successfully
+                }
+            }
+
             router.push(`/campaigns/${campaign.slug}`);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create campaign');

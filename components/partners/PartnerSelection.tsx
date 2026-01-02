@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Partner } from '@/lib/schemas/campaign';
-import { Search, Check, Building2, Zap, Briefcase, Globe } from 'lucide-react';
+import { Search, Check, Building2, Zap, Briefcase, Globe, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MOCK_PARTNERS } from './mockPartners';
+import { getPartners } from '@/lib/api';
+
 
 
 interface PartnerSelectionProps {
@@ -16,8 +17,48 @@ interface PartnerSelectionProps {
 
 export function PartnerSelection({ selectedPartners, onSelectionChange }: PartnerSelectionProps) {
     const [search, setSearch] = useState('');
+    const [partners, setPartners] = useState<Partner[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const filteredPartners = MOCK_PARTNERS.filter(p =>
+    // Fetch partners from API on mount
+    useEffect(() => {
+        async function fetchPartners() {
+            try {
+                setLoading(true);
+                const response = await getPartners({ page_size: 100 });
+                
+                // Map API PartnerSummary to UI Partner type
+                const mappedPartners: Partner[] = response.items.map(p => ({
+                    id: p.slug || String(p.id), // Use slug as ID for backward compatibility
+                    name: p.name,
+                    type: 'consulting' as const, // Default type since API doesn't expose this
+                    description: p.description || '',
+                    status: p.status === 'active' ? 'active' : 'inactive',
+                    match_score: 90, // Default score since API doesn't expose this
+                    logo_url: p.logo_url || undefined,
+                    capacity: undefined,
+                    assigned_count: 0,
+                    industries: [],
+                }));
+                
+                setPartners(mappedPartners);
+                setError(null);
+            } catch (err) {
+                console.error('Failed to fetch partners:', err);
+                setError('Failed to load partners');
+                setError('Failed to load partners');
+                // Return empty list on error
+                setPartners([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        fetchPartners();
+    }, []);
+
+    const filteredPartners = partners.filter(p =>
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.description.toLowerCase().includes(search.toLowerCase())
     );
@@ -41,6 +82,15 @@ export function PartnerSelection({ selectedPartners, onSelectionChange }: Partne
         }
     };
 
+    if (loading) {
+        return (
+            <div className="w-full max-w-4xl mx-auto flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+                <p className="text-slate-500 dark:text-slate-400">Loading partners...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-6 text-center">
@@ -49,6 +99,12 @@ export function PartnerSelection({ selectedPartners, onSelectionChange }: Partne
                     Accelerate your campaign by collaborating with recommended partners who match your target criteria.
                 </p>
             </div>
+
+            {error && (
+                <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-sm text-center">
+                    {error} — showing cached partners
+                </div>
+            )}
 
             {/* Search */}
             <div className="relative mb-6 max-w-xl mx-auto">
