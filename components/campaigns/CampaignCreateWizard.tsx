@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createCampaign, getCompanies, getPartners, bulkAssignPartners, suggestPartnersForCompanies } from '@/lib/api';
 import type { CampaignFilterUI, ProductSummary, Partner, CompanyFilters, CompanySummary, CompanySummaryWithFit, PartnerSuggestion, WSCompanyResult, WSPartnerSuggestion } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -16,7 +14,6 @@ import {
     Check,
     ChevronRight,
     Loader2,
-    Search,
     Building2,
     MapPin,
     X,
@@ -24,7 +21,6 @@ import {
     Sparkles,
     Users,
     User,
-    Send,
     Package,
     Briefcase,
     Cpu,
@@ -34,7 +30,6 @@ import {
     Clock,
     Zap,
     Globe,
-    Brain,
     Target,
     Award,
 } from 'lucide-react';
@@ -211,6 +206,7 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
     // Campaign data
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [showDescription, setShowDescription] = useState(false);
     const [productId, setProductId] = useState<number | null>(preselectedProductId || null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState<CampaignFilterUI[]>([]);
@@ -244,6 +240,9 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
         isSearching: isAgenticSearching,
     } = useAgenticSearch({
         onComplete: (state) => {
+            // Normalize score: if > 1, it's already 0-100; if <= 1, multiply by 100
+            const normalizeScore = (score: number) => score > 1 ? Math.round(score) : Math.round(score * 100);
+
             // Convert WS companies to preview format
             const wsCompanies: (CompanySummary | CompanySummaryWithFit)[] = state.companies.map(c => ({
                 id: c.company_id,
@@ -253,11 +252,11 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                 industry: c.industry || null,
                 logo_base64: c.logo_base64 || null,
                 employee_count: c.employee_count || null,
-                combined_score: Math.round(c.match_score * 100),
+                combined_score: normalizeScore(c.match_score),
             }));
             setPreviewCompanies(wsCompanies);
             setPreviewTotal(state.totalResults);
-            
+
             // Convert WS partner suggestions
             if (state.partnerSuggestions.length > 0) {
                 const wsSuggestions: PartnerSuggestion[] = state.partnerSuggestions.map(s => ({
@@ -271,12 +270,12 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
                     },
-                    match_score: Math.round(s.match_score * 100),
+                    match_score: normalizeScore(s.match_score),
                     match_reasons: s.matched_interests.map(i => i.reasoning).filter(Boolean),
                     industry_overlap: s.matched_interests.map(i => i.interest),
                 }));
                 setSuggestedPartners(wsSuggestions);
-                
+
                 // Auto-select top 3
                 if (wsSuggestions.length > 0) {
                     const topIds = wsSuggestions.slice(0, 3).map(s => s.partner.slug || String(s.partner.id));
@@ -547,39 +546,52 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
             </div>
         );
 
-        setLoadingPreview(true);
-        await fetchCompanyPreview();
-        
-        await addSystemMessage(
-            <div className="space-y-2">
-                <p className="text-slate-900 dark:text-white text-sm">
-                    I found <span className="font-semibold text-primary">{previewTotal.toLocaleString()}</span> companies matching your criteria.
-                </p>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
-                    Let me analyze them and find the best partners for this campaign...
-                </p>
-            </div>,
-            700
-        );
-        
-        setCurrentStep('preview');
+        // Check if WebSocket search completed and if we have partner suggestions
+        const wsSearchCompleted = agenticState.phase === 'complete';
+        const hasWsSuggestions = suggestedPartners.length > 0;
 
-        // Fetch partner suggestions
-        await fetchPartnerSuggestions();
-
-        await addSystemMessage(
-            <div className="space-y-2">
-                <p className="text-slate-900 dark:text-white text-sm">
-                    Based on the target companies, here are my recommended partners.
-                </p>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
-                    I&apos;ve pre-selected the top matches based on industry expertise and regional coverage.
-                </p>
-            </div>,
-            800
-        );
-        
-        setCurrentStep('partners');
+        if (hasWsSuggestions) {
+            // We have partners from WebSocket - go straight to partner selection
+            await addSystemMessage(
+                <div className="space-y-2">
+                    <p className="text-slate-900 dark:text-white text-sm">
+                        I&apos;ve found <span className="font-semibold">{suggestedPartners.length}</span> recommended partners for these {previewTotal.toLocaleString()} companies.
+                    </p>
+                </div>,
+                500
+            );
+            setCurrentStep('partners');
+        } else if (wsSearchCompleted && previewCompanies.length > 0) {
+            // WebSocket completed but returned no partners - fall back to REST API
+            await addSystemMessage(
+                <div className="space-y-2">
+                    <p className="text-slate-900 dark:text-white text-sm">
+                        Finding the best partners for {previewTotal.toLocaleString()} companies...
+                    </p>
+                </div>,
+                400
+            );
+            
+            setCurrentStep('partners');
+            
+            // Fetch partner suggestions via REST API as fallback
+            await fetchPartnerSuggestions();
+        } else {
+            // No WebSocket search or no companies yet - fetch partners normally
+            await addSystemMessage(
+                <div className="space-y-2">
+                    <p className="text-slate-900 dark:text-white text-sm">
+                        Finding the best partners for {previewTotal.toLocaleString()} companies...
+                    </p>
+                </div>,
+                400
+            );
+            
+            setCurrentStep('partners');
+            
+            // Fetch partner suggestions via REST API
+            await fetchPartnerSuggestions();
+        }
     };
 
     // Handle final creation
@@ -751,7 +763,7 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                 {/* Product Selection */}
                                 {currentStep === 'product' && (
                                     <SystemMessage showAvatar={false}>
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
                                             <motion.p 
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
@@ -811,57 +823,65 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                 {/* Campaign Name Input */}
                                 {currentStep === 'name' && (
                                     <SystemMessage showAvatar={false}>
-                                        <motion.div 
+                                        <motion.div
                                             className="space-y-4"
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.2 }}
                                         >
                                             <motion.div
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 0.3, type: "spring", stiffness: 400, damping: 25 }}
-                                                className="space-y-1.5"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                transition={{ delay: 0.3 }}
+                                                className="space-y-3"
                                             >
-                                                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                                    Campaign Name
-                                                </label>
                                                 <input
                                                     value={name}
                                                     onChange={(e) => setName(e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && name.trim() && handleNameSubmit()}
-                                                    placeholder="e.g., Q1 Enterprise Outreach"
+                                                    placeholder="Campaign name"
                                                     autoFocus
-                                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
+                                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-300/50 focus:border-slate-300 dark:focus:border-slate-600 transition-all duration-200"
                                                 />
+                                                
+                                                {/* Description - shown on demand */}
+                                                <AnimatePresence>
+                                                    {showDescription ? (
+                                                        <motion.textarea
+                                                            initial={{ opacity: 0, height: 0 }}
+                                                            animate={{ opacity: 1, height: 'auto' }}
+                                                            exit={{ opacity: 0, height: 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            value={description}
+                                                            onChange={(e) => setDescription(e.target.value)}
+                                                            placeholder="Add a description..."
+                                                            rows={2}
+                                                            autoFocus
+                                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-300/50 focus:border-slate-300 dark:focus:border-slate-600 transition-all duration-200 resize-none"
+                                                        />
+                                                    ) : (
+                                                        <motion.button
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            exit={{ opacity: 0 }}
+                                                            onClick={() => setShowDescription(true)}
+                                                            className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex items-center gap-1"
+                                                        >
+                                                            <span>+ Add description</span>
+                                                        </motion.button>
+                                                    )}
+                                                </AnimatePresence>
                                             </motion.div>
                                             <motion.div
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
                                                 transition={{ delay: 0.4 }}
-                                                className="space-y-1.5"
-                                            >
-                                                <label className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
-                                                    Description <span className="normal-case text-slate-300 dark:text-slate-600">(optional)</span>
-                                                </label>
-                                                <textarea
-                                                    value={description}
-                                                    onChange={(e) => setDescription(e.target.value)}
-                                                    placeholder="Brief description of this campaign"
-                                                    rows={3}
-                                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow resize-none"
-                                                />
-                                            </motion.div>
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.5, type: "spring", stiffness: 400, damping: 25 }}
                                             >
                                                 <Button
                                                     size="lg"
                                                     onClick={handleNameSubmit}
                                                     disabled={!name.trim()}
-                                                    className="w-full h-12 rounded-xl gap-2 shadow-lg shadow-primary/20"
+                                                    className="w-full h-11 rounded-xl gap-2"
                                                 >
                                                     Continue
                                                     <ChevronRight className="w-4 h-4" />
@@ -874,312 +894,406 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                 {/* Audience Definition */}
                                 {currentStep === 'audience' && (
                                     <SystemMessage showAvatar={false}>
-                                        <div className="space-y-3">
-                                            {/* Search input with inline filters */}
-                                            <motion.div 
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.2 }}
-                                                className="space-y-2"
-                                            >
+                                        {/* AI Search - clean layout without extra container */}
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.15, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                                            className="space-y-4"
+                                        >
+                                            {/* Search Input Section */}
+                                            <div className="space-y-3">
                                                 {/* Main search input */}
-                                                <div className="relative">
-                                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                        <Sparkles className="w-4 h-4 text-primary/60" />
+                                                <div className={cn(
+                                                    "relative group rounded-xl transition-all duration-300",
+                                                    isAgenticPhaseActive && "ring-2 ring-slate-300/50 dark:ring-slate-600/30"
+                                                )}>
+                                                    <div className={cn(
+                                                        "absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-200",
+                                                        searchQuery.trim() ? "text-slate-600 dark:text-slate-300" : "text-slate-400"
+                                                    )}>
+                                                        <Sparkles className="w-4 h-4" />
                                                     </div>
                                                     <input
                                                         value={searchQuery}
                                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                                        placeholder="B2B SaaS companies in healthcare with 100+ employees..."
-                                                        className="w-full h-11 pl-10 pr-32 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                                                        placeholder="Describe your ideal customer... e.g., B2B SaaS in healthcare"
+                                                        autoFocus
+                                                        className={cn(
+                                                            "w-full h-12 pl-11 pr-4 rounded-xl text-sm transition-all duration-200",
+                                                            "bg-white dark:bg-slate-800",
+                                                            "border border-slate-200 dark:border-slate-700",
+                                                            "placeholder:text-slate-400 dark:placeholder:text-slate-500",
+                                                            "focus:outline-none focus:ring-2 focus:ring-slate-300/50 focus:border-slate-300 dark:focus:border-slate-600",
+                                                            "group-hover:border-slate-300 dark:group-hover:border-slate-600"
+                                                        )}
                                                     />
-                                                    {/* Loading indicator on the right */}
-                                                    {isAgenticPhaseActive && (
-                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                                            <SearchPhaseIndicator phase={agenticState.phase} />
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                        {/* Inline status indicator */}
+                                                        {isAgenticPhaseActive && (
+                                                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                                <SearchPhaseIndicator phase={agenticState.phase} showElapsedTime />
+                                                            </div>
+                                                        )}
+                                                    </div>
 
-                                                {/* Compact filter row */}
-                                                <div className="flex items-center gap-1.5 flex-wrap">
-                                                    {/* Active filters first */}
-                                                    {filters.map(f => (
-                                                        <motion.span
-                                                            key={f.id}
-                                                            initial={{ opacity: 0, scale: 0.9 }}
-                                                            animate={{ opacity: 1, scale: 1 }}
-                                                            className="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium"
-                                                        >
-                                                            {f.displayLabel}
-                                                            <button
-                                                                onClick={() => setFilters(filters.filter(x => x.id !== f.id))}
-                                                                className="p-0.5 rounded hover:bg-primary/20 transition-colors"
-                                                            >
-                                                                <X className="w-3 h-3" />
-                                                            </button>
-                                                        </motion.span>
-                                                    ))}
-                                                    
-                                                    {/* Filter buttons */}
-                                                    {['industry', 'location', 'size_min'].map(type => {
-                                                        const config: Record<string, { label: string; icon: React.ReactNode; placeholder: string; suggestions?: string[] }> = {
-                                                            industry: { 
-                                                                label: 'Industry', 
-                                                                icon: <Building2 className="w-3 h-3" />, 
-                                                                placeholder: 'e.g., Technology',
-                                                                suggestions: ['Technology', 'Healthcare', 'Financial Services', 'Manufacturing', 'Retail']
-                                                            },
-                                                            location: { 
-                                                                label: 'Location', 
-                                                                icon: <MapPin className="w-3 h-3" />, 
-                                                                placeholder: 'e.g., United States',
-                                                                suggestions: ['United States', 'United Kingdom', 'Germany', 'Canada', 'Australia']
-                                                            },
-                                                            size_min: { 
-                                                                label: 'Size', 
-                                                                icon: <Users className="w-3 h-3" />, 
-                                                                placeholder: 'Min employees',
-                                                                suggestions: ['50', '100', '500', '1000']
-                                                            },
-                                                        };
-                                                        const c = config[type];
-                                                        const isActive = activeFilterType === type;
-                                                        const hasFilter = filters.some(f => f.type === type || (type === 'location' && f.type === 'country'));
-
-                                                        if (hasFilter) return null;
-
-                                                        return (
-                                                            <div key={type} className="relative">
-                                                                <button
-                                                                    onClick={() => setActiveFilterType(isActive ? null : type)}
-                                                                    className={cn(
-                                                                        "inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all",
-                                                                        isActive
-                                                                            ? "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
-                                                                            : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                                                    )}
+                                                    {/* Filter chips row */}
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        {/* Active filters */}
+                                                        <AnimatePresence mode="popLayout">
+                                                            {filters.map(f => (
+                                                                <motion.span
+                                                                    key={f.id}
+                                                                    initial={{ opacity: 0, scale: 0.8 }}
+                                                                    animate={{ opacity: 1, scale: 1 }}
+                                                                    exit={{ opacity: 0, scale: 0.8 }}
+                                                                    transition={{ duration: 0.2 }}
+                                                                    className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-200 dark:border-slate-700"
                                                                 >
-                                                                    {c.icon}
-                                                                    {c.label}
-                                                                </button>
+                                                                    {f.displayLabel}
+                                                                    <button
+                                                                        onClick={() => setFilters(filters.filter(x => x.id !== f.id))}
+                                                                        className="p-0.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                                                    >
+                                                                        <X className="w-3 h-3" />
+                                                                    </button>
+                                                                </motion.span>
+                                                            ))}
+                                                        </AnimatePresence>
+                                                        
+                                                        {/* Filter buttons */}
+                                                        {['industry', 'location', 'size_min'].map(type => {
+                                                            const config: Record<string, { label: string; icon: React.ReactNode; placeholder: string; suggestions?: string[] }> = {
+                                                                industry: { 
+                                                                    label: 'Industry', 
+                                                                    icon: <Building2 className="w-3.5 h-3.5" />, 
+                                                                    placeholder: 'e.g., Technology',
+                                                                    suggestions: ['Technology', 'Healthcare', 'Financial Services', 'Manufacturing', 'Retail']
+                                                                },
+                                                                location: { 
+                                                                    label: 'Location', 
+                                                                    icon: <MapPin className="w-3.5 h-3.5" />, 
+                                                                    placeholder: 'e.g., United States',
+                                                                    suggestions: ['United States', 'United Kingdom', 'Germany', 'Canada', 'Australia']
+                                                                },
+                                                                size_min: { 
+                                                                    label: 'Size', 
+                                                                    icon: <Users className="w-3.5 h-3.5" />, 
+                                                                    placeholder: 'Min employees',
+                                                                    suggestions: ['50', '100', '500', '1000']
+                                                                },
+                                                            };
+                                                            const c = config[type];
+                                                            const isActive = activeFilterType === type;
+                                                            const hasFilter = filters.some(f => f.type === type || (type === 'location' && f.type === 'country'));
 
-                                                                {isActive && (
-                                                                    <>
-                                                                        <div className="fixed inset-0 z-40" onClick={() => { setActiveFilterType(null); setFilterInputValue(''); }} />
-                                                                        <motion.div 
-                                                                            initial={{ opacity: 0, y: 4 }}
-                                                                            animate={{ opacity: 1, y: 0 }}
-                                                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                                                            className="absolute z-50 top-full left-0 mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 p-2 min-w-[200px]"
-                                                                        >
-                                                                            {/* Quick suggestions */}
-                                                                            <div className="flex flex-wrap gap-1 mb-2">
+                                                            if (hasFilter) return null;
+
+                                                            return (
+                                                                <div key={type} className="relative">
+                                                                    <button
+                                                                        onClick={() => setActiveFilterType(isActive ? null : type)}
+                                                                        className={cn(
+                                                                            "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
+                                                                            isActive
+                                                                                ? "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
+                                                                                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-300"
+                                                                        )}
+                                                                    >
+                                                                        {c.icon}
+                                                                        {c.label}
+                                                                    </button>
+
+                                                                    {isActive && (
+                                                                        <>
+                                                                            <div className="fixed inset-0 z-40" onClick={() => { setActiveFilterType(null); setFilterInputValue(''); }} />
+                                                                            <motion.div 
+                                                                                initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                                exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                                                                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                                                className="absolute z-50 top-full left-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-3 min-w-[220px]"
+                                                                            >
+                                                                                {/* Quick suggestions */}
+                                                                                <div className="flex flex-wrap gap-1.5 mb-3">
                                                                                 {c.suggestions?.map((suggestion) => (
                                                                                     <button
                                                                                         key={suggestion}
                                                                                         onClick={() => addFilter(type === 'location' ? 'country' : type, suggestion)}
-                                                                                        className="px-2 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-colors"
+                                                                                        className="px-2.5 py-1 text-xs rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-800 dark:hover:text-slate-100 transition-colors"
                                                                                     >
                                                                                         {type === 'size_min' ? `${suggestion}+` : suggestion}
                                                                                     </button>
                                                                                 ))}
-                                                                            </div>
-                                                                            
-                                                                            {/* Custom input */}
-                                                                            <div className="flex gap-1.5">
-                                                                                <input
-                                                                                    autoFocus
-                                                                                    value={filterInputValue}
-                                                                                    onChange={(e) => setFilterInputValue(e.target.value)}
-                                                                                    onKeyDown={(e) => {
-                                                                                        if (e.key === 'Enter' && filterInputValue.trim()) {
-                                                                                            addFilter(type === 'location' ? 'country' : type, filterInputValue);
-                                                                                        }
-                                                                                        if (e.key === 'Escape') {
-                                                                                            setActiveFilterType(null);
-                                                                                            setFilterInputValue('');
-                                                                                        }
-                                                                                    }}
-                                                                                    placeholder={c.placeholder}
-                                                                                    className="flex-1 h-7 px-2 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                                                                                />
-                                                                                <Button
-                                                                                    size="sm"
-                                                                                    onClick={() => addFilter(type === 'location' ? 'country' : type, filterInputValue)}
-                                                                                    disabled={!filterInputValue.trim()}
-                                                                                    className="h-7 px-2 text-xs"
-                                                                                >
-                                                                                    Add
-                                                                                </Button>
-                                                                            </div>
-                                                                        </motion.div>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
+                                                                                </div>
+                                                                                
+                                                                                {/* Custom input */}
+                                                                                <div className="flex gap-2">
+                                                                                    <input
+                                                                                        autoFocus
+                                                                                        value={filterInputValue}
+                                                                                        onChange={(e) => setFilterInputValue(e.target.value)}
+                                                                                        onKeyDown={(e) => {
+                                                                                            if (e.key === 'Enter' && filterInputValue.trim()) {
+                                                                                                addFilter(type === 'location' ? 'country' : type, filterInputValue);
+                                                                                            }
+                                                                                            if (e.key === 'Escape') {
+                                                                                                setActiveFilterType(null);
+                                                                                                setFilterInputValue('');
+                                                                                            }
+                                                                                        }}
+                                                                                        placeholder={c.placeholder}
+                                                                                        className="flex-1 h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-slate-300/50 focus:border-slate-300 dark:focus:border-slate-600 transition-all duration-200"
+                                                                                    />
+                                                                                    <Button
+                                                                                        size="sm"
+                                                                                        onClick={() => addFilter(type === 'location' ? 'country' : type, filterInputValue)}
+                                                                                        disabled={!filterInputValue.trim()}
+                                                                                        className="h-8 px-3 text-xs rounded-lg"
+                                                                                    >
+                                                                                        Add
+                                                                                    </Button>
+                                                                                </div>
+                                                                            </motion.div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 </div>
-                                            </motion.div>
 
-                                            {/* AI Interpretation */}
-                                            {useAgenticMode && searchQuery.trim() && (
-                                                <InterpretationCard
-                                                    interpretation={agenticState.interpretation}
-                                                    isLoading={agenticState.phase === 'interpreting' || agenticState.phase === 'connecting'}
-                                                />
-                                            )}
-
-                                            {/* Preview - only show when we have results to display */}
-                                            {hasAudience && (previewCompanies.length > 0 || agenticState.companies.length > 0) && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 25 }}
-                                                    className="mt-2"
-                                                >
-                                                    <Card className="overflow-hidden !py-0">
-                                                    <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                                                            <motion.div
-                                                                animate={{ scale: (loadingPreview || isAgenticSearching) ? [1, 1.2, 1] : 1 }}
-                                                                transition={{ duration: 0.5, repeat: (loadingPreview || isAgenticSearching) ? Infinity : 0 }}
-                                                            >
-                                                                {useAgenticMode && searchQuery.trim() ? (
-                                                                    <Brain className="w-3.5 h-3.5 text-primary" />
-                                                                ) : (
-                                                                    <Zap className="w-3.5 h-3.5 text-primary" />
-                                                                )}
-                                                            </motion.div>
-                                                            Matching accounts
-                                                        </span>
-                                                        {(loadingPreview || isAgenticSearching) ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-                                                                {isAgenticSearching && agenticState.companies.length > 0 && (
-                                                                    <span className="text-xs text-slate-400">
-                                                                        {agenticState.companies.length} found...
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <motion.span 
-                                                                key={previewTotal}
-                                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                                animate={{ opacity: 1, scale: 1 }}
-                                                                className="text-sm text-slate-500 flex items-center gap-1"
-                                                            >
-                                                                {previewTotal.toLocaleString()} matches
-                                                                {agenticState.searchTimeMs > 0 && (
-                                                                    <span className="text-xs text-slate-400 ml-1">
-                                                                        ({(agenticState.searchTimeMs / 1000).toFixed(1)}s)
-                                                                    </span>
-                                                                )}
-                                                            </motion.span>
-                                                        )}
-                                                    </div>
-                                                    <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[200px] overflow-y-auto">
-                                                        {/* Streaming results during agentic search */}
-                                                        {isAgenticSearching && agenticState.companies.length > 0 ? (
-                                                            agenticState.companies.slice(0, 5).map((company, idx) => (
-                                                                <motion.div
-                                                                    key={company.domain}
-                                                                    initial={{ opacity: 0, x: -20 }}
-                                                                    animate={{ opacity: 1, x: 0 }}
-                                                                    transition={{ delay: idx * 0.05 }}
-                                                                >
-                                                                    <CompanyRowCompact
-                                                                        name={company.name}
-                                                                        domain={company.domain}
-                                                                        industry={company.industry}
-                                                                        fitScore={Math.round(company.match_score * 100)}
-                                                                        logoBase64={company.logo_base64}
-                                                                        onClick={() => { setSelectedDomain(company.domain); setDetailOpen(true); }}
-                                                                        className="cursor-pointer"
-                                                                    />
-                                                                </motion.div>
-                                                            ))
-                                                        ) : previewCompanies.slice(0, 5).map((company) => (
-                                                            <CompanyRowCompact
-                                                                key={company.domain}
-                                                                name={company.name}
-                                                                domain={company.domain}
-                                                                industry={company.industry}
-                                                                fitScore={'combined_score' in company ? company.combined_score : null}
-                                                                logoBase64={company.logo_base64}
-                                                                onClick={() => { setSelectedDomain(company.domain); setDetailOpen(true); }}
-                                                                className="cursor-pointer"
+                                                {/* AI Interpretation - integrated styling */}
+                                                <AnimatePresence mode="wait">
+                                                    {useAgenticMode && searchQuery.trim() && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, height: 0 }}
+                                                            animate={{ opacity: 1, height: 'auto' }}
+                                                            exit={{ opacity: 0, height: 0 }}
+                                                            transition={{ duration: 0.3 }}
+                                                        >
+                                                            <InterpretationCard
+                                                                interpretation={agenticState.interpretation}
+                                                                isLoading={agenticState.phase === 'interpreting' || agenticState.phase === 'connecting'}
                                                             />
-                                                        ))}
-                                                        {previewCompanies.length === 0 && !loadingPreview && !isAgenticSearching && agenticState.companies.length === 0 && (
-                                                            <div className="px-4 py-6 text-center text-sm text-slate-500">
-                                                                No companies match your criteria yet
-                                                            </div>
-                                                        )}
-                                                        {isAgenticSearching && agenticState.companies.length === 0 && (
-                                                            <div className="px-4 py-6 text-center">
-                                                                <motion.div
-                                                                    animate={{ opacity: [0.5, 1, 0.5] }}
-                                                                    transition={{ duration: 1.5, repeat: Infinity }}
-                                                                    className="text-sm text-slate-500"
-                                                                >
-                                                                    Searching with AI...
-                                                                </motion.div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </Card>
-                                                </motion.div>
-                                            )}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
 
-                                            {/* AI Insights Panel - shows after agentic search completes */}
-                                            {agenticState.phase === 'complete' && (agenticState.insights || agenticState.suggestedQueries.length > 0) && (
-                                                <SearchInsightsPanel
-                                                    insights={agenticState.insights}
-                                                    suggestedQueries={agenticState.suggestedQueries}
-                                                    refinementTips={agenticState.refinementTips}
-                                                    interestSummary={agenticState.interestSummary}
-                                                    searchTimeMs={agenticState.searchTimeMs}
-                                                    totalResults={agenticState.totalResults}
-                                                    onQueryClick={(query) => {
-                                                        setSearchQuery(query);
-                                                        // Trigger new search after state update
-                                                        setTimeout(() => triggerAgenticSearch(query), 100);
-                                                    }}
-                                                    className="mt-3"
-                                                />
-                                            )}
+                                                {/* Results Section */}
+                                                <AnimatePresence mode="wait">
+                                                    {hasAudience && (previewCompanies.length > 0 || agenticState.companies.length > 0 || isAgenticSearching) && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 8 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -8 }}
+                                                            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                                                        >
+                                                            <div className="rounded-xl border border-slate-200/80 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/40 backdrop-blur-sm overflow-hidden">
+                                                                {/* Results Header */}
+                                                                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100/80 dark:border-slate-700/30 bg-slate-50/50 dark:bg-slate-800/30">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                                                                            <Building2 className="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                                        </div>
+                                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                                                            Matching Companies
+                                                                        </span>
+                                                                    </div>
+                                                                    <AnimatePresence mode="wait">
+                                                                        {(loadingPreview || isAgenticSearching) ? (
+                                                                            <motion.div
+                                                                                key="loading"
+                                                                                initial={{ opacity: 0 }}
+                                                                                animate={{ opacity: 1 }}
+                                                                                exit={{ opacity: 0 }}
+                                                                                className="flex items-center gap-2 text-xs"
+                                                                            >
+                                                                                <div className="flex items-center gap-0.5">
+                                                                                    {[0, 1, 2].map((i) => (
+                                                                                        <motion.div
+                                                                                            key={i}
+                                                                                            className="w-1 h-1 rounded-full bg-blue-400"
+                                                                                            animate={{ opacity: [0.3, 1, 0.3] }}
+                                                                                            transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.12 }}
+                                                                                        />
+                                                                                    ))}
+                                                                                </div>
+                                                                                {isAgenticSearching && agenticState.companies.length > 0 && (
+                                                                                    <span className="text-slate-500 dark:text-slate-400 tabular-nums">
+                                                                                        {agenticState.companies.length} found
+                                                                                    </span>
+                                                                                )}
+                                                                            </motion.div>
+                                                                        ) : (
+                                                                            <motion.div
+                                                                                key="count"
+                                                                                initial={{ opacity: 0 }}
+                                                                                animate={{ opacity: 1 }}
+                                                                                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium"
+                                                                            >
+                                                                                <span className="tabular-nums">{previewTotal.toLocaleString()}</span>
+                                                                                <span className="text-emerald-500/70 dark:text-emerald-500/50">matches</span>
+                                                                            </motion.div>
+                                                                        )}
+                                                                    </AnimatePresence>
+                                                                </div>
+
+                                                                {/* Results list with reveal animation */}
+                                                                <div className="divide-y divide-slate-100/80 dark:divide-slate-700/30 max-h-[220px] overflow-y-auto">
+                                                                    {isAgenticSearching && agenticState.companies.length > 0 ? (
+                                                                        agenticState.companies.slice(0, 5).map((company, idx) => (
+                                                                            <motion.div
+                                                                                key={company.domain}
+                                                                                initial={{ opacity: 0, x: -12 }}
+                                                                                animate={{ opacity: 1, x: 0 }}
+                                                                                transition={{ duration: 0.25, delay: idx * 0.05, ease: [0.23, 1, 0.32, 1] }}
+                                                                            >
+                                                                                <CompanyRowCompact
+                                                                                    name={company.name}
+                                                                                    domain={company.domain}
+                                                                                    industry={company.industry}
+                                                                                    fitScore={company.match_score > 1 ? company.match_score / 100 : company.match_score}
+                                                                                    logoBase64={company.logo_base64}
+                                                                                    logoUrl={!company.logo_base64 ? `https://www.google.com/s2/favicons?domain=${company.domain}&sz=64` : undefined}
+                                                                                    onClick={() => { setSelectedDomain(company.domain); setDetailOpen(true); }}
+                                                                                    className="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                                                                                />
+                                                                            </motion.div>
+                                                                        ))
+                                                                    ) : previewCompanies.slice(0, 5).map((company, idx) => (
+                                                                        <motion.div
+                                                                            key={company.domain}
+                                                                            initial={{ opacity: 0 }}
+                                                                            animate={{ opacity: 1 }}
+                                                                            transition={{ delay: idx * 0.03 }}
+                                                                        >
+                                                                            <CompanyRowCompact
+                                                                                name={company.name}
+                                                                                domain={company.domain}
+                                                                                industry={company.industry}
+                                                                                fitScore={'combined_score' in company ? company.combined_score : null}
+                                                                                logoBase64={company.logo_base64}
+                                                                                onClick={() => { setSelectedDomain(company.domain); setDetailOpen(true); }}
+                                                                                className="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                                                                            />
+                                                                        </motion.div>
+                                                                    ))}
+
+                                                                    {/* Empty state */}
+                                                                    {previewCompanies.length === 0 && !loadingPreview && !isAgenticSearching && agenticState.companies.length === 0 && (
+                                                                        <div className="px-4 py-10 text-center">
+                                                                            <Building2 className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+                                                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                                                No companies match your criteria yet
+                                                                            </p>
+                                                                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                                                                Try adjusting your search or filters
+                                                                            </p>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Enhanced loading skeleton */}
+                                                                    {isAgenticSearching && agenticState.companies.length === 0 && (
+                                                                        <div className="p-4 space-y-3">
+                                                                            {[1, 2, 3].map((i) => (
+                                                                                <motion.div
+                                                                                    key={i}
+                                                                                    className="flex items-center gap-3"
+                                                                                    initial={{ opacity: 0, x: -8 }}
+                                                                                    animate={{ opacity: 1, x: 0 }}
+                                                                                    transition={{ delay: i * 0.1, duration: 0.3 }}
+                                                                                >
+                                                                                    <motion.div
+                                                                                        className="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-700"
+                                                                                        animate={{ opacity: [0.5, 0.8, 0.5] }}
+                                                                                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
+                                                                                    />
+                                                                                    <div className="flex-1 space-y-2">
+                                                                                        <motion.div
+                                                                                            className="h-3.5 rounded-md bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-700"
+                                                                                            style={{ width: `${55 + i * 12}%` }}
+                                                                                            animate={{ opacity: [0.5, 0.8, 0.5] }}
+                                                                                            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
+                                                                                        />
+                                                                                        <motion.div
+                                                                                            className="h-2.5 rounded-md bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-700 w-1/3"
+                                                                                            animate={{ opacity: [0.4, 0.6, 0.4] }}
+                                                                                            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.15 }}
+                                                                                        />
+                                                                                    </div>
+                                                                                    <motion.div
+                                                                                        className="w-10 h-5 rounded-md bg-slate-100 dark:bg-slate-800"
+                                                                                        animate={{ opacity: [0.4, 0.7, 0.4] }}
+                                                                                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                                                                                    />
+                                                                                </motion.div>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+
+                                                {/* AI Insights Panel - integrated with container */}
+                                                <AnimatePresence mode="wait">
+                                                    {agenticState.phase === 'complete' && (agenticState.insights || agenticState.suggestedQueries.length > 0) && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, height: 0 }}
+                                                            animate={{ opacity: 1, height: 'auto' }}
+                                                            exit={{ opacity: 0, height: 0 }}
+                                                            transition={{ duration: 0.3 }}
+                                                        >
+                                                            <SearchInsightsPanel
+                                                                insights={agenticState.insights}
+                                                                suggestedQueries={agenticState.suggestedQueries}
+                                                                refinementTips={agenticState.refinementTips}
+                                                                interestSummary={agenticState.interestSummary}
+                                                                searchTimeMs={agenticState.searchTimeMs}
+                                                                totalResults={agenticState.totalResults}
+                                                                onQueryClick={(query) => {
+                                                                    setSearchQuery(query);
+                                                                    setTimeout(() => triggerAgenticSearch(query), 100);
+                                                                }}
+                                                            />
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
 
                                             {/* Continue button */}
-                                            {hasAudience && previewTotal > 0 && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: 0.3, type: "spring", stiffness: 400, damping: 25 }}
-                                                >
+                                            <AnimatePresence>
+                                                {hasAudience && previewTotal > 0 && (
                                                     <motion.div
-                                                        whileHover={{ scale: 1.01 }}
-                                                        whileTap={{ scale: 0.99 }}
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: 10 }}
+                                                        transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 28 }}
                                                     >
-                                                        <Button
-                                                            size="lg"
-                                                            onClick={handleAudienceConfirm}
-                                                            className="w-full h-12 rounded-xl gap-2 shadow-lg shadow-primary/20"
+                                                        <motion.div
+                                                            whileHover={{ scale: 1.01, y: -1 }}
+                                                            whileTap={{ scale: 0.99 }}
                                                         >
-                                                            <motion.span
-                                                                key={previewTotal}
-                                                                initial={{ opacity: 0, y: 10 }}
-                                                                animate={{ opacity: 1, y: 0 }}
-                                                                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                                                            <Button
+                                                                size="lg"
+                                                                onClick={handleAudienceConfirm}
+                                                                className="w-full h-12 rounded-xl gap-2 font-medium"
                                                             >
-                                                                Continue with {previewTotal.toLocaleString()} companies
-                                                            </motion.span>
-                                                            <ChevronRight className="w-4 h-4" />
-                                                        </Button>
+                                                                <motion.span
+                                                                    key={previewTotal}
+                                                                    initial={{ opacity: 0, y: 8 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                                                                >
+                                                                    Continue with {previewTotal.toLocaleString()} companies
+                                                                </motion.span>
+                                                                <ChevronRight className="w-4 h-4" />
+                                                            </Button>
+                                                        </motion.div>
                                                     </motion.div>
-                                                </motion.div>
-                                            )}
-                                        </div>
+                                                )}
+                                            </AnimatePresence>
+                                        </motion.div>
                                     </SystemMessage>
                                 )}
 
@@ -1254,10 +1368,10 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                                             setSelectedPartnerIds(next);
                                                                         }}
                                                                         className={cn(
-                                                                            "w-full rounded-xl border-2 p-4 text-left transition-all",
+                                                                            "w-full rounded-xl border p-4 text-left transition-all",
                                                                             isSelected
-                                                                                ? "bg-white dark:bg-slate-900 border-primary/60 shadow-sm"
-                                                                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
+                                                                                ? "bg-white dark:bg-slate-900 border-primary ring-2 ring-primary/20"
+                                                                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                                                                         )}
                                                                     >
                                                                         <div className="flex items-start gap-3">
@@ -1448,6 +1562,23 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                             </div>
                                                         </div>
                                                     )}
+
+                                                    {/* Empty state - no partners available */}
+                                                    {suggestedPartners.length === 0 && partners.length === 0 && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            className="py-8 text-center"
+                                                        >
+                                                            <Users className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+                                                            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                                                No partners available yet
+                                                            </p>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                                                                You can skip this step and assign partners later
+                                                            </p>
+                                                        </motion.div>
+                                                    )}
                                                 </motion.div>
                                             )}
 
@@ -1504,7 +1635,7 @@ export function CampaignCreateWizard({ products, preselectedProductId }: Campaig
                                                         size="lg"
                                                         onClick={handleCreate}
                                                         disabled={creating || (assignmentMode !== 'skip' && selectedPartnerIds.size === 0)}
-                                                        className="w-full h-12 rounded-xl gap-2 shadow-lg shadow-primary/20 relative overflow-hidden"
+                                                        className="w-full h-11 rounded-xl gap-2"
                                                     >
                                                         {creating ? (
                                                             <>

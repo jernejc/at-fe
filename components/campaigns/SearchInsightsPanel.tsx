@@ -1,9 +1,17 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import type { WSSearchInsights, WSInterestFrequency } from '@/lib/schemas';
-import { Lightbulb, Search, TrendingUp } from 'lucide-react';
+import { 
+    Lightbulb, 
+    ArrowRight, 
+    Search, 
+    TrendingUp, 
+    Clock, 
+    Sparkles,
+    ChevronRight
+} from 'lucide-react';
 
 interface SearchInsightsPanelProps {
     insights: WSSearchInsights | null;
@@ -14,6 +22,134 @@ interface SearchInsightsPanelProps {
     totalResults?: number;
     onQueryClick?: (query: string) => void;
     className?: string;
+}
+
+// Search stats badge
+function SearchStatsBadge({ 
+    totalResults, 
+    searchTimeMs 
+}: { 
+    totalResults?: number; 
+    searchTimeMs?: number;
+}) {
+    if (totalResults === undefined && searchTimeMs === undefined) return null;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-slate-800/60 text-xs"
+        >
+            {totalResults !== undefined && (
+                <span className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                    <TrendingUp className="w-3 h-3" />
+                    <span className="font-medium">{totalResults.toLocaleString()}</span>
+                    <span className="text-slate-400 dark:text-slate-500">found</span>
+                </span>
+            )}
+            {searchTimeMs !== undefined && totalResults !== undefined && (
+                <span className="text-slate-300 dark:text-slate-600">•</span>
+            )}
+            {searchTimeMs !== undefined && (
+                <span className="flex items-center gap-1 text-slate-500 dark:text-slate-500 tabular-nums">
+                    <Clock className="w-3 h-3" />
+                    {(searchTimeMs / 1000).toFixed(1)}s
+                </span>
+            )}
+        </motion.div>
+    );
+}
+
+// Interest pill with frequency indicator
+function InterestPill({ 
+    interest, 
+    frequency, 
+    index 
+}: { 
+    interest: string; 
+    frequency: number;
+    index: number;
+}) {
+    // Normalize frequency for visual weight (assuming max around 10)
+    const normalizedWeight = Math.min(frequency / 8, 1);
+    
+    return (
+        <motion.span
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 + index * 0.04, ease: [0.23, 1, 0.32, 1] }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/50 text-xs"
+        >
+            <span className="text-slate-700 dark:text-slate-300 capitalize">
+                {interest.replace(/_/g, ' ')}
+            </span>
+            {/* Frequency indicator dots */}
+            <span className="flex items-center gap-0.5">
+                {[0, 1, 2].map((i) => (
+                    <span
+                        key={i}
+                        className={cn(
+                            'w-1 h-1 rounded-full transition-colors',
+                            i <= normalizedWeight * 2 
+                                ? 'bg-emerald-400 dark:bg-emerald-500' 
+                                : 'bg-slate-200 dark:bg-slate-700'
+                        )}
+                    />
+                ))}
+            </span>
+        </motion.span>
+    );
+}
+
+// Search suggestion chip
+function SuggestionChip({ 
+    query, 
+    index, 
+    onClick 
+}: { 
+    query: string; 
+    index: number;
+    onClick?: () => void;
+}) {
+    return (
+        <motion.button
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 + index * 0.06, ease: [0.23, 1, 0.32, 1] }}
+            whileHover={{ scale: 1.02, x: 2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onClick}
+            className={cn(
+                'group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
+                'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
+                'text-slate-600 dark:text-slate-300',
+                'hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
+                'hover:shadow-sm transition-all duration-200'
+            )}
+        >
+            <Search className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+            <span>{query}</span>
+            <ArrowRight className="w-3 h-3 opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
+        </motion.button>
+    );
+}
+
+// Tip item with icon
+function TipItem({ tip, index }: { tip: string; index: number }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 + index * 0.05 }}
+            className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400"
+        >
+            <div className="flex items-center justify-center w-4 h-4 rounded bg-amber-50 dark:bg-amber-900/20 shrink-0 mt-0.5">
+                <Lightbulb className="w-2.5 h-2.5 text-amber-500 dark:text-amber-400" />
+            </div>
+            <span className="leading-relaxed">{tip}</span>
+        </motion.div>
+    );
 }
 
 export function SearchInsightsPanel({
@@ -28,16 +164,16 @@ export function SearchInsightsPanel({
 }: SearchInsightsPanelProps) {
     const hasObservation = insights?.observation;
     const hasInterests = interestSummary.length > 0;
-    
+
     const allSuggestions = [...new Set([
         ...(insights?.suggested_queries || []),
         ...suggestedQueries,
-    ])].slice(0, 4);
+    ])].slice(0, 3);
 
     const allTips = [...new Set([
         ...(insights?.refinement_tips || []),
         ...refinementTips,
-    ])].slice(0, 3);
+    ])].slice(0, 2);
 
     const hasSuggestions = allSuggestions.length > 0;
     const hasTips = allTips.length > 0;
@@ -47,126 +183,183 @@ export function SearchInsightsPanel({
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className={cn(
-                'rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 space-y-3',
-                className
-            )}
-        >
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                    <Lightbulb className="w-4 h-4 text-slate-500" />
-                    Insights
-                </div>
-                {searchTimeMs !== undefined && (
-                    <span className="text-xs text-slate-400">
-                        {(searchTimeMs / 1000).toFixed(1)}s
-                        {totalResults !== undefined && ` · ${totalResults} found`}
-                    </span>
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                className={cn(
+                    'relative rounded-xl border border-slate-200/80 dark:border-slate-700/50',
+                    'bg-gradient-to-br from-slate-50/50 to-white dark:from-slate-800/20 dark:to-slate-900/30',
+                    'backdrop-blur-sm p-4 space-y-4 overflow-hidden',
+                    className
                 )}
-            </div>
+            >
+                {/* Subtle top accent line */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-300/40 dark:via-amber-500/20 to-transparent" />
 
-            {/* Observation */}
-            {hasObservation && (
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {insights.observation}
-                </p>
-            )}
+                {/* Header with stats */}
+                <div className="flex items-center justify-between gap-3">
+                    <motion.div 
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-2"
+                    >
+                        <div className="flex items-center justify-center w-6 h-6 rounded-md bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/40 dark:to-amber-800/20">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                            Search Insights
+                        </span>
+                    </motion.div>
 
-            {/* Top Interests */}
-            {hasInterests && (
-                <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                        <TrendingUp className="w-3 h-3" />
-                        Common interests
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                        {interestSummary.slice(0, 5).map((interest) => (
-                            <span
-                                key={interest.interest}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs text-slate-600 dark:text-slate-400"
-                            >
-                                {interest.interest.replace(/_/g, ' ')}
-                                <span className="text-slate-400 dark:text-slate-500">×{interest.frequency}</span>
+                    <SearchStatsBadge totalResults={totalResults} searchTimeMs={searchTimeMs} />
+                </div>
+
+                {/* Main observation */}
+                {hasObservation && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="rounded-lg bg-white/60 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30 p-3"
+                    >
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {insights!.observation}
+                        </p>
+                    </motion.div>
+                )}
+
+                {/* Top Interests */}
+                {hasInterests && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.15 }}
+                        className="space-y-2"
+                    >
+                        <div className="flex items-center gap-1.5">
+                            <TrendingUp className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                Common Interests
                             </span>
-                        ))}
-                    </div>
-                </div>
-            )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {interestSummary.slice(0, 5).map((interest, index) => (
+                                <InterestPill
+                                    key={interest.interest}
+                                    interest={interest.interest}
+                                    frequency={interest.frequency}
+                                    index={index}
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
 
-            {/* Suggested Queries */}
-            {hasSuggestions && (
-                <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                        <Search className="w-3 h-3" />
-                        Try also
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                        {allSuggestions.map((query) => (
-                            <button
-                                key={query}
-                                onClick={() => onQueryClick?.(query)}
-                                className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-                            >
-                                {query}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
+                {/* Suggested Queries */}
+                {hasSuggestions && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="space-y-2"
+                    >
+                        <div className="flex items-center gap-1.5">
+                            <Search className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                Try Also
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {allSuggestions.map((query, index) => (
+                                <SuggestionChip
+                                    key={query}
+                                    query={query}
+                                    index={index}
+                                    onClick={() => onQueryClick?.(query)}
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
 
-            {/* Tips */}
-            {hasTips && (
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                    <ul className="space-y-1">
-                        {allTips.map((tip) => (
-                            <li
-                                key={tip}
-                                className="text-xs text-slate-500 dark:text-slate-500 pl-3 relative before:content-['·'] before:absolute before:left-0 before:text-slate-400"
-                            >
-                                {tip}
-                            </li>
+                {/* Tips */}
+                {hasTips && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.25 }}
+                        className="space-y-1.5 pt-1 border-t border-slate-100 dark:border-slate-700/50"
+                    >
+                        {allTips.map((tip, index) => (
+                            <TipItem key={index} tip={tip} index={index} />
                         ))}
-                    </ul>
-                </div>
-            )}
-        </motion.div>
+                    </motion.div>
+                )}
+            </motion.div>
+        </AnimatePresence>
     );
 }
 
+// Compact inline version for tighter spaces
 export function SearchInsightsInline({
     observation,
     suggestedQueries = [],
+    totalResults,
+    searchTimeMs,
     onQueryClick,
     className,
 }: {
     observation?: string;
     suggestedQueries?: string[];
+    totalResults?: number;
+    searchTimeMs?: number;
     onQueryClick?: (query: string) => void;
     className?: string;
 }) {
-    if (!observation && suggestedQueries.length === 0) return null;
+    if (!observation && suggestedQueries.length === 0 && totalResults === undefined) {
+        return null;
+    }
 
     return (
-        <div className={cn('text-xs text-slate-500', className)}>
-            {observation && <span>{observation.slice(0, 80)}...</span>}
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={cn('flex items-center gap-3 flex-wrap text-xs', className)}
+        >
+            {/* Stats */}
+            {totalResults !== undefined && (
+                <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">
+                        {totalResults.toLocaleString()}
+                    </span>
+                    results
+                    {searchTimeMs !== undefined && (
+                        <span className="text-slate-400 dark:text-slate-500 ml-1">
+                            ({(searchTimeMs / 1000).toFixed(1)}s)
+                        </span>
+                    )}
+                </span>
+            )}
+
+            {/* Suggested queries */}
             {suggestedQueries.length > 0 && (
-                <span className="ml-2">
-                    Try: {suggestedQueries.slice(0, 2).map((q, i) => (
+                <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400 dark:text-slate-500">Also try:</span>
+                    {suggestedQueries.slice(0, 2).map((q, i) => (
                         <button
                             key={q}
                             onClick={() => onQueryClick?.(q)}
-                            className="text-slate-600 dark:text-slate-400 hover:underline ml-1"
+                            className="group inline-flex items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
                         >
-                            {q}{i < 1 && suggestedQueries.length > 1 ? ',' : ''}
+                            {q}
+                            <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                     ))}
-                </span>
+                </div>
             )}
-        </div>
+        </motion.div>
     );
 }
