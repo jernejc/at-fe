@@ -62,7 +62,7 @@ export function CompactPartnerRow({
                     <span className="text-slate-300 dark:text-slate-600">•</span>
                     
                     <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                        {suggestion ? suggestion.match_reasons[0] : partner.type}
+                        {suggestion ? suggestion.match_reasons[0] : (partner.description || partner.type)?.slice(0, 60) + ((partner.description || partner.type)?.length > 60 ? '...' : '')}
                     </span>
                 </div>
 
@@ -81,7 +81,7 @@ export function CompactPartnerRow({
                         </div>
                     </div>
                 )}
-                 {!suggestion && partner.type && (
+                 {!suggestion && partner.type && (partner.description || partner.type !== (partner.description || partner.type)) && (
                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-normal">
                         {partner.type}
                      </Badge>
