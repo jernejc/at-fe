@@ -81,6 +81,62 @@ export interface BulkAssignResult {
     errors: string[];
 }
 
+// Partner-Company Assignment schemas (for assigning companies to partners within campaigns)
+
+export interface PartnerCompanyAssignmentCreate {
+    company_id: number;
+    notes?: string | null;
+    status?: string | null;
+    assigned_by?: string | null;
+}
+
+export interface PartnerCompanyAssignmentRead {
+    id: number;
+    campaign_partner_id: number;
+    company_id: number;
+    status: string | null;
+    notes: string | null;
+    assigned_at: string;
+    assigned_by: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PartnerCompanyAssignmentUpdate {
+    notes?: string | null;
+    status?: string | null;
+}
+
+// Includes company details when listing partner's assigned companies
+export interface PartnerCompanyAssignmentWithCompany extends PartnerCompanyAssignmentRead {
+    company_domain: string;
+    company_name: string | null;
+    company_industry: string | null;
+    company_employee_count: number | null;
+    company_hq_country: string | null;
+    company_logo_url: string | null;
+}
+
+// Includes partner details when listing company's assigned partners
+export interface PartnerCompanyAssignmentWithPartner extends PartnerCompanyAssignmentRead {
+    partner_id: number;
+    partner_name: string;
+    partner_logo_url: string | null;
+    partner_type: string | null;
+}
+
+export interface BulkCompanyAssignRequest {
+    company_ids: number[];
+    assigned_by?: string | null;
+    notes?: string | null;
+}
+
+export interface BulkCompanyAssignResult {
+    assigned: number;
+    skipped: number;
+    errors: string[];
+}
+
 // New response type from list_campaign_partners endpoint
 // Includes both partner details AND campaign assignment info
 export interface PartnerAssignmentSummary {

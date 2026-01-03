@@ -189,6 +189,14 @@ export type {
     PartnerFilters,
     PartnerAssignmentSummary,
     PartnerSuggestion,
+    // Partner-Company Assignment types
+    PartnerCompanyAssignmentCreate,
+    PartnerCompanyAssignmentRead,
+    PartnerCompanyAssignmentUpdate,
+    PartnerCompanyAssignmentWithCompany,
+    PartnerCompanyAssignmentWithPartner,
+    BulkCompanyAssignRequest,
+    BulkCompanyAssignResult,
 } from './partner';
 
 // Explainability types

@@ -490,11 +490,15 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
             : filters;
 
         try {
+            // Extract domains from preview companies to add to the campaign
+            const domains = previewCompanies.map(c => c.domain);
+            
             const campaign = await createCampaign({
                 name: name.trim(),
                 description: description.trim() || undefined,
                 target_product_id: productId,
                 target_criteria: { filters: allFilters },
+                domains,
             });
 
             // Assign partners

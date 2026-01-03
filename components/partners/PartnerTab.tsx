@@ -1,8 +1,15 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Partner, PartnerType, MembershipRead, MembershipWithProgress } from '@/lib/schemas/campaign';
-import { getCampaignPartners } from '@/lib/api';
+import { 
+    getCampaignPartners, 
+    getPartnerAssignedCompanies,
+    assignCompanyToPartner,
+    unassignCompanyFromPartner,
+    bulkAssignCompaniesToPartner,
+} from '@/lib/api';
+import type { PartnerCompanyAssignmentWithCompany } from '@/lib/schemas';
 import { Building2, Zap, Briefcase, Globe, ExternalLink, Shuffle, LayoutGrid, TableProperties, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -23,7 +30,11 @@ export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompan
     const [partners, setPartners] = useState<Partner[]>([]);
     const [companies, setCompanies] = useState<MembershipRead[]>(initialCompanies);
     const [loading, setLoading] = useState(true);
+    const [assignmentLoading, setAssignmentLoading] = useState(false);
     const [autoAssignDialogOpen, setAutoAssignDialogOpen] = useState(false);
+    
+    // Track assigned companies per partner from API
+    const [partnerAssignments, setPartnerAssignments] = useState<Map<string, PartnerCompanyAssignmentWithCompany[]>>(new Map());
 
     // Fetch campaign partners from the API
     // The API now returns full partner details directly (PartnerAssignmentSummary)
@@ -44,11 +55,14 @@ export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompan
                     status: p.partner_status === 'active' ? 'active' : 'inactive',
                     match_score: 90, // Default score since API doesn't return this
                     capacity: p.partner_capacity ?? undefined,
-                    assigned_count: 0, // Will be calculated from companies
+                    assigned_count: 0, // Will be calculated from API
                     industries: p.partner_industries ?? [],
                 }));
                 
                 setPartners(mappedPartners);
+                
+                // Fetch assigned companies for each partner
+                await fetchAllPartnerAssignments(mappedPartners);
             } catch (error) {
                 console.error('Failed to fetch campaign partners:', error);
                 setPartners([]);
@@ -59,10 +73,65 @@ export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompan
         
         fetchPartners();
     }, [campaignSlug]);
+    
+    // Fetch all partner assignments
+    const fetchAllPartnerAssignments = useCallback(async (partnerList: Partner[]) => {
+        const assignmentsMap = new Map<string, PartnerCompanyAssignmentWithCompany[]>();
+        
+        await Promise.all(
+            partnerList.map(async (partner) => {
+                try {
+                    const assignments = await getPartnerAssignedCompanies(campaignSlug, Number(partner.id));
+                    assignmentsMap.set(partner.id, assignments);
+                } catch (error) {
+                    console.error(`Failed to fetch assignments for partner ${partner.id}:`, error);
+                    assignmentsMap.set(partner.id, []);
+                }
+            })
+        );
+        
+        setPartnerAssignments(assignmentsMap);
+        
+        // Update companies with partner assignments
+        updateCompaniesWithAssignments(assignmentsMap, partnerList);
+    }, [campaignSlug]);
+    
+    // Update companies state with partner assignment data from API
+    const updateCompaniesWithAssignments = (
+        assignmentsMap: Map<string, PartnerCompanyAssignmentWithCompany[]>,
+        partnerList: Partner[]
+    ) => {
+        setCompanies(prev => prev.map(company => {
+            // Find which partner this company is assigned to
+            for (const [partnerId, assignments] of assignmentsMap) {
+                const assignment = assignments.find(a => a.company_id === company.company_id);
+                if (assignment) {
+                    const partner = partnerList.find(p => p.id === partnerId);
+                    return {
+                        ...company,
+                        partner_id: partnerId,
+                        partner_name: partner?.name ?? null,
+                    };
+                }
+            }
+            // Not assigned to any partner
+            return {
+                ...company,
+                partner_id: null,
+                partner_name: null,
+            };
+        }));
+    };
 
     // Sync state with props
     useEffect(() => {
-        setCompanies(initialCompanies);
+        // Only update if we have new companies from props
+        // But preserve partner assignments from API
+        if (initialCompanies.length > 0 && partnerAssignments.size > 0) {
+            updateCompaniesWithAssignments(partnerAssignments, partners);
+        } else {
+            setCompanies(initialCompanies);
+        }
     }, [initialCompanies]);
 
     // Partner Detail Sheet state
@@ -114,35 +183,128 @@ export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompan
         }));
     }, [partners, companies]);
 
-    // Handle individual assignment
-    const handleAssign = (domain: string, partnerId: string | null) => {
-        setCompanies(prev => prev.map(company => {
-            if (company.domain === domain) {
-                const partner = partners.find(p => p.id === partnerId);
-                return {
-                    ...company,
-                    partner_id: partnerId,
-                    partner_name: partner?.name ?? null,
-                };
+    // Handle individual assignment via API
+    const handleAssign = async (domain: string, partnerId: string | null) => {
+        setAssignmentLoading(true);
+        
+        try {
+            const company = companies.find(c => c.domain === domain);
+            if (!company) return;
+            
+            // Debug: log the company object to see what fields are available
+            console.log('Assigning company:', { domain, company, company_id: company.company_id, membership_id: company.id });
+            
+            // The company_id is the actual company's database ID
+            // Note: company.id is the MEMBERSHIP ID, not the company ID!
+            const companyId = company.company_id;
+            if (!companyId || companyId === 0) {
+                console.error('Cannot assign: company_id is invalid. API may not be returning company_id field.', company);
+                alert('Cannot assign: company ID is not available. Please check the API response.');
+                return;
             }
-            return company;
-        }));
+            
+            const currentPartnerId = company.partner_id;
+            
+            // If already assigned to a partner, unassign first
+            if (currentPartnerId && currentPartnerId !== partnerId) {
+                await unassignCompanyFromPartner(
+                    campaignSlug, 
+                    Number(currentPartnerId), 
+                    companyId
+                );
+            }
+            
+            // If assigning to a new partner (not unassigning)
+            if (partnerId) {
+                await assignCompanyToPartner(campaignSlug, Number(partnerId), {
+                    company_id: companyId,
+                });
+            }
+            
+            // Update local state optimistically
+            const partner = partners.find(p => p.id === partnerId);
+            setCompanies(prev => prev.map(c => {
+                if (c.domain === domain) {
+                    return {
+                        ...c,
+                        partner_id: partnerId,
+                        partner_name: partner?.name ?? null,
+                    };
+                }
+                return c;
+            }));
+            
+            // Refresh assignments from API
+            await fetchAllPartnerAssignments(partners);
+        } catch (error) {
+            console.error('Failed to assign company:', error);
+            // Revert optimistic update by refetching
+            await fetchAllPartnerAssignments(partners);
+        } finally {
+            setAssignmentLoading(false);
+        }
     };
 
-    // Handle bulk auto-assignment
-    const handleAutoAssign = (assignments: Record<string, string>) => {
-        setCompanies(prev => prev.map(company => {
-            const partnerId = assignments[company.domain];
-            if (partnerId) {
-                const partner = partners.find(p => p.id === partnerId);
-                return {
-                    ...company,
-                    partner_id: partnerId,
-                    partner_name: partner?.name ?? null,
-                };
+    // Handle bulk auto-assignment via API
+    const handleAutoAssign = async (assignments: Record<string, string>) => {
+        setAssignmentLoading(true);
+        
+        try {
+            // Group assignments by partner
+            const partnerToCompanies = new Map<string, number[]>();
+            
+            for (const [domain, partnerId] of Object.entries(assignments)) {
+                const company = companies.find(c => c.domain === domain);
+                if (!company) continue;
+                
+                // The company_id is the actual company's database ID
+                // Note: company.id is the MEMBERSHIP ID, not the company ID!
+                const companyId = company.company_id;
+                if (!companyId || companyId === 0) {
+                    console.error('Skipping bulk assign: company_id is invalid', { domain, company });
+                    continue;
+                }
+                
+                if (!partnerToCompanies.has(partnerId)) {
+                    partnerToCompanies.set(partnerId, []);
+                }
+                partnerToCompanies.get(partnerId)!.push(companyId);
             }
-            return company;
-        }));
+            
+            // Bulk assign to each partner
+            await Promise.all(
+                Array.from(partnerToCompanies.entries()).map(async ([partnerId, companyIds]) => {
+                    await bulkAssignCompaniesToPartner(
+                        campaignSlug,
+                        Number(partnerId),
+                        companyIds
+                    );
+                })
+            );
+            
+            // Update local state optimistically
+            setCompanies(prev => prev.map(company => {
+                const partnerId = assignments[company.domain];
+                if (partnerId) {
+                    const partner = partners.find(p => p.id === partnerId);
+                    return {
+                        ...company,
+                        partner_id: partnerId,
+                        partner_name: partner?.name ?? null,
+                    };
+                }
+                return company;
+            }));
+            
+            // Refresh assignments from API
+            await fetchAllPartnerAssignments(partners);
+        } catch (error) {
+            console.error('Failed to bulk assign companies:', error);
+            // Revert by refetching
+            await fetchAllPartnerAssignments(partners);
+        } finally {
+            setAssignmentLoading(false);
+        }
     };
 
     const unassignedCount = companies.filter(c => !c.partner_id).length;
@@ -196,9 +358,13 @@ export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompan
                     variant="outline"
                     size="sm"
                     className="gap-2"
-                    disabled={unassignedCount === 0}
+                    disabled={unassignedCount === 0 || assignmentLoading}
                 >
-                    <Shuffle className="w-4 h-4" />
+                    {assignmentLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Shuffle className="w-4 h-4" />
+                    )}
                     Auto-assign
                     {unassignedCount > 0 && (
                         <span className="text-xs opacity-70">({unassignedCount})</span>
@@ -271,6 +437,7 @@ export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompan
                         partners={partnersWithStats}
                         onAssign={handleAssign}
                         onCompanyClick={onCompanyClick}
+                        isLoading={assignmentLoading}
                     />
                 </div>
             )}

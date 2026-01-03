@@ -211,7 +211,7 @@ export interface CampaignFunnel {
 }
 
 // UI-only filter types for the campaign builder
-export type CampaignFilterType = 'natural_query' | 'industry' | 'size_min' | 'size_max' | 'country' | 'domain_list';
+export type CampaignFilterType = 'natural_query' | 'industry' | 'size_min' | 'size_max' | 'country' | 'domain_list' | 'fit_min';
 
 export interface CampaignFilterUI {
     id: string;

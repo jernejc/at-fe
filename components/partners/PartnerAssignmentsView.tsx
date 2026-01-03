@@ -10,15 +10,17 @@ import { cn } from '@/lib/utils';
 interface PartnerAssignmentsViewProps {
     companies: MembershipRead[];
     partners: Partner[];
-    onAssign: (domain: string, partnerId: string | null) => void;
+    onAssign: (domain: string, partnerId: string | null) => void | Promise<void>;
     onCompanyClick?: (domain: string) => void;
+    isLoading?: boolean;
 }
 
 export function PartnerAssignmentsView({
     companies,
     partners,
     onAssign,
-    onCompanyClick
+    onCompanyClick,
+    isLoading = false
 }: PartnerAssignmentsViewProps) {
     const [filterPartnerId, setFilterPartnerId] = useState<string | 'all' | 'unassigned'>('all');
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
