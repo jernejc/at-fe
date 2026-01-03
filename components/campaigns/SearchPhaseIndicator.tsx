@@ -131,7 +131,7 @@ const defaultConfig: PhaseConfig = {
     progress: 50,
 };
 
-export function SearchPhaseIndicator({ phase, className, showElapsedTime = false }: SearchPhaseIndicatorProps) {
+export function SearchPhaseIndicator({ phase, className, showElapsedTime = false, intent, details }: SearchPhaseIndicatorProps & { intent?: string; details?: string }) {
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [startTime] = useState(Date.now());
 
@@ -153,6 +153,80 @@ export function SearchPhaseIndicator({ phase, className, showElapsedTime = false
     const Icon = config.icon;
     const isComplete = phase === 'complete';
     const isError = phase === 'error';
+
+    // Special persistent rich state for agentic search when intent is known
+    if ((intent || phase === 'interpreting') && phase !== 'complete' && phase !== 'error') {
+        return (
+             <AnimatePresence mode="wait">
+                <motion.div
+                    key="agentic-status"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className={cn('flex items-center gap-3 p-3.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50', className)}
+                >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 shrink-0">
+                         <motion.div
+                            animate={{ rotate: [0, 5, -5, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                        >
+                            <Brain className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        </motion.div>
+                    </div>
+                    
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                            {config.text}
+                            {/* Animated dots for active phases */}
+                            <span className="inline-flex">
+                                <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}>.</motion.span>
+                                <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}>.</motion.span>
+                                <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}>.</motion.span>
+                            </span>
+                        </span>
+                        {intent && (
+                            <motion.span 
+                                layoutId="intent-text"
+                                className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate leading-snug block"
+                            >
+                                {intent}
+                            </motion.span>
+                        )}
+                        {details && (
+                            <motion.span 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 truncate flex items-center gap-1.5"
+                            >
+                                <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                {details}
+                            </motion.span>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-1 ml-auto pl-3">
+                         {[0, 1, 2].map((i) => (
+                            <motion.div
+                                key={i}
+                                className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500"
+                                animate={{
+                                    opacity: [0.3, 1, 0.3],
+                                    scale: [0.8, 1, 0.8],
+                                }}
+                                transition={{
+                                    duration: 0.8,
+                                    repeat: Infinity,
+                                    delay: i * 0.15,
+                                    ease: 'easeInOut',
+                                }}
+                            />
+                        ))}
+                    </div>
+                </motion.div>
+            </AnimatePresence>
+        );
+    }
 
     return (
         <AnimatePresence mode="wait">

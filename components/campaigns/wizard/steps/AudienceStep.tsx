@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SystemMessage } from '../ui/SystemMessage';
 import { SearchPhaseIndicator } from '../../SearchPhaseIndicator';
-import { InterpretationCard } from '../../InterpretationCard';
 import { CompanyRowCompact } from '../../CompanyRowCompact';
 import { SearchInsightsPanel } from '../../SearchInsightsPanel';
 import type { CampaignFilterUI, CompanySummary, CompanySummaryWithFit } from '@/lib/schemas';
@@ -92,12 +91,6 @@ export function AudienceStep({
                                 "group-hover:border-slate-300 dark:group-hover:border-slate-600"
                             )}
                         />
-                            {/* Inline status indicator */}
-                            {isAgenticPhaseActive && (
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                    <SearchPhaseIndicator phase={agenticState.phase} showElapsedTime />
-                                </div>
-                            )}
                         </div>
 
                         {/* Filter chips row */}
@@ -124,8 +117,8 @@ export function AudienceStep({
                                 ))}
                             </AnimatePresence>
                             
-                            {/* Filter buttons */}
-                            {['industry', 'location', 'size_min'].map(type => {
+                        {/* Filter buttons */}
+                            {['industry', 'location', 'size_min', 'fit_min'].map(type => {
                                 const config: Record<string, { label: string; icon: React.ReactNode; placeholder: string; suggestions?: string[] }> = {
                                     industry: { 
                                         label: 'Industry', 
@@ -144,6 +137,12 @@ export function AudienceStep({
                                         icon: <Users className="w-3.5 h-3.5" />, 
                                         placeholder: 'Min employees',
                                         suggestions: ['50', '100', '500', '1000']
+                                    },
+                                    fit_min: { 
+                                        label: 'Min Score', 
+                                        icon: <Sparkles className="w-3.5 h-3.5" />, 
+                                        placeholder: 'Min score (0-100)',
+                                        suggestions: ['50', '60', '70', '80', '90']
                                     },
                                 };
                                 const c = config[type];
@@ -226,18 +225,28 @@ export function AudienceStep({
                         </div>
                     </div>
 
-                    {/* AI Interpretation - integrated styling */}
+                    {/* AI Interpretation / Status - integrated styling */}
                     <AnimatePresence mode="wait">
-                        {useAgenticMode && searchQuery.trim() && (
+                        {useAgenticMode && isAgenticPhaseActive && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.3 }}
+                                className="overflow-hidden"
                             >
-                                <InterpretationCard
-                                    interpretation={agenticState.interpretation}
-                                    isLoading={agenticState.phase === 'interpreting' || agenticState.phase === 'connecting'}
+                                <SearchPhaseIndicator 
+                                    phase={agenticState.phase} 
+                                    showElapsedTime
+                                    intent={agenticState.interpretation?.intent}
+                                    details={
+                                        agenticState.interpretation?.keywords?.length 
+                                            ? `Identifying: ${agenticState.interpretation.keywords.slice(0, 3).join(', ')}${agenticState.interpretation.keywords.length > 3 ? '...' : ''}`
+                                            : agenticState.interpretation?.semantic_query
+                                                ? `Refining: ${agenticState.interpretation.semantic_query}`
+                                                : undefined
+                                    }
+                                    className="mb-2 ml-1" 
                                 />
                             </motion.div>
                         )}
@@ -245,7 +254,7 @@ export function AudienceStep({
 
                     {/* Results Section */}
                     <AnimatePresence mode="wait">
-                        {hasAudience && (previewCompanies.length > 0 || agenticState.companies.length > 0 || isAgenticSearching) && (
+                        {hasAudience && (previewCompanies.length > 0 || agenticState.companies.length > 0) && (
                             <motion.div
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -263,49 +272,25 @@ export function AudienceStep({
                                                 Matching Companies
                                             </span>
                                         </div>
-                                        <AnimatePresence mode="wait">
-                                            {(loadingPreview || isAgenticSearching) ? (
-                                                <motion.div
-                                                    key="loading"
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    exit={{ opacity: 0 }}
-                                                    className="flex items-center gap-2 text-xs"
-                                                >
-                                                    <div className="flex items-center gap-0.5">
-                                                        {[0, 1, 2].map((i) => (
-                                                            <motion.div
-                                                                key={i}
-                                                                className="w-1 h-1 rounded-full bg-blue-400"
-                                                                animate={{ opacity: [0.3, 1, 0.3] }}
-                                                                transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.12 }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    {isAgenticSearching && agenticState.companies.length > 0 && (
-                                                        <span className="text-slate-500 dark:text-slate-400 tabular-nums">
-                                                            {agenticState.companies.length} found
-                                                        </span>
-                                                    )}
-                                                </motion.div>
-                                            ) : (
-                                                <motion.div
-                                                    key="count"
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium"
-                                                >
-                                                    <span className="tabular-nums">{previewTotal.toLocaleString()}</span>
-                                                    <span className="text-emerald-500/70 dark:text-emerald-500/50">matches</span>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
+                                        <motion.div
+                                            key="count"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium"
+                                        >
+                                            <span className="tabular-nums">
+                                                {(isAgenticSearching && agenticState.companies.length > 0 
+                                                    ? (agenticState.totalResults || agenticState.companies.length) 
+                                                    : previewTotal).toLocaleString()}
+                                            </span>
+                                            <span className="text-emerald-500/70 dark:text-emerald-500/50">matches</span>
+                                        </motion.div>
                                     </div>
 
                                     {/* Results list with reveal animation */}
-                                    <div className="divide-y divide-slate-100/80 dark:divide-slate-700/30 max-h-[220px] overflow-y-auto">
+                                    <div className="divide-y divide-slate-100/80 dark:divide-slate-700/30 max-h-[360px] overflow-y-auto">
                                         {isAgenticSearching && agenticState.companies.length > 0 ? (
-                                            agenticState.companies.slice(0, 5).map((company: any, idx: number) => (
+                                            agenticState.companies.slice(0, 10).map((company: any, idx: number) => (
                                                 <motion.div
                                                     key={company.domain}
                                                     initial={{ opacity: 0, x: -12 }}
@@ -324,7 +309,7 @@ export function AudienceStep({
                                                     />
                                                 </motion.div>
                                             ))
-                                        ) : previewCompanies.slice(0, 5).map((company, idx) => (
+                                        ) : previewCompanies.slice(0, 10).map((company, idx) => (
                                             <motion.div
                                                 key={company.domain}
                                                 initial={{ opacity: 0 }}
@@ -337,63 +322,12 @@ export function AudienceStep({
                                                     industry={company.industry}
                                                     fitScore={'combined_score' in company && company.combined_score != null ? company.combined_score / 100 : null}
                                                     logoBase64={company.logo_base64}
+                                                    logoUrl={!company.logo_base64 && company.domain ? `https://www.google.com/s2/favicons?domain=${company.domain}&sz=64` : undefined}
                                                     onClick={() => onCompanyClick(company.domain)}
                                                     className="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
                                                 />
                                             </motion.div>
                                         ))}
-
-                                        {/* Empty state */}
-                                        {previewCompanies.length === 0 && !loadingPreview && !isAgenticSearching && agenticState.companies.length === 0 && (
-                                            <div className="px-4 py-10 text-center">
-                                                <Building2 className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
-                                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                    No companies match your criteria yet
-                                                </p>
-                                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                                                    Try adjusting your search or filters
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Enhanced loading skeleton */}
-                                        {isAgenticSearching && agenticState.companies.length === 0 && (
-                                            <div className="p-4 space-y-3">
-                                                {[1, 2, 3].map((i) => (
-                                                    <motion.div
-                                                        key={i}
-                                                        className="flex items-center gap-3"
-                                                        initial={{ opacity: 0, x: -8 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{ delay: i * 0.1, duration: 0.3 }}
-                                                    >
-                                                        <motion.div
-                                                            className="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-700"
-                                                            animate={{ opacity: [0.5, 0.8, 0.5] }}
-                                                            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
-                                                        />
-                                                        <div className="flex-1 space-y-2">
-                                                            <motion.div
-                                                                className="h-3.5 rounded-md bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-700"
-                                                                style={{ width: `${55 + i * 12}%` }}
-                                                                animate={{ opacity: [0.5, 0.8, 0.5] }}
-                                                                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
-                                                            />
-                                                            <motion.div
-                                                                className="h-2.5 rounded-md bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-700 w-1/3"
-                                                                animate={{ opacity: [0.4, 0.6, 0.4] }}
-                                                                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.15 }}
-                                                            />
-                                                        </div>
-                                                        <motion.div
-                                                            className="w-10 h-5 rounded-md bg-slate-100 dark:bg-slate-800"
-                                                            animate={{ opacity: [0.4, 0.7, 0.4] }}
-                                                            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-                                                        />
-                                                    </motion.div>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </motion.div>

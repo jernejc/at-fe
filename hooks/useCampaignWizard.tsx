@@ -170,7 +170,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages, isTyping, currentStep]);
+    }, [messages, isTyping, currentStep, agenticState.phase]);
 
     // Simulate typing delay then show content
     const addSystemMessage = useCallback((content: React.ReactNode, delay = 800) => {
