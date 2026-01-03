@@ -10,7 +10,6 @@ import {
     getCampaignComparison,
     deleteCampaign,
     updateCampaign,
-    getCompanies,
 } from '@/lib/api';
 import type {
     CampaignRead,
@@ -18,46 +17,13 @@ import type {
     MembershipRead,
     CampaignComparison,
     CampaignFilterUI,
-    CompanyFilters,
     CompanySummary,
     CompanySummaryWithFit,
-    FitDistribution,
 } from '@/lib/schemas';
 
 // ============================================================================
 // Helpers
 // ============================================================================
-
-// Convert CampaignFilterUI array to CompanyFilters for API
-function filtersToCompanyFilters(filters: CampaignFilterUI[], productId?: number | null): CompanyFilters {
-    const companyFilters: CompanyFilters = {
-        page: 1,
-        page_size: 100,
-    };
-
-    if (productId) {
-        companyFilters.product_id = productId;
-    }
-
-    for (const filter of filters) {
-        switch (filter.type) {
-            case 'industry':
-                companyFilters.industry = filter.value;
-                break;
-            case 'country':
-                companyFilters.country = filter.value;
-                break;
-            case 'size_min':
-                companyFilters.min_employees = parseInt(filter.value) || undefined;
-                break;
-            case 'size_max':
-                companyFilters.max_employees = parseInt(filter.value) || undefined;
-                break;
-        }
-    }
-
-    return companyFilters;
-}
 
 export type CampaignTab = 'overview' | 'companies' | 'analysis' | 'partners';
 
@@ -147,7 +113,37 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
         }
     }, [campaign]);
 
-    // Fetch companies dynamically based on filters
+    // Filter campaign companies based on filter criteria (client-side filtering)
+    // This ensures we only show companies that are actually in the campaign, not from the general database
+    const filterCampaignCompanies = useCallback((
+        campaignCompanies: MembershipRead[],
+        activeFilters: CampaignFilterUI[]
+    ): MembershipRead[] => {
+        if (activeFilters.length === 0) return campaignCompanies;
+
+        return campaignCompanies.filter(company => {
+            return activeFilters.every(filter => {
+                switch (filter.type) {
+                    case 'industry':
+                        return company.industry?.toLowerCase().includes(filter.value.toLowerCase());
+                    case 'country':
+                        return company.hq_country?.toLowerCase().includes(filter.value.toLowerCase());
+                    case 'size_min': {
+                        const minEmployees = parseInt(filter.value);
+                        return !minEmployees || (company.employee_count != null && company.employee_count >= minEmployees);
+                    }
+                    case 'size_max': {
+                        const maxEmployees = parseInt(filter.value);
+                        return !maxEmployees || (company.employee_count != null && company.employee_count <= maxEmployees);
+                    }
+                    default:
+                        return true;
+                }
+            });
+        });
+    }, []);
+
+    // Apply filters to campaign companies instead of fetching from general endpoint
     const fetchDynamicCompanies = useCallback(async () => {
         if (filters.length === 0) {
             setDynamicCompanies([]);
@@ -157,21 +153,52 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
 
         setLoadingDynamicCompanies(true);
         try {
-            const companyFilters = filtersToCompanyFilters(filters, campaign?.target_product_id);
-            const result = await getCompanies(companyFilters);
-            setDynamicCompanies(result.items);
-            setDynamicCompaniesTotal(result.total);
+            // First ensure we have campaign companies loaded
+            let campaignCompanies = companies;
+            if (campaignCompanies.length === 0 && slug) {
+                // Load campaign companies if not already loaded
+                const result = await getCampaignCompanies(slug, { page_size: 200 });
+                campaignCompanies = result.items;
+                setCompanies(result.items);
+            }
+            
+            // Apply client-side filtering to campaign companies
+            const filteredCompanies = filterCampaignCompanies(campaignCompanies, filters);
+            
+            // Convert MembershipRead to CompanySummaryWithFit format for consistency
+            const dynamicResults: (CompanySummary | CompanySummaryWithFit)[] = filteredCompanies.map(c => ({
+                id: c.company_id,
+                domain: c.domain,
+                name: c.company_name || c.domain,
+                industry: c.industry,
+                employee_count: c.employee_count,
+                hq_city: null,
+                hq_country: c.hq_country,
+                linkedin_id: null,
+                rating_overall: null,
+                logo_url: null,
+                logo_base64: c.logo_base64 ?? null,
+                data_sources: [],
+                top_contact: null,
+                updated_at: c.created_at,
+                combined_score: c.cached_fit_score,
+                likelihood_score: c.cached_likelihood_score,
+                urgency_score: c.cached_urgency_score,
+            }));
+            
+            setDynamicCompanies(dynamicResults);
+            setDynamicCompaniesTotal(filteredCompanies.length);
         } catch (err) {
-            console.error('Failed to fetch dynamic companies:', err);
+            console.error('Failed to filter campaign companies:', err);
             setDynamicCompanies([]);
             setDynamicCompaniesTotal(0);
-            toast.error('Failed to search companies', {
+            toast.error('Failed to filter companies', {
                 description: 'Please try adjusting your filters',
             });
         } finally {
             setLoadingDynamicCompanies(false);
         }
-    }, [filters, campaign?.target_product_id]);
+    }, [filters, companies, slug, filterCampaignCompanies]);
 
     // Debounced fetch when filters change
     useEffect(() => {

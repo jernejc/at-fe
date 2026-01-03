@@ -2,32 +2,22 @@
 
 import { useState, useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Partner, MembershipWithProgress, OutreachStatus } from '@/lib/schemas/campaign';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { OutreachPipeline } from './OutreachPipeline';
-import { PartnerMetrics } from './PartnerMetrics';
-import { RecentActivity } from './RecentActivity';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
 import {
     Building2,
-    Users,
-    TrendingUp,
-    Mail,
-    Clock,
-    MessageSquare,
     CalendarCheck,
     FileEdit,
-    ChevronRight,
     Zap,
     Briefcase,
     Globe,
-    Target,
     Send,
-    MapPin,
-    LayoutDashboard,
-    Building,
+    Mail,
+    Clock,
+    MessageSquare,
 } from 'lucide-react';
 
 interface PartnerDetailSheetProps {
@@ -54,7 +44,6 @@ export function PartnerDetailSheet({
     assignedCompanies,
     onCompanyClick
 }: PartnerDetailSheetProps) {
-    const [activeTab, setActiveTab] = useState<'overview' | 'accounts'>('overview');
     const [statusFilter, setStatusFilter] = useState<OutreachStatus | 'all'>('all');
 
     // Calculate metrics
@@ -111,14 +100,14 @@ export function PartnerDetailSheet({
         <Sheet open={open} onOpenChange={onClose}>
             <SheetContent
                 side="bottom"
-                className="h-[92vh] p-0 flex flex-col bg-background border-t border-border shadow-2xl transition-all duration-500 ease-in-out gap-0 rounded-t-xl"
+                className="h-[92vh] p-0 flex flex-col bg-slate-50 dark:bg-slate-950 border-t border-border shadow-2xl transition-all duration-500 ease-in-out gap-0 rounded-t-xl"
             >
                 <SheetHeader className="sr-only">
                     <SheetTitle>{partner.name} Details</SheetTitle>
                 </SheetHeader>
 
                 {/* Header */}
-                <div className="relative overflow-hidden border-b border-border/60 shrink-0">
+                <div className="bg-background border-b border-border/60 shrink-0">
                     <div className="relative max-w-7xl mx-auto w-full px-6 py-5 pt-7 pr-14">
                         <div className="flex gap-5 items-start">
                             {/* Logo with elevated container */}
@@ -196,167 +185,76 @@ export function PartnerDetailSheet({
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="border-b bg-background sticky top-0 z-30 shrink-0">
-                    <div className="max-w-7xl mx-auto w-full px-6">
-                        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'overview' | 'accounts')} className="w-full">
-                            <TabsList variant="line" className="h-12 gap-6">
-                                <TabsTrigger value="overview" className="gap-2">
-                                    <LayoutDashboard className="w-4 h-4" />
-                                    Overview
-                                </TabsTrigger>
-                                <TabsTrigger value="accounts" className="gap-2">
-                                    <Building className="w-4 h-4" />
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto">
+                    <div className="max-w-7xl mx-auto w-full p-6 space-y-6">
+                        {/* Outreach Status */}
+                        {metrics && (
+                            <OutreachPipeline
+                                statusCounts={metrics.statusCounts}
+                                total={assignedCompanies.length}
+                                activeFilter={statusFilter}
+                                onStageClick={setStatusFilter}
+                            />
+                        )}
+
+                        {/* Accounts List */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold">
                                     Accounts
-                                    <span className="ml-1 text-[10px] font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
-                                        {assignedCompanies.length}
+                                    <span className="ml-2 text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                        {filteredCompanies.length}
                                     </span>
-                                </TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    </div>
-                </div>
-
-                {/* Tab Content */}
-                <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950">
-                    <div className="max-w-7xl mx-auto w-full p-6">
-                        {activeTab === 'overview' && (
-                            <div className="space-y-6 animate-in fade-in-50">
-                                {/* Outreach Status */}
-                                {metrics && (
-                                    <OutreachPipeline
-                                        statusCounts={metrics.statusCounts}
-                                        total={assignedCompanies.length}
-                                        activeFilter={statusFilter}
-                                        onStageClick={setStatusFilter}
-                                    />
+                                </h3>
+                                {statusFilter !== 'all' && (
+                                    <button
+                                        onClick={() => setStatusFilter('all')}
+                                        className="text-xs text-primary hover:underline"
+                                    >
+                                        Clear filter
+                                    </button>
                                 )}
+                            </div>
 
-                                {/* Two-column grid: Metrics + Activity */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {/* Left: Performance Metrics */}
-                                    <div className="space-y-4">
-                                        <PartnerMetrics accounts={assignedCompanies} />
-
-                                        {/* Industry Coverage */}
-                                        {metrics && metrics.industries.length > 0 && (
-                                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-                                                <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
-                                                    Industry Coverage
-                                                </h3>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {metrics.industries.map((industry) => (
-                                                        <Badge key={industry} variant="outline" className="text-xs font-normal">
-                                                            {industry}
-                                                        </Badge>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Right: Recent Activity */}
-                                    <RecentActivity
-                                        accounts={assignedCompanies}
-                                        onAccountClick={onCompanyClick}
+                            <div className="space-y-3">
+                                {filteredCompanies.map((company) => (
+                                    <CompanyRowCompact
+                                        key={company.id}
+                                        name={company.company_name || company.domain}
+                                        domain={company.domain}
+                                        logoBase64={company.logo_base64}
+                                        industry={company.industry}
+                                        employeeCount={company.employee_count}
+                                        hqCountry={company.hq_country}
+                                        outreachStatus={company.outreach_status}
+                                        lastActivity={company.last_activity}
+                                        decisionMakersCount={company.decision_makers_count}
+                                        fitScore={company.cached_fit_score}
+                                        onClick={() => onCompanyClick(company.domain)}
+                                        variant="card"
                                     />
-                                </div>
+                                ))}
 
-                                {/* Empty state for no accounts */}
-                                {assignedCompanies.length === 0 && (
+                                {filteredCompanies.length === 0 && (
                                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
                                         <Mail className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
                                         <p className="font-medium text-slate-600 dark:text-slate-300">
-                                            No accounts assigned yet
+                                            {assignedCompanies.length === 0
+                                                ? "No accounts assigned yet"
+                                                : "No accounts match this filter"
+                                            }
                                         </p>
                                         <p className="text-sm mt-1 text-slate-400 dark:text-slate-500">
-                                            Assign accounts to this partner in the Assignments view
+                                            {assignedCompanies.length === 0
+                                                ? "Assign accounts to this partner in the Assignments view"
+                                                : "Try selecting a different status filter"
+                                            }
                                         </p>
                                     </div>
                                 )}
                             </div>
-                        )}
-
-                        {activeTab === 'accounts' && (
-                            <div className="space-y-4 animate-in fade-in-50">
-                                {/* Filter by status */}
-                                {assignedCompanies.length > 0 && (
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="text-sm text-slate-500">Filter:</span>
-                                        <button
-                                            onClick={() => setStatusFilter('all')}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                                                statusFilter === 'all'
-                                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
-                                                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
-                                            )}
-                                        >
-                                            All ({assignedCompanies.length})
-                                        </button>
-                                        {(Object.entries(OUTREACH_CONFIG) as [OutreachStatus, typeof OUTREACH_CONFIG[OutreachStatus]][]).map(([status, config]) => {
-                                            const count = metrics?.statusCounts[status] || 0;
-                                            if (count === 0) return null;
-                                            const Icon = config.icon;
-                                            return (
-                                                <button
-                                                    key={status}
-                                                    onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
-                                                    className={cn(
-                                                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
-                                                        statusFilter === status
-                                                            ? cn(config.bgColor, config.color, "border-transparent")
-                                                            : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700"
-                                                    )}
-                                                >
-                                                    <Icon className="w-3.5 h-3.5" />
-                                                    {config.shortLabel} ({count})
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-
-                                {/* Accounts List */}
-                                <div className="space-y-3">
-                                    {filteredCompanies.map((company) => (
-                                        <CompanyRowCompact
-                                            key={company.id}
-                                            name={company.company_name || company.domain}
-                                            domain={company.domain}
-                                            logoBase64={company.logo_base64}
-                                            industry={company.industry}
-                                            employeeCount={company.employee_count}
-                                            hqCountry={company.hq_country}
-                                            outreachStatus={company.outreach_status}
-                                            lastActivity={company.last_activity}
-                                            decisionMakersCount={company.decision_makers_count}
-                                            fitScore={company.cached_fit_score}
-                                            onClick={() => onCompanyClick(company.domain)}
-                                            variant="card"
-                                        />
-                                    ))}
-
-                                    {filteredCompanies.length === 0 && (
-                                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
-                                            <Mail className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-                                            <p className="font-medium text-slate-600 dark:text-slate-300">
-                                                {assignedCompanies.length === 0
-                                                    ? "No accounts assigned yet"
-                                                    : "No accounts match this filter"
-                                                }
-                                            </p>
-                                            <p className="text-sm mt-1 text-slate-400 dark:text-slate-500">
-                                                {assignedCompanies.length === 0
-                                                    ? "Assign accounts to this partner in the Assignments view"
-                                                    : "Try selecting a different status filter"
-                                                }
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                        </div>
                     </div>
                 </div>
             </SheetContent>

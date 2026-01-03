@@ -152,6 +152,9 @@ export interface PartnerAssignmentSummary {
     partner_industries: string[];
     partner_status: string;
     
+    // Stats
+    assigned_count: number;
+    
     // Assignment details
     role_in_campaign: string | null;
     assigned_at: string;

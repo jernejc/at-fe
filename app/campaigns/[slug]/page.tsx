@@ -188,7 +188,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                             {overview ? (
                                 <OverviewTab
                                     overview={overview}
-                                    companies={companies}
+                                    companies={partnerTabCompanies}
                                     dynamicCompanies={filters.length > 0 ? dynamicCompanies : undefined}
                                     dynamicCompaniesTotal={dynamicCompaniesTotal}
                                     loadingDynamicCompanies={loadingDynamicCompanies}
