@@ -8,9 +8,10 @@ import { Building2, Flame, Thermometer, Snowflake } from 'lucide-react';
 interface CampaignCardPreviewProps {
     campaign: CampaignSummary;
     onAssignProduct?: () => void;
+    onClick?: (campaign: CampaignSummary) => void;
 }
 
-export function CampaignCardPreview({ campaign, onAssignProduct }: CampaignCardPreviewProps) {
+export function CampaignCardPreview({ campaign, onAssignProduct, onClick }: CampaignCardPreviewProps) {
     const router = useRouter();
     const avgFitScore = campaign.avg_fit_score ? Math.round(campaign.avg_fit_score * 100) : null;
 
@@ -35,6 +36,8 @@ export function CampaignCardPreview({ campaign, onAssignProduct }: CampaignCardP
     const handleClick = () => {
         if (onAssignProduct) {
             onAssignProduct();
+        } else if (onClick) {
+            onClick(campaign);
         } else {
             router.push(`/campaigns/${campaign.slug}`);
         }

@@ -14,6 +14,7 @@ interface ProductSectionProps {
     campaigns: CampaignSummary[];
     onNewCampaign?: (productId: number | null) => void;
     onAssignProduct?: (campaign: CampaignSummary) => void;
+    onCampaignClick?: (campaign: CampaignSummary) => void;
     defaultExpanded?: boolean;
     color?: string;
 }
@@ -39,6 +40,7 @@ export function ProductSection({
     campaigns,
     onNewCampaign,
     onAssignProduct,
+    onCampaignClick,
     defaultExpanded = true,
     color,
 }: ProductSectionProps) {
@@ -68,7 +70,7 @@ export function ProductSection({
             >
                 <div className="flex items-center gap-3">
                     {/* Product Icon */}
-                    <div 
+                    <div
                         className={cn(
                             "w-10 h-10 rounded-xl flex items-center justify-center",
                             isUnassigned
@@ -117,7 +119,7 @@ export function ProductSection({
             {/* Content */}
             <AnimatePresence>
                 {isExpanded && (
-                    <motion.div 
+                    <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -125,7 +127,7 @@ export function ProductSection({
                         className="overflow-hidden"
                     >
                         <div className="px-5 pb-5">
-                            <motion.div 
+                            <motion.div
                                 variants={staggerContainerFast}
                                 initial="hidden"
                                 animate="show"
@@ -140,6 +142,7 @@ export function ProductSection({
                                         <CampaignCardPreview
                                             campaign={campaign}
                                             onAssignProduct={isUnassigned && onAssignProduct ? () => onAssignProduct(campaign) : undefined}
+                                            onClick={onCampaignClick}
                                         />
                                     </motion.div>
                                 ))}
