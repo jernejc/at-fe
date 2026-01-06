@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { CampaignRead } from '@/lib/schemas';
 import type { CampaignTab } from '@/hooks/useCampaignPage';
-import { Loader2, Building2, ChevronRight, Trash2, Target, Activity, LayoutDashboard, Users, BarChart3 } from 'lucide-react';
+import { Loader2, Building2, ChevronRight, Trash2, Target, Activity, LayoutDashboard, Users, BarChart3, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +14,9 @@ interface CampaignHeaderProps {
     onTabChange: (tab: CampaignTab) => void;
     onDelete: () => void;
     isDeleting: boolean;
+    /** Publish the campaign (changes status from draft to published) */
+    onPublish?: () => void;
+    isPublishing?: boolean;
     /** Override company count (for dynamic filter campaigns) */
     companyCount?: number;
     /** Number of partners assigned */
@@ -26,6 +29,8 @@ export function CampaignHeader({
     onTabChange,
     onDelete,
     isDeleting,
+    onPublish,
+    isPublishing = false,
     companyCount,
     partnerCount,
 }: CampaignHeaderProps) {
@@ -51,7 +56,13 @@ export function CampaignHeader({
                                 <h1 className="text-2xl font-bold tracking-tight text-foreground">
                                     {campaign.name}
                                 </h1>
-                                <Badge variant="secondary" className="capitalize px-2 py-0.5 pointer-events-none">
+                                <Badge
+                                    variant={campaign.status === 'published' ? 'default' : 'secondary'}
+                                    className={`capitalize px-2 py-0.5 pointer-events-none ${campaign.status === 'published'
+                                            ? 'bg-emerald-500 hover:bg-emerald-500 text-white'
+                                            : ''
+                                        }`}
+                                >
                                     {campaign.status}
                                 </Badge>
                             </div>
@@ -102,6 +113,22 @@ export function CampaignHeader({
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2 shrink-0">
+                        {campaign.status === 'draft' && onPublish && (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="h-8 gap-2"
+                                onClick={onPublish}
+                                disabled={isPublishing}
+                            >
+                                {isPublishing ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Send className="w-4 h-4" />
+                                )}
+                                Publish
+                            </Button>
+                        )}
                         <Button
                             variant="ghost"
                             size="sm"

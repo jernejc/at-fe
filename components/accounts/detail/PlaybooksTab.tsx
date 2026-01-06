@@ -31,7 +31,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { KeyStakeholderSheet } from './KeyStakeholderSheet';
 
 export { type PlaybookContext } from '@/lib/schemas';
 
@@ -45,9 +44,11 @@ interface PlaybooksTabProps {
     allProducts?: ProductSummary[];
     /** Callback to generate a playbook for a specific product */
     onGeneratePlaybook?: (productId: number) => Promise<void>;
+    /** Callback when a stakeholder is clicked */
+    onSelectStakeholder?: (contact: PlaybookContactResponse) => void;
 }
 
-export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSelectEmployee, onProcess, allProducts = [], onGeneratePlaybook }: PlaybooksTabProps) {
+export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSelectEmployee, onProcess, allProducts = [], onGeneratePlaybook, onSelectStakeholder }: PlaybooksTabProps) {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [playbookDetail, setPlaybookDetail] = useState<PlaybookRead | null>(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
@@ -55,9 +56,6 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
     const [isGenerating, setIsGenerating] = useState(false);
     const [showProductMenu, setShowProductMenu] = useState(false);
     const [selectedProductToGenerate, setSelectedProductToGenerate] = useState<number | null>(null);
-    // State for KeyStakeholderSheet
-    const [selectedStakeholder, setSelectedStakeholder] = useState<PlaybookContactResponse | null>(null);
-    const [stakeholderSheetOpen, setStakeholderSheetOpen] = useState(false);
 
     // Use shared animation variants
     const container = staggerContainerFast;
@@ -66,13 +64,9 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
     const detailItem = fadeInUp;
 
     const handleStakeholderClick = (contact: PlaybookContactResponse) => {
-        setSelectedStakeholder(contact);
-        setStakeholderSheetOpen(true);
-    };
-
-    const handleCloseStakeholderSheet = () => {
-        setStakeholderSheetOpen(false);
-        setTimeout(() => setSelectedStakeholder(null), 300);
+        if (onSelectStakeholder) {
+            onSelectStakeholder(contact);
+        }
     };
 
     const sortedPlaybooks = useMemo(() => {
@@ -179,17 +173,6 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                             )}>
                                                 {pb.product_group}
                                             </div>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                {score > 0 && (
-                                                    <span className={cn(
-                                                        "text-xs font-medium",
-                                                        score >= 0.7 ? "text-emerald-600 dark:text-emerald-400" :
-                                                            score >= 0.4 ? "text-amber-600 dark:text-amber-400" : "text-slate-500 dark:text-slate-400"
-                                                    )}>
-                                                        {Math.round(score * 100)}% fit
-                                                    </span>
-                                                )}
-                                            </div>
                                         </div>
                                         <ChevronRight className={cn(
                                             "w-4 h-4 shrink-0 transition-transform",
@@ -270,14 +253,6 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                         <p className="text-sm text-muted-foreground mt-1">
                                             Sales strategy for this account
                                         </p>
-                                    </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        {playbookDetail.fit_score !== null && Number(playbookDetail.fit_score) > 0 && (
-                                            <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-full">
-                                                <Target className="w-3.5 h-3.5" />
-                                                {Math.round(Number(playbookDetail.fit_score) * 100)}% fit
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </motion.div>
@@ -592,13 +567,6 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                     </ScrollArea>
                 ) : null}
             </div>
-
-            {/* Key Stakeholder Sheet */}
-            <KeyStakeholderSheet
-                open={stakeholderSheetOpen}
-                onOpenChange={handleCloseStakeholderSheet}
-                contact={selectedStakeholder}
-            />
         </div>
     );
 }

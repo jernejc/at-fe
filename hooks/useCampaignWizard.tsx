@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createCampaign, getCompanies, getPartners, bulkAssignPartners, suggestPartnersForCompanies } from '@/lib/api';
+import { createCampaign, getCompanies, getPartners, bulkAssignPartners, bulkAssignCompaniesToPartner, suggestPartnersForCompanies } from '@/lib/api';
 import type { CampaignFilterUI, ProductSummary, Partner, CompanyFilters, CompanySummary, CompanySummaryWithFit, PartnerSuggestion, WSCompanyResult, WSPartnerSuggestion } from '@/lib/schemas';
 import { useAgenticSearch } from '@/hooks/useAgenticSearch';
 import { Check, Loader2, Package } from 'lucide-react';
@@ -512,6 +512,33 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
 
                     if (selectedIds.length > 0) {
                         await bulkAssignPartners(campaign.slug, selectedIds);
+
+                        // Auto-assign companies to partners using round-robin
+                        if (assignmentMode === 'auto') {
+                            const companyIds = previewCompanies
+                                .map(c => c.id)
+                                .filter((id): id is number => typeof id === 'number' && id > 0);
+
+                            if (companyIds.length > 0 && selectedIds.length > 0) {
+                                // Create round-robin distribution
+                                const partnerToCompanies = new Map<number, number[]>();
+                                selectedIds.forEach(id => partnerToCompanies.set(id, []));
+
+                                companyIds.forEach((companyId, index) => {
+                                    const partnerIndex = index % selectedIds.length;
+                                    const partnerId = selectedIds[partnerIndex];
+                                    partnerToCompanies.get(partnerId)!.push(companyId);
+                                });
+
+                                // Bulk assign to each partner
+                                await Promise.all(
+                                    Array.from(partnerToCompanies.entries()).map(
+                                        ([partnerId, companyIds]) =>
+                                            bulkAssignCompaniesToPartner(campaign.slug, partnerId, companyIds)
+                                    )
+                                );
+                            }
+                        }
                     }
                 } catch (partnerErr) {
                     console.warn('Failed to assign partners:', partnerErr);

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { getEmployee, getFitBreakdown, getSignalProvenance } from '@/lib/api';
-import { EmployeeRead, EmployeeSummary, FitScore, CompanyExplainabilityResponse, JobPostingSummary, PlaybookContext } from '@/lib/schemas';
+import { EmployeeRead, EmployeeSummary, FitScore, CompanyExplainabilityResponse, JobPostingSummary, PlaybookContext, PlaybookContactResponse } from '@/lib/schemas';
 import { SignalProvenanceResponse } from '@/lib/schemas/provenance';
 
 interface EmployeeModalState {
@@ -28,11 +28,17 @@ interface JobModalState {
     open: boolean;
 }
 
+interface StakeholderModalState {
+    stakeholder: PlaybookContactResponse | null;
+    open: boolean;
+}
+
 interface UseAccountModalsReturn {
     employeeModal: EmployeeModalState;
     fitModal: FitModalState;
     signalModal: SignalModalState;
     jobModal: JobModalState;
+    stakeholderModal: StakeholderModalState;
     handleEmployeeClick: (employee: EmployeeSummary) => void;
     handleCloseEmployeeModal: () => void;
     handleFitClick: (productId: number) => void;
@@ -43,6 +49,8 @@ interface UseAccountModalsReturn {
     handleCloseJobModal: () => void;
     handlePlaybookEmployeeClick: (employeeId: number | null, preview: { name: string; title?: string }, context: PlaybookContext) => void;
     playbookContext: PlaybookContext | null;
+    handleStakeholderClick: (contact: PlaybookContactResponse) => void;
+    handleCloseStakeholderModal: (open: boolean) => void;
 }
 
 export function useAccountModals(
@@ -67,6 +75,10 @@ export function useAccountModals(
     // Job detail modal state
     const [selectedJob, setSelectedJob] = useState<JobPostingSummary | null>(null);
     const [jobModalOpen, setJobModalOpen] = useState(false);
+
+    // Stakeholder modal state
+    const [selectedStakeholder, setSelectedStakeholder] = useState<PlaybookContactResponse | null>(null);
+    const [stakeholderModalOpen, setStakeholderModalOpen] = useState(false);
 
     // Playbook context for employee modal
     const [playbookContext, setPlaybookContext] = useState<PlaybookContext | null>(null);
@@ -142,6 +154,18 @@ export function useAccountModals(
         setTimeout(() => setSelectedJob(null), 300);
     }, []);
 
+    const handleStakeholderClick = useCallback((contact: PlaybookContactResponse) => {
+        setSelectedStakeholder(contact);
+        setStakeholderModalOpen(true);
+    }, []);
+
+    const handleCloseStakeholderModal = useCallback((open: boolean) => {
+        setStakeholderModalOpen(open);
+        if (!open) {
+            setTimeout(() => setSelectedStakeholder(null), 300);
+        }
+    }, []);
+
     const handlePlaybookEmployeeClick = useCallback((employeeId: number | null, preview: { name: string; title?: string }, context: PlaybookContext) => {
         // Set context first
         setPlaybookContext(context);
@@ -192,6 +216,10 @@ export function useAccountModals(
             job: selectedJob,
             open: jobModalOpen,
         },
+        stakeholderModal: {
+            stakeholder: selectedStakeholder,
+            open: stakeholderModalOpen,
+        },
         handleEmployeeClick,
         handleCloseEmployeeModal,
         handleFitClick,
@@ -202,5 +230,7 @@ export function useAccountModals(
         handleCloseJobModal,
         handlePlaybookEmployeeClick,
         playbookContext,
+        handleStakeholderClick,
+        handleCloseStakeholderModal,
     };
 }

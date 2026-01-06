@@ -9,6 +9,7 @@ import {
     NewsArticleSummary,
     EmployeeSummary,
     ProductSummary,
+    PlaybookContactResponse,
 } from '@/lib/schemas';
 import { ProcessingOptions } from '@/lib/api';
 import { OverviewTab } from './OverviewTab';
@@ -50,6 +51,7 @@ interface AccountDetailContentProps {
     onRegenerateExplainability: (onProgress?: (status: string) => void) => Promise<void>;
     onRegeneratePlaybooks: (productId?: number) => Promise<void>;
     allProducts: ProductSummary[];
+    onSelectStakeholder: (contact: PlaybookContactResponse) => void;
 }
 
 function AnimatedPanel({ children }: { children: ReactNode }) {
@@ -89,6 +91,7 @@ export function AccountDetailContent({
     onRegenerateExplainability,
     onRegeneratePlaybooks,
     allProducts,
+    onSelectStakeholder,
 }: AccountDetailContentProps) {
     const hasExplainability = !!explainability;
     const hasPlaybooks = playbooks.length > 0;
@@ -141,6 +144,7 @@ export function AccountDetailContent({
                                 onProcess={onRegeneratePlaybooks}
                                 allProducts={allProducts}
                                 onGeneratePlaybook={onRegeneratePlaybooks}
+                                onSelectStakeholder={onSelectStakeholder}
                             />
                         ) : (
                             <PlaybookEmptyState

@@ -11,6 +11,7 @@ import { EmployeeDetailModal } from './detail/EmployeeDetailModal';
 import { FitBreakdownSheet } from './detail/FitBreakdownSheet';
 import { SignalProvenanceSheet } from './detail/SignalProvenanceSheet';
 import { JobDetailSheet } from './detail/JobDetailSheet';
+import { KeyStakeholderSheet } from './detail/KeyStakeholderSheet';
 
 interface AccountDetailProps {
     domain: string;
@@ -51,6 +52,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
         fitModal,
         signalModal,
         jobModal,
+        stakeholderModal,
         handleEmployeeClick,
         handleCloseEmployeeModal,
         handleFitClick,
@@ -61,6 +63,8 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
         handleCloseJobModal,
         handlePlaybookEmployeeClick,
         playbookContext,
+        handleStakeholderClick,
+        handleCloseStakeholderModal,
     } = useAccountModals(domain, explainability);
 
     // Reset tab when opening
@@ -191,6 +195,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                                 onRegenerateExplainability={handleRegenerateExplainability}
                                 onRegeneratePlaybooks={handleRegeneratePlaybooks}
                                 allProducts={allProducts}
+                                onSelectStakeholder={handleStakeholderClick}
                             />
                         </div>
                     ) : (
@@ -225,6 +230,12 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                 job={jobModal.job}
                 isOpen={jobModal.open}
                 onClose={handleCloseJobModal}
+            />
+
+            <KeyStakeholderSheet
+                open={stakeholderModal.open}
+                onOpenChange={handleCloseStakeholderModal}
+                contact={stakeholderModal.stakeholder}
             />
         </>
     );

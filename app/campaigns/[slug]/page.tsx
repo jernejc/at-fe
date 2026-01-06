@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
 import { CampaignHeader, OverviewTab, OverviewTabSkeleton, CompaniesTab, AnalysisTab, PartnerTab, type DrillDownFilter } from '@/components/campaigns';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Header } from '@/components/ui/Header';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useCampaignPage } from '@/hooks/useCampaignPage';
@@ -111,6 +112,41 @@ export default function CampaignPage({ params }: CampaignPageProps) {
         fetchPartnerCount();
     }, [slug]);
 
+    // Publish campaign state
+    const [localCampaignStatus, setLocalCampaignStatus] = useState<string | null>(null);
+    const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+
+    // Display campaign with potentially overridden status
+    const displayCampaign = useMemo(() => {
+        if (!campaign) return null;
+        if (localCampaignStatus) {
+            return { ...campaign, status: localCampaignStatus };
+        }
+        return campaign;
+    }, [campaign, localCampaignStatus]);
+
+    const handlePublish = () => setShowPublishConfirm(true);
+
+    const confirmPublish = () => {
+        setIsPublishing(true);
+        // Simulate async operation (local state only, no API)
+        setTimeout(() => {
+            setLocalCampaignStatus('published');
+            setShowPublishConfirm(false);
+            setIsPublishing(false);
+            toast.success('Campaign published!', {
+                description: 'Notifications will be sent to partners.',
+                style: {
+                    background: '#10b981',
+                    color: '#ffffff',
+                    border: 'none',
+                },
+                descriptionClassName: 'text-emerald-100',
+            });
+        }, 500);
+    };
+
     // Handle drill-down filtering from overview charts
     const handleDrillDown = (filter: DrillDownFilter) => {
         if (filter.type === 'industry') {
@@ -171,11 +207,13 @@ export default function CampaignPage({ params }: CampaignPageProps) {
             <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950">
                 {/* Campaign Header with Tabs */}
                 <CampaignHeader
-                    campaign={campaign}
+                    campaign={displayCampaign!}
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     onDelete={handleDelete}
                     isDeleting={isDeleting}
+                    onPublish={handlePublish}
+                    isPublishing={isPublishing}
                     companyCount={overview?.company_count ?? dynamicCompaniesTotal ?? undefined}
                     partnerCount={partnerCount}
                 />
@@ -254,6 +292,30 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                     onClose={closeDetail}
                 />
             )}
+
+            {/* Publish Confirmation Dialog */}
+            <Dialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Publish Campaign</DialogTitle>
+                        <DialogDescription>
+                            Publishing this campaign will send notifications to all assigned partners.
+                            They will be alerted about their assigned opportunities.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose render={<Button variant="outline" />}>
+                            Cancel
+                        </DialogClose>
+                        <Button onClick={confirmPublish} disabled={isPublishing}>
+                            {isPublishing ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : null}
+                            Publish Campaign
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
