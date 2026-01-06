@@ -39,7 +39,7 @@ export function PartnersStep({
             <div className="space-y-4">
                 {/* Suggested partners */}
                 {loadingPartners ? (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="flex flex-col items-center justify-center py-10 gap-3"
@@ -72,30 +72,30 @@ export function PartnersStep({
                                 <div className="flex items-center gap-2 mb-4">
                                     <Sparkles className="w-4 h-4 text-primary" />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        AI Recommended
+                                        Workflow Partners
                                     </span>
                                 </div>
                                 <div className="space-y-2">
-                                {suggestedPartners.map((suggestion, index) => {
-                                    const partner = suggestion.partner;
-                                    const isSelected = selectedPartnerIds.has(partner.slug || String(partner.id));
-                                    
-                                    return (
-                                        <CompactPartnerRow
-                                            key={partner.id}
-                                            partner={partner}
-                                            suggestion={suggestion}
-                                            isSelected={isSelected}
-                                            onToggle={() => {
-                                                const next = new Set(selectedPartnerIds);
-                                                const key = partner.slug || String(partner.id);
-                                                if (isSelected) next.delete(key);
-                                                else next.add(key);
-                                                setSelectedPartnerIds(next);
-                                            }}
-                                        />
-                                    );
-                                })}
+                                    {suggestedPartners.map((suggestion, index) => {
+                                        const partner = suggestion.partner;
+                                        const isSelected = selectedPartnerIds.has(partner.slug || String(partner.id));
+
+                                        return (
+                                            <CompactPartnerRow
+                                                key={partner.id}
+                                                partner={partner}
+                                                suggestion={suggestion}
+                                                isSelected={isSelected}
+                                                onToggle={() => {
+                                                    const next = new Set(selectedPartnerIds);
+                                                    const key = partner.slug || String(partner.id);
+                                                    if (isSelected) next.delete(key);
+                                                    else next.add(key);
+                                                    setSelectedPartnerIds(next);
+                                                }}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -161,7 +161,6 @@ export function PartnersStep({
                         {[
                             { id: 'auto', label: 'Auto-assign', icon: Wand2 },
                             { id: 'manual', label: 'Manual', icon: MousePointerClick },
-                            { id: 'skip', label: 'Later', icon: Clock },
                         ].map(mode => {
                             const isSelected = assignmentMode === mode.id;
                             const Icon = mode.icon;

@@ -35,6 +35,7 @@ export interface WSSearchRequest {
     limit?: number;
     include_partner_suggestions?: boolean;
     partner_suggestion_limit?: number;
+    product_id?: number | null;
     context?: Record<string, unknown>;
     request_id?: string;
 }

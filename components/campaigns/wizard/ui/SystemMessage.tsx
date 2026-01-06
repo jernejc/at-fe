@@ -8,31 +8,31 @@ import { cn } from '@/lib/utils';
 // Enhanced animation variants
 const messageVariants: Variants = {
     hidden: { opacity: 0, y: 12, scale: 0.98 },
-    show: { 
-        opacity: 1, 
-        y: 0, 
+    show: {
+        opacity: 1,
+        y: 0,
         scale: 1,
-        transition: { 
-            type: "spring", 
-            stiffness: 400, 
+        transition: {
+            type: "spring",
+            stiffness: 400,
             damping: 30,
-            duration: 0.4 
-        } 
+            duration: 0.4
+        }
     },
     exit: { opacity: 0, y: -8, transition: { duration: 0.2 } }
 };
 
 const avatarVariants: Variants = {
     hidden: { scale: 0, rotate: -180 },
-    show: { 
-        scale: 1, 
+    show: {
+        scale: 1,
         rotate: 0,
-        transition: { 
-            type: "spring", 
-            stiffness: 260, 
+        transition: {
+            type: "spring",
+            stiffness: 260,
             damping: 20,
-            delay: 0.1 
-        } 
+            delay: 0.1
+        }
     }
 };
 
@@ -40,7 +40,7 @@ const avatarVariants: Variants = {
 export function SystemMessage({ children, showAvatar = true }: { children: React.ReactNode; showAvatar?: boolean }) {
     // Only show bubble background for actual messages (with avatar), not for interactive content
     const hasBubble = showAvatar;
-    
+
     return (
         <motion.div
             variants={messageVariants}
@@ -56,9 +56,9 @@ export function SystemMessage({ children, showAvatar = true }: { children: React
                     </div>
                 </motion.div>
             )}
-            <motion.div 
+            <motion.div
                 className={cn(
-                    "flex-1",
+                    "flex-1 min-w-0",
                     hasBubble && "bg-white dark:bg-slate-800/60 rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border border-slate-100 dark:border-slate-700/50",
                     !showAvatar && "ml-11"
                 )}

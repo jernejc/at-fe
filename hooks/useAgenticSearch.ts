@@ -85,7 +85,7 @@ const initialState: AgenticSearchState = {
 export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgenticSearchReturn {
     const [state, setState] = useState<AgenticSearchState>(initialState);
     const [isConnected, setIsConnected] = useState(false);
-    
+
     const wsRef = useRef<WebSocket | null>(null);
     const optionsRef = useRef(options);
     optionsRef.current = options;
@@ -115,7 +115,7 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
 
                 case 'result': {
                     const phase = data.phase;
-                    
+
                     // Update phase
                     setState(prev => {
                         if (prev.phase !== phase) {
@@ -219,13 +219,14 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
 
         ws.onopen = () => {
             setIsConnected(true);
-            
+
             const request: WSSearchRequest = {
                 query,
                 entity_types: searchOptions?.entity_types || ['companies', 'partners'],
                 limit: searchOptions?.limit || 20,
                 include_partner_suggestions: searchOptions?.include_partner_suggestions ?? true,
                 partner_suggestion_limit: searchOptions?.partner_suggestion_limit || 5,
+                product_id: searchOptions?.product_id,
                 context: searchOptions?.context || {},
                 request_id: searchOptions?.request_id || `search-${Date.now()}`,
             };
@@ -272,9 +273,9 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
         setIsConnected(false);
     }, []);
 
-    const isSearching = state.phase !== 'idle' && 
-                        state.phase !== 'complete' && 
-                        state.phase !== 'error';
+    const isSearching = state.phase !== 'idle' &&
+        state.phase !== 'complete' &&
+        state.phase !== 'error';
 
     return {
         state,

@@ -23,10 +23,15 @@ import {
     ExternalLink,
     Clock,
     Sparkles,
-    RefreshCw
+    RefreshCw,
+    Calendar,
+    Phone,
+    Linkedin,
+    MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { KeyStakeholderSheet } from './KeyStakeholderSheet';
 
 export { type PlaybookContext } from '@/lib/schemas';
 
@@ -50,6 +55,9 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
     const [isGenerating, setIsGenerating] = useState(false);
     const [showProductMenu, setShowProductMenu] = useState(false);
     const [selectedProductToGenerate, setSelectedProductToGenerate] = useState<number | null>(null);
+    // State for KeyStakeholderSheet
+    const [selectedStakeholder, setSelectedStakeholder] = useState<PlaybookContactResponse | null>(null);
+    const [stakeholderSheetOpen, setStakeholderSheetOpen] = useState(false);
 
     // Use shared animation variants
     const container = staggerContainerFast;
@@ -57,62 +65,14 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
     const detailContainer = staggerContainer;
     const detailItem = fadeInUp;
 
-    const handleEmployeeClick = async (contact: PlaybookContactResponse) => {
-        // Capture context
-        const context: PlaybookContext = {
-            role_category: contact.role_category,
-            value_prop: contact.value_prop,
-            fit_score: contact.fit_score
-        };
+    const handleStakeholderClick = (contact: PlaybookContactResponse) => {
+        setSelectedStakeholder(contact);
+        setStakeholderSheetOpen(true);
+    };
 
-        // Clean up name if it contains prefixes like "Name:"
-        const cleanName = contact.name.replace(/^Name:\s*/i, '').trim();
-
-        // Try to find matching employee ID if missing
-        let employeeId = contact.employee_id;
-        let matchedEmployee: EmployeeSummary | undefined;
-
-        if (!employeeId && availableEmployees) {
-            matchedEmployee = availableEmployees.find(e =>
-                e.full_name.toLowerCase() === cleanName.toLowerCase()
-            );
-            if (matchedEmployee) {
-                employeeId = matchedEmployee.id;
-            }
-        }
-
-        // If still no ID, try searching via API as a fallback
-        if (!employeeId && domain) {
-            try {
-                const response = await getEmployees({
-                    search: cleanName,
-                    domain: domain,
-                    page_size: 5
-                });
-
-                if (response.items && response.items.length > 0) {
-                    const bestMatch = response.items.find(e =>
-                        e.full_name.toLowerCase() === cleanName.toLowerCase() ||
-                        e.current_title?.toLowerCase() === contact.title?.toLowerCase()
-                    );
-
-                    if (bestMatch) {
-                        employeeId = bestMatch.id;
-                    } else if (response.items.length > 0) {
-                        employeeId = response.items[0].id;
-                    }
-                }
-            } catch (err) {
-                console.error("Search fallback failed:", err);
-            }
-        }
-
-        // Call the parent-provided handler with the employee info
-        onSelectEmployee(
-            employeeId || null,
-            { name: matchedEmployee?.full_name || cleanName, title: matchedEmployee?.current_title || contact.title || undefined },
-            context
-        );
+    const handleCloseStakeholderSheet = () => {
+        setStakeholderSheetOpen(false);
+        setTimeout(() => setSelectedStakeholder(null), 300);
     };
 
     const sortedPlaybooks = useMemo(() => {
@@ -422,6 +382,66 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                 </motion.div>
                             )}
 
+                            {/* Outreach Cadence */}
+                            {playbookDetail.outreach_cadence && playbookDetail.outreach_cadence.sequence && playbookDetail.outreach_cadence.sequence.length > 0 && (
+                                <motion.section variants={detailItem} className="pt-6">
+                                    <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-primary" />
+                                        Outreach Cadence
+                                        {playbookDetail.outreach_cadence.total_days && (
+                                            <span className="text-xs font-normal text-muted-foreground">
+                                                ({playbookDetail.outreach_cadence.total_days} days)
+                                            </span>
+                                        )}
+                                    </h3>
+                                    {playbookDetail.outreach_cadence.summary && (
+                                        <p className="text-xs text-muted-foreground mb-3">
+                                            {playbookDetail.outreach_cadence.summary}
+                                        </p>
+                                    )}
+                                    <div className="space-y-2">
+                                        {playbookDetail.outreach_cadence.sequence.map((step, i) => (
+                                            <div
+                                                key={i}
+                                                className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/40"
+                                            >
+                                                <div className="flex flex-col items-center shrink-0 w-10">
+                                                    <span className="text-[10px] font-medium text-muted-foreground uppercase">Day</span>
+                                                    <span className="text-lg font-bold text-foreground">{step.day_offset}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={cn(
+                                                            "text-[10px] font-medium px-2 py-0.5 rounded capitalize inline-flex items-center gap-1",
+                                                            step.channel === 'email' ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                                                                step.channel === 'linkedin' ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300" :
+                                                                    step.channel === 'phone' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" :
+                                                                        "bg-muted text-muted-foreground"
+                                                        )}>
+                                                            {step.channel === 'email' && <Mail className="w-3 h-3" />}
+                                                            {step.channel === 'linkedin' && <Linkedin className="w-3 h-3" />}
+                                                            {step.channel === 'phone' && <Phone className="w-3 h-3" />}
+                                                            {step.channel}
+                                                        </span>
+                                                        {step.contacts && step.contacts.length > 0 && (
+                                                            <span className="text-[10px] text-muted-foreground truncate">
+                                                                → {step.contacts.join(', ')}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-foreground/80 leading-snug">{step.objective}</p>
+                                                    {step.follow_up && (
+                                                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                                            <MessageCircle className="w-3 h-3" /> {step.follow_up}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.section>
+                            )}
+
                             {/* Key Stakeholders */}
                             {playbookDetail.contacts && playbookDetail.contacts.length > 0 && (
                                 <motion.section variants={detailItem} className="pt-6">
@@ -465,7 +485,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                                             variant="ghost"
                                                             size="icon"
                                                             className="h-7 w-7 text-muted-foreground hover:text-primary"
-                                                            onClick={() => handleEmployeeClick(contact)}
+                                                            onClick={() => handleStakeholderClick(contact)}
                                                             title="View Profile"
                                                         >
                                                             <ExternalLink className="w-3.5 h-3.5" />
@@ -473,42 +493,13 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                                     </div>
                                                 </div>
 
-                                                {/* Contact Details */}
-                                                {(contact.value_prop || (contact.outreach_templates && contact.outreach_templates.length > 0)) && (
-                                                    <div className="px-4 pb-4 pt-0 space-y-3">
-                                                        {contact.value_prop && (
-                                                            <div className="text-xs text-muted-foreground pl-12">
-                                                                <span className="font-medium text-foreground/70">Why: </span>
-                                                                {contact.value_prop}
-                                                            </div>
-                                                        )}
-
-                                                        {contact.outreach_templates && contact.outreach_templates.length > 0 && (
-                                                            <div className="pl-12 space-y-2">
-                                                                {contact.outreach_templates.map(template => (
-                                                                    template.draft_message && (
-                                                                        <div key={template.id} className="p-3 rounded-md bg-muted/30 border border-border/40">
-                                                                            <div className="flex items-center justify-between mb-2">
-                                                                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                                                                                    <Mail className="w-3 h-3" /> Email Draft
-                                                                                </span>
-                                                                                <Button
-                                                                                    variant="ghost"
-                                                                                    size="sm"
-                                                                                    className="h-5 px-2 text-[10px] text-muted-foreground hover:text-foreground"
-                                                                                    onClick={() => navigator.clipboard.writeText(template.draft_message || '')}
-                                                                                >
-                                                                                    <Copy className="w-2.5 h-2.5 mr-1" /> Copy
-                                                                                </Button>
-                                                                            </div>
-                                                                            <p className="text-xs text-foreground/70 whitespace-pre-wrap leading-relaxed">
-                                                                                {template.draft_message}
-                                                                            </p>
-                                                                        </div>
-                                                                    )
-                                                                ))}
-                                                            </div>
-                                                        )}
+                                                {/* Contact Details - Value Prop only */}
+                                                {contact.value_prop && (
+                                                    <div className="px-4 pb-4 pt-0">
+                                                        <div className="text-xs text-muted-foreground pl-12">
+                                                            <span className="font-medium text-foreground/70">Why: </span>
+                                                            {contact.value_prop}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -601,6 +592,13 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                     </ScrollArea>
                 ) : null}
             </div>
+
+            {/* Key Stakeholder Sheet */}
+            <KeyStakeholderSheet
+                open={stakeholderSheetOpen}
+                onOpenChange={handleCloseStakeholderSheet}
+                contact={selectedStakeholder}
+            />
         </div>
     );
 }

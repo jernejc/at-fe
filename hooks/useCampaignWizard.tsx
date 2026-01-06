@@ -7,14 +7,14 @@ import type { CampaignFilterUI, ProductSummary, Partner, CompanyFilters, Company
 import { useAgenticSearch } from '@/hooks/useAgenticSearch';
 import { Check, Loader2, Package } from 'lucide-react';
 
-export type ConversationStep = 
-    | 'welcome' 
-    | 'product' 
-    | 'name' 
-    | 'audience' 
-    | 'preview' 
-    | 'partners' 
-    | 'review' 
+export type ConversationStep =
+    | 'welcome'
+    | 'product'
+    | 'name'
+    | 'audience'
+    | 'preview'
+    | 'partners'
+    | 'review'
     | 'creating';
 
 export interface Message {
@@ -25,8 +25,8 @@ export interface Message {
 }
 
 function filtersToCompanyFilters(filters: CampaignFilterUI[], productId?: number | null): CompanyFilters {
-    const companyFilters: CompanyFilters = { 
-        page: 1, 
+    const companyFilters: CompanyFilters = {
+        page: 1,
         page_size: 20,
         sort_by: 'combined_score',
         sort_order: 'desc'
@@ -48,7 +48,7 @@ function filtersToCompanyFilters(filters: CampaignFilterUI[], productId?: number
 export function useCampaignWizard(products: ProductSummary[], preselectedProductId?: number | null) {
     const router = useRouter();
     const scrollRef = useRef<HTMLDivElement>(null);
-    
+
     // Conversation state
     const [currentStep, setCurrentStep] = useState<ConversationStep>('welcome');
     const [messages, setMessages] = useState<Message[]>([]);
@@ -89,13 +89,13 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
 
     useEffect(() => {
         if (suggestedPartners.length > 0 && !hasAutoSelectedRef.current) {
-             const next = new Set(selectedPartnerIds);
-             suggestedPartners.forEach(p => next.add(p.partner.slug || String(p.partner.id)));
-             setSelectedPartnerIds(next);
-             hasAutoSelectedRef.current = true;
+            const next = new Set(selectedPartnerIds);
+            suggestedPartners.forEach(p => next.add(p.partner.slug || String(p.partner.id)));
+            setSelectedPartnerIds(next);
+            hasAutoSelectedRef.current = true;
         }
     }, [suggestedPartners]);
-    
+
     const {
         state: agenticState,
         search: triggerAgenticSearch,
@@ -159,7 +159,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
 
     const selectedProduct = products.find(p => p.id === productId);
     const hasAudience = searchQuery.trim() || filters.length > 0;
-    
+
     // Derived state for agentic search
     const isAgenticPhaseActive = agenticState.phase !== 'idle' && agenticState.phase !== 'complete' && agenticState.phase !== 'error';
     const hasAgenticResults = agenticState.companies.length > 0 || agenticState.phase === 'complete';
@@ -200,11 +200,11 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
 
     // Initialize conversation - use ref to prevent duplicate runs in StrictMode
     const hasInitialized = useRef(false);
-    
+
     useEffect(() => {
         if (hasInitialized.current) return;
         hasInitialized.current = true;
-        
+
         const initConversation = async () => {
             await addSystemMessage(
                 <div className="space-y-2">
@@ -220,7 +220,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
             setCurrentStep('product');
         };
         initConversation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Fetch company preview - uses agentic search for NL queries, REST for filters
@@ -231,7 +231,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
             resetAgenticSearch();
             return;
         }
-        
+
         // Use agentic search for natural language queries
         if (useAgenticMode && searchQuery.trim()) {
             // Clear previous results when starting new search
@@ -242,10 +242,11 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
                 limit: 20,
                 include_partner_suggestions: true,
                 partner_suggestion_limit: 5,
+                product_id: productId,
             });
             return;
         }
-        
+
         // Fallback to REST API for filter-only queries
         setLoadingPreview(true);
         try {
@@ -273,12 +274,12 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
             if (searchDebounceRef.current) {
                 clearTimeout(searchDebounceRef.current);
             }
-            
+
             // Debounce the search
             searchDebounceRef.current = setTimeout(() => {
                 fetchCompanyPreview();
             }, useAgenticMode && searchQuery.trim() ? 600 : 400);
-            
+
             return () => {
                 if (searchDebounceRef.current) {
                     clearTimeout(searchDebounceRef.current);
@@ -318,13 +319,13 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
     // Fetch partner suggestions when we have companies
     const fetchPartnerSuggestions = useCallback(async () => {
         if (previewCompanies.length === 0) return;
-        
+
         setLoadingPartners(true);
         try {
             const domains = previewCompanies.slice(0, 20).map(c => c.domain);
             const suggestions = await suggestPartnersForCompanies(domains, 5);
             setSuggestedPartners(suggestions);
-            
+
             // Auto-select top 3 suggested partners
             if (suggestions.length > 0) {
                 const topPartnerIds = suggestions
@@ -350,7 +351,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
                 industry_overlap: ['Technology', 'SaaS'],
             }));
             setSuggestedPartners(mockSuggestions);
-            
+
             if (mockSuggestions.length > 0) {
                 const topIds = mockSuggestions.map(s => s.partner.slug || String(s.partner.id));
                 setSelectedPartnerIds(new Set(topIds));
@@ -384,7 +385,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
     // Handle name submission
     const handleNameSubmit = async () => {
         if (!name.trim()) return;
-        
+
         addUserMessage(<span className="font-medium">{name}</span>);
 
         await addSystemMessage(
@@ -405,10 +406,10 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
     const handleAudienceConfirm = async () => {
         if (!hasAudience) return;
 
-        const audienceDesc = searchQuery.trim() 
-            ? searchQuery 
+        const audienceDesc = searchQuery.trim()
+            ? searchQuery
             : filters.map(f => f.displayLabel).join(', ');
-        
+
         addUserMessage(
             <div className="space-y-1">
                 <span className="font-medium">{audienceDesc}</span>
@@ -443,9 +444,9 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
                 </div>,
                 400
             );
-            
+
             setCurrentStep('partners');
-            
+
             // Fetch partner suggestions via REST API as fallback
             await fetchPartnerSuggestions();
         } else {
@@ -458,9 +459,9 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
                 </div>,
                 400
             );
-            
+
             setCurrentStep('partners');
-            
+
             // Fetch partner suggestions via REST API
             await fetchPartnerSuggestions();
         }
@@ -492,7 +493,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
         try {
             // Extract domains from preview companies to add to the campaign
             const domains = previewCompanies.map(c => c.domain);
-            
+
             const campaign = await createCampaign({
                 name: name.trim(),
                 description: description.trim() || undefined,
@@ -508,7 +509,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
                     const selectedIds = partnerResponse.items
                         .filter(p => selectedPartnerIds.has(p.slug || String(p.id)))
                         .map(p => p.id);
-                    
+
                     if (selectedIds.length > 0) {
                         await bulkAssignPartners(campaign.slug, selectedIds);
                     }

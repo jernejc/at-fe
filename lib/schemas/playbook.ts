@@ -42,7 +42,42 @@ export interface PlaybookContact {
 }
 
 export interface PlaybookContactResponse extends PlaybookContact {
+    // Contact info
+    linkedin_url: string | null;
+    email: string | null;
+    phone: string | null;
+    // Priority
+    priority_rank: number | null;
+    priority_reasoning: string | null;
+    // Channel preferences
+    preferred_channel: string | null;
+    channel_sequence: string[] | null;
+    approach_notes: string | null;
+    // Outreach
     outreach_templates: OutreachTemplateResponse[];
+}
+
+/**
+ * A single step in an outreach cadence.
+ */
+export interface CadenceStep {
+    step: number | null;
+    day_offset: number | null;
+    channel: string;
+    contacts: string[];
+    objective: string | null;
+    follow_up: string | null;
+    notes: string | null;
+}
+
+/**
+ * Outreach cadence plan with sequence of steps.
+ */
+export interface OutreachCadence {
+    sequence: CadenceStep[];
+    total_days: number | null;
+    contacts_involved: string[] | null;
+    summary: string | null;
 }
 
 export interface SignalBasisEvent {
@@ -83,6 +118,7 @@ export interface PlaybookRead {
     objection_handling: Record<string, string> | null;
     recommended_channels: string[] | null;
     contacts: PlaybookContactResponse[];
+    outreach_cadence: OutreachCadence | null;
     generation_version: number;
     generation_metadata?: GenerationMetadata | null;
     regenerated_at?: string | null;

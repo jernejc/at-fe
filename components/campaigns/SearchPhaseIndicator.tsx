@@ -4,16 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import type { WSSearchPhase } from '@/lib/schemas';
 import { useState, useEffect } from 'react';
-import { 
-    Wifi, 
-    Brain, 
-    Search, 
-    BarChart3, 
-    Download, 
-    Users, 
-    Lightbulb, 
-    CheckCircle2, 
-    AlertCircle 
+import {
+    Wifi,
+    Brain,
+    Search,
+    BarChart3,
+    Download,
+    Users,
+    Lightbulb,
+    CheckCircle2,
+    AlertCircle
 } from 'lucide-react';
 
 interface SearchPhaseIndicatorProps {
@@ -32,88 +32,88 @@ interface PhaseConfig {
 }
 
 const phaseConfig: Record<string, PhaseConfig> = {
-    connecting: { 
-        text: 'Connecting', 
+    connecting: {
+        text: 'Connecting',
         icon: Wifi,
         color: 'text-slate-500 dark:text-slate-400',
         bgColor: 'bg-slate-100 dark:bg-slate-800',
         glowColor: 'shadow-slate-200/50 dark:shadow-slate-700/50',
         progress: 5,
     },
-    interpreting: { 
-        text: 'Understanding query', 
+    interpreting: {
+        text: 'Understanding query',
         icon: Brain,
         color: 'text-slate-600 dark:text-slate-400',
         bgColor: 'bg-slate-100 dark:bg-slate-800',
         glowColor: 'shadow-slate-200/50 dark:shadow-slate-700/50',
         progress: 15,
     },
-    searching: { 
-        text: 'Searching', 
+    searching: {
+        text: 'Searching',
         icon: Search,
         color: 'text-slate-600 dark:text-slate-400',
         bgColor: 'bg-slate-100 dark:bg-slate-800',
         glowColor: 'shadow-slate-200/50 dark:shadow-slate-700/50',
         progress: 35,
     },
-    ranking: { 
-        text: 'Ranking', 
+    ranking: {
+        text: 'Ranking',
         icon: BarChart3,
         color: 'text-slate-600 dark:text-slate-400',
         bgColor: 'bg-slate-100 dark:bg-slate-800',
         glowColor: 'shadow-slate-200/50 dark:shadow-slate-700/50',
         progress: 55,
     },
-    results: { 
-        text: 'Loading results', 
+    results: {
+        text: 'Loading results',
         icon: Download,
         color: 'text-slate-600 dark:text-slate-400',
         bgColor: 'bg-slate-100 dark:bg-slate-800',
         glowColor: 'shadow-slate-200/50 dark:shadow-slate-700/50',
         progress: 70,
     },
-    suggesting: { 
-        text: 'Finding partners', 
+    suggesting: {
+        text: 'Finding partners',
         icon: Users,
         color: 'text-emerald-600 dark:text-emerald-400',
         bgColor: 'bg-emerald-50 dark:bg-emerald-900/30',
         glowColor: 'shadow-emerald-300/50 dark:shadow-emerald-600/30',
         progress: 80,
     },
-    partner_suggestion: { 
-        text: 'Matching partners', 
+    partner_suggestion: {
+        text: 'Matching partners',
         icon: Users,
         color: 'text-emerald-600 dark:text-emerald-400',
         bgColor: 'bg-emerald-50 dark:bg-emerald-900/30',
         glowColor: 'shadow-emerald-300/50 dark:shadow-emerald-600/30',
         progress: 85,
     },
-    suggestions_complete: { 
-        text: 'Finalizing', 
+    suggestions_complete: {
+        text: 'Finalizing',
         icon: CheckCircle2,
         color: 'text-emerald-600 dark:text-emerald-400',
         bgColor: 'bg-emerald-50 dark:bg-emerald-900/30',
         glowColor: 'shadow-emerald-300/50 dark:shadow-emerald-600/30',
         progress: 92,
     },
-    insights: { 
-        text: 'Generating insights', 
+    insights: {
+        text: 'Generating insights',
         icon: Lightbulb,
         color: 'text-amber-600 dark:text-amber-400',
         bgColor: 'bg-amber-50 dark:bg-amber-900/30',
         glowColor: 'shadow-amber-300/50 dark:shadow-amber-600/30',
         progress: 95,
     },
-    complete: { 
-        text: 'Complete', 
+    complete: {
+        text: 'Complete',
         icon: CheckCircle2,
         color: 'text-emerald-600 dark:text-emerald-400',
         bgColor: 'bg-emerald-50 dark:bg-emerald-900/30',
         glowColor: 'shadow-emerald-300/50 dark:shadow-emerald-600/30',
         progress: 100,
     },
-    error: { 
-        text: 'Error', 
+    error: {
+        text: 'Error',
         icon: AlertCircle,
         color: 'text-red-600 dark:text-red-400',
         bgColor: 'bg-red-50 dark:bg-red-900/30',
@@ -131,7 +131,7 @@ const defaultConfig: PhaseConfig = {
     progress: 50,
 };
 
-export function SearchPhaseIndicator({ phase, className, showElapsedTime = false, intent, details }: SearchPhaseIndicatorProps & { intent?: string; details?: string }) {
+export function SearchPhaseIndicator({ phase, className, showElapsedTime = false, intent, details, keywords, semanticQuery }: SearchPhaseIndicatorProps & { intent?: string; details?: string; keywords?: string[]; semanticQuery?: string }) {
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [startTime] = useState(Date.now());
 
@@ -155,27 +155,31 @@ export function SearchPhaseIndicator({ phase, className, showElapsedTime = false
     const isError = phase === 'error';
 
     // Special persistent rich state for agentic search when intent is known
-    if ((intent || phase === 'interpreting') && phase !== 'complete' && phase !== 'error') {
+    if ((intent || semanticQuery || phase === 'interpreting') && phase !== 'complete' && phase !== 'error') {
+        // Use semanticQuery as fallback display text during early interpreting phase
+        const displayText = intent || semanticQuery;
+        const hasKeywords = keywords && keywords.length > 0;
+
         return (
-             <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait">
                 <motion.div
                     key="agentic-status"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className={cn('flex items-center gap-3 p-3.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50', className)}
+                    className={cn('flex items-center gap-3 p-3.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 max-w-full w-full', className)}
                 >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 shrink-0">
-                         <motion.div
+                        <motion.div
                             animate={{ rotate: [0, 5, -5, 0] }}
                             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                         >
                             <Brain className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                         </motion.div>
                     </div>
-                    
-                    <div className="flex flex-col min-w-0">
+
+                    <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
                         <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider flex items-center gap-1.5">
                             {config.text}
                             {/* Animated dots for active phases */}
@@ -185,16 +189,39 @@ export function SearchPhaseIndicator({ phase, className, showElapsedTime = false
                                 <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}>.</motion.span>
                             </span>
                         </span>
-                        {intent && (
-                            <motion.span 
+                        {displayText && (
+                            <motion.span
                                 layoutId="intent-text"
-                                className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate leading-snug block"
+                                className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug block line-clamp-2 break-words"
                             >
-                                {intent}
+                                {displayText}
                             </motion.span>
                         )}
-                        {details && (
-                            <motion.span 
+                        {/* Show keywords as inline pills during interpreting */}
+                        {hasKeywords && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex items-center gap-1.5 mt-1.5 flex-wrap"
+                            >
+                                {keywords.slice(0, 4).map((keyword, idx) => (
+                                    <motion.span
+                                        key={keyword}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-slate-200/80 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300"
+                                    >
+                                        {keyword}
+                                    </motion.span>
+                                ))}
+                                {keywords.length > 4 && (
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500">+{keywords.length - 4}</span>
+                                )}
+                            </motion.div>
+                        )}
+                        {details && !hasKeywords && (
+                            <motion.span
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 truncate flex items-center gap-1.5"
@@ -206,7 +233,7 @@ export function SearchPhaseIndicator({ phase, className, showElapsedTime = false
                     </div>
 
                     <div className="flex items-center gap-1 ml-auto pl-3">
-                         {[0, 1, 2].map((i) => (
+                        {[0, 1, 2].map((i) => (
                             <motion.div
                                 key={i}
                                 className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500"
@@ -310,11 +337,11 @@ export function SearchPhaseIndicator({ phase, className, showElapsedTime = false
 }
 
 // Full-width progress bar variant for prominent display
-export function SearchPhaseProgressBar({ 
-    phase, 
-    className 
-}: { 
-    phase: WSSearchPhase; 
+export function SearchPhaseProgressBar({
+    phase,
+    className
+}: {
+    phase: WSSearchPhase;
     className?: string;
 }) {
     if (phase === 'idle') return null;

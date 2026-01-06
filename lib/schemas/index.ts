@@ -58,6 +58,8 @@ export type {
     PlaybookContact,
     PlaybookContactResponse,
     OutreachTemplateResponse,
+    CadenceStep,
+    OutreachCadence,
     CompanyPlaybooksResponse,
     PlaybookFilters,
     PlaybookRegenerateRequest,

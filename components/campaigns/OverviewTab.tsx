@@ -56,7 +56,7 @@ export function OverviewTab({
     // We merge companies (loaded list) and top_companies (backend summary) to get the most complete picture available on client
     const derivedFitDistribution = useMemo(() => {
         const uniqueCompanies = new Map<string, MembershipRead>();
-        
+
         // Add top companies first
         if (overview.top_companies) {
             overview.top_companies.forEach(c => uniqueCompanies.set(c.domain, c));
@@ -71,8 +71,8 @@ export function OverviewTab({
                 if (!existing || (c.cached_fit_score !== null && c.cached_fit_score !== undefined)) {
                     uniqueCompanies.set(c.domain, c);
                 } else if (existing && (existing.cached_fit_score === null || existing.cached_fit_score === undefined) && (c.cached_fit_score !== null && c.cached_fit_score !== undefined)) {
-                     // This case is covered by first condition (c has score)
-                     uniqueCompanies.set(c.domain, c);
+                    // This case is covered by first condition (c has score)
+                    uniqueCompanies.set(c.domain, c);
                 }
             });
         }
@@ -83,7 +83,7 @@ export function OverviewTab({
             dynamicCompanies.forEach(c => {
                 // Map CompanySummary or CompanySummaryWithFit to MembershipRead-like shape for score
                 const score = 'combined_score' in c ? c.combined_score : ('likelihood_score' in c ? c.likelihood_score : null); // Type guard approximation
-                
+
                 // If it has a score, we want to include it, possibly overriding existing unscored
                 if (score !== null && score !== undefined) {
                     // Create a partial MembershipRead for calculation purposes
@@ -104,7 +104,7 @@ export function OverviewTab({
                         priority: 0,
                         created_at: c.updated_at
                     };
-                    
+
                     const existing = uniqueCompanies.get(c.domain);
                     // Override if existing is null or unscored
                     if (!existing || existing.cached_fit_score === null || existing.cached_fit_score === undefined) {
@@ -113,7 +113,7 @@ export function OverviewTab({
                 }
             });
         }
-        
+
         const mergedList = Array.from(uniqueCompanies.values());
         return calculateFitDistribution(mergedList);
     }, [companies, overview.top_companies, dynamicCompanies]);
@@ -129,7 +129,7 @@ export function OverviewTab({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left column - Pipeline + Top Companies */}
                 <div className="lg:col-span-2 space-y-6">
-                    <OutreachPipelineCard pipeline={pipeline} onDrillDown={onDrillDown} />
+                    {/*<OutreachPipelineCard pipeline={pipeline} onDrillDown={onDrillDown} />*/}
                     <TopCompaniesCard
                         topCompanies={overview.top_companies}
                         dynamicCompanies={dynamicCompanies}
@@ -154,10 +154,10 @@ export function OverviewTab({
                         onCompanyClick={onCompanyClick}
                         onViewAll={onViewAllCompanies}
                     />
-                    <FitDistributionCard
+                    {/*<FitDistributionCard
                         fitDistribution={fitDistribution}
                         onDrillDown={onDrillDown}
-                    />
+                    />*/}
                 </div>
             </div>
         </div>
