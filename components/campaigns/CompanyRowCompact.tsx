@@ -1,50 +1,30 @@
 'use client';
 
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
-import { Building2, Users, MapPin, Clock, Target, ChevronRight, FileEdit, Send, MessageSquare, CalendarCheck } from 'lucide-react';
-import { formatCompactNumber } from '@/lib/utils';
+import { cn, formatCompactNumber } from '@/lib/utils';
+import { OutreachStatus, OUTREACH_CONFIG } from '@/lib/config/outreach';
+import { Building2, Users, MapPin, Clock, Target, ChevronRight } from 'lucide-react';
 
-// Outreach status type and config
-export type OutreachStatus = 'not_started' | 'draft' | 'sent' | 'replied' | 'meeting_booked';
-
-const OUTREACH_CONFIG: Record<OutreachStatus, { label: string; shortLabel: string; icon: React.ElementType; color: string; bgColor: string }> = {
-    not_started: { label: 'Not Started', shortLabel: 'Pending', icon: Clock, color: 'text-slate-400', bgColor: 'bg-slate-100 dark:bg-slate-800' },
-    draft: { label: 'Draft', shortLabel: 'Draft', icon: FileEdit, color: 'text-amber-500', bgColor: 'bg-amber-50 dark:bg-amber-900/20' },
-    sent: { label: 'Sent', shortLabel: 'Sent', icon: Send, color: 'text-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900/20' },
-    replied: { label: 'Replied', shortLabel: 'Replied', icon: MessageSquare, color: 'text-emerald-500', bgColor: 'bg-emerald-50 dark:bg-emerald-900/20' },
-    meeting_booked: { label: 'Meeting', shortLabel: 'Meeting', icon: CalendarCheck, color: 'text-violet-500', bgColor: 'bg-violet-50 dark:bg-violet-900/20' },
-};
+export type { OutreachStatus };
 
 export interface CompanyRowCompactProps {
-    // Core data
     name: string;
     domain: string;
     logoUrl?: string | null;
     logoBase64?: string | null;
-
-    // Optional metadata
     industry?: string | null;
     employeeCount?: number | null;
     hqCountry?: string | null;
     segment?: string | null;
-
-    // Partner info
     partnerName?: string | null;
     partnerLogoUrl?: string | null;
-
-    // Outreach status (for card variant)
     outreachStatus?: OutreachStatus;
     lastActivity?: string | null;
     decisionMakersCount?: number;
-
-    // Display options
     rank?: number;
     fitScore?: number | null;
     onClick?: () => void;
     className?: string;
-
-    // Variant: 'compact' (default) or 'card' (Partner Detail Sheet style)
     variant?: 'compact' | 'card';
 }
 
@@ -68,7 +48,6 @@ export function CompanyRowCompact({
     className,
     variant = 'compact',
 }: CompanyRowCompactProps) {
-    // Get company initials for avatar fallback
     const companyInitials = name
         .split(' ')
         .map(w => w[0])
@@ -76,14 +55,12 @@ export function CompanyRowCompact({
         .join('')
         .toUpperCase();
 
-    // Resolve logo source
     const logoSrc = logoBase64
         ? (logoBase64.startsWith('data:') ? logoBase64 : `data:image/png;base64,${logoBase64}`)
         : logoUrl;
 
     const hasMetadata = industry || employeeCount || hqCountry;
 
-    // Format last activity for card variant
     const formatLastActivity = (dateStr?: string | null) => {
         if (!dateStr) return null;
         const date = new Date(dateStr);
@@ -99,7 +76,6 @@ export function CompanyRowCompact({
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    // Get fit score tier style for card variant
     const getFitTierStyle = (score: number | null) => {
         if (score === null) return 'bg-slate-100 dark:bg-slate-800 text-slate-500';
         if (score >= 80) return 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400';
@@ -111,7 +87,6 @@ export function CompanyRowCompact({
     const fitScorePercent = fitScore != null ? Math.round(fitScore * 100) : null;
     const formattedActivity = formatLastActivity(lastActivity);
 
-    // Card variant - matches Partner Detail Sheet style
     if (variant === 'card') {
         const statusConfig = outreachStatus ? OUTREACH_CONFIG[outreachStatus] : null;
         const StatusIcon = statusConfig?.icon;
@@ -125,7 +100,6 @@ export function CompanyRowCompact({
                 )}
             >
                 <div className="flex items-start gap-4">
-                    {/* Company Logo */}
                     <div className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
                         {logoSrc ? (
                             <img
@@ -145,7 +119,6 @@ export function CompanyRowCompact({
                         )}
                     </div>
 
-                    {/* Company Info */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                             <span className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
@@ -193,7 +166,6 @@ export function CompanyRowCompact({
                         </div>
                     </div>
 
-                    {/* Fit Score & Arrow */}
                     <div className="flex items-center gap-3 shrink-0">
                         <div className={cn(
                             "px-3 py-1.5 rounded-lg text-sm font-bold",
@@ -208,7 +180,6 @@ export function CompanyRowCompact({
         );
     }
 
-    // Compact variant - original style
     return (
         <div
             className={cn(
@@ -220,14 +191,12 @@ export function CompanyRowCompact({
             )}
             onClick={onClick}
         >
-            {/* Rank Badge (optional) */}
             {rank !== undefined && (
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs shrink-0">
                     {rank}
                 </div>
             )}
 
-            {/* Company Logo - Compact 28px */}
             <div className="shrink-0">
                 <Avatar className="w-7 h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 after:hidden">
                     {logoSrc && (
@@ -243,7 +212,6 @@ export function CompanyRowCompact({
                 </Avatar>
             </div>
 
-            {/* Name & Domain */}
             <div className="min-w-0 flex-1">
                 <div className="font-medium text-sm text-slate-900 dark:text-white truncate leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
                     {name}
@@ -253,7 +221,6 @@ export function CompanyRowCompact({
                 </div>
             </div>
 
-            {/* Metadata Chips */}
             {hasMetadata && (
                 <div className="hidden sm:flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 shrink-0">
                     {industry && (
@@ -277,14 +244,12 @@ export function CompanyRowCompact({
                 </div>
             )}
 
-            {/* Segment Badge (optional) */}
             {segment && (
                 <span className="hidden md:inline-flex px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs font-medium shrink-0">
                     {segment}
                 </span>
             )}
 
-            {/* Partner Badge (optional) */}
             {partnerName && (
                 <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shrink-0">
                     {partnerLogoUrl ? (
@@ -304,7 +269,6 @@ export function CompanyRowCompact({
                 </div>
             )}
 
-            {/* Fit Score (optional) */}
             {fitScore !== null && fitScore !== undefined && (
                 <div className="text-sm font-semibold text-slate-900 dark:text-white min-w-[40px] text-right shrink-0">
                     {Math.round(fitScore * 100)}%
@@ -314,7 +278,6 @@ export function CompanyRowCompact({
     );
 }
 
-// Loading skeleton for the compact row
 export function CompanyRowCompactSkeleton({ showRank = false }: { showRank?: boolean }) {
     return (
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 last:border-0">

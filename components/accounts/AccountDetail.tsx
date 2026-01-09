@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { startProcessing, waitForProcessingComplete, generateCompanyPlaybook, ProcessingOptions } from '@/lib/api';
-import { useAccountDetail, useAccountModals } from './detail/hooks';
+import { useAccountDetail, useAccountModals } from '@/hooks';
 import { AccountDetailHeader } from './detail/AccountDetailHeader';
 import { AccountDetailTabs } from './detail/AccountDetailTabs';
 import { AccountDetailContent } from './detail/AccountDetailContent';

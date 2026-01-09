@@ -2,22 +2,18 @@
 
 import { useState, useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Partner, MembershipWithProgress, OutreachStatus } from '@/lib/schemas/campaign';
+import { Partner, MembershipWithProgress } from '@/lib/schemas/campaign';
+import { OutreachStatus, OUTREACH_CONFIG } from '@/lib/config/outreach';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { OutreachPipeline } from './OutreachPipeline';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
 import {
     Building2,
-    CalendarCheck,
-    FileEdit,
     Zap,
     Briefcase,
     Globe,
-    Send,
     Mail,
-    Clock,
-    MessageSquare,
 } from 'lucide-react';
 
 interface PartnerDetailSheetProps {
@@ -28,15 +24,6 @@ interface PartnerDetailSheetProps {
     onCompanyClick: (domain: string) => void;
 }
 
-// Outreach status config
-const OUTREACH_CONFIG: Record<OutreachStatus, { label: string; shortLabel: string; icon: React.ElementType; color: string; bgColor: string }> = {
-    not_started: { label: 'Not Started', shortLabel: 'Pending', icon: Clock, color: 'text-slate-400', bgColor: 'bg-slate-100 dark:bg-slate-800' },
-    draft: { label: 'Draft', shortLabel: 'Draft', icon: FileEdit, color: 'text-amber-500', bgColor: 'bg-amber-50 dark:bg-amber-900/20' },
-    sent: { label: 'Sent', shortLabel: 'Sent', icon: Send, color: 'text-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900/20' },
-    replied: { label: 'Replied', shortLabel: 'Replied', icon: MessageSquare, color: 'text-emerald-500', bgColor: 'bg-emerald-50 dark:bg-emerald-900/20' },
-    meeting_booked: { label: 'Meeting', shortLabel: 'Meeting', icon: CalendarCheck, color: 'text-violet-500', bgColor: 'bg-violet-50 dark:bg-violet-900/20' },
-};
-
 export function PartnerDetailSheet({
     partner,
     open,
@@ -46,7 +33,6 @@ export function PartnerDetailSheet({
 }: PartnerDetailSheetProps) {
     const [statusFilter, setStatusFilter] = useState<OutreachStatus | 'all'>('all');
 
-    // Calculate metrics
     const metrics = useMemo(() => {
         if (!assignedCompanies.length) return null;
 
@@ -60,7 +46,6 @@ export function PartnerDetailSheet({
 
         const engagedCount = (statusCounts.replied || 0) + (statusCounts.meeting_booked || 0);
 
-        // Get unique industries
         const industries = [...new Set(assignedCompanies.map(c => c.industry).filter(Boolean))] as string[];
 
         return {
@@ -72,13 +57,11 @@ export function PartnerDetailSheet({
         };
     }, [assignedCompanies]);
 
-    // Filtered companies
     const filteredCompanies = useMemo(() => {
         if (statusFilter === 'all') return assignedCompanies;
         return assignedCompanies.filter(c => c.outreach_status === statusFilter);
     }, [assignedCompanies, statusFilter]);
 
-    // Partner type icon
     const getTypeIcon = (type: Partner['type']) => {
         switch (type) {
             case 'agency': return Zap;
@@ -106,11 +89,9 @@ export function PartnerDetailSheet({
                     <SheetTitle>{partner.name} Details</SheetTitle>
                 </SheetHeader>
 
-                {/* Header */}
                 <div className="bg-background border-b border-border/60 shrink-0">
                     <div className="relative max-w-7xl mx-auto w-full px-6 py-5 pt-7 pr-14">
                         <div className="flex gap-5 items-start">
-                            {/* Logo with elevated container */}
                             <div className="relative rounded-lg p-1 bg-white dark:bg-slate-800 shadow-sm border border-border/60 shrink-0">
                                 {partner.logo_url ? (
                                     <div className="w-16 h-16 rounded-md flex items-center justify-center overflow-hidden bg-white">
@@ -128,7 +109,6 @@ export function PartnerDetailSheet({
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                {/* Title row */}
                                 <div className="flex items-center gap-2.5 flex-wrap">
                                     <h2 className="text-xl font-bold tracking-tight text-foreground">
                                         {partner.name}
@@ -138,7 +118,6 @@ export function PartnerDetailSheet({
                                     </Badge>
                                 </div>
 
-                                {/* Description and industry row */}
                                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-1">
                                     {partner.description && (
                                         <span className="text-foreground/80 font-medium">
@@ -153,7 +132,6 @@ export function PartnerDetailSheet({
                                     )}
                                 </div>
 
-                                {/* Metric pills row */}
                                 <div className="flex flex-wrap gap-2 mt-3">
                                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm border bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-900/20 dark:border-slate-800 dark:text-slate-400">
                                         <span className="text-base">👥</span>
@@ -185,10 +163,8 @@ export function PartnerDetailSheet({
                     </div>
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="max-w-7xl mx-auto w-full p-6 space-y-6">
-                        {/* Outreach Status */}
                         {metrics && (
                             <OutreachPipeline
                                 statusCounts={metrics.statusCounts}
@@ -198,7 +174,6 @@ export function PartnerDetailSheet({
                             />
                         )}
 
-                        {/* Accounts List */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold">

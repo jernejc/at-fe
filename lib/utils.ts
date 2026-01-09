@@ -37,3 +37,12 @@ export function formatRelativeDate(dateStr: string): string {
 export function normalizeScore(score: number): number {
   return score <= 1 ? score * 100 : score;
 }
+
+export function normalizeScoreNullable(score: number | null | undefined): number {
+  if (score == null) return 0;
+  return score <= 1 ? score * 100 : score;
+}
+
+export function copyToClipboard(text: string): void {
+  navigator.clipboard.writeText(text);
+}

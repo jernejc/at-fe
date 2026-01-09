@@ -10,6 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlaybookContactResponse } from '@/lib/schemas';
+import { normalizeScoreNullable, copyToClipboard } from '@/lib/utils';
 import {
     User,
     Mail,
@@ -33,15 +34,6 @@ interface KeyStakeholderSheetProps {
 export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: KeyStakeholderSheetProps) {
     if (!contact && !isLoading) return null;
 
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-    };
-
-    const normalizeScore = (val: number | null | undefined) => {
-        if (val == null) return 0;
-        return val <= 1 ? val * 100 : val;
-    };
-
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
@@ -56,7 +48,6 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                     </div>
                 ) : contact ? (
                     <>
-                        {/* Header */}
                         <div className="p-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
                             <SheetHeader className="space-y-6">
                                 <div className="flex items-start justify-between gap-6">
@@ -86,14 +77,13 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                     {contact.fit_score != null && (
                                         <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-2xl border border-border min-w-[90px] shadow-sm">
                                             <span className="text-3xl font-bold text-foreground">
-                                                {Math.round(normalizeScore(contact.fit_score))}
+                                                {Math.round(normalizeScoreNullable(contact.fit_score))}
                                             </span>
                                             <span className="text-[10px] uppercase font-bold text-muted-foreground mt-1 tracking-wider">Fit</span>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Contact Info Pills */}
                                 <div className="flex flex-wrap gap-2">
                                     {contact.linkedin_url && (
                                         <a
@@ -130,10 +120,8 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                             </SheetHeader>
                         </div>
 
-                        {/* Scrollable Content */}
                         <div className="flex-1 overflow-y-auto px-6">
                             <div className="py-6 space-y-8">
-                                {/* Value Proposition */}
                                 {contact.value_prop && (
                                     <section className="space-y-3">
                                         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -146,7 +134,6 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                     </section>
                                 )}
 
-                                {/* Priority Reasoning */}
                                 {contact.priority_reasoning && (
                                     <section className="space-y-3">
                                         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -159,7 +146,6 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                     </section>
                                 )}
 
-                                {/* Approach Notes */}
                                 {contact.approach_notes && (
                                     <section className="space-y-3">
                                         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -172,7 +158,6 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                     </section>
                                 )}
 
-                                {/* Channel Preferences */}
                                 {(contact.preferred_channel || (contact.channel_sequence && contact.channel_sequence.length > 0)) && (
                                     <section className="space-y-3">
                                         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -207,7 +192,6 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                     </section>
                                 )}
 
-                                {/* Outreach Templates */}
                                 {contact.outreach_templates && contact.outreach_templates.length > 0 && (
                                     <section className="space-y-4">
                                         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -283,7 +267,6 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                     </section>
                                 )}
 
-                                {/* Fit Reasoning */}
                                 {contact.fit_reasoning && (
                                     <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                                         <h3 className="text-sm font-semibold text-slate-500 flex items-center gap-2">

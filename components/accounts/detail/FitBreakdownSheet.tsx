@@ -9,6 +9,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { FitScore, SignalContribution } from '@/lib/schemas';
+import { normalizeScore } from '@/lib/utils';
 import {
     CheckCircle2,
     XCircle,
@@ -29,12 +30,7 @@ interface FitBreakdownSheetProps {
 export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBreakdownSheetProps) {
     if (!fit && !isLoading) return null;
 
-    // Helper to get color based on score
-
-
-    const normalizeScore = (val: number) => val <= 1 ? val * 100 : val;
-
-    if (!fit) return null; // Should be handled by conditional rendering but satisfies typescript
+    if (!fit) return null;
 
     const score = normalizeScore(fit.combined_score);
     const likelihood = normalizeScore(fit.likelihood_score);
@@ -97,7 +93,6 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
 
                         <div className="flex-1 overflow-y-auto px-6">
                             <div className="py-6 space-y-8">
-                                {/* Top Drivers */}
                                 {fit.top_drivers && fit.top_drivers.length > 0 && (
                                     <section className="space-y-3">
                                         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -114,7 +109,6 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                     </section>
                                 )}
 
-                                {/* Signal Matches - Interests */}
                                 {fit.interest_matches && fit.interest_matches.length > 0 && (
                                     <section className="space-y-4">
                                         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -129,7 +123,6 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                     </section>
                                 )}
 
-                                {/* Signal Matches - Events */}
                                 {fit.event_matches && fit.event_matches.length > 0 && (
                                     <section className="space-y-4">
                                         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -144,7 +137,6 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                     </section>
                                 )}
 
-                                {/* Missing Signals */}
                                 {fit.missing_signals && fit.missing_signals.length > 0 && (
                                     <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                                         <h3 className="text-sm font-semibold text-slate-500 flex items-center gap-2">

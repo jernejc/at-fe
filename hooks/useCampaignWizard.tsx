@@ -103,8 +103,7 @@ export function useCampaignWizard(products: ProductSummary[], preselectedProduct
         isSearching: isAgenticSearching,
     } = useAgenticSearch({
         onComplete: (state) => {
-            // Normalize score: if > 1, it's already 0-100; if <= 1, multiply by 100
-            const normalizeScore = (score: number) => score > 1 ? Math.round(score) : Math.round(score * 100);
+            const normalizeScore = (score: number) => Math.round(score > 1 ? score : score * 100);
 
             // Convert WS companies to preview format
             const wsCompanies: (CompanySummary | CompanySummaryWithFit)[] = state.companies.map(c => ({
