@@ -3,7 +3,8 @@
 export interface PlaybookSummary {
     id: number;
     company_id: number;
-    product_group: string;
+    product_id: number;
+    product_name: string | null;
     fit_score: number | null;
     fit_urgency: number | null;
     contacts_count: number;
@@ -108,7 +109,8 @@ export interface GenerationMetadata {
 export interface PlaybookRead {
     id: number;
     company_id: number;
-    product_group: string;
+    product_id: number;
+    product_name: string | null;
     fit_score: number | null;
     fit_urgency: number | null;
     fit_reasoning: string | null;
@@ -135,7 +137,7 @@ export interface PlaybookFilters {
     [key: string]: string | number | undefined;
     page?: number;
     page_size?: number;
-    product_group?: string;
+    product_id?: number;
     min_fit_score?: number;
     domain?: string;
 }

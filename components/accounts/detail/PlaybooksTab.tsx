@@ -72,12 +72,12 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
     const sortedPlaybooks = useMemo(() => {
         return [...playbooks]
             .sort((a, b) => (Number(b.fit_score) || 0) - (Number(a.fit_score) || 0))
-            .filter(p => !searchQuery || p.product_group.toLowerCase().includes(searchQuery.toLowerCase()));
+            .filter(p => !searchQuery || (p.product_name ?? '').toLowerCase().includes(searchQuery.toLowerCase()));
     }, [playbooks, searchQuery]);
 
     // Find products that don't have a playbook yet
     const productsWithoutPlaybook = useMemo(() => {
-        const existingProductNames = new Set(playbooks.map(p => p.product_group.toLowerCase()));
+        const existingProductNames = new Set(playbooks.map(p => (p.product_name ?? '').toLowerCase()));
         return allProducts.filter(p => !existingProductNames.has(p.name.toLowerCase()));
     }, [allProducts, playbooks]);
 
@@ -171,7 +171,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                                 "font-medium text-sm truncate",
                                                 isSelected ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"
                                             )}>
-                                                {pb.product_group}
+                                                {pb.product_name ?? 'Unknown Product'}
                                             </div>
                                         </div>
                                         <ChevronRight className={cn(
@@ -248,7 +248,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="min-w-0">
                                         <h2 className="text-xl font-semibold text-foreground tracking-tight">
-                                            {playbookDetail.product_group}
+                                            {playbookDetail.product_name ?? 'Unknown Product'}
                                         </h2>
                                         <p className="text-sm text-muted-foreground mt-1">
                                             Sales strategy for this account

@@ -1,3 +1,4 @@
+import { firebaseAuth } from '@/lib/auth/firebaseClient';
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 export const A2A_API_BASE = process.env.NEXT_PUBLIC_A2A_API_URL || 'http://localhost:8100';
@@ -20,11 +21,31 @@ export class APIError extends Error {
     }
 }
 
+async function getAuthHeaders(): Promise<Record<string, string>> {
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+
+    try {
+        const currentUser = firebaseAuth.currentUser;
+        if (currentUser) {
+            const idToken = await currentUser.getIdToken();
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+    } catch (error) {
+        console.warn('Failed to get Firebase auth token:', error);
+    }
+
+    return headers;
+}
+
 export async function fetchAPI<T>(endpoint: string, options?: RequestInit, baseUrl: string = API_BASE): Promise<T> {
+    const authHeaders = await getAuthHeaders();
+
     const response = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
         headers: {
-            'Content-Type': 'application/json',
+            ...authHeaders,
             ...options?.headers,
         },
     });
