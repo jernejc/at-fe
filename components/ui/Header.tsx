@@ -5,14 +5,19 @@ import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { ProcessingStatus } from "@/components/processing/ProcessingStatus";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Network } from "lucide-react";
+import { Search, Sun, Moon, SunMoon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 export function Header() {
   const { data: session } = useSession();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const { theme, cycleTheme } = useTheme();
+
+  const ThemeIcon = theme === "system" ? SunMoon : theme === "light" ? Sun : Moon;
+  const themeLabel = theme === "system" ? "System mode" : theme === "light" ? "Light mode" : "Dark mode";
 
   // Get user initials from name or email
   const getUserInitials = () => {
@@ -78,7 +83,7 @@ export function Header() {
                     alt={session.user.name || "User"}
                   />
                 )}
-                <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold">
+                <AvatarFallback className="bg-linear-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold">
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
@@ -107,6 +112,13 @@ export function Header() {
                   >
                     Workloads
                   </Link>
+                  <button
+                    onClick={cycleTheme}
+                    className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex justify-between items-center gap-2"
+                  >
+                    <span>{themeLabel}</span>
+                    <ThemeIcon className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => signOut()}
                     className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"

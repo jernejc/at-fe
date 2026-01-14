@@ -180,7 +180,7 @@ export function CampaignsList() {
                 >
                     <Button
                         onClick={() => handleNewCampaign()}
-                        className="gap-2 h-10 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-colors font-medium"
+                        className="gap-2 h-10 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-black transition-colors font-medium"
                     >
                         <Plus className="w-4 h-4" />
                         New Campaign
@@ -203,7 +203,7 @@ export function CampaignsList() {
                     </p>
                     <Button
                         onClick={() => handleNewCampaign()}
-                        className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-colors"
+                        className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-black transition-colors"
                     >
                         Create Campaign
                     </Button>
