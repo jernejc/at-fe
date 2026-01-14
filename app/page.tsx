@@ -28,8 +28,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
       <Header />
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1600px] mx-auto px-6 py-8">
+      <main className="flex flex-1 overflow-y-auto">
+        <div className="max-w-[1600px] mx-auto px-6 py-8 flex flex-1">
           <CampaignsList />
         </div>
       </main>

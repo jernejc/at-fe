@@ -8,7 +8,7 @@ import type { CampaignSummary } from '@/lib/schemas';
 import type { ProductSummary } from '@/lib/schemas/product';
 import { ProductSection } from './ProductSection';
 import { ProductAssignmentDialog } from './ProductAssignmentDialog';
-import { Loader2, FolderKanban, Plus } from 'lucide-react';
+import { Loader2, FolderKanban, Plus, Coffee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { staggerContainer, fadeInUp } from '@/lib/animations';
 
@@ -141,7 +141,7 @@ export function CampaignsList() {
     const hasNoCampaigns = campaigns.length === 0;
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col flex-1 gap-10">
             {/* Page Header */}
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -176,7 +176,7 @@ export function CampaignsList() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.2 }}
-                    className="flex items-center gap-3 shrink-0 pt-2"
+                    className={hasNoCampaigns ? "hidden" : "flex items-center gap-3 shrink-0 pt-2"}
                 >
                     <Button
                         onClick={() => handleNewCampaign()}
@@ -192,8 +192,9 @@ export function CampaignsList() {
             {hasNoCampaigns ? (
                 <motion.div 
                     variants={fadeInUp}
-                    className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-12 text-center"
+                    className="flex flex-1 flex-col items-center justify-center p-12 text-center -mt-10"
                 >
+                    <Coffee size={50} strokeWidth={1.5} className='mb-5'></Coffee>
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                         No workloads yet
                     </h2>
