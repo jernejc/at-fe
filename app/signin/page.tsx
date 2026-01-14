@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { firebaseAuth } from "@/lib/auth/firebaseClient";
 import Logo from "@/components/ui/Logo";
 import { useState } from "react";
+import { LiquidMetal } from '@paper-design/shaders-react';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -23,7 +24,6 @@ export default function SignInPage() {
       });
 
       if (signInResult?.ok) {
-        // Use replace instead of push to avoid creating a history entry
         router.replace("/");
       } else {
         setIsLoading(false);
@@ -35,29 +35,26 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-blue-50/50 to-transparent pointer-events-none" />
-
-      <div className="w-full max-w-[400px] flex flex-col items-center gap-8 relative z-10">
-        {/* Logo Section */}
-        <Logo orientation="vertical" />
-
-        {/* Main Card */}
-        <div className="w-full bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-900/5 p-8 sm:p-10 flex flex-col items-center">
-          <div className="text-center space-y-2 mb-8">
-            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+    <div className="min-h-screen bg-slate-200 flex items-center justify-center p-3 sm:p-4 md:p-6">
+      {/* Main Card - Full screen with margin */}
+      <div className="w-full h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)] bg-white rounded-2xl md:rounded-3xl shadow-2xl shadow-slate-900/10 overflow-hidden flex">
+        {/* Left Content Panel */}
+        <div className="w-full md:w-1/2 flex flex-col justify-around p-6 sm:p-8 md:p-12 lg:p-16 items-center">
+          {/* Welcome Section - Top */}
+          <div className="text-center">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
               Welcome back
             </h1>
-            <p className="text-sm text-slate-500 max-w-[280px] mx-auto leading-relaxed">
-              Sign in to your account to continue.
+            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-slate-500 max-w-sm leading-relaxed">
+              Sign in to your account to continue where you left off.
             </p>
           </div>
 
+          {/* Sign In Button - Center */}
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="group w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-medium py-3 px-4 rounded-xl border border-slate-200 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow disabled:opacity-70 disabled:pointer-events-none"
+            className="group w-100 max-w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-medium py-3 px-4 rounded-xl border border-slate-200 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow disabled:opacity-70 disabled:pointer-events-none"
           >
             {isLoading ? (
               <div className="h-5 w-5 border-2 border-slate-200 border-t-slate-500 rounded-full animate-spin" />
@@ -73,6 +70,33 @@ export default function SignInPage() {
               </>
             )}
           </button>
+
+          {/* Logo - Bottom */}
+          <div>
+            <Logo orientation="horizontal" />
+          </div>
+        </div>
+
+        {/* Right Accent Panel - Tablet and up */}
+        <div className="hidden md:flex w-1/2 bg-[#6665FF] items-center overflow-hidden">
+          <LiquidMetal
+            width="100%"
+            height="100%"
+            image="/images/logo.svg"
+            colorBack="#6665FF"
+            colorTint="#ffffff"
+            shape="diamond"
+            repetition={2}
+            softness={0.1}
+            shiftRed={0.3}
+            shiftBlue={0.3}
+            distortion={0.07}
+            contour={0.4}
+            angle={70}
+            speed={1}
+            scale={0.6}
+            fit="contain"
+          />
         </div>
       </div>
     </div>
