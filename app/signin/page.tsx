@@ -35,17 +35,17 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-200 flex items-center justify-center p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-slate-200 dark:bg-slate-700 dark:text-white flex items-center justify-center p-3 sm:p-4 md:p-6">
       {/* Main Card - Full screen with margin */}
-      <div className="w-full h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)] bg-white rounded-2xl md:rounded-3xl shadow-2xl shadow-slate-900/10 overflow-hidden flex">
+      <div className="w-full h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)] bg-white dark:bg-black rounded-2xl md:rounded-3xl shadow-2xl shadow-slate-900/10 overflow-hidden flex">
         {/* Left Content Panel */}
         <div className="w-full md:w-1/2 flex flex-col justify-around p-6 sm:p-8 md:p-12 lg:p-16 items-center">
           {/* Welcome Section - Top */}
           <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
               Welcome back
             </h1>
-            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-slate-500 max-w-sm leading-relaxed">
+            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-slate-500 dark:text-slate-200 max-w-sm leading-relaxed">
               Sign in to your account to continue where you left off.
             </p>
           </div>
