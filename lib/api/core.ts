@@ -1,4 +1,5 @@
 import { firebaseAuth } from '@/lib/auth/firebaseClient';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 export const A2A_API_BASE = process.env.NEXT_PUBLIC_A2A_API_URL || 'http://localhost:8100';
@@ -21,12 +22,29 @@ export class APIError extends Error {
     }
 }
 
+// One-time promise that resolves when Firebase auth state is initialized
+let authReadyPromise: Promise<void> | null = null;
+
+function getAuthReadyPromise(): Promise<void> {
+    if (!authReadyPromise) {
+        authReadyPromise = new Promise((resolve) => {
+            const unsubscribe = onAuthStateChanged(firebaseAuth, () => {
+                unsubscribe();
+                resolve();
+            });
+        });
+    }
+    return authReadyPromise;
+}
+
 async function getAuthHeaders(): Promise<Record<string, string>> {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };
 
     try {
+        // Wait for Firebase auth to be initialized before checking currentUser
+        await getAuthReadyPromise();
         const currentUser = firebaseAuth.currentUser;
         if (currentUser) {
             const idToken = await currentUser.getIdToken();
