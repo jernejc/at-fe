@@ -1,6 +1,7 @@
 export interface SignalInterest {
     id: number;
     category: string;
+    display_name: string;
     strength: number;
     confidence: number;
     urgency_impact: number;
@@ -13,6 +14,7 @@ export interface SignalInterest {
 export interface SignalEvent {
     id: number;
     category: string;
+    display_name: string;
     strength: number;
     confidence: number;
     urgency_impact: number;

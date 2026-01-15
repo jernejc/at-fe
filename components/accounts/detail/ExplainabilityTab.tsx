@@ -250,7 +250,7 @@ function SignalCard({ signal, type, onClick }: { signal: SignalInterest | Signal
                             <Activity className="h-3.5 w-3.5 text-blue-500" />
                         )}
                         <span className="text-sm font-medium text-slate-900 dark:text-white">
-                            {signal.category}
+                            {signal.display_name}
                         </span>
                     </div>
                     {isHighConfidence && (
