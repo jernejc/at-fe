@@ -136,23 +136,6 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                         </div>
                                     </section>
                                 )}
-
-                                {fit.missing_signals && fit.missing_signals.length > 0 && (
-                                    <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-                                        <h3 className="text-sm font-semibold text-slate-500 flex items-center gap-2">
-                                            <AlertCircle className="h-4 w-4" />
-                                            Missing Signals
-                                        </h3>
-                                        <ul className="grid gap-2">
-                                            {fit.missing_signals.map((signal, i) => (
-                                                <li key={i} className="flex items-center gap-2 text-sm text-slate-500">
-                                                    <XCircle className="h-4 w-4 text-slate-300 shrink-0" />
-                                                    <span>{signal}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                )}
                             </div>
                         </div>
                     </>
@@ -167,23 +150,34 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
 }
 
 function SignalMatchCard({ match, type }: { match: SignalContribution, type: 'interest' | 'event' }) {
+    // Format category for display if no display_name
+    const formatCategory = (cat: string) => 
+        cat.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    
+    const displayName = match.display_name || formatCategory(match.category);
+    
     return (
         <div className="bg-card border border-border rounded-lg p-3 hover:shadow-sm transition-shadow">
             <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
+                <div className="space-y-1.5 flex-1 min-w-0">
                     <div className="font-medium text-sm text-foreground">
-                        {match.category}
+                        {displayName}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {match.display_name && match.display_name !== match.category && (
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            {match.category.replace(/_/g, ' ')}
+                        </div>
+                    )}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                             <TrendingUp className="h-3 w-3" />
-                            Strength: {Math.round(match.strength)}%
+                            {Math.round(match.strength)}% strength
                         </span>
-                        <span>•</span>
-                        <span>Weight: {match.weight}x</span>
+                        <span className="text-muted-foreground/50">•</span>
+                        <span>{match.weight}x weight</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 bg-muted text-muted-foreground px-2 py-1 rounded text-xs font-medium">
+                <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded text-xs font-semibold shrink-0">
                     <CheckCircle2 className="h-3 w-3" />
                     +{Math.round(match.contribution)}
                 </div>
@@ -191,3 +185,4 @@ function SignalMatchCard({ match, type }: { match: SignalContribution, type: 'in
         </div>
     );
 }
+

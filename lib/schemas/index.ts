@@ -207,6 +207,7 @@ export type {
     SignalsSummary,
     SignalInterest,
     SignalEvent,
+    SignalComponent,
     FitSummaryFit,
     DataCoverage,
     Freshness,

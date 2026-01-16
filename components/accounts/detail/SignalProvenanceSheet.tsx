@@ -38,21 +38,56 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                     <>
                         <div className="p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
                             <SheetHeader className="space-y-4">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Badge variant="outline" className="capitalize">
+                                <div className="space-y-3">
+                                    {/* Signal type and confidence badges */}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <Badge variant="outline" className="capitalize text-xs">
                                             {signal.signal_type}
                                         </Badge>
-                                        <Badge variant={signal.confidence > 0.7 ? "default" : "secondary"}>
+                                        <Badge variant={signal.confidence > 0.7 ? "default" : "secondary"} className="text-xs">
                                             {Math.round(signal.confidence * 100)}% Confidence
                                         </Badge>
+                                        {signal.source_types && signal.source_types.length > 0 && (
+                                            signal.source_types.slice(0, 3).map((sourceType, i) => (
+                                                <Badge key={i} variant="secondary" className="capitalize text-xs bg-slate-100 dark:bg-slate-800">
+                                                    {sourceType.replace(/_/g, ' ')}
+                                                </Badge>
+                                            ))
+                                        )}
                                     </div>
-                                    <SheetTitle className="text-xl font-bold">
-                                        {signal.signal_category}
+
+                                    {/* Main title - use display_name if available, fallback to category */}
+                                    <SheetTitle className="text-2xl font-bold tracking-tight">
+                                        {signal.display_name || signal.signal_category.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                                     </SheetTitle>
-                                    <SheetDescription>
-                                        Detailed provenance and evidence for this detected signal.
-                                    </SheetDescription>
+
+                                    {/* Category subtitle if display_name is different from category */}
+                                    {signal.display_name && signal.display_name !== signal.signal_category && (
+                                        <SheetDescription className="text-sm text-slate-500 dark:text-slate-400 capitalize">
+                                            {signal.signal_category.replace(/_/g, ' ')}
+                                        </SheetDescription>
+                                    )}
+
+                                    {/* Strength indicator */}
+                                    <div className="flex items-center gap-4 pt-2">
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between text-xs mb-1">
+                                                <span className="text-slate-500 dark:text-slate-400">Signal Strength</span>
+                                                <span className="font-semibold text-slate-900 dark:text-white">{Math.round(signal.strength)}%</span>
+                                            </div>
+                                            <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all"
+                                                    style={{ width: `${signal.strength <= 1 ? signal.strength * 100 : signal.strength}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                        {signal.component_count !== undefined && signal.component_count > 0 && (
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                                {signal.component_count} component{signal.component_count !== 1 ? 's' : ''}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </SheetHeader>
                         </div>

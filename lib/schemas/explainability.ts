@@ -1,25 +1,61 @@
+/**
+ * A raw signal component with its source type (post, employee, technographics, etc.)
+ */
+export interface SignalComponent {
+    id: number;
+    signal_type: string;
+    source_type: string;
+    strength: number;
+    confidence: number;
+    urgency_impact?: number | null;
+    evidence_summary?: string | null;
+    source_ids: number[];
+    detected_at: string;
+    employee_signal_ids: number[];
+}
+
+/**
+ * Aggregated interest signal with underlying components
+ */
 export interface SignalInterest {
     id: number;
     category: string;
-    display_name: string;
+    display_name?: string | null;
     strength: number;
     confidence: number;
-    urgency_impact: number;
-    evidence_summary: string;
-    aggregation_method: string;
+    urgency_impact?: number | null;
+    evidence_summary?: string | null;
+    source_type: string;
+    source_types: string[];
+    source_ids: number[];
+    source_ids_by_type: Record<string, number[]>;
+    component_signal_ids: number[];
+    component_count: number;
+    components: SignalComponent[];
+    aggregation_method?: string | null;
     contributor_count: number;
     weight_sum: number;
 }
 
+/**
+ * Aggregated event signal with underlying components
+ */
 export interface SignalEvent {
     id: number;
     category: string;
-    display_name: string;
+    display_name?: string | null;
     strength: number;
     confidence: number;
-    urgency_impact: number;
-    evidence_summary: string;
-    aggregation_method: string;
+    urgency_impact?: number | null;
+    evidence_summary?: string | null;
+    source_type: string;
+    source_types: string[];
+    source_ids: number[];
+    source_ids_by_type: Record<string, number[]>;
+    component_signal_ids: number[];
+    component_count: number;
+    components: SignalComponent[];
+    aggregation_method?: string | null;
     contributor_count: number;
     weight_sum: number;
 }
@@ -36,6 +72,7 @@ export interface SignalsSummary {
 }
 
 export interface FitSummaryFit {
+    id?: number | null;
     company_id: number;
     company_domain: string;
     company_name: string;
@@ -69,8 +106,8 @@ export interface CompanyExplainabilityResponse {
     signals_summary: SignalsSummary;
     fits_summary: FitSummaryFit[];
     playbooks_count: number;
-    data_coverage: DataCoverage;
-    freshness: Freshness;
+    data_coverage?: DataCoverage | null;
+    freshness?: Freshness | null;
     links: Record<string, string>;
 }
 

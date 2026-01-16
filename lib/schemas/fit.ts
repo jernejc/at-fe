@@ -2,6 +2,7 @@
 
 export interface SignalContribution {
     category: string;
+    display_name?: string | null;
     signal_type: string;
     strength: number;
     weight: number;
