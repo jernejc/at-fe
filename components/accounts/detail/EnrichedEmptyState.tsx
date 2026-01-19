@@ -60,7 +60,6 @@ export function EnrichedEmptyState({
                 onClick={handleClick}
                 disabled={isLoading}
                 variant="secondary"
-                className="bg-slate-800 hover:bg-slate-700 text-white dark:bg-slate-700 dark:hover:bg-slate-600"
             >
                 {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -235,7 +234,6 @@ export function PlaybookEmptyState({
                         onClick={handleClick}
                         disabled={isLoading || !selectedProductId}
                         variant="secondary"
-                        className="bg-slate-800 hover:bg-slate-700 text-white dark:bg-slate-700 dark:hover:bg-slate-600"
                     >
                         {isLoading ? (
                             <Loader2 className="w-4 h-4 animate-spin mr-2" />

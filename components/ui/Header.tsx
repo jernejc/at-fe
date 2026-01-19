@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { Separator } from "./separator";
 
 export function Header() {
   const { data: session } = useSession();
@@ -112,6 +113,8 @@ export function Header() {
                   >
                     Workloads
                   </Link>
+                  <Separator></Separator>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 px-3 mt-3">Theme</div>
                   <button
                     onClick={cycleTheme}
                     className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex justify-between items-center gap-2"
@@ -119,6 +122,7 @@ export function Header() {
                     <span>{themeLabel}</span>
                     <ThemeIcon className="w-4 h-4" />
                   </button>
+                  <Separator></Separator>
                   <button
                     onClick={() => signOut()}
                     className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"

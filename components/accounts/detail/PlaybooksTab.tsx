@@ -512,7 +512,7 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                         {Object.entries(playbookDetail.objection_handling).map(([obj, response], i) => (
                                             <div key={i} className="rounded-lg border border-border/50 overflow-hidden">
                                                 <div className="px-4 py-2.5 bg-amber-500/5 border-b border-border/40">
-                                                    <p className="text-sm font-medium text-foreground">"{obj}"</p>
+                                                    <p className="text-sm font-medium text-foreground">&quot;{obj}&quot;</p>
                                                 </div>
                                                 <div className="px-4 py-3">
                                                     <p className="text-sm text-muted-foreground leading-relaxed">

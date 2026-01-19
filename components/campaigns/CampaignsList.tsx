@@ -203,7 +203,8 @@ export function CampaignsList() {
                     </p>
                     <Button
                         onClick={() => handleNewCampaign()}
-                        className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-black transition-colors"
+                        variant="secondary"
+                        size="lg"
                     >
                         Create Campaign
                     </Button>
