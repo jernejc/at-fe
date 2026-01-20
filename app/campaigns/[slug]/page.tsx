@@ -4,7 +4,7 @@ import { use, useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
-import { CampaignHeader, OverviewTab, OverviewTabSkeleton, CompaniesTab, AnalysisTab, PartnerTab, type DrillDownFilter } from '@/components/campaigns';
+import { CampaignHeader, OverviewTab, OverviewTabSkeleton, CompaniesTab, AnalysisTab, PartnerTab, PerformanceTab, type DrillDownFilter } from '@/components/campaigns';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Header } from '@/components/ui/Header';
@@ -278,6 +278,15 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 campaignSlug={slug}
                                 companies={partnerTabCompanies}
                                 onCompanyClick={handleCompanyClick}
+                            />
+                        </TabsContent>
+
+                        {/* Performance Tab */}
+                        <TabsContent value="performance" className="mt-0 animate-in fade-in-50">
+                            <PerformanceTab
+                                campaignSlug={slug}
+                                partnerCount={partnerCount}
+                                hasData={false}
                             />
                         </TabsContent>
                     </Tabs>

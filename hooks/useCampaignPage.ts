@@ -25,7 +25,7 @@ import type {
 // Helpers
 // ============================================================================
 
-export type CampaignTab = 'overview' | 'companies' | 'analysis' | 'partners';
+export type CampaignTab = 'overview' | 'companies' | 'partners' | 'performance' | 'analysis';
 
 interface UseCampaignPageOptions {
     slug: string;

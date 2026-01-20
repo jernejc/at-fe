@@ -15,6 +15,7 @@ export { CampaignHeader } from './CampaignHeader';
 export { OverviewTab, OverviewTabSkeleton, type DrillDownFilter } from './OverviewTab';
 export { CompaniesTab } from './CompaniesTab';
 export { AnalysisTab, AnalysisTabSkeleton } from './AnalysisTab';
+export { PerformanceTab, PerformanceTabSkeleton } from './PerformanceTab';
 export { CompanyRowCompact, CompanyRowCompactSkeleton, type OutreachStatus } from './CompanyRowCompact';
 export { FunnelVisualization } from './FunnelVisualization';
 export { AddCompanyButton } from './AddCompanyButton';
