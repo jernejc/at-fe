@@ -70,7 +70,7 @@ export function CampaignsList() {
     // Handle new campaign - navigate to wizard
     const handleNewCampaign = (productId: number | null = null) => {
         // Navigate to the create wizard, optionally with product preselection
-        const url = productId ? `/campaigns/new?product=${productId}` : '/campaigns/new';
+        const url = productId ? `/campaigns/start?product=${productId}` : '/campaigns/start';
         router.push(url);
     };
 
