@@ -57,24 +57,12 @@ export function CampaignStartFlow({
 
             {/* Main content area */}
             <main className="flex-1 overflow-hidden">
-                {currentStep === 'audience' && (
+                {(currentStep === 'audience' || currentStep === 'partners') && (
                     <CampaignStartChat
                         products={products}
                         flowState={flowState}
+                        currentStep={currentStep}
                     />
-                )}
-
-                {currentStep === 'partners' && (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="text-center">
-                            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                                Partner Selection
-                            </h2>
-                            <p className="text-slate-500 dark:text-slate-400">
-                                Coming in Stage 2
-                            </p>
-                        </div>
-                    </div>
                 )}
 
                 {currentStep === 'summary' && (

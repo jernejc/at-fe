@@ -179,15 +179,9 @@ export function SearchPhaseIndicator({ phase, className, showElapsedTime = false
                         </motion.div>
                     </div>
 
-                    <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                             {config.text}
-                            {/* Animated dots for active phases */}
-                            <span className="inline-flex">
-                                <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}>.</motion.span>
-                                <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}>.</motion.span>
-                                <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}>.</motion.span>
-                            </span>
                         </span>
                         {displayText && (
                             <motion.span
@@ -202,7 +196,7 @@ export function SearchPhaseIndicator({ phase, className, showElapsedTime = false
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="flex items-center gap-1.5 mt-1.5 flex-wrap"
+                                className="flex items-center gap-1.5 flex-wrap"
                             >
                                 {keywords.slice(0, 4).map((keyword, idx) => (
                                     <motion.span
@@ -224,7 +218,7 @@ export function SearchPhaseIndicator({ phase, className, showElapsedTime = false
                             <motion.span
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 truncate flex items-center gap-1.5"
+                                className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1.5"
                             >
                                 <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
                                 {details}

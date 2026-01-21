@@ -11,9 +11,10 @@ interface ProductSelectorProps {
     selectedProduct: ProductSummary | null;
     onSelect: (product: ProductSummary) => void;
     className?: string;
+    disabled?: boolean;
 }
 
-export function ProductSelector({ products, selectedProduct, onSelect, className }: ProductSelectorProps) {
+export function ProductSelector({ products, selectedProduct, onSelect, className, disabled = false }: ProductSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSelect = (product: ProductSummary) => {
@@ -26,12 +27,15 @@ export function ProductSelector({ products, selectedProduct, onSelect, className
             {/* Trigger button - card style */}
             <button
                 type="button"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                disabled={disabled}
                 className={cn(
                     'w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left',
                     'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700',
-                    'hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm',
-                    isOpen && 'border-primary ring-2 ring-primary/20'
+                    disabled
+                        ? 'opacity-60 cursor-not-allowed'
+                        : 'hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm',
+                    isOpen && !disabled && 'border-primary ring-2 ring-primary/20'
                 )}
             >
                 {/* Product icon/logo */}
@@ -51,16 +55,18 @@ export function ProductSelector({ products, selectedProduct, onSelect, className
                     )}
                 </div>
 
-                {/* Chevron */}
-                <ChevronDown className={cn(
-                    'w-4 h-4 text-slate-400 transition-transform shrink-0',
-                    isOpen && 'rotate-180'
-                )} />
+                {/* Chevron - hidden when disabled */}
+                {!disabled && (
+                    <ChevronDown className={cn(
+                        'w-4 h-4 text-slate-400 transition-transform shrink-0',
+                        isOpen && 'rotate-180'
+                    )} />
+                )}
             </button>
 
             {/* Dropdown menu */}
             <AnimatePresence>
-                {isOpen && (
+                {isOpen && !disabled && (
                     <>
                         {/* Backdrop */}
                         <div

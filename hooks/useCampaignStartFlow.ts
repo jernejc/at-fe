@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useAgenticSearch, type AgenticSearchState } from './useAgenticSearch';
-import type { ProductSummary, WSCompanyResult } from '@/lib/schemas';
+import type { ProductSummary, WSCompanyResult, PartnerSummary, WSPartnerSuggestion } from '@/lib/schemas';
 import type { CampaignStep } from '@/components/campaigns/start/ui/StepProgressIndicator';
+import { getPartners } from '@/lib/api/partners';
 
 export interface ChatMessage {
     id: string;
@@ -43,6 +44,12 @@ export interface UseCampaignStartFlowReturn {
     companies: WSCompanyResult[];
     hasCompanies: boolean;
 
+    // Partners
+    partnerSuggestions: WSPartnerSuggestion[];
+    allPartners: PartnerSummary[];
+    selectedPartnerIds: Set<string>;
+    loadingPartners: boolean;
+
     // Suggested queries
     suggestedQueries: string[];
 
@@ -53,6 +60,8 @@ export interface UseCampaignStartFlowReturn {
     handleSubmit: (query?: string) => void;
     handleProductChange: (productId: number) => void;
     handleContinue: () => void;
+    handlePartnerToggle: (partnerId: string) => void;
+    handleContinueToSummary: () => void;
     resetChat: () => void;
 }
 
@@ -116,7 +125,52 @@ export function useCampaignStartFlow({
     const companies = agenticState.companies;
     const hasCompanies = companies.length > 0;
     const suggestedQueries = agenticState.suggestedQueries;
+    const partnerSuggestions = agenticState.partnerSuggestions;
     const isSplitView = hasCompanies;
+
+    // Partner-related state
+    const [selectedPartnerIds, setSelectedPartnerIds] = useState<Set<string>>(new Set());
+    const [allPartners, setAllPartners] = useState<PartnerSummary[]>([]);
+    const [loadingPartners, setLoadingPartners] = useState(false);
+    const hasAutoSelectedPartnersRef = useRef(false);
+
+    // Auto-select suggested partners when entering partners step
+    useEffect(() => {
+        if (currentStep === 'partners' && partnerSuggestions.length > 0 && !hasAutoSelectedPartnersRef.current) {
+            const initialSelected = new Set(
+                partnerSuggestions.map(s => s.slug)
+            );
+            setSelectedPartnerIds(initialSelected);
+            hasAutoSelectedPartnersRef.current = true;
+        }
+    }, [currentStep, partnerSuggestions]);
+
+    // Reset auto-selection ref when leaving partners step
+    useEffect(() => {
+        if (currentStep !== 'partners') {
+            hasAutoSelectedPartnersRef.current = false;
+        }
+    }, [currentStep]);
+
+    // Fetch all partners when entering partners step
+    useEffect(() => {
+        if (currentStep === 'partners') {
+            setLoadingPartners(true);
+            getPartners({ page_size: 50 })
+                .then(res => {
+                    setAllPartners(res.items);
+
+                    // Fallback: if no suggested partners, auto-select top 3 from all partners
+                    if (partnerSuggestions.length === 0 && res.items.length > 0 && !hasAutoSelectedPartnersRef.current) {
+                        const fallbackIds = res.items.slice(0, 3).map(p => p.slug);
+                        setSelectedPartnerIds(new Set(fallbackIds));
+                        hasAutoSelectedPartnersRef.current = true;
+                    }
+                })
+                .catch(console.error)
+                .finally(() => setLoadingPartners(false));
+        }
+    }, [currentStep, partnerSuggestions.length]);
 
     // Handlers
     const handleSubmit = useCallback((query?: string) => {
@@ -186,7 +240,31 @@ export function useCampaignStartFlow({
     }, [products, searchHistory, search, resetSearch]);
 
     const handleContinue = useCallback(() => {
+        // Add transition message
+        const transitionMessage: ChatMessage = {
+            id: `system-partners-${Date.now()}`,
+            type: 'system',
+            content: `Found **${companies.length} companies** matching your criteria. I've identified **${partnerSuggestions.length} partner${partnerSuggestions.length !== 1 ? 's' : ''}** that are great fits for reaching these companies.`,
+            timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, transitionMessage]);
         setCurrentStep('partners');
+    }, [companies.length, partnerSuggestions.length]);
+
+    const handlePartnerToggle = useCallback((partnerId: string) => {
+        setSelectedPartnerIds(prev => {
+            const next = new Set(prev);
+            if (next.has(partnerId)) {
+                next.delete(partnerId);
+            } else {
+                next.add(partnerId);
+            }
+            return next;
+        });
+    }, []);
+
+    const handleContinueToSummary = useCallback(() => {
+        setCurrentStep('summary');
     }, []);
 
     const resetChat = useCallback(() => {
@@ -235,6 +313,12 @@ export function useCampaignStartFlow({
         companies,
         hasCompanies,
 
+        // Partners
+        partnerSuggestions,
+        allPartners,
+        selectedPartnerIds,
+        loadingPartners,
+
         // Suggested queries
         suggestedQueries,
 
@@ -245,6 +329,8 @@ export function useCampaignStartFlow({
         handleSubmit,
         handleProductChange,
         handleContinue,
+        handlePartnerToggle,
+        handleContinueToSummary,
         resetChat,
     };
 }
