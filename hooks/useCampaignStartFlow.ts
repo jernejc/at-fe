@@ -168,6 +168,9 @@ export function useCampaignStartFlow({
 
             // Re-run search if we have existing queries
             if (searchHistory.length > 0) {
+                // Reset to clear previous results and show loading state
+                resetSearch();
+
                 const combinedQuery = searchHistory.length > 1
                     ? searchHistory.join('\n\n---\n\n**Update:**\n')
                     : searchHistory[0];
@@ -180,7 +183,7 @@ export function useCampaignStartFlow({
                 });
             }
         }
-    }, [products, searchHistory, search]);
+    }, [products, searchHistory, search, resetSearch]);
 
     const handleContinue = useCallback(() => {
         setCurrentStep('partners');
