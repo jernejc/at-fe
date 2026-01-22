@@ -2,64 +2,37 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronRight, Phone, UserCheck, FileText, Trophy } from 'lucide-react';
+import { Phone, UserCheck, FileText, Trophy, ChevronRight } from 'lucide-react';
 
 interface FunnelStage {
     name: string;
     count: number;
-    conversionRate?: number; // Conversion from previous stage
+    conversionRate?: number;
 }
 
 interface LeadConversionFunnelProps {
-    /** Whether data is available (false = show sample data) */
     hasData?: boolean;
-    /** Custom funnel stages - uses sample data if not provided */
     stages?: FunnelStage[];
-    /** Additional classes */
     className?: string;
 }
 
-// Sample data matching the reference design
 const SAMPLE_STAGES: FunnelStage[] = [
-    { name: 'CONTACTED', count: 1240 },
-    { name: 'QUALIFIED', count: 806, conversionRate: 65 },
-    { name: 'PROPOSAL', count: 322, conversionRate: 40 },
-    { name: 'CLOSED', count: 64, conversionRate: 20 },
+    { name: 'Contacted', count: 1240 },
+    { name: 'Qualified', count: 806, conversionRate: 65 },
+    { name: 'Proposal', count: 322, conversionRate: 40 },
+    { name: 'Closed', count: 64, conversionRate: 20 },
 ];
 
 // Icon mapping for stages
 const stageIcons: Record<string, React.ElementType> = {
-    'CONTACTED': Phone,
-    'QUALIFIED': UserCheck,
-    'PROPOSAL': FileText,
-    'CLOSED': Trophy,
+    'Contacted': Phone,
+    'Qualified': UserCheck,
+    'Proposal': FileText,
+    'Closed': Trophy,
 };
 
-// Color progression for the funnel stages
-const stageColors = [
-    'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700',
-    'bg-blue-100 dark:bg-blue-900/40 border-blue-200 dark:border-blue-800',
-    'bg-blue-200 dark:bg-blue-800/50 border-blue-300 dark:border-blue-700',
-    'bg-blue-600 dark:bg-blue-600 border-blue-700 dark:border-blue-500',
-];
-
-const stageTextColors = [
-    'text-slate-700 dark:text-slate-300',
-    'text-blue-700 dark:text-blue-300',
-    'text-blue-800 dark:text-blue-200',
-    'text-white dark:text-white',
-];
-
-const stageLabelColors = [
-    'text-slate-500 dark:text-slate-400',
-    'text-blue-600 dark:text-blue-400',
-    'text-blue-700 dark:text-blue-300',
-    'text-blue-100 dark:text-blue-100',
-];
-
 /**
- * Lead Conversion Funnel visualization showing the sales pipeline stages.
- * Styled similarly to the existing FunnelVisualization component.
+ * Lead Conversion Funnel - Matches the Campaign Funnel design from Analysis tab
  */
 export function LeadConversionFunnel({
     hasData = false,
@@ -67,101 +40,92 @@ export function LeadConversionFunnel({
     className,
 }: LeadConversionFunnelProps) {
     const [viewMode, setViewMode] = useState<'total' | 'qualified'>('qualified');
-
-    const displayStages = stages;
+    
+    const maxCount = Math.max(...stages.map(s => s.count));
 
     return (
-        <div className={cn('space-y-4', className)}>
-            {/* Header with toggle */}
-            <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                    Lead Conversion Funnel
-                </h3>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setViewMode('total')}
-                        className={cn(
-                            'flex items-center gap-1.5 text-xs font-medium transition-colors',
-                            viewMode === 'total'
-                                ? 'text-slate-900 dark:text-white'
-                                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
-                        )}
-                    >
-                        <span className={cn(
-                            'w-2 h-2 rounded-full',
-                            viewMode === 'total' ? 'bg-slate-400' : 'bg-slate-200 dark:bg-slate-700'
-                        )} />
-                        TOTAL VOLUME
-                    </button>
-                    <button
-                        onClick={() => setViewMode('qualified')}
-                        className={cn(
-                            'flex items-center gap-1.5 text-xs font-medium transition-colors',
-                            viewMode === 'qualified'
-                                ? 'text-blue-600 dark:text-blue-400'
-                                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
-                        )}
-                    >
-                        <span className={cn(
-                            'w-2 h-2 rounded-full',
-                            viewMode === 'qualified' ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'
-                        )} />
-                        QUALIFIED ONLY
-                    </button>
-                </div>
-            </div>
-
-            {/* Funnel stages */}
-            <div className="flex items-stretch gap-0">
-                {displayStages.map((stage, index) => {
+        <div className={cn('space-y-3', className)}>
+            {/* Stage Cards - matching FunnelVisualization style */}
+            <div className="flex items-stretch gap-1">
+                {stages.map((stage, index) => {
                     const Icon = stageIcons[stage.name] || Phone;
-                    const isLast = index === displayStages.length - 1;
-                    const colorClass = stageColors[Math.min(index, stageColors.length - 1)];
-                    const textColor = stageTextColors[Math.min(index, stageTextColors.length - 1)];
-                    const labelColor = stageLabelColors[Math.min(index, stageLabelColors.length - 1)];
-
-                    // Calculate flex basis for funnel shape (decreasing width)
-                    const widthPercent = 100 - (index * 12);
+                    const widthPercent = maxCount > 0 ? (stage.count / maxCount) * 100 : 0;
+                    const isLast = index === stages.length - 1;
+                    
+                    // Calculate drop rate from previous stage
+                    const prevStage = index > 0 ? stages[index - 1] : null;
+                    const dropRate = prevStage && prevStage.count > 0
+                        ? Math.round((1 - stage.count / prevStage.count) * 100)
+                        : null;
 
                     return (
                         <div key={stage.name} className="flex items-center flex-1 min-w-0">
-                            <div
-                                className={cn(
-                                    'relative flex-1 rounded-lg border py-4 px-4 transition-all',
-                                    colorClass,
-                                    // Funnel shape with overlapping
-                                    index > 0 && '-ml-3',
-                                    isLast && 'rounded-r-2xl'
-                                )}
-                                style={{
-                                    clipPath: isLast
-                                        ? undefined
-                                        : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)',
-                                    zIndex: displayStages.length - index,
-                                }}
-                            >
-                                <div className="text-center">
-                                    <div className={cn('text-[10px] font-semibold uppercase tracking-wider mb-1', labelColor)}>
-                                        {stage.name}
-                                    </div>
-                                    <div className={cn('text-2xl font-bold tabular-nums', textColor)}>
-                                        {stage.count.toLocaleString()}
-                                    </div>
-                                    {stage.conversionRate !== undefined && (
-                                        <div className={cn(
-                                            'mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full inline-block',
-                                            isLast
-                                                ? 'bg-blue-500/30 text-blue-100'
-                                                : 'bg-white/50 dark:bg-slate-900/30 text-blue-600 dark:text-blue-400'
-                                        )}>
-                                            {stage.conversionRate}% Conv.
-                                        </div>
+                            <div className={cn(
+                                "relative flex-1 rounded-lg border transition-colors overflow-hidden",
+                                isLast
+                                    ? "bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900"
+                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                            )}>
+                                {/* Subtle progress bar background */}
+                                <div
+                                    className={cn(
+                                        "absolute inset-y-0 left-0",
+                                        isLast 
+                                            ? "bg-emerald-100 dark:bg-emerald-900/30"
+                                            : "bg-slate-100 dark:bg-slate-800/50"
                                     )}
+                                    style={{ width: `${widthPercent}%` }}
+                                />
+
+                                <div className="relative px-3 py-3">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <Icon className={cn(
+                                            "w-3.5 h-3.5",
+                                            isLast ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"
+                                        )} />
+                                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                            {stage.name}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-baseline gap-2">
+                                        <span className={cn(
+                                            "text-2xl font-bold tabular-nums",
+                                            isLast ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-white"
+                                        )}>
+                                            {stage.count.toLocaleString()}
+                                        </span>
+                                        {stage.conversionRate !== undefined && (
+                                            <span className={cn(
+                                                "text-xs font-medium",
+                                                isLast ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"
+                                            )}>
+                                                {stage.conversionRate}%
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Connector with drop rate */}
+                            {!isLast && (
+                                <div className="flex flex-col items-center px-1 shrink-0">
+                                    <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-700" />
+                                    {dropRate !== null && dropRate > 0 && (
+                                        <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
+                                            -{dropRate}%
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
+            </div>
+
+            {/* Total conversion summary */}
+            <div className="text-right text-xs text-slate-500 dark:text-slate-400">
+                Overall conversion: <span className="font-medium text-emerald-600 dark:text-emerald-400">5.2%</span>
             </div>
         </div>
     );

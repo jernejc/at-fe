@@ -118,12 +118,12 @@ export function PartnerPerformanceTable({
 
     return (
         <div className={cn(
-            'bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800',
+            'bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm',
             className
         )}>
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 className="font-medium text-sm text-slate-900 dark:text-white">
                     Partner Performance Details
                 </h3>
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">

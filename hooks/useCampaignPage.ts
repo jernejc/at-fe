@@ -25,7 +25,7 @@ import type {
 // Helpers
 // ============================================================================
 
-export type CampaignTab = 'overview' | 'companies' | 'partners' | 'performance' | 'analysis';
+export type CampaignTab = 'performance' | 'companies' | 'partners' | 'analysis';
 
 interface UseCampaignPageOptions {
     slug: string;
@@ -84,7 +84,7 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
     const [error, setError] = useState<string | null>(null);
 
     // Tab management
-    const [activeTab, setActiveTab] = useState<CampaignTab>('overview');
+    const [activeTab, setActiveTab] = useState<CampaignTab>('performance');
 
     // Account detail popover state
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
@@ -333,7 +333,7 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
     useEffect(() => {
         async function fetchTabData() {
             try {
-                if ((activeTab === 'companies' || activeTab === 'overview') && companies.length === 0) {
+                if ((activeTab === 'companies' || activeTab === 'performance') && companies.length === 0) {
                     const result = await getCampaignCompanies(slug, { page_size: 50 });
                     // Enrich companies with mock partner data if API returns none
                     setCompanies(result.items);

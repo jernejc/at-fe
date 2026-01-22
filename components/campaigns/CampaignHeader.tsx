@@ -3,7 +3,10 @@
 import Link from 'next/link';
 import type { CampaignRead } from '@/lib/schemas';
 import type { CampaignTab } from '@/hooks/useCampaignPage';
-import { Loader2, Building2, ChevronRight, Trash2, Target, Activity, LayoutDashboard, Users, BarChart3, Send, TrendingUp, Clock } from 'lucide-react';
+import { 
+    Loader2, Building2, ChevronRight, Trash2, Send, TrendingUp, Users, BarChart3,
+    Calendar, Target, Download
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,6 +26,30 @@ interface CampaignHeaderProps {
     partnerCount?: number;
 }
 
+// Format date range for display
+function formatDateRange(startDate?: string | null, endDate?: string | null): string {
+    if (!startDate && !endDate) return 'No date set';
+    
+    const formatDate = (date: string) => {
+        const d = new Date(date);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+    
+    if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const startYear = start.getFullYear();
+        const endYear = end.getFullYear();
+        
+        if (startYear === endYear) {
+            return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+        }
+        return `${formatDate(startDate)}, ${startYear} - ${formatDate(endDate)}, ${endYear}`;
+    }
+    
+    return startDate ? `From ${formatDate(startDate)}` : `Until ${formatDate(endDate!)}`;
+}
+
 export function CampaignHeader({
     campaign,
     activeTab,
@@ -39,42 +66,83 @@ export function CampaignHeader({
     const displayPartnerCount = partnerCount ?? 0;
     const avgFitScore = campaign.avg_fit_score ? Math.round(campaign.avg_fit_score * 100) : null;
 
+    // Mock target value (can be replaced with actual campaign target)
+    const targetValue = '€2.5M';
+    
+    // Format dates
+    const dateRange = formatDateRange(campaign.created_at, null);
+
     return (
         <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-            <div className="px-6 pt-8 pb-0 max-w-[1600px] mx-auto w-full">
-                <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="px-6 pt-6 pb-0 max-w-[1600px] mx-auto w-full">
+                {/* Breadcrumb */}
+                <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                     <Link href="/campaigns" className="hover:text-foreground transition-colors">Campaigns</Link>
                     <ChevronRight className="w-4 h-4" />
                     <span className="font-medium text-foreground">{campaign.name}</span>
                 </div>
 
-                <div className="flex gap-6 items-start">
+                {/* Title Row */}
+                <div className="flex gap-6 items-start justify-between">
                     <div className="flex-1 min-w-0">
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                                    {campaign.name}
-                                </h1>
-                                <Badge
-                                    variant={campaign.status === 'published' ? 'default' : 'secondary'}
-                                    className={`capitalize px-2 py-0.5 pointer-events-none ${campaign.status === 'published'
-                                            ? 'bg-emerald-500 hover:bg-emerald-500 text-white'
-                                            : ''
-                                        }`}
-                                >
-                                    {campaign.status}
-                                </Badge>
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                                {campaign.name}
+                            </h1>
+                            <Badge
+                                variant={campaign.status === 'published' ? 'default' : 'secondary'}
+                                className={`capitalize px-2.5 py-0.5 text-xs font-semibold ${campaign.status === 'published'
+                                    ? 'bg-emerald-500 hover:bg-emerald-500 text-white border-0'
+                                    : ''
+                                }`}
+                            >
+                                {campaign.status === 'published' ? 'Active' : campaign.status}
+                            </Badge>
+                        </div>
+
+                        {/* Campaign Meta Strip */}
+                        <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span>{dateRange}</span>
+                            </div>
+                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                            <div className="flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5" />
+                                <span>{displayPartnerCount} Partners Enrolled</span>
+                            </div>
+                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                            <div className="flex items-center gap-1.5 relative group">
+                                <div className="flex items-center gap-1.5 opacity-50">
+                                    <Target className="w-3.5 h-3.5 text-slate-400" />
+                                    <span className="text-slate-400 font-medium">Target: —</span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 italic" title="Waiting for partner data">
+                                    (pending)
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right: Actions */}
+                    {/* Right: Action Buttons */}
                     <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                            variant="default"
+                            size="sm"
+                            className="h-8 gap-2 bg-blue-600 hover:bg-blue-700"
+                        >
+                            <Download className="w-3.5 h-3.5" />
+                            Export Report
+                        </Button>
+                        
+                        {/* Divider */}
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+                        
                         {campaign.status === 'draft' && onPublish && (
                             <Button
                                 variant="default"
                                 size="sm"
-                                className="h-8 gap-2"
+                                className="h-8 gap-2 bg-emerald-600 hover:bg-emerald-700"
                                 onClick={onPublish}
                                 disabled={isPublishing}
                             >
@@ -89,7 +157,7 @@ export function CampaignHeader({
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 gap-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="h-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                             onClick={onDelete}
                             disabled={isDeleting}
                         >
@@ -102,87 +170,13 @@ export function CampaignHeader({
                     </div>
                 </div>
 
-                {/* Performance KPI Cards - Grayed out pending partner data */}
-                <div className="mt-5 relative group" title="Waiting for partners to share data">
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 opacity-50 pointer-events-none select-none">
-                        {/* Leads Total */}
-                        <div className="relative px-4 py-3 rounded-xl border bg-blue-50/50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Leads Total</span>
-                                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/40">
-                                    +5.2%
-                                </span>
-                            </div>
-                            <div className="text-2xl font-bold tabular-nums text-blue-700 dark:text-blue-300">1,240</div>
-                            <div className="mt-2 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div className="h-full rounded-full bg-blue-500 dark:bg-blue-400" style={{ width: '72%' }} />
-                            </div>
-                        </div>
-
-                        {/* Leads Assigned */}
-                        <div className="relative px-4 py-3 rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Leads Assigned</span>
-                                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40">
-                                    -2.1%
-                                </span>
-                            </div>
-                            <div className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">890</div>
-                            <div className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">71.7% assignment rate</div>
-                        </div>
-
-                        {/* Pipeline */}
-                        <div className="relative px-4 py-3 rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Pipeline</span>
-                                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/40">
-                                    +12.4%
-                                </span>
-                            </div>
-                            <div className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">€4.2M</div>
-                            <div className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">Expected yield: €1.8M</div>
-                        </div>
-
-                        {/* Closed Won */}
-                        <div className="relative px-4 py-3 rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Closed Won</span>
-                                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/40">
-                                    +8.7%
-                                </span>
-                            </div>
-                            <div className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">€1.1M</div>
-                            <div className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">44% of total target</div>
-                        </div>
-
-                        {/* Win Rate */}
-                        <div className="relative px-4 py-3 rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Win Rate</span>
-                                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/40">
-                                    +1.5%
-                                </span>
-                            </div>
-                            <div className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">14%</div>
-                            <div className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">Industry avg: 12%</div>
-                        </div>
-                    </div>
-                    {/* Overlay message on hover */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100/95 dark:bg-slate-800/95 border border-slate-200 dark:border-slate-700 shadow-sm">
-                            <Clock className="w-4 h-4 text-slate-400" />
-                            <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">Waiting for partners to share data</span>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Tabs */}
-                <div className="pt-6">
+                <div className="pt-5">
                     <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as CampaignTab)} className="w-full">
                         <TabsList variant="line" className="w-full justify-start gap-6">
-                            <TabsTrigger value="overview">
-                                <LayoutDashboard className="w-4 h-4" />
-                                Overview
+                            <TabsTrigger value="performance">
+                                <TrendingUp className="w-4 h-4" />
+                                Performance
                             </TabsTrigger>
                             <TabsTrigger value="companies">
                                 <Building2 className="w-4 h-4" />
@@ -197,10 +191,6 @@ export function CampaignHeader({
                                 <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
                                     {displayPartnerCount}
                                 </span>
-                            </TabsTrigger>
-                            <TabsTrigger value="performance">
-                                <TrendingUp className="w-4 h-4" />
-                                Performance
                             </TabsTrigger>
                             <TabsTrigger value="analysis">
                                 <BarChart3 className="w-4 h-4" />
