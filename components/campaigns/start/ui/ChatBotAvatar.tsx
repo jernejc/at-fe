@@ -8,7 +8,7 @@ interface ChatBotAvatarProps {
 
 export function ChatBotAvatar({ className }: ChatBotAvatarProps) {
     return (
-        <div className="w-8 h-8 shrink-0 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+        <div className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center">
             <Image
                 src="/images/logo.svg"
                 alt="LookAcross"

@@ -152,7 +152,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                                 <motion.div
                                                     initial={{ opacity: 0, y: 12 }}
                                                     animate={{ opacity: 1, y: 0 }}
-                                                    className="ml-11"
+                                                    className="mx-11"
                                                 >
                                                     <SearchPhaseIndicator
                                                         phase={agenticState.phase}
@@ -200,7 +200,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                                 initial={{ opacity: 0, y: 12 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -12 }}
-                                                className="ml-11"
+                                                className="mx-11"
                                             >
                                                 <ThinkingStepsSummary
                                                     interpretation={agenticState.interpretation}
@@ -223,7 +223,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                                 key="minimized-companies"
                                                 initial={{ opacity: 0, y: 12 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                className="ml-11"
+                                                className="mx-11"
                                             >
                                                 <MinimizedCompaniesCard companies={companies} />
                                             </motion.div>
@@ -238,7 +238,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                                 key="minimized-partners"
                                                 initial={{ opacity: 0, y: 12 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                className="ml-11"
+                                                className="mx-11"
                                             >
                                                 <MinimizedPartnersCard partners={selectedPartners} />
                                             </motion.div>
@@ -311,7 +311,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-4 sm:px-6 max-w-2xl mx-auto w-full"
+                                className="pt-4 pb-6 px-11 max-w-2xl mx-auto w-full"
                             >
                                 <Button
                                     onClick={handleFinalizePartners}
@@ -333,7 +333,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-4 sm:px-6 max-w-2xl mx-auto w-full"
+                                className="pt-4 pb-6 px-11 max-w-2xl mx-auto w-full"
                             >
                                 <div className="relative">
                                     <Input
@@ -371,7 +371,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-4 sm:px-6 max-w-2xl mx-auto w-full space-y-3"
+                                className="pt-4 pb-6 px-11 max-w-2xl mx-auto w-full space-y-3"
                             >
                                 {createError && (
                                     <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
@@ -404,7 +404,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-4 sm:px-6 max-w-2xl mx-auto w-full"
+                                className="pt-4 pb-6 px-11 max-w-2xl mx-auto w-full"
                             >
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
                                     <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-3" />

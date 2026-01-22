@@ -23,7 +23,7 @@ export function ProductSelector({ products, selectedProduct, onSelect, className
     };
 
     return (
-        <div className={cn('relative', className)}>
+        <div className={cn('relative mx-11', className)}>
             {/* Trigger button - card style */}
             <button
                 type="button"
