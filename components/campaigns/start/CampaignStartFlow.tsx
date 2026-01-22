@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { ProductSummary } from '@/lib/schemas';
 import { useCampaignStartFlow } from '@/hooks/useCampaignStartFlow';
@@ -57,39 +56,11 @@ export function CampaignStartFlow({
 
             {/* Main content area */}
             <main className="flex-1 overflow-hidden">
-                {(currentStep === 'audience' || currentStep === 'partners') && (
-                    <CampaignStartChat
-                        products={products}
-                        flowState={flowState}
-                        currentStep={currentStep}
-                    />
-                )}
-
-                {currentStep === 'summary' && (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="text-center">
-                            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                                Campaign Summary
-                            </h2>
-                            <p className="text-slate-500 dark:text-slate-400">
-                                Coming in Stage 3
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {currentStep === 'create' && (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="text-center">
-                            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                                Create Campaign
-                            </h2>
-                            <p className="text-slate-500 dark:text-slate-400">
-                                Coming in Stage 4
-                            </p>
-                        </div>
-                    </div>
-                )}
+                <CampaignStartChat
+                    products={products}
+                    flowState={flowState}
+                    currentStep={currentStep}
+                />
             </main>
         </div>
     );

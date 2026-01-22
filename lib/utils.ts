@@ -46,3 +46,15 @@ export function normalizeScoreNullable(score: number | null | undefined): number
 export function copyToClipboard(text: string): void {
   navigator.clipboard.writeText(text);
 }
+
+/**
+ * Generate a random campaign name
+ */
+export function generateRandomCampaignName(): string {
+  const adjectives = ['Strategic', 'Dynamic', 'Growth', 'Targeted', 'Premium', 'Elite', 'Core', 'Prime'];
+  const nouns = ['Outreach', 'Initiative', 'Campaign', 'Push', 'Drive', 'Expansion', 'Sprint'];
+  const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  return `${adj} ${noun} ${suffix}`;
+}

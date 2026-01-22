@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 
-export type CampaignStep = 'audience' | 'partners' | 'summary' | 'create';
+export type CampaignStep = 'audience' | 'partners' | 'create';
 
 interface Step {
     id: CampaignStep;
@@ -14,7 +14,6 @@ interface Step {
 const steps: Step[] = [
     { id: 'audience', label: 'Describe Audience' },
     { id: 'partners', label: 'Select Partners' },
-    { id: 'summary', label: 'Summary' },
     { id: 'create', label: 'Create' },
 ];
 
