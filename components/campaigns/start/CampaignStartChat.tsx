@@ -111,7 +111,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                     ref={chatContainerRef}
                     className="flex flex-col-reverse flex-1 overflow-y-auto px-4 sm:px-6 pt-6 min-h-0"
                 >
-                    <div className="flex-1 flex flex-col max-w-2xl mx-auto space-y-4">
+                    <div className="flex-1 flex flex-col max-w-3xl mx-auto space-y-4">
                         <AnimatePresence initial={false}>
                             {(() => {
                                 // Find the index of the stage 2 transition message
@@ -253,7 +253,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
 
                         {/* Companies card inline for mobile/tablet - only on audience step */}
                         {showCompaniesPanel && (
-                            <div className="lg:hidden mt-4">
+                            <div className="lg:hidden mt-4 mx-11">
                                 <CompaniesCard
                                     companies={companies}
                                     totalCount={agenticState.totalResults}
@@ -265,7 +265,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
 
                         {/* Partners card inline for mobile/tablet - only on partners step */}
                         {showPartnersPanel && (
-                            <div className="lg:hidden mt-4">
+                            <div className="lg:hidden mt-4 mx-11">
                                 <PartnersCard
                                     partnerSuggestions={partnerSuggestions}
                                     allPartners={allPartners}
@@ -299,7 +299,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                     showContinue={hasCompanies && !isSearching}
                                     disabled={isSearching}
                                     placeholder="Describe your ideal customers..."
-                                    className="max-w-2xl mx-auto w-full"
+                                    className="max-w-3xl mx-auto w-full"
                                 />
                             </motion.div>
                         )}
@@ -311,7 +311,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-11 max-w-2xl mx-auto w-full"
+                                className="pt-4 pb-6 px-11 max-w-3xl mx-auto w-full"
                             >
                                 <Button
                                     onClick={handleFinalizePartners}
@@ -333,7 +333,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-11 max-w-2xl mx-auto w-full"
+                                className="pt-4 pb-6 px-11 max-w-3xl mx-auto w-full"
                             >
                                 <div className="relative">
                                     <Input
@@ -371,7 +371,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-11 max-w-2xl mx-auto w-full space-y-3"
+                                className="pt-4 pb-6 px-11 max-w-3xl mx-auto w-full space-y-3"
                             >
                                 {createError && (
                                     <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
@@ -404,7 +404,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-11 max-w-2xl mx-auto w-full"
+                                className="pt-4 pb-6 px-11 max-w-3xl mx-auto w-full"
                             >
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
                                     <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-3" />

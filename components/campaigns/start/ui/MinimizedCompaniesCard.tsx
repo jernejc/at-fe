@@ -15,6 +15,9 @@ interface MinimizedCompaniesCardProps {
 
 export function MinimizedCompaniesCard({ companies, className }: MinimizedCompaniesCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const hasMore = companies.length > 3;
+    const visibleCompanies = companies.slice(0, 3);
+    const hiddenCompanies = companies.slice(3);
 
     return (
         <motion.div
@@ -25,52 +28,64 @@ export function MinimizedCompaniesCard({ companies, className }: MinimizedCompan
                 className
             )}
         >
-            {/* Trigger */}
-            <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-            >
+            {/* Header */}
+            <div className="w-full px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-slate-500" />
                     <span className="font-medium text-slate-900 dark:text-white text-sm">
                         {companies.length} companies selected
                     </span>
                 </div>
-                <motion.div
-                    animate={{ rotate: isExpanded ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                >
-                    <ChevronDown className="w-4 h-4 text-slate-500" />
-                </motion.div>
-            </button>
+                {hasMore && (
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                    >
+                        <span>{isExpanded ? 'show less' : 'show more'}</span>
+                        <motion.div
+                            animate={{ rotate: isExpanded ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <ChevronDown className="w-4 h-4" />
+                        </motion.div>
+                    </button>
+                )}
+            </div>
 
             {/* Content */}
-            <AnimatePresence initial={false}>
-                {isExpanded && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="border-t border-slate-100 dark:border-slate-800">
-                            <ScrollArea className="max-h-[200px]">
-                                {companies.map((company) => (
-                                    <CompanyRowCompact
-                                        key={company.domain}
-                                        name={company.name}
-                                        domain={company.domain}
-                                        logoBase64={company.logo_base64}
-                                        industry={company.industry}
-                                        employeeCount={company.employee_count}
-                                    />
-                                ))}
-                            </ScrollArea>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <div className="border-t border-slate-100 dark:border-slate-800">
+                <ScrollArea className="max-h-[500px]">
+                    {visibleCompanies.map((company) => (
+                        <CompanyRowCompact
+                            key={company.domain}
+                            name={company.name}
+                            domain={company.domain}
+                            logoBase64={company.logo_base64}
+                            industry={company.industry}
+                            employeeCount={company.employee_count}
+                        />
+                    ))}
+                    <AnimatePresence initial={false}>
+                        {isExpanded && hiddenCompanies.map((company) => (
+                            <motion.div
+                                key={company.domain}
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <CompanyRowCompact
+                                    name={company.name}
+                                    domain={company.domain}
+                                    logoBase64={company.logo_base64}
+                                    industry={company.industry}
+                                    employeeCount={company.employee_count}
+                                />
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </ScrollArea>
+            </div>
         </motion.div>
     );
 }
