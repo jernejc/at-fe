@@ -289,7 +289,7 @@ export function useCampaignStartFlow({
         const transitionMessage: ChatMessage = {
             id: `system-partners-${Date.now()}`,
             type: 'system',
-            content: `Found **${companies.length} companies** matching your criteria. I've identified **${partnerSuggestions.length} partner${partnerSuggestions.length !== 1 ? 's' : ''}** that are great fits for reaching these companies.`,
+            content: `Continue with **${companies.length} companies** matching your criteria. I've identified **${partnerSuggestions.length} partner${partnerSuggestions.length !== 1 ? 's' : ''}** that are great fits for reaching these companies.`,
             timestamp: new Date(),
             isStage2Transition: true,
         };

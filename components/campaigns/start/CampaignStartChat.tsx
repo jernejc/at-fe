@@ -160,6 +160,13 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                                         intent={agenticState.interpretation?.intent}
                                                         semanticQuery={agenticState.interpretation?.semantic_query}
                                                         keywords={agenticState.interpretation?.keywords}
+                                                        details={
+                                                            agenticState.interpretation?.keywords?.length
+                                                                ? `Identifying: ${agenticState.interpretation.keywords.slice(0, 3).join(', ')}${agenticState.interpretation.keywords.length > 3 ? '...' : ''}`
+                                                                : agenticState.interpretation?.semantic_query
+                                                                    ? `Refining: ${agenticState.interpretation.semantic_query}`
+                                                                    : undefined
+                                                        }
                                                     />
                                                 </motion.div>
                                             ) : message.isProductSelection ? (
@@ -251,6 +258,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                     companies={companies}
                                     totalCount={agenticState.totalResults}
                                     isLoading={isSearching}
+                                    className='max-h-[500px]'
                                 />
                             </div>
                         )}
@@ -264,7 +272,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                     selectedPartnerIds={selectedPartnerIds}
                                     onToggle={handlePartnerToggle}
                                     isLoading={loadingPartners}
-                                    className="max-h-[400px]"
+                                    className="max-h-[500px]"
                                 />
                             </div>
                         )}

@@ -18,7 +18,7 @@ function CampaignStartContent() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const productIdParam = searchParams.get('product_id');
+    const productIdParam = searchParams.get('product');
     const [products, setProducts] = useState<ProductSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
