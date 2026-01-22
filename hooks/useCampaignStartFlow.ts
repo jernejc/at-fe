@@ -13,6 +13,7 @@ export interface ChatMessage {
     timestamp: Date;
     isProductSelection?: boolean;
     isSearching?: boolean;
+    isStage2Transition?: boolean;
 }
 
 export interface UseCampaignStartFlowOptions {
@@ -246,6 +247,7 @@ export function useCampaignStartFlow({
             type: 'system',
             content: `Found **${companies.length} companies** matching your criteria. I've identified **${partnerSuggestions.length} partner${partnerSuggestions.length !== 1 ? 's' : ''}** that are great fits for reaching these companies.`,
             timestamp: new Date(),
+            isStage2Transition: true,
         };
         setMessages(prev => [...prev, transitionMessage]);
         setCurrentStep('partners');

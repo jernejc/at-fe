@@ -102,85 +102,108 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                 >
                     <div className="flex-1 flex flex-col max-w-2xl mx-auto space-y-4">
                         <AnimatePresence initial={false}>
-                            {messages.map((message) => {
-                                const shouldRender =
-                                    message.isSearching ||
-                                    message.isProductSelection ||
-                                    Boolean(message.content);
+                            {(() => {
+                                // Find the index of the stage 2 transition message
+                                const stage2TransitionIndex = messages.findIndex(msg => msg.isStage2Transition);
+                                const hasStage2Transition = stage2TransitionIndex !== -1;
 
-                                if (!shouldRender) return null;
+                                // Split messages into pre-stage-2 and stage-2+
+                                const preStage2Messages = hasStage2Transition
+                                    ? messages.slice(0, stage2TransitionIndex)
+                                    : messages;
+                                const stage2Messages = hasStage2Transition
+                                    ? messages.slice(stage2TransitionIndex)
+                                    : [];
+
+                                const renderMessage = (message: typeof messages[0]) => {
+                                    const shouldRender =
+                                        message.isSearching ||
+                                        message.isProductSelection ||
+                                        Boolean(message.content);
+
+                                    if (!shouldRender) return null;
+
+                                    return (
+                                        <div key={message.id}>
+                                            {message.isSearching ? (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 12 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className="ml-11"
+                                                >
+                                                    <SearchPhaseIndicator
+                                                        phase={agenticState.phase}
+                                                        showElapsedTime
+                                                        intent={agenticState.interpretation?.intent}
+                                                        semanticQuery={agenticState.interpretation?.semantic_query}
+                                                        keywords={agenticState.interpretation?.keywords}
+                                                    />
+                                                </motion.div>
+                                            ) : message.isProductSelection ? (
+                                                <ProductSelector
+                                                    products={products}
+                                                    selectedProduct={selectedProduct}
+                                                    onSelect={(product) =>
+                                                        handleProductChange(product.id)
+                                                    }
+                                                    disabled={isPartnersStep}
+                                                />
+                                            ) : (
+                                                <ChatMessage
+                                                    type={message.type}
+                                                    content={message.content}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                };
 
                                 return (
-                                    <div key={message.id}>
-                                        {message.isSearching ? (
+                                    <>
+                                        {/* Pre-stage-2 messages */}
+                                        {preStage2Messages.map(renderMessage)}
+
+                                        {/* Thinking steps summary - shown after pre-stage-2 messages when search completes */}
+                                        {!isSearching && agenticState.phase === 'complete' && completedPhases.length > 0 && (
                                             <motion.div
+                                                key="thinking-summary"
+                                                initial={{ opacity: 0, y: 12 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -12 }}
+                                                className="ml-11"
+                                            >
+                                                <ThinkingStepsSummary
+                                                    interpretation={agenticState.interpretation}
+                                                    completedPhases={completedPhases}
+                                                />
+                                            </motion.div>
+                                        )}
+
+                                        {/* Suggested queries - only before stage 2 transition */}
+                                        {!hasStage2Transition && isAudienceStep && !isSearching && agenticState.phase === 'complete' && (
+                                            <SuggestedQueries
+                                                queries={suggestedQueries}
+                                                onClick={handleSubmit}
+                                            />
+                                        )}
+
+                                        {/* Minimized companies card - shown after thinking summary when we have companies */}
+                                        {hasCompanies && hasStage2Transition && (
+                                            <motion.div
+                                                key="minimized-companies"
                                                 initial={{ opacity: 0, y: 12 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 className="ml-11"
                                             >
-                                                <SearchPhaseIndicator
-                                                    phase={agenticState.phase}
-                                                    showElapsedTime
-                                                    intent={agenticState.interpretation?.intent}
-                                                    semanticQuery={agenticState.interpretation?.semantic_query}
-                                                    keywords={agenticState.interpretation?.keywords}
-                                                />
+                                                <MinimizedCompaniesCard companies={companies} />
                                             </motion.div>
-                                        ) : message.isProductSelection ? (
-                                            <ProductSelector
-                                                products={products}
-                                                selectedProduct={selectedProduct}
-                                                onSelect={(product) =>
-                                                    handleProductChange(product.id)
-                                                }
-                                                disabled={isPartnersStep}
-                                            />
-                                        ) : (
-                                            <ChatMessage
-                                                type={message.type}
-                                                content={message.content}
-                                            />
                                         )}
-                                    </div>
+
+                                        {/* Stage 2+ messages (including transition message) */}
+                                        {stage2Messages.map(renderMessage)}
+                                    </>
                                 );
-                            })}
-
-
-                            {/* Thinking steps summary - shown after all messages when search completes */}
-                            {!isSearching && agenticState.phase === 'complete' && completedPhases.length > 0 && (
-                                <motion.div
-                                    key="thinking-summary"
-                                    initial={{ opacity: 0, y: 12 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -12 }}
-                                    className="ml-11"
-                                >
-                                    <ThinkingStepsSummary
-                                        interpretation={agenticState.interpretation}
-                                        completedPhases={completedPhases}
-                                    />
-                                </motion.div>
-                            )}
-
-                            {/* Suggested queries - only on audience step */}
-                            {isAudienceStep && !isSearching && agenticState.phase === 'complete' && (
-                                <SuggestedQueries
-                                    queries={suggestedQueries}
-                                    onClick={handleSubmit}
-                                />
-                            )}
-
-                            {/* Minimized companies card - shown in chat when on partners step */}
-                            {isPartnersStep && hasCompanies && (
-                                <motion.div
-                                    key="minimized-companies"
-                                    initial={{ opacity: 0, y: 12 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="ml-11"
-                                >
-                                    <MinimizedCompaniesCard companies={companies} />
-                                </motion.div>
-                            )}
+                            })()}
                         </AnimatePresence>
 
                         {/* Companies card inline for mobile/tablet - only on audience step */}
@@ -247,7 +270,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 <Button
                                     onClick={handleContinueToSummary}
                                     className="w-full"
-                                    size="lg"
+                                    size="xl"
                                     disabled={selectedPartnerIds.size === 0}
                                 >
                                     Continue to Summary

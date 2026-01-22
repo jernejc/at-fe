@@ -62,7 +62,7 @@ export function ChatInput({
                     <Button
                         onClick={onContinue}
                         className="w-full"
-                        size="lg"
+                        size="xl"
                     >
                         Continue to Partner Selection
                         <ChevronRight className="w-4 h-4 ml-1" />
