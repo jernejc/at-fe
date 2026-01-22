@@ -270,6 +270,13 @@ export function useCampaignStartFlow({
                 // Reset to clear previous results and show loading state
                 resetSearch();
 
+                // Set the existing search message back to isSearching: true
+                setMessages(prev => prev.map(msg =>
+                    msg.isSearching === false && msg.type === 'system' && msg.content === ''
+                        ? { ...msg, isSearching: true }
+                        : msg
+                ));
+
                 const combinedQuery = searchHistory.length > 1
                     ? searchHistory.join('\n\n---\n\n**Update:**\n')
                     : searchHistory[0];
