@@ -13,8 +13,7 @@ import { PartnersCard } from './ui/PartnersCard';
 import { MinimizedCompaniesCard } from './ui/MinimizedCompaniesCard';
 import { MinimizedPartnersCard } from './ui/MinimizedPartnersCard';
 import { ProductSelector } from './ui/ProductSelector';
-import { SearchPhaseIndicator } from '@/components/campaigns/SearchPhaseIndicator';
-import { ThinkingStepsSummary } from './ui/ThinkingStepsSummary';
+import { SearchProgressCard } from './ui/SearchProgressCard';
 import { SuggestedQueries } from './ui/SuggestedQueries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -149,26 +148,13 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                     return (
                                         <div key={message.id}>
                                             {message.isSearching ? (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 12 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    className="mx-11"
-                                                >
-                                                    <SearchPhaseIndicator
+                                                <div className="mx-11">
+                                                    <SearchProgressCard
                                                         phase={agenticState.phase}
-                                                        showElapsedTime
-                                                        intent={agenticState.interpretation?.intent}
-                                                        semanticQuery={agenticState.interpretation?.semantic_query}
-                                                        keywords={agenticState.interpretation?.keywords}
-                                                        details={
-                                                            agenticState.interpretation?.keywords?.length
-                                                                ? `Identifying: ${agenticState.interpretation.keywords.slice(0, 3).join(', ')}${agenticState.interpretation.keywords.length > 3 ? '...' : ''}`
-                                                                : agenticState.interpretation?.semantic_query
-                                                                    ? `Refining: ${agenticState.interpretation.semantic_query}`
-                                                                    : undefined
-                                                        }
+                                                        interpretation={agenticState.interpretation}
+                                                        completedPhases={completedPhases}
                                                     />
-                                                </motion.div>
+                                                </div>
                                             ) : message.isProductSelection ? (
                                                 <ProductSelector
                                                     products={products}
@@ -195,19 +181,15 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
 
                                         {/* Thinking steps summary - shown after pre-stage-2 messages when search completes */}
                                         {!isSearching && agenticState.phase === 'complete' && completedPhases.length > 0 && (
-                                            <motion.div
-                                                key="thinking-summary"
-                                                initial={{ opacity: 0, y: 12 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -12 }}
-                                                className="mx-11"
-                                            >
-                                                <ThinkingStepsSummary
+                                            <div className="mx-11">
+                                                <SearchProgressCard
+                                                    phase={agenticState.phase}
                                                     interpretation={agenticState.interpretation}
                                                     completedPhases={completedPhases}
                                                 />
-                                            </motion.div>
+                                            </div>
                                         )}
+
 
                                         {/* Suggested queries - only before stage 2 transition */}
                                         {!hasStage2Transition && isAudienceStep && !isSearching && agenticState.phase === 'complete' && (
