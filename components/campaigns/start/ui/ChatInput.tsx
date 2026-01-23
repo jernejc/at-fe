@@ -80,6 +80,7 @@ export function ChatInput({
                     placeholder={placeholder}
                     disabled={disabled}
                     rows={1}
+                    autoFocus
                     className={cn(
                         'pr-12 py-3.25 pl-4 min-h-12 max-h-[200px] resize-none',
                         'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700',

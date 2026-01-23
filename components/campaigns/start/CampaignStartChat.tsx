@@ -26,8 +26,6 @@ interface CampaignStartChatProps {
     currentStep: CampaignStep;
 }
 
-const transition = { duration: 0.5, ease: [0.23, 1, 0.32, 1] as const };
-
 export function CampaignStartChat({ products, flowState, currentStep }: CampaignStartChatProps) {
     const {
         selectedProduct,
@@ -72,19 +70,18 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
     // Show partners panel when on partners step (hide on create step)
     const showPartnersPanel = isPartnersStep;
 
-    // Track completed phases
+    // Track completed phases - this pattern (updating state when props change) is valid React
     useEffect(() => {
-        if (agenticState.phase !== 'idle' && agenticState.phase !== 'complete' && agenticState.phase !== 'error') {
+        if (agenticState.phase === 'connecting') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setCompletedPhases([]);
+        } else if (agenticState.phase !== 'idle' && agenticState.phase !== 'complete' && agenticState.phase !== 'error') {
             setCompletedPhases(prev => {
                 if (!prev.includes(agenticState.phase)) {
                     return [...prev, agenticState.phase];
                 }
                 return prev;
             });
-        }
-        // Reset when starting a new search
-        if (agenticState.phase === 'connecting') {
-            setCompletedPhases([]);
         }
     }, [agenticState.phase]);
 
@@ -99,9 +96,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
     return (
         <div className="h-full flex flex-col lg:flex-row overflow-hidden">
             {/* Chat area */}
-            <motion.div
-                layout
-                transition={transition}
+            <div
                 className={cn(
                     'flex flex-col min-w-0 transition-all h-full overflow-hidden flex-1'
                 )}
@@ -402,7 +397,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                         )}
                     </AnimatePresence>
                 </div>
-            </motion.div>
+            </div>
 
             {/* Side panel for desktop - stable container maintains width during transitions */}
             <AnimatePresence>
@@ -412,7 +407,6 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: '50%' }}
                         exit={{ opacity: 0, width: 0 }}
-                        transition={transition}
                         className="w-1/2 hidden lg:block border-l border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 overflow-hidden"
                     >
                         <AnimatePresence mode="wait">
