@@ -165,6 +165,7 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
                                                 industry={company.industry}
                                                 employeeCount={company.employee_count}
                                                 fitScore={company.match_score}
+                                                signals={company.top_interests}
                                                 rank={index + 1}
                                                 onClick={() => handleCompanyClick(company)}
                                             />

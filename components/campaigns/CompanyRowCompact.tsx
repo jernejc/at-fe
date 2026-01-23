@@ -4,6 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn, formatCompactNumber } from '@/lib/utils';
 import { OutreachStatus, OUTREACH_CONFIG } from '@/lib/config/outreach';
 import { Building2, Users, MapPin, Clock, Target, ChevronRight } from 'lucide-react';
+import type { WSTopInterest } from '@/lib/schemas';
 
 export type { OutreachStatus };
 
@@ -23,6 +24,7 @@ export interface CompanyRowCompactProps {
     decisionMakersCount?: number;
     rank?: number;
     fitScore?: number | null;
+    signals?: WSTopInterest[];
     onClick?: () => void;
     className?: string;
     variant?: 'compact' | 'card';
@@ -44,6 +46,7 @@ export function CompanyRowCompact({
     decisionMakersCount,
     rank,
     fitScore,
+    signals,
     onClick,
     className,
     variant = 'compact',
@@ -82,6 +85,13 @@ export function CompanyRowCompact({
         if (score >= 60) return 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
         if (score >= 40) return 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400';
         return 'bg-slate-100 dark:bg-slate-800 text-slate-500';
+    };
+
+    const getSignalStrengthStyle = (strength: number) => {
+        const percent = strength * 10;
+        if (percent >= 70) return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
+        if (percent >= 40) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
     };
 
     const fitScorePercent = fitScore != null ? Math.round(fitScore * 100) : null;
@@ -181,97 +191,116 @@ export function CompanyRowCompact({
     }
 
     return (
-        <div
-            className={cn(
-                "group flex items-center gap-3 px-4 py-3 transition-colors",
-                "hover:bg-slate-50 dark:hover:bg-slate-800/50",
-                "border-b border-slate-100 dark:border-slate-800 last:border-0",
-                onClick && "cursor-pointer",
-                className
-            )}
-            onClick={onClick}
-        >
-            {rank !== undefined && (
-                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs shrink-0">
-                    {rank}
+        <div className={cn(
+            "group px-4 py-3 transition-colors",
+            "hover:bg-slate-50 dark:hover:bg-slate-800/50",
+            "border-b border-slate-100 dark:border-slate-800 last:border-0",
+            onClick && "cursor-pointer",
+            className
+        )} onClick={onClick}>
+            <div
+                className="flex items-center gap-3"
+            >
+                {rank !== undefined && (
+                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs shrink-0">
+                        {rank}
+                    </div>
+                )}
+
+                <div className="shrink-0">
+                    <Avatar className="w-7 h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 after:hidden">
+                        {logoSrc && (
+                            <AvatarImage
+                                src={logoSrc}
+                                alt={name}
+                                className="object-contain rounded-md"
+                            />
+                        )}
+                        <AvatarFallback className="rounded-md bg-slate-50 text-slate-600 dark:bg-slate-900 dark:text-slate-400 text-[10px] font-semibold">
+                            {companyInitials}
+                        </AvatarFallback>
+                    </Avatar>
                 </div>
-            )}
 
-            <div className="shrink-0">
-                <Avatar className="w-7 h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 after:hidden">
-                    {logoSrc && (
-                        <AvatarImage
-                            src={logoSrc}
-                            alt={name}
-                            className="object-contain rounded-md"
-                        />
-                    )}
-                    <AvatarFallback className="rounded-md bg-slate-50 text-slate-600 dark:bg-slate-900 dark:text-slate-400 text-[10px] font-semibold">
-                        {companyInitials}
-                    </AvatarFallback>
-                </Avatar>
-            </div>
-
-            <div className="min-w-0 flex-1">
-                <div className="font-medium text-sm text-slate-900 dark:text-white truncate leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
-                    {name}
+                <div className="min-w-0 flex-1">
+                    <div className="font-medium text-sm text-slate-900 dark:text-white truncate leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
+                        {name}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        {domain}
+                    </div>
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {domain}
-                </div>
-            </div>
 
-            {hasMetadata && (
-                <div className="hidden sm:flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 shrink-0">
-                    {industry && (
-                        <span className="flex items-center gap-1 max-w-[100px] truncate">
-                            <Building2 className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{industry}</span>
-                        </span>
-                    )}
-                    {employeeCount && (
-                        <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3 shrink-0" />
-                            {formatCompactNumber(employeeCount)}
-                        </span>
-                    )}
-                    {hqCountry && (
-                        <span className="flex items-center gap-1 max-w-[80px] truncate">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{hqCountry}</span>
-                        </span>
-                    )}
-                </div>
-            )}
+                {hasMetadata && (
+                    <div className="hidden sm:flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                        {industry && (
+                            <span className="flex items-center gap-1 max-w-[100px] truncate">
+                                <Building2 className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{industry}</span>
+                            </span>
+                        )}
+                        {employeeCount && (
+                            <span className="flex items-center gap-1">
+                                <Users className="w-3 h-3 shrink-0" />
+                                {formatCompactNumber(employeeCount)}
+                            </span>
+                        )}
+                        {hqCountry && (
+                            <span className="flex items-center gap-1 max-w-[80px] truncate">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{hqCountry}</span>
+                            </span>
+                        )}
+                    </div>
+                )}
 
-            {segment && (
-                <span className="hidden md:inline-flex px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs font-medium shrink-0">
-                    {segment}
-                </span>
-            )}
-
-            {partnerName && (
-                <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shrink-0">
-                    {partnerLogoUrl ? (
-                        <img
-                            src={partnerLogoUrl}
-                            alt={partnerName}
-                            className="w-4 h-4 rounded object-contain"
-                        />
-                    ) : (
-                        <div className="w-4 h-4 rounded bg-blue-200 dark:bg-blue-800 flex items-center justify-center text-[8px] font-bold text-blue-600 dark:text-blue-300">
-                            {partnerName.charAt(0)}
-                        </div>
-                    )}
-                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300 max-w-[80px] truncate">
-                        {partnerName}
+                {segment && (
+                    <span className="hidden md:inline-flex px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs font-medium shrink-0">
+                        {segment}
                     </span>
-                </div>
-            )}
+                )}
 
-            {fitScore !== null && fitScore !== undefined && (
-                <div className="text-sm font-semibold text-slate-900 dark:text-white min-w-[40px] text-right shrink-0">
-                    {Math.round(fitScore * 100)}%
+                {partnerName && (
+                    <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shrink-0">
+                        {partnerLogoUrl ? (
+                            <img
+                                src={partnerLogoUrl}
+                                alt={partnerName}
+                                className="w-4 h-4 rounded object-contain"
+                            />
+                        ) : (
+                            <div className="w-4 h-4 rounded bg-blue-200 dark:bg-blue-800 flex items-center justify-center text-[8px] font-bold text-blue-600 dark:text-blue-300">
+                                {partnerName.charAt(0)}
+                            </div>
+                        )}
+                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300 max-w-[80px] truncate">
+                            {partnerName}
+                        </span>
+                    </div>
+                )}
+
+                {fitScore !== null && fitScore !== undefined && (
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white min-w-[40px] text-right shrink-0">
+                        {Math.round(fitScore * 100)}%
+                    </div>
+                )}
+            </div>
+
+            {signals && signals.length > 0 && (
+                <div className="hidden lg:flex items-center flex-wrap gap-1 shrink-0 mt-2 ml-10">
+                    {signals.map((signal) => (
+                        <div
+                            key={signal.category}
+                            className={cn(
+                                "px-1.5 py-0.5 rounded text-[10px] flex gap-1",
+                                getSignalStrengthStyle(signal.strength)
+                            )}
+                            title={`${signal.category}: ${Math.round(signal.strength * 10)}%`}
+                        >
+                            <span className='truncate max-w-[100px]'>{signal.category}</span>
+                            <span className='font-semibold'>{Math.round(signal.strength * 10)}%</span>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>

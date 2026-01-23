@@ -75,7 +75,7 @@ export function ChatMessage({ type, content, children, className, hideAvatar = f
             {!hideAvatar && (
                 <div className="shrink-0">
                     {isUser ? (
-                        <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-slate-100 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-slate-700 dark:bg-slate-100 flex items-center justify-center">
                             <User className="w-4 h-4 text-white dark:text-slate-900" />
                         </div>
                     ) : (
@@ -97,8 +97,8 @@ export function ChatMessage({ type, content, children, className, hideAvatar = f
                         className={cn(
                             'rounded-2xl px-4 py-2.5 max-w-[85%]',
                             isUser
-                                ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-tr-md'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-md'
+                                ? 'bg-slate-700 dark:bg-slate-100 text-white dark:text-slate-900 rounded-tr-md'
+                                : 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-md'
                         )}
                     >
                         <p className="text-sm leading-relaxed">

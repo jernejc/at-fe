@@ -415,7 +415,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: '50%' }}
                         exit={{ opacity: 0, width: 0 }}
-                        className="w-1/2 hidden lg:block border-l border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 overflow-hidden"
+                        className="w-1/2 hidden lg:block overflow-hidden"
                     >
                         <AnimatePresence mode="wait">
                             {/* Companies panel - shown on audience step */}
