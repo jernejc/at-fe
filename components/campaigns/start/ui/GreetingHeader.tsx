@@ -22,7 +22,7 @@ export function GreetingHeader({ className }: GreetingHeaderProps) {
                     damping: 25,
                     duration: 0.5,
                 }}
-                className="relative mb-8"
+                className="relative mb-5"
             >
                 <Rocket size={50}></Rocket>
                 {/* Subtle glow effect */}

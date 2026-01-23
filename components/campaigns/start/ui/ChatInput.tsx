@@ -50,7 +50,7 @@ export function ChatInput({
     };
 
     return (
-        <div className={cn('pt-4 pb-6 px-11', className)}>
+        <div className={cn('pb-6 px-11', className)}>
 
             {/* Continue button */}
             {showContinue && onContinue && (

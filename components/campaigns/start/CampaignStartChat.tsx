@@ -104,9 +104,9 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                 {/* Messages container - scrollable */}
                 <div
                     ref={chatContainerRef}
-                    className="flex flex-col-reverse flex-1 overflow-y-auto px-4 sm:px-8 pt-8 pb-4 min-h-0"
+                    className="flex flex-col-reverse flex-1 overflow-y-auto px-4 sm:px-8 py-8 min-h-0"
                 >
-                    <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full space-y-5">
+                    <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full gap-5">
                         <AnimatePresence initial={false}>
                             {(() => {
                                 // Find the index of the stage 2 transition message
@@ -181,7 +181,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 return (
                                     <>
                                         {/* Greeting header */}
-                                        <GreetingHeader className="mb-8" />
+                                        <GreetingHeader />
 
                                         {/* Pre-stage-2 messages */}
                                         {preStage2Messages.map(renderMessage)}
@@ -198,13 +198,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                         )}
 
 
-                                        {/* Suggested queries - only before stage 2 transition */}
-                                        {!hasStage2Transition && isAudienceStep && !isSearching && agenticState.phase === 'complete' && (
-                                            <SuggestedQueries
-                                                queries={suggestedQueries}
-                                                onClick={handleSubmit}
-                                            />
-                                        )}
+                                        
 
                                         {/* Minimized companies card - shown after thinking summary when we have companies */}
                                         {hasCompanies && hasStage2Transition && (
@@ -267,6 +261,14 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 />
                             </div>
                         )}
+
+                        {/* Suggested queries - only before stage 2 transition */}
+                        {isAudienceStep && !isSearching && agenticState.phase === 'complete' && (
+                            <SuggestedQueries
+                                queries={suggestedQueries}
+                                onClick={handleSubmit}
+                            />
+                        )}
                     </div>
                 </div>
 
@@ -302,7 +304,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-11 max-w-3xl mx-auto w-full"
+                                className="pb-6 px-11 max-w-3xl mx-auto w-full"
                             >
                                 <Button
                                     onClick={handleFinalizePartners}
@@ -324,7 +326,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-11 max-w-3xl mx-auto w-full"
+                                className="pb-6 px-11 max-w-3xl mx-auto w-full"
                             >
                                 <div className="relative">
                                     <Input
@@ -362,7 +364,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-11 max-w-3xl mx-auto w-full space-y-3"
+                                className="pb-6 px-11 max-w-3xl mx-auto w-full space-y-3"
                             >
                                 {createError && (
                                     <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
@@ -395,7 +397,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.3 }}
-                                className="pt-4 pb-6 px-11 max-w-3xl mx-auto w-full"
+                                className="pb-6 px-11 max-w-3xl mx-auto w-full"
                             >
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
                                     <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-3" />

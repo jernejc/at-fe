@@ -18,7 +18,7 @@ export function SuggestedQueries({ queries, onClick, className }: SuggestedQueri
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={cn('flex-1 flex flex-col justify-end px-11', className)}
+            className={cn('flex-1 flex flex-col justify-end px-11 mt-5', className)}
         >
             <div className="flex items-center gap-1.5 mb-2 text-xs text-slate-500 dark:text-slate-400">
                 <Sparkles className="w-3 h-3" />
