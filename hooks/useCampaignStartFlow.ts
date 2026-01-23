@@ -117,7 +117,7 @@ export function useCampaignStartFlow({
         initialMessages.push({
             id: 'system-audience-prompt',
             type: 'system',
-            content: `${initialProduct ? `I've pre-selected **${initialProduct.name}** for this campaign. You can change it above if needed.\n` : ''}
+            content: `${initialProduct ? `I've pre-selected **${initialProduct.name}**. You can change it above if needed.\n` : ''}
                 Now, let's describe your target audience or the type of companies you\'re looking for.`,
             timestamp: new Date(),
         });

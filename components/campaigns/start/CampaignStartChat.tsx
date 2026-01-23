@@ -15,6 +15,7 @@ import { MinimizedPartnersCard } from './ui/MinimizedPartnersCard';
 import { ProductSelector } from './ui/ProductSelector';
 import { SearchProgressCard } from './ui/SearchProgressCard';
 import { SuggestedQueries } from './ui/SuggestedQueries';
+import { GreetingHeader } from './ui/GreetingHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowUp, ChevronRight, Loader2 } from 'lucide-react';
@@ -108,9 +109,9 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                 {/* Messages container - scrollable */}
                 <div
                     ref={chatContainerRef}
-                    className="flex flex-col-reverse flex-1 overflow-y-auto px-4 sm:px-6 pt-6 min-h-0"
+                    className="flex flex-col-reverse flex-1 overflow-y-auto px-4 sm:px-8 pt-8 pb-4 min-h-0"
                 >
-                    <div className="flex-1 flex flex-col max-w-3xl mx-auto space-y-4">
+                    <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full space-y-5">
                         <AnimatePresence initial={false}>
                             {(() => {
                                 // Find the index of the stage 2 transition message
@@ -146,7 +147,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                     if (!shouldRender) return null;
 
                                     return (
-                                        <div key={message.id}>
+                                        <div key={message.id} className='animate-fade-in-up'>
                                             {message.isSearching ? (
                                                 <div className="mx-11">
                                                     <SearchProgressCard
@@ -176,6 +177,9 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
 
                                 return (
                                     <>
+                                        {/* Greeting header */}
+                                        <GreetingHeader className="mb-8" />
+
                                         {/* Pre-stage-2 messages */}
                                         {preStage2Messages.map(renderMessage)}
 

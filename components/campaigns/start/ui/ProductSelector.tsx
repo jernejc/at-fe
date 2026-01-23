@@ -14,6 +14,12 @@ interface ProductSelectorProps {
     disabled?: boolean;
 }
 
+const fadeInUp = {
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] },
+};
+
 export function ProductSelector({ products, selectedProduct, onSelect, className, disabled = false }: ProductSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -23,7 +29,10 @@ export function ProductSelector({ products, selectedProduct, onSelect, className
     };
 
     return (
-        <div className={cn('relative mx-11', className)}>
+        <motion.div
+            {...fadeInUp}
+            className={cn('relative mx-11', className)}
+        >
             {/* Trigger button - card style */}
             <button
                 type="button"
@@ -142,6 +151,6 @@ export function ProductSelector({ products, selectedProduct, onSelect, className
                     </>
                 )}
             </AnimatePresence>
-        </div>
+        </motion.div>
     );
 }
