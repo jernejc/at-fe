@@ -8,14 +8,16 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
 import { CompanyDetailView } from './CompanyDetailView';
 import { getCompany, getCompanyExplainability } from '@/lib/api/companies';
-import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse } from '@/lib/schemas';
-import { Building2, SearchX } from 'lucide-react';
+import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse, WSSearchInsights, WSInterestFrequency } from '@/lib/schemas';
+import { Building2, SearchX, Sparkles, TrendingUp } from 'lucide-react';
 
 interface CompaniesCardProps {
     companies: WSCompanyResult[];
     totalCount: number;
     className?: string;
     isLoading?: boolean;
+    insights?: WSSearchInsights | null;
+    interestSummary?: WSInterestFrequency[];
 }
 
 const animationConfig = {
@@ -23,7 +25,117 @@ const animationConfig = {
     ease: [0.23, 1, 0.32, 1] as const,
 };
 
-export function CompaniesCard({ companies, totalCount, className, isLoading = false }: CompaniesCardProps) {
+// Interest pill component for displaying common interests
+function InterestPill({
+    interest,
+    frequency,
+    index
+}: {
+    interest: string;
+    frequency: number;
+    index: number;
+}) {
+    const normalizedWeight = Math.min(frequency / 8, 1);
+
+    return (
+        <motion.span
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + index * 0.03, ease: [0.23, 1, 0.32, 1] }}
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/50 text-xs"
+        >
+            <span className="text-slate-600 dark:text-slate-300 capitalize">
+                {interest.replace(/_/g, ' ')}
+            </span>
+            <span className="flex items-center gap-0.5">
+                {[0, 1, 2].map((i) => (
+                    <span
+                        key={i}
+                        className={cn(
+                            'w-1 h-1 rounded-full transition-colors',
+                            i <= normalizedWeight * 2
+                                ? 'bg-emerald-400 dark:bg-emerald-500'
+                                : 'bg-slate-200 dark:bg-slate-700'
+                        )}
+                    />
+                ))}
+            </span>
+        </motion.span>
+    );
+}
+
+// Compact insights section for the companies list header
+function CompaniesInsights({
+    insights,
+    interestSummary,
+}: {
+    insights?: WSSearchInsights | null;
+    interestSummary?: WSInterestFrequency[];
+}) {
+    const hasObservation = insights?.observation;
+    const hasInterests = interestSummary && interestSummary.length > 0;
+
+    if (!hasObservation && !hasInterests) {
+        return null;
+    }
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 space-y-2.5 bg-gradient-to-br from-slate-50/80 to-white dark:from-slate-800/30 dark:to-slate-900/50"
+        >
+            {/* Main observation */}
+            {hasObservation && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.05 }}
+                    className="flex items-start gap-2"
+                >
+                    <div className="flex items-center justify-center w-5 h-5 rounded-md bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/40 dark:to-amber-800/20 shrink-0 mt-0.5">
+                        <Sparkles className="w-3 h-3 text-amber-500 dark:text-amber-400" />
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        {insights!.observation}
+                    </p>
+                </motion.div>
+            )}
+
+            {/* Common interests */}
+            {hasInterests && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex items-start gap-2"
+                >
+                    <div className="flex items-center justify-center w-5 h-5 rounded-md shrink-0 mt-0.5">
+                        <TrendingUp className="w-3 h-3 text-slate-400" />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-1">
+                            Common Interests
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                            {interestSummary!.slice(0, 5).map((interest, index) => (
+                                <InterestPill
+                                    key={interest.interest}
+                                    interest={interest.interest}
+                                    frequency={interest.frequency}
+                                    index={index}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+        </motion.div>
+    );
+}
+
+export function CompaniesCard({ companies, totalCount, className, isLoading = false, insights, interestSummary = [] }: CompaniesCardProps) {
     const [selectedCompany, setSelectedCompany] = useState<WSCompanyResult | null>(null);
     const [companyData, setCompanyData] = useState<CompanyRead | null>(null);
     const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(null);
@@ -174,6 +286,14 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
                                 </div>
                             )}
                         </ScrollArea>
+
+                        {/* Insights section */}
+                        {!isLoading && companies.length > 0 && (
+                            <CompaniesInsights
+                                insights={insights}
+                                interestSummary={interestSummary}
+                            />
+                        )}
                     </motion.div>
                 ) : (
                     <motion.div
