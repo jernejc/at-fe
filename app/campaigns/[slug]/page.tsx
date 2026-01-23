@@ -4,7 +4,7 @@ import { use, useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
-import { CampaignHeader, OverviewTab, OverviewTabSkeleton, CompaniesTab, AnalysisTab, PartnerTab, type DrillDownFilter } from '@/components/campaigns';
+import { CampaignHeader, CompaniesTab, AnalysisTab, PartnerTab, PerformanceTab, type DrillDownFilter } from '@/components/campaigns';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Header } from '@/components/ui/Header';
@@ -221,25 +221,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                 {/* Content Area */}
                 <div className="max-w-[1600px] mx-auto px-6 py-8">
                     <Tabs value={activeTab} className="w-full">
-                        {/* Overview Tab */}
-                        <TabsContent value="overview" className="mt-0 animate-in fade-in-50">
-                            {overview ? (
-                                <OverviewTab
-                                    overview={overview}
-                                    companies={partnerTabCompanies}
-                                    dynamicCompanies={filters.length > 0 ? dynamicCompanies : undefined}
-                                    dynamicCompaniesTotal={dynamicCompaniesTotal}
-                                    loadingDynamicCompanies={loadingDynamicCompanies}
-                                    onCompanyClick={handleCompanyClick}
-                                    onManagePartners={() => setActiveTab('partners')}
-                                    onViewAllCompanies={() => setActiveTab('companies')}
-                                    onDrillDown={handleDrillDown}
-                                    campaignSlug={slug}
-                                />
-                            ) : (
-                                <OverviewTabSkeleton />
-                            )}
-                        </TabsContent>
+
 
                         {/* Companies Tab */}
                         <TabsContent value="companies" className="mt-0 animate-in fade-in-50">
@@ -278,6 +260,15 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 campaignSlug={slug}
                                 companies={partnerTabCompanies}
                                 onCompanyClick={handleCompanyClick}
+                            />
+                        </TabsContent>
+
+                        {/* Performance Tab */}
+                        <TabsContent value="performance" className="mt-0 animate-in fade-in-50">
+                            <PerformanceTab
+                                campaignSlug={slug}
+                                partnerCount={partnerCount}
+                                hasData={false}
                             />
                         </TabsContent>
                     </Tabs>
