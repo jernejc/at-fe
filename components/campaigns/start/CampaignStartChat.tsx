@@ -16,6 +16,7 @@ import { ProductSelector } from './ui/ProductSelector';
 import { SearchProgressCard } from './ui/SearchProgressCard';
 import { SuggestedQueries } from './ui/SuggestedQueries';
 import { GreetingHeader } from './ui/GreetingHeader';
+import { AudienceFilterChips } from './ui/AudienceFilterChips';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowUp, ChevronRight, Loader2 } from 'lucide-react';
@@ -42,6 +43,13 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
         selectedPartnerIds,
         selectedPartners,
         loadingPartners,
+        filters,
+        setFilters,
+        activeFilterType,
+        setActiveFilterType,
+        filterInputValue,
+        setFilterInputValue,
+        addFilter,
         createPhase,
         campaignName,
         setCampaignName,
@@ -293,6 +301,18 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                     disabled={isSearching}
                                     placeholder="Describe your ideal customers..."
                                     className="max-w-3xl mx-auto w-full"
+                                />
+
+                                {/* Filter chips */}
+                                <AudienceFilterChips
+                                    filters={filters}
+                                    setFilters={setFilters}
+                                    activeFilterType={activeFilterType}
+                                    setActiveFilterType={setActiveFilterType}
+                                    filterInputValue={filterInputValue}
+                                    setFilterInputValue={setFilterInputValue}
+                                    addFilter={addFilter}
+                                    disabled={isSearching}
                                 />
                             </motion.div>
                         )}

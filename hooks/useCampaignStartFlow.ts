@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAgenticSearch, type AgenticSearchState } from './useAgenticSearch';
-import type { ProductSummary, WSCompanyResult, PartnerSummary, WSPartnerSuggestion } from '@/lib/schemas';
+import type { ProductSummary, WSCompanyResult, PartnerSummary, WSPartnerSuggestion, CampaignFilterUI } from '@/lib/schemas';
 import type { CampaignStep } from '@/components/campaigns/start/ui/StepProgressIndicator';
 import { getPartners, bulkAssignPartners, bulkAssignCompaniesToPartner } from '@/lib/api/partners';
 import { createCampaign, addCompaniesBulk } from '@/lib/api/campaigns';
@@ -63,6 +63,15 @@ export interface UseCampaignStartFlowReturn {
 
     // Split view state (for desktop)
     isSplitView: boolean;
+
+    // Filter state
+    filters: CampaignFilterUI[];
+    setFilters: (filters: CampaignFilterUI[]) => void;
+    activeFilterType: string | null;
+    setActiveFilterType: (type: string | null) => void;
+    filterInputValue: string;
+    setFilterInputValue: (value: string) => void;
+    addFilter: (type: string, value: string) => void;
 
     // Create phase state
     createPhase: CreatePhase | null;
@@ -155,6 +164,53 @@ export function useCampaignStartFlow({
     const [campaignName, setCampaignName] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [createError, setCreateError] = useState<string | null>(null);
+
+    // Filter state
+    const [filters, setFilters] = useState<CampaignFilterUI[]>([]);
+    const [activeFilterType, setActiveFilterType] = useState<string | null>(null);
+    const [filterInputValue, setFilterInputValue] = useState('');
+
+    // Re-trigger search when filters change (if we have an existing query)
+    useEffect(() => {
+        // Skip if no search history (no initial query yet)
+        if (searchHistory.length === 0) return;
+
+        // Skip if already searching
+        if (isSearching) return;
+
+        const debounceTimer = setTimeout(() => {
+            // Set the existing search message back to isSearching: true
+            setMessages(prev => prev.map(msg =>
+                msg.isSearching === false && msg.type === 'system' && msg.content === ''
+                    ? { ...msg, isSearching: true }
+                    : msg
+            ));
+
+            // Combine query with filter context
+            const combinedQuery = searchHistory.length > 1
+                ? searchHistory.join('\n\n---\n\n**Update:**\n')
+                : searchHistory[0];
+
+            // Build filter context for the search
+            const filterContext: Record<string, string | number> = {};
+            filters.forEach(f => {
+                if (f.type === 'industry') filterContext.industry = f.value;
+                if (f.type === 'country') filterContext.country = f.value;
+                if (f.type === 'size_min') filterContext.size_min = parseInt(f.value, 10);
+                if (f.type === 'fit_min') filterContext.fit_min = parseInt(f.value, 10);
+            });
+
+            search(combinedQuery, {
+                product_id: selectedProduct?.id,
+                include_partner_suggestions: true,
+                entity_types: ['companies', 'partners'],
+                limit: 20,
+                context: filterContext,
+            });
+        }, 400);
+
+        return () => clearTimeout(debounceTimer);
+    }, [filters]); // Only watch filters - other deps are stable or would cause loops
 
     // Router for navigation
     const router = useRouter();
@@ -250,14 +306,24 @@ export function useCampaignStartFlow({
             ? newHistory.join('\n\n---\n\n**Update:**\n')
             : queryToSubmit;
 
+        // Build filter context for the search
+        const filterContext: Record<string, string | number> = {};
+        filters.forEach(f => {
+            if (f.type === 'industry') filterContext.industry = f.value;
+            if (f.type === 'country') filterContext.country = f.value;
+            if (f.type === 'size_min') filterContext.size_min = parseInt(f.value, 10);
+            if (f.type === 'fit_min') filterContext.fit_min = parseInt(f.value, 10);
+        });
+
         // Trigger search
         search(combinedQuery, {
             product_id: selectedProduct?.id,
             include_partner_suggestions: true,
             entity_types: ['companies', 'partners'],
             limit: 20,
+            context: filterContext,
         });
-    }, [inputValue, searchHistory, selectedProduct, search]);
+    }, [inputValue, searchHistory, selectedProduct, search, filters]);
 
     const handleProductChange = useCallback((productId: number) => {
         const product = products.find(p => p.id === productId);
@@ -448,6 +514,35 @@ export function useCampaignStartFlow({
         resetSearch();
     }, [selectedProduct, resetSearch]);
 
+    // Add filter helper
+    const addFilter = useCallback((type: string, value: string) => {
+        if (!value.trim()) return;
+
+        const labelMap: Record<string, string> = {
+            industry: 'Industry',
+            country: 'Location',
+            size_min: 'Size',
+            fit_min: 'Min Score',
+        };
+
+        const displayLabel = type === 'size_min'
+            ? `${value}+ employees`
+            : type === 'fit_min'
+                ? `Score ≥${value}`
+                : value;
+
+        const newFilter: CampaignFilterUI = {
+            id: `${type}-${Date.now()}`,
+            type: type as CampaignFilterUI['type'],
+            value: value.trim(),
+            displayLabel,
+        };
+
+        setFilters(prev => [...prev, newFilter]);
+        setActiveFilterType(null);
+        setFilterInputValue('');
+    }, []);
+
     return {
         // Step management
         currentStep,
@@ -483,6 +578,15 @@ export function useCampaignStartFlow({
 
         // Split view
         isSplitView,
+
+        // Filter state
+        filters,
+        setFilters,
+        activeFilterType,
+        setActiveFilterType,
+        filterInputValue,
+        setFilterInputValue,
+        addFilter,
 
         // Create phase state
         createPhase,
