@@ -108,7 +108,7 @@ export function useCampaignStartFlow({
             initialMessages.push({
                 id: 'system-product-intro',
                 type: 'system',
-                content: '',
+                content: `${initialProduct ? `I've pre-selected **${initialProduct.name}**. You can change it if needed.\n` : ''}`,
                 timestamp: new Date(),
                 isProductSelection: true,
             });
@@ -117,8 +117,7 @@ export function useCampaignStartFlow({
         initialMessages.push({
             id: 'system-audience-prompt',
             type: 'system',
-            content: `${initialProduct ? `I've pre-selected **${initialProduct.name}**. You can change it above if needed.\n` : ''}
-                Now, let's describe your target audience or the type of companies you\'re looking for.`,
+            content: `Now, let's describe your target audience or the type of companies you\'re looking for.`,
             timestamp: new Date(),
         });
 

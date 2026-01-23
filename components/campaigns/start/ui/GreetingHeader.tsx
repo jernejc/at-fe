@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Rocket } from 'lucide-react';
 
 interface GreetingHeaderProps {
     className?: string;
@@ -23,15 +24,7 @@ export function GreetingHeader({ className }: GreetingHeaderProps) {
                 }}
                 className="relative mb-8"
             >
-                <div className="w-20 h-20 rounded-full bg-linear-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 dark:shadow-indigo-500/15">
-                    <Image
-                        src="/images/logo-color.png"
-                        alt="Logo"
-                        width={48}
-                        height={48}
-                        className="object-contain brightness-0 invert"
-                    />
-                </div>
+                <Rocket size={50}></Rocket>
                 {/* Subtle glow effect */}
                 <div className="absolute inset-0 -z-10 rounded-full bg-indigo-500/20 blur-xl" />
             </motion.div>

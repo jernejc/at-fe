@@ -152,14 +152,22 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                                     />
                                                 </div>
                                             ) : message.isProductSelection ? (
-                                                <ProductSelector
-                                                    products={products}
-                                                    selectedProduct={selectedProduct}
-                                                    onSelect={(product) =>
-                                                        handleProductChange(product.id)
-                                                    }
-                                                    disabled={isPartnersStep || isCreateStep}
-                                                />
+                                                <>
+                                                    <ChatMessage
+                                                        type={message.type}
+                                                        content={message.content}
+                                                    />
+
+                                                    <ProductSelector
+                                                        products={products}
+                                                        selectedProduct={selectedProduct}
+                                                        onSelect={(product) =>
+                                                            handleProductChange(product.id)
+                                                        }
+                                                        disabled={isPartnersStep || isCreateStep}
+                                                        className='mt-4'
+                                                    />
+                                                </>
                                             ) : (
                                                 <ChatMessage
                                                     type={message.type}
