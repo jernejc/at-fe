@@ -3,7 +3,7 @@
 import { useRef, useEffect, KeyboardEvent } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { ArrowUp, ChevronRight } from 'lucide-react';
+import { ArrowUp, ChevronRight, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -12,6 +12,7 @@ interface ChatInputProps {
     onChange: (value: string) => void;
     onSubmit: (query?: string) => void;
     onContinue?: () => void;
+    onReset?: () => void;
     suggestedQueries?: string[];
     showContinue?: boolean;
     disabled?: boolean;
@@ -24,6 +25,7 @@ export function ChatInput({
     onChange,
     onSubmit,
     onContinue,
+    onReset,
     showContinue = false,
     disabled = false,
     placeholder = 'Describe your ideal customers...',
@@ -87,6 +89,20 @@ export function ChatInput({
                         'focus:border-slate-300 dark:focus:border-slate-600'
                     )}
                 />
+                {onReset && (
+                    <Button
+                        size="icon"
+                        title='Start again'
+                        variant="ghost"
+                        onClick={onReset}
+                        className={cn(
+                            'absolute right-12 bottom-2',
+                            'h-8 w-8 rounded-lg'
+                        )}
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                    </Button>
+                )}
                 <Button
                     size="icon"
                     onClick={() => onSubmit()}

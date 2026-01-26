@@ -62,6 +62,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
         handleFinalizePartners,
         handleNameSubmit,
         handleCreateCampaign,
+        resetChat,
     } = flowState;
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -296,6 +297,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                     onChange={setInputValue}
                                     onSubmit={handleSubmit}
                                     onContinue={handleContinue}
+                                    onReset={resetChat}
                                     suggestedQueries={!isSearching && agenticState.phase === 'complete' ? suggestedQueries : []}
                                     showContinue={hasCompanies && !isSearching}
                                     disabled={isSearching}
