@@ -10,7 +10,6 @@ import {
     Target,
     LayoutDashboard,
     ChevronRight,
-    ChevronDown,
     TrendingUp,
     Globe,
     Search,
@@ -27,8 +26,9 @@ import { AccountDetail } from '@/components/accounts';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
 import { ProductSection } from '@/components/campaigns/ProductSection';
 import { PartnerPortalHeader } from '@/components/partner/PartnerPortalHeader';
-import { getCampaigns, getCampaignCompanies, getProducts, getPartner, getPartners } from '@/lib/api';
-import type { CampaignSummary, MembershipRead, ProductSummary, PartnerRead, PartnerSummary } from '@/lib/schemas';
+import { getCampaigns, getCampaignCompanies, getProducts, getPartner } from '@/lib/api';
+import type { CampaignSummary, MembershipRead, ProductSummary, PartnerRead } from '@/lib/schemas';
+import { cn } from '@/lib/utils';
 
 interface CampaignWithCompanies {
     campaign: CampaignSummary;
@@ -43,14 +43,13 @@ interface OpportunityWithMeta extends MembershipRead {
 type PortalTab = 'overview' | 'opportunities';
 type OpportunityStatus = 'new' | 'accepted' | 'rejected';
 
-export default function PartnerPortalPage() {
+
+
+export function PartnerDashboard() {
     const router = useRouter();
     const { data: session, status: sessionStatus } = useSession();
     
-    // Core state
     const [partner, setPartner] = useState<PartnerRead | null>(null);
-    const [partnerList, setPartnerList] = useState<PartnerSummary[]>([]); // For PDM partner selector
-    const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
     const [campaigns, setCampaigns] = useState<CampaignWithCompanies[]>([]);
     const [products, setProducts] = useState<ProductSummary[]>([]);
     const [loading, setLoading] = useState(true);
@@ -64,38 +63,10 @@ export default function PartnerPortalPage() {
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
 
-    // Get user info from session
-    const sessionPartnerId = (session?.user as any)?.partner_id as number | undefined;
+    // Get partner info from session
+    const partnerId = (session?.user as any)?.partner_id as number | undefined;
     const partnerName = (session?.user as any)?.partner_name as string | undefined;
-    const userRole = (session?.user as any)?.role as string | undefined;
-    
-    // Determine if user is a PDM (can select partners) or a partner (fixed partner_id)
-    const isPDM = userRole === 'pdm' || !sessionPartnerId;
-    
-    // The effective partner ID: for partners it's from session, for PDMs it's the selected one
-    const effectivePartnerId = isPDM ? selectedPartnerId : sessionPartnerId;
 
-    // Fetch partner list for PDMs once session loads
-    useEffect(() => {
-        async function fetchPartnerList() {
-            if (sessionStatus === 'loading') return;
-            if (!isPDM) return; // Partners don't need the list
-            
-            try {
-                const response = await getPartners();
-                setPartnerList(response.items);
-                // Auto-select first partner if none selected
-                if (response.items.length > 0 && !selectedPartnerId) {
-                    setSelectedPartnerId(response.items[0].id);
-                }
-            } catch (e) {
-                console.error('Failed to fetch partner list:', e);
-            }
-        }
-        fetchPartnerList();
-    }, [sessionStatus, isPDM]);
-
-    // Fetch data when effective partner ID changes
     useEffect(() => {
         async function fetchData() {
             // Wait for session to load
@@ -105,9 +76,9 @@ export default function PartnerPortalPage() {
                 setLoading(true);
 
                 // Fetch partner details if we have a partner_id
-                if (effectivePartnerId) {
+                if (partnerId) {
                     try {
-                        const partnerData = await getPartner(effectivePartnerId);
+                        const partnerData = await getPartner(partnerId);
                         setPartner(partnerData);
                     } catch (e) {
                         console.error('Failed to fetch partner:', e);
@@ -170,7 +141,7 @@ export default function PartnerPortalPage() {
         fetchData();
         // Clear selected domain when component unmounts/mounts to ensure clean state
         setSelectedDomain(null);
-    }, [effectivePartnerId, sessionStatus]);
+    }, [partnerId, sessionStatus]);
 
     // All opportunities flattened and deduplicated by domain
     const allOpportunities = useMemo(() => {
@@ -210,6 +181,19 @@ export default function PartnerPortalPage() {
             o.campaignName?.toLowerCase().includes(q)
         );
     }, [acceptedOpportunities, searchQuery]);
+
+    // Stats
+    /*
+    const stats = useMemo(() => {
+        return {
+            totalOpportunities: acceptedOpportunities.length,
+            newOpportunities: newOpportunities.length,
+            activeCampaigns: campaigns.length,
+            avgFitScore: MOCK_STATS.avgFitScore,
+            topIndustries: MOCK_STATS.topIndustries,
+        };
+    }, [campaigns, acceptedOpportunities.length, newOpportunities.length]);
+    */
 
     const handleAccept = useCallback((domain: string) => {
         setOpportunityStatus(prev => ({ ...prev, [domain]: 'accepted' }));
@@ -256,44 +240,19 @@ export default function PartnerPortalPage() {
                 {/* Header */}
                 <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                     <div className="px-6 pt-8 pb-6 max-w-[1600px] mx-auto w-full">
-                        <div className="flex flex-col gap-6">
-                            {/* Header using shared component */}
+                        {/* Header using shared component */}
                             <PartnerPortalHeader
                                 partner={partner}
                                 partnerName={partnerName}
                                 opportunities={allOpportunities}
                                 campaigns={campaigns.map(c => c.campaign)}
                                 newOpportunitiesCount={newOpportunities.length}
-                                isPDM={true} // Always show PDM view in this route
+                                isPDM={false}
                                 onCRMConnect={() => {
                                     // TODO: Open CRM connection modal
                                     console.log('CRM Connect clicked');
                                 }}
                             />
-
-                            {/* PDM Partner Selector (Injected below header for now, or integrated if we update the component) */}
-                            {isPDM && partnerList.length > 0 && (
-                                <div className="flex items-center gap-2 max-w-md">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                                        Viewing Partner:
-                                    </label>
-                                    <div className="relative flex-1">
-                                        <select
-                                            value={selectedPartnerId || ''}
-                                            onChange={(e) => setSelectedPartnerId(Number(e.target.value))}
-                                            className="w-full appearance-none pl-3 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-500 transition-colors cursor-pointer"
-                                        >
-                                            {partnerList.map(p => (
-                                                <option key={p.id} value={p.id}>
-                                                    {p.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
 
                         {/* Tabs */}
                         <div className="pt-6">

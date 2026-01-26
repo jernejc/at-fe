@@ -37,7 +37,7 @@ function getAuthReadyPromise(): Promise<void> {
     return authReadyPromise;
 }
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
+async function getAuthHeaders(forceRefresh: boolean = false): Promise<Record<string, string>> {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };
@@ -47,7 +47,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
         await getAuthReadyPromise();
         const currentUser = firebaseAuth.currentUser;
         if (currentUser) {
-            const idToken = await currentUser.getIdToken();
+            const idToken = await currentUser.getIdToken(forceRefresh);
             headers['Authorization'] = `Bearer ${idToken}`;
         }
     } catch (error) {
@@ -58,15 +58,26 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 }
 
 export async function fetchAPI<T>(endpoint: string, options?: RequestInit, baseUrl: string = API_BASE): Promise<T> {
-    const authHeaders = await getAuthHeaders();
+    const authHeaders = await getAuthHeaders(false);
 
-    const response = await fetch(`${baseUrl}${endpoint}`, {
-        ...options,
-        headers: {
-            ...authHeaders,
-            ...options?.headers,
-        },
-    });
+    const makeRequest = async (headers: Record<string, string>) => {
+        return fetch(`${baseUrl}${endpoint}`, {
+            ...options,
+            headers: {
+                ...headers,
+                ...options?.headers,
+            },
+        });
+    };
+
+    let response = await makeRequest(authHeaders);
+
+    // If initial request fails with 401, retry with force refresh
+    if (response.status === 401) {
+        console.warn('API returned 401, trying forced token refresh...');
+        const freshAuthHeaders = await getAuthHeaders(true);
+        response = await makeRequest(freshAuthHeaders);
+    }
 
     if (!response.ok) {
         // Try to parse error body for detail message
