@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { signOut as firebaseSignOut } from "firebase/auth";
 import { useState } from "react";
+import { firebaseAuth } from "@/lib/auth/firebaseClient";
 import { ProcessingStatus } from "@/components/processing/ProcessingStatus";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Sun, Moon, SunMoon } from "lucide-react";
@@ -124,7 +126,10 @@ export function Header() {
                   </button>
                   <Separator></Separator>
                   <button
-                    onClick={() => signOut()}
+                    onClick={async () => {
+                      await firebaseSignOut(firebaseAuth);
+                      signOut();
+                    }}
                     className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   >
                     Sign Out

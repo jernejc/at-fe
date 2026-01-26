@@ -23,7 +23,7 @@ export default function SignInPage() {
       setIsGoogleLoading(true);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(firebaseAuth, provider);
-      const idToken = await result.user.getIdToken();
+      const idToken = await result.user.getIdToken(true);
       const signInResult = await signIn("credentials", {
         idToken,
         redirect: false,

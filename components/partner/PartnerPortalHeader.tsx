@@ -1,0 +1,244 @@
+'use client';
+
+import { useMemo } from 'react';
+import {
+    Building2,
+    TrendingUp,
+    Target,
+    Globe,
+    Users,
+    DollarSign,
+    Zap,
+    ArrowRight,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import type { PartnerRead, MembershipRead, CampaignSummary } from '@/lib/schemas';
+
+interface PartnerStats {
+    totalOpportunities: number;
+    newOpportunities: number;
+    activeCampaigns: number;
+    avgFitScore: number;
+    topIndustries: string[];
+    estimatedPipelineValue: number;
+    totalContacts: number;
+}
+
+interface PartnerPortalHeaderProps {
+    partner: PartnerRead | null;
+    partnerName?: string;
+    opportunities: MembershipRead[];
+    campaigns: CampaignSummary[];
+    newOpportunitiesCount: number;
+    isPDM?: boolean;
+    onCRMConnect?: () => void;
+}
+
+/**
+ * Calculates real stats from opportunity data
+ */
+function calculateStats(
+    opportunities: MembershipRead[],
+    campaigns: CampaignSummary[],
+    newOpportunitiesCount: number
+): PartnerStats {
+    // Calculate average fit score from actual data
+    const scoresWithValues = opportunities.filter(o => o.cached_fit_score != null);
+    const avgFitScore = scoresWithValues.length > 0
+        ? Math.round(scoresWithValues.reduce((sum, o) => sum + (o.cached_fit_score || 0), 0) / scoresWithValues.length)
+        : 0;
+
+    // Calculate top industries from actual data
+    const industryCounts = new Map<string, number>();
+    opportunities.forEach(o => {
+        if (o.industry) {
+            industryCounts.set(o.industry, (industryCounts.get(o.industry) || 0) + 1);
+        }
+    });
+    const topIndustries = Array.from(industryCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([industry]) => industry);
+
+    // Estimate pipeline value based on employee count tiers
+    // Simple heuristic: larger companies = higher deal values
+    const estimatedPipelineValue = opportunities.reduce((sum, o) => {
+        const employees = o.employee_count || 0;
+        if (employees > 10000) return sum + 500000;
+        if (employees > 1000) return sum + 150000;
+        if (employees > 100) return sum + 50000;
+        return sum + 15000;
+    }, 0);
+
+    // Estimate contacts (assume ~3 contacts per company on average)
+    const totalContacts = opportunities.length * 3;
+
+    return {
+        totalOpportunities: opportunities.length - newOpportunitiesCount,
+        newOpportunities: newOpportunitiesCount,
+        activeCampaigns: campaigns.length,
+        avgFitScore,
+        topIndustries,
+        estimatedPipelineValue,
+        totalContacts,
+    };
+}
+
+/**
+ * Format currency value for display
+ */
+function formatCurrency(value: number): string {
+    if (value >= 1000000) {
+        return `$${(value / 1000000).toFixed(1)}M`;
+    }
+    if (value >= 1000) {
+        return `$${(value / 1000).toFixed(0)}K`;
+    }
+    return `$${value}`;
+}
+
+export function PartnerPortalHeader({
+    partner,
+    partnerName,
+    opportunities,
+    campaigns,
+    newOpportunitiesCount,
+    isPDM = false,
+    onCRMConnect,
+}: PartnerPortalHeaderProps) {
+    const stats = useMemo(
+        () => calculateStats(opportunities, campaigns, newOpportunitiesCount),
+        [opportunities, campaigns, newOpportunitiesCount]
+    );
+
+    return (
+        <div className="space-y-4">
+            {/* Partner Info */}
+            <div className="flex items-center gap-3 w-full">
+                <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                    {partner?.logo_url ? (
+                        <img src={partner.logo_url} alt={partner.name} className="w-full h-full object-cover" />
+                    ) : (
+                        <Building2 className="w-6 h-6 text-slate-400" />
+                    )}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-tight truncate">
+                        {partner?.name || partnerName || 'Partner Portal'}
+                    </h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {isPDM ? 'Partner Portal • PDM View' : 'Partner Portal'}
+                    </p>
+                </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {/* Accepted Opportunities */}
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
+                        <Building2 className="w-3.5 h-3.5" />
+                        <span>Opportunities</span>
+                    </div>
+                    <div className="text-lg font-bold text-slate-900 dark:text-white">
+                        {stats.totalOpportunities}
+                    </div>
+                </div>
+
+                {/* Pipeline Value */}
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
+                        <DollarSign className="w-3.5 h-3.5" />
+                        <span>Est. Pipeline</span>
+                    </div>
+                    <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                        {formatCurrency(stats.estimatedPipelineValue)}
+                    </div>
+                </div>
+
+                {/* Active Contacts */}
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Contacts</span>
+                    </div>
+                    <div className="text-lg font-bold text-slate-900 dark:text-white">
+                        {stats.totalContacts}
+                    </div>
+                </div>
+
+                {/* Avg Fit Score */}
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        <span>Avg Fit</span>
+                    </div>
+                    <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                        {stats.avgFitScore}%
+                    </div>
+                </div>
+
+                {/* Active Campaigns */}
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
+                        <Target className="w-3.5 h-3.5" />
+                        <span>Campaigns</span>
+                    </div>
+                    <div className="text-lg font-bold text-slate-900 dark:text-white">
+                        {stats.activeCampaigns}
+                    </div>
+                </div>
+
+                {/* Top Industries */}
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3 col-span-2 md:col-span-1">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>Top Industries</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                        {stats.topIndustries.length > 0 ? (
+                            stats.topIndustries.slice(0, 2).map((industry, i) => (
+                                <Badge 
+                                    key={i} 
+                                    variant="secondary" 
+                                    className="text-[10px] px-1.5 py-0 truncate max-w-[80px]"
+                                >
+                                    {industry}
+                                </Badge>
+                            ))
+                        ) : (
+                            <span className="text-xs text-slate-400">—</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* CRM Integration Banner */}
+            <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20 rounded-xl border border-indigo-200/50 dark:border-indigo-500/30 p-4">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
+                            <Zap className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
+                                Supercharge with CRM Integration
+                            </h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                                Sync opportunities to Salesforce or HubSpot. Track pipeline, automate follow-ups.
+                            </p>
+                        </div>
+                    </div>
+                    <Button
+                        onClick={onCRMConnect}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shrink-0"
+                    >
+                        Connect CRM
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}

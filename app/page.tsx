@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/ui/Header";
 import { CampaignsList } from "@/components/campaigns/CampaignsList";
+import { PartnerDashboard } from "@/components/partner/PartnerDashboard";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -14,6 +15,7 @@ export default function Dashboard() {
     if (status === "loading") return;
     if (!session) {
       router.replace("/signin");
+      return;
     }
   }, [session, status, router]);
 
@@ -23,6 +25,12 @@ export default function Dashboard() {
 
   if (!session) {
     return null;
+  }
+
+  const userRole = (session.user as any).role;
+
+  if (userRole === "partner") {
+    return <PartnerDashboard />;
   }
 
   return (

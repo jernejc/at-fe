@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
     Loader2,
     ArrowLeft,
@@ -22,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { AccountDetail } from '@/components/accounts';
 import {
     getCampaign,
-    getPartners,
+    getPartner,
     getCampaignPartners,
     getPartnerAssignedCompanies,
     getCampaignCompanies,
@@ -30,13 +31,11 @@ import {
 import type {
     CampaignRead,
     PartnerSummary,
+    PartnerRead,
     PartnerAssignmentSummary,
     PartnerCompanyAssignmentWithCompany,
 } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
-
-// Demo partner ID
-const DEMO_PARTNER_ID = 1;
 
 interface CampaignDetailPageProps {
     params: Promise<{
@@ -62,9 +61,10 @@ const STATUS_CONFIG: Record<OutreachStatus, { label: string; color: string; bgCo
 export default function PartnerCampaignDetailPage({ params }: CampaignDetailPageProps) {
     const { slug } = use(params);
     const router = useRouter();
+    const { data: session, status: sessionStatus } = useSession();
 
     const [campaign, setCampaign] = useState<CampaignRead | null>(null);
-    const [partner, setPartner] = useState<PartnerSummary | null>(null);
+    const [partner, setPartner] = useState<PartnerRead | null>(null);
     const [partnerAssignment, setPartnerAssignment] = useState<PartnerAssignmentSummary | null>(null);
     const [opportunities, setOpportunities] = useState<OpportunityWithStatus[]>([]);
     const [loading, setLoading] = useState(true);
@@ -75,8 +75,21 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
 
+    // Get partner_id from session
+    const partnerId = (session?.user as any)?.partner_id as number | undefined;
+
     useEffect(() => {
         async function fetchData() {
+            // Wait for session to load
+            if (sessionStatus === 'loading') return;
+
+            // If no partner_id in session, partner user isn't properly authenticated
+            if (!partnerId) {
+                console.log('No partner_id in session - user may be a PDM or not logged in');
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
 
@@ -84,25 +97,19 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                 const campaignData = await getCampaign(slug);
                 setCampaign(campaignData);
 
-                // Get partner
-                const partnersResponse = await getPartners();
-                const foundPartner = partnersResponse.items.find(p => p.id === DEMO_PARTNER_ID) || partnersResponse.items[0];
-                setPartner(foundPartner || null);
+                // Get partner details using partner_id from session
+                const partnerData = await getPartner(partnerId);
+                setPartner(partnerData);
 
-                if (!foundPartner) {
-                    setLoading(false);
-                    return;
-                }
-
-                // Get partner assignment details
+                // Get partner assignment details for this campaign
                 const campaignPartners = await getCampaignPartners(slug);
-                const assignment = campaignPartners.find(p => p.partner_id === foundPartner.id);
+                const assignment = campaignPartners.find(p => p.partner_id === partnerId);
                 setPartnerAssignment(assignment || null);
 
-                // Get assigned companies
+                // Get assigned companies for this partner in this campaign
                 let assignments: PartnerCompanyAssignmentWithCompany[] = [];
                 try {
-                    assignments = await getPartnerAssignedCompanies(slug, foundPartner.id);
+                    assignments = await getPartnerAssignedCompanies(slug, partnerId);
                 } catch (e) {
                     console.log('Failed to fetch assignments, falling back to campaign companies', e);
                 }
@@ -149,7 +156,8 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         }
 
         fetchData();
-    }, [slug]);
+    }, [slug, partnerId, sessionStatus]);
+
 
     const handleBack = useCallback(() => {
         router.push('/partner-portal');
