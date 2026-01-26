@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { signOut as firebaseSignOut } from "firebase/auth";
 import { useState } from "react";
 import { firebaseAuth } from "@/lib/auth/firebaseClient";
 import { ProcessingStatus } from "@/components/processing/ProcessingStatus";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Sun, Moon, SunMoon, Building2 } from "lucide-react";
+import { Search, Sun, Moon, SunMoon, Building2, Megaphone, LayoutDashboard, HomeIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
@@ -20,6 +21,7 @@ export function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { theme, cycleTheme } = useTheme();
   const { partner } = usePartner();
+  const pathname = usePathname();
 
   const ThemeIcon = theme === "system" ? SunMoon : theme === "light" ? Sun : Moon;
   const themeLabel = theme === "system" ? "System mode" : theme === "light" ? "Light mode" : "Dark mode";
@@ -42,9 +44,50 @@ export function Header() {
 
   return (
     <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-20 sticky top-0">
-      <div className="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between gap-4">
+      <div className="max-w-[1600px] mx-auto px-6 h-14 flex items-center gap-4">
         {/* Brand (Left) */}
         <Logo />
+
+        <div className="flex flex-1 items-center gap-3 shrink-0">
+          {session?.user?.role === 'partner' && (
+            <>
+              {/* Campaigns Link */}
+              <Link
+                href="/partner"
+                className={cn(
+                  buttonVariants({ variant: pathname === '/partner' ? "secondary" : "ghost", size: "sm" }),
+                  "gap-2 rounded-lg",
+                )}
+              >
+                <HomeIcon className="w-4 h-4" />
+              </Link>
+
+              {/* Campaigns Link */}
+              <Link
+                href="/partner/campaigns"
+                className={cn(
+                  buttonVariants({ variant: pathname.startsWith('/partner/campaigns') ? "secondary" : "ghost", size: "sm" }),
+                  "gap-2 rounded-lg",
+                )}
+              >
+                <Megaphone className="w-4 h-4" />
+                <span className="hidden sm:inline">Campaigns</span>
+              </Link>
+
+              {/* Companies Link */}
+              <Link
+                href="/partner/companies"
+                className={cn(
+                  buttonVariants({ variant: pathname.startsWith('/partner/companies') ? "secondary" : "ghost", size: "sm" }),
+                  "gap-2 rounded-lg",
+                )}
+              >
+                <Building2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Companies</span>
+              </Link>
+            </>
+          )}
+        </div>
 
         {/* User Actions (Right) */}
         <div className="flex items-center gap-3 justify-end shrink-0">
