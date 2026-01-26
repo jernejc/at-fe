@@ -7,17 +7,19 @@ import { useState } from "react";
 import { firebaseAuth } from "@/lib/auth/firebaseClient";
 import { ProcessingStatus } from "@/components/processing/ProcessingStatus";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Sun, Moon, SunMoon } from "lucide-react";
+import { Search, Sun, Moon, SunMoon, Building2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { usePartner } from "@/components/providers/PartnerProvider";
 import { Separator } from "./separator";
 
 export function Header() {
   const { data: session } = useSession();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { theme, cycleTheme } = useTheme();
+  const { partner } = usePartner();
 
   const ThemeIcon = theme === "system" ? SunMoon : theme === "light" ? Sun : Moon;
   const themeLabel = theme === "system" ? "System mode" : theme === "light" ? "Light mode" : "Dark mode";
@@ -46,19 +48,23 @@ export function Header() {
 
         {/* User Actions (Right) */}
         <div className="flex items-center gap-3 justify-end shrink-0">
-          <ProcessingStatus />
+          {session?.user && session?.user.role !== 'partner' && (
+            <>
+              <ProcessingStatus />
 
-          {/* Discovery Link */}
-          <Link
-            href="/discovery"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "gap-2 rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-            )}
-          >
-            <Search className="w-4 h-4" />
-            <span className="hidden sm:inline">Discovery</span>
-          </Link>
+              {/* Discovery Link */}
+              <Link
+                href="/discovery"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "gap-2 rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                )}
+              >
+                <Search className="w-4 h-4" />
+                <span className="hidden sm:inline">Discovery</span>
+              </Link>
+            </>
+          )}
 
           {/* A2A Link 
           <Link
@@ -79,6 +85,7 @@ export function Header() {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none"
             >
+              {/* User Avatar */}
               <Avatar className="h-8 w-8 border border-slate-200 dark:border-slate-700">
                 {session?.user?.image && (
                   <AvatarImage
@@ -90,6 +97,17 @@ export function Header() {
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
+
+              {/* Partner Logo - Square with small border radius */}
+              {partner?.logo_url && (
+                <div className="h-8 w-8 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 flex items-center justify-center">
+                  <img
+                    src={partner.logo_url}
+                    alt={partner.name}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              )}
             </button>
 
             {/* Dropdown Menu */}
@@ -107,15 +125,26 @@ export function Header() {
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                       {session?.user?.email}
                     </p>
+                    {/* Partner Organization Row */}
+                    {partner && (
+                      <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
+                        {partner.logo_url ? (
+                          <div className="h-5 w-5 rounded-sm overflow-hidden bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
+                            <img
+                              src={partner.logo_url}
+                              alt={partner.name}
+                              className="h-full w-full object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <Building2 className="h-5 w-5 text-slate-400 shrink-0" />
+                        )}
+                        <span className="text-xs text-slate-600 dark:text-slate-300 truncate">
+                          {partner.name}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <Link
-                    href="/"
-                    onClick={() => setShowUserMenu(false)}
-                    className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    Workloads
-                  </Link>
-                  <Separator></Separator>
                   <div className="text-xs text-slate-500 dark:text-slate-400 px-3 mt-3">Theme</div>
                   <button
                     onClick={cycleTheme}

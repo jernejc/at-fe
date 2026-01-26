@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { AuthProvider } from "@/lib/auth/provider";
+import { PartnerProvider } from "@/components/providers/PartnerProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,12 +26,14 @@ export default function RootLayout({
         className={`${inter.variable} antialiased`}
       >
         <AuthProvider>
-          <ThemeProvider>
-            <TooltipProvider delay={200}>
-              {children}
-              <Toaster />
-            </TooltipProvider>
-          </ThemeProvider>
+          <PartnerProvider>
+            <ThemeProvider>
+              <TooltipProvider delay={200}>
+                {children}
+                <Toaster />
+              </TooltipProvider>
+            </ThemeProvider>
+          </PartnerProvider>
         </AuthProvider>
       </body>
     </html>
