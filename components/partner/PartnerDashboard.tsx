@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import {
     Loader2,
     Building2,
@@ -47,12 +47,13 @@ type OpportunityStatus = 'new' | 'accepted' | 'rejected';
 
 export function PartnerDashboard() {
     const router = useRouter();
-    const { data: session, status: sessionStatus } = useSession();
+    // Use useAuthUser hook as the source of truth for claims
+    const { user, loading: authLoading } = useAuthUser();
     
     const [partner, setPartner] = useState<PartnerRead | null>(null);
     const [campaigns, setCampaigns] = useState<CampaignWithCompanies[]>([]);
     const [products, setProducts] = useState<ProductSummary[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [dataLoading, setDataLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<PortalTab>('overview');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -63,17 +64,17 @@ export function PartnerDashboard() {
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
 
-    // Get partner info from session
-    const partnerId = (session?.user as any)?.partner_id as number | undefined;
-    const partnerName = (session?.user as any)?.partner_name as string | undefined;
+    // Get partner info from auth hook
+    const partnerId = user?.partnerId;
+    const partnerName = user?.partnerName;
 
     useEffect(() => {
         async function fetchData() {
-            // Wait for session to load
-            if (sessionStatus === 'loading') return;
+            // Wait for auth to load
+            if (authLoading) return;
 
             try {
-                setLoading(true);
+                setDataLoading(true);
 
                 // Fetch partner details if we have a partner_id
                 if (partnerId) {
@@ -134,14 +135,14 @@ export function PartnerDashboard() {
             } catch (err) {
                 console.error('Failed to fetch data:', err);
             } finally {
-                setLoading(false);
+                setDataLoading(false);
             }
         }
 
         fetchData();
         // Clear selected domain when component unmounts/mounts to ensure clean state
         setSelectedDomain(null);
-    }, [partnerId, sessionStatus]);
+    }, [partnerId, authLoading]);
 
     // All opportunities flattened and deduplicated by domain
     const allOpportunities = useMemo(() => {
@@ -221,7 +222,7 @@ export function PartnerDashboard() {
         setSelectedDomain(null);
     }, []);
 
-    if (loading) {
+    if (authLoading || dataLoading) {
         return (
             <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
                 <Header />
@@ -243,7 +244,7 @@ export function PartnerDashboard() {
                         {/* Header using shared component */}
                             <PartnerPortalHeader
                                 partner={partner}
-                                partnerName={partnerName}
+                                partnerName={partnerName ?? undefined}
                                 opportunities={allOpportunities}
                                 campaigns={campaigns.map(c => c.campaign)}
                                 newOpportunitiesCount={newOpportunities.length}

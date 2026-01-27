@@ -263,7 +263,7 @@ export function AudienceStep({
                             exit={{ opacity: 0, y: -8 }}
                             transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
                         >
-                            <div className="rounded-xl border border-slate-200/80 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/40 backdrop-blur-sm overflow-hidden">
+                            <div className="rounded-xl border border-slate-200/80 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/40 backdrop-blur-sm">
                                 {/* Results Header */}
                                 <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100/80 dark:border-slate-700/30 bg-slate-50/50 dark:bg-slate-800/30">
                                     <div className="flex items-center gap-2">
@@ -290,9 +290,9 @@ export function AudienceStep({
                                 </div>
 
                                 {/* Results list with reveal animation */}
-                                <div className="divide-y divide-slate-100/80 dark:divide-slate-700/30 max-h-[360px] overflow-y-auto">
+                                <div className="divide-y divide-slate-100/80 dark:divide-slate-700/30 rounded-b-xl">
                                     {isAgenticSearching && agenticState.companies.length > 0 ? (
-                                        agenticState.companies.slice(0, 10).map((company: any, idx: number) => (
+                                        agenticState.companies.slice(0, 20).map((company: any, idx: number) => (
                                             <motion.div
                                                 key={company.domain}
                                                 initial={{ opacity: 0, x: -12 }}
@@ -311,7 +311,7 @@ export function AudienceStep({
                                                 />
                                             </motion.div>
                                         ))
-                                    ) : previewCompanies.slice(0, 10).map((company, idx) => (
+                                    ) : previewCompanies.slice(0, 20).map((company, idx) => (
                                         <motion.div
                                             key={company.domain}
                                             initial={{ opacity: 0 }}
