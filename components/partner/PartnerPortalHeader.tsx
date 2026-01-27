@@ -32,6 +32,7 @@ interface PartnerPortalHeaderProps {
     campaigns: CampaignSummary[];
     newOpportunitiesCount: number;
     isPDM?: boolean;
+    hidePartnerInfo?: boolean;
     onCRMConnect?: () => void;
 }
 
@@ -105,6 +106,7 @@ export function PartnerPortalHeader({
     campaigns,
     newOpportunitiesCount,
     isPDM = false,
+    hidePartnerInfo = false,
     onCRMConnect,
 }: PartnerPortalHeaderProps) {
     const stats = useMemo(
@@ -115,6 +117,7 @@ export function PartnerPortalHeader({
     return (
         <div className="space-y-4">
             {/* Partner Info */}
+            {!hidePartnerInfo && (
             <div className="flex items-center gap-3 w-full">
                 <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                     {partner?.logo_url ? (
@@ -132,6 +135,7 @@ export function PartnerPortalHeader({
                     </p>
                 </div>
             </div>
+            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">

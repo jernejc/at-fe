@@ -48,49 +48,8 @@ export function Header() {
         {/* Brand (Left) */}
         <Logo />
 
-        <div className="flex flex-1 items-center gap-3 shrink-0">
-          {session?.user?.role === 'partner' && (
-            <>
-              {/* Campaigns Link */}
-              <Link
-                href="/partner"
-                className={cn(
-                  buttonVariants({ variant: pathname === '/partner' ? "secondary" : "ghost", size: "sm" }),
-                  "gap-2 rounded-lg",
-                )}
-              >
-                <HomeIcon className="w-4 h-4" />
-              </Link>
-
-              {/* Campaigns Link */}
-              <Link
-                href="/partner/campaigns"
-                className={cn(
-                  buttonVariants({ variant: pathname.startsWith('/partner/campaigns') ? "secondary" : "ghost", size: "sm" }),
-                  "gap-2 rounded-lg",
-                )}
-              >
-                <Megaphone className="w-4 h-4" />
-                <span className="hidden sm:inline">Campaigns</span>
-              </Link>
-
-              {/* Companies Link */}
-              <Link
-                href="/partner/companies"
-                className={cn(
-                  buttonVariants({ variant: pathname.startsWith('/partner/companies') ? "secondary" : "ghost", size: "sm" }),
-                  "gap-2 rounded-lg",
-                )}
-              >
-                <Building2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Companies</span>
-              </Link>
-            </>
-          )}
-        </div>
-
         {/* User Actions (Right) */}
-        <div className="flex items-center gap-3 justify-end shrink-0">
+        <div className="flex flex-1 items-center gap-3 justify-end shrink-0">
           {session?.user && session?.user.role !== 'partner' && (
             <>
               <ProcessingStatus />
