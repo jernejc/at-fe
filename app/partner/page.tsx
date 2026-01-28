@@ -64,6 +64,23 @@ export default function PartnerPage() {
         return all;
     }, [companiesMap]);
 
+    const newDomains = useMemo(() => {
+        const seen = new Set<string>();
+        const result = new Set<string>();
+        let count = 0;
+        const allOpps = Array.from(companiesMap.values()).flat();
+        for (const opp of allOpps) {
+            if (!seen.has(opp.domain)) {
+                seen.add(opp.domain);
+                if (count < 5) {
+                    result.add(opp.domain);
+                    count++;
+                }
+            }
+        }
+        return result;
+    }, [companiesMap]);
+
     const uniqueStatuses = useMemo(() => {
         return Array.from(new Set(campaigns.map(c => c.status)));
     }, [campaigns]);
@@ -97,7 +114,7 @@ export default function PartnerPage() {
     return (
       <div className='flex-1'>
         {/* Header */}
-        <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+        <div className="order-b border-slate-200 dark:border-slate-700">
           <div className="px-6 pt-8 pb-6 max-w-[1600px] mx-auto w-full">
             <PartnerPortalHeader
               partner={null}
@@ -163,6 +180,7 @@ export default function PartnerPage() {
                     productName={product?.name || null}
                     companies={companies}
                     pipelineValue={computePipelineValue(companies)}
+                    newOpportunities={companies.filter(c => newDomains.has(c.domain))}
                   />
                 );
               })
