@@ -1,40 +1,34 @@
 'use client';
 
-import { use, useState, useEffect, useCallback, useMemo } from 'react';
+import { use, useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
     Loader2,
     ArrowLeft,
     Building2,
-    Calendar,
-    MessageSquare,
-    Clock,
-    ExternalLink,
-    Search,
-    Mail,
-    Phone,
     Users,
-    Linkedin,
-    CheckSquare,
+    DollarSign,
+    Package,
+    Clock,
+    ChevronUp,
+    ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AccountDetail } from '@/components/accounts';
+import { Badge } from '@/components/ui/badge';
+import { StatCard } from '@/components/partner/StatCard';
+import { CompanyRow } from '@/components/partner/CompanyRow';
 import {
     getCampaign,
     getPartner,
-    getCampaignPartners,
     getPartnerAssignedCompanies,
     getCampaignCompanies,
+    getProduct,
 } from '@/lib/api';
 import type {
     CampaignRead,
-    PartnerSummary,
-    PartnerRead,
-    PartnerAssignmentSummary,
     PartnerCompanyAssignmentWithCompany,
 } from '@/lib/schemas';
-import { cn } from '@/lib/utils';
 
 interface CampaignDetailPageProps {
     params: Promise<{
@@ -42,20 +36,43 @@ interface CampaignDetailPageProps {
     }>;
 }
 
-// Mock outreach status for demo
-type OutreachStatus = 'action_item' | 'email' | 'call' | 'meet_in_person' | 'linkedin';
-
-interface OpportunityWithStatus extends PartnerCompanyAssignmentWithCompany {
-    outreach_status: OutreachStatus;
+function formatCurrency(value: number): string {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+    return `$${value}`;
 }
 
-const STATUS_CONFIG: Record<OutreachStatus, { label: string; color: string; bgColor: string; icon: React.ElementType }> = {
-    action_item: { label: 'Action Item', color: 'text-amber-600', bgColor: 'bg-amber-50 dark:bg-amber-900/30', icon: CheckSquare },
-    email: { label: 'Email', color: 'text-slate-600', bgColor: 'bg-slate-100 dark:bg-slate-800', icon: Mail },
-    call: { label: 'Call', color: 'text-emerald-600', bgColor: 'bg-emerald-50 dark:bg-emerald-900/30', icon: Phone },
-    meet_in_person: { label: 'Meet in Person', color: 'text-purple-600', bgColor: 'bg-purple-50 dark:bg-purple-900/30', icon: Users },
-    linkedin: { label: 'LinkedIn', color: 'text-blue-700', bgColor: 'bg-blue-50 dark:bg-blue-900/30', icon: Linkedin },
-};
+function estimateRevenue(employeeCount: number | null): string {
+    const employees = employeeCount || 0;
+    if (employees > 10000) return '$500K';
+    if (employees > 1000) return '$150K';
+    if (employees > 100) return '$50K';
+    return '$15K';
+}
+
+function estimateRevenueValue(employeeCount: number | null): number {
+    const employees = employeeCount || 0;
+    if (employees > 10000) return 500000;
+    if (employees > 1000) return 150000;
+    if (employees > 100) return 50000;
+    return 15000;
+}
+
+function isNew(createdAt: string): boolean {
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return new Date(createdAt).getTime() > sevenDaysAgo;
+}
+
+type SortColumn = 'company_name' | 'revenue' | 'company_industry' | 'company_employee_count' | 'company_hq_country' | 'status' | 'created_at';
+
+const SORT_HEADERS: { label: string; column: SortColumn; colSpan: string }[] = [
+    { label: 'Company Info', column: 'company_name', colSpan: 'col-span-3' },
+    { label: 'Expected Revenue', column: 'revenue', colSpan: 'col-span-2' },
+    { label: 'Industry', column: 'company_industry', colSpan: 'col-span-2' },
+    { label: 'Size', column: 'company_employee_count', colSpan: 'col-span-1 text-right' },
+    { label: 'Location', column: 'company_hq_country', colSpan: 'col-span-2' },
+    { label: 'Status', column: 'status', colSpan: 'col-span-2' },
+];
 
 export default function PartnerCampaignDetailPage({ params }: CampaignDetailPageProps) {
     const { slug } = use(params);
@@ -63,28 +80,20 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const { data: session, status: sessionStatus } = useSession();
 
     const [campaign, setCampaign] = useState<CampaignRead | null>(null);
-    const [partner, setPartner] = useState<PartnerRead | null>(null);
-    const [partnerAssignment, setPartnerAssignment] = useState<PartnerAssignmentSummary | null>(null);
-    const [opportunities, setOpportunities] = useState<OpportunityWithStatus[]>([]);
+    const [companies, setCompanies] = useState<PartnerCompanyAssignmentWithCompany[]>([]);
+    const [productName, setProductName] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<OutreachStatus | 'all'>('all');
 
-    // Account detail modal
-    const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
-    const [detailOpen, setDetailOpen] = useState(false);
+    const [sortColumn, setSortColumn] = useState<SortColumn>('created_at');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-    // Get partner_id from session
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const partnerId = (session?.user as any)?.partner_id as number | undefined;
 
     useEffect(() => {
         async function fetchData() {
-            // Wait for session to load
             if (sessionStatus === 'loading') return;
-
-            // If no partner_id in session, partner user isn't properly authenticated
             if (!partnerId) {
-                console.log('No partner_id in session - user may be a PDM or not logged in');
                 setLoading(false);
                 return;
             }
@@ -92,34 +101,33 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
             try {
                 setLoading(true);
 
-                // Fetch campaign details
                 const campaignData = await getCampaign(slug);
                 setCampaign(campaignData);
 
-                // Get partner details using partner_id from session
-                const partnerData = await getPartner(partnerId);
-                setPartner(partnerData);
+                await getPartner(partnerId);
 
-                // Get partner assignment details for this campaign
-                const campaignPartners = await getCampaignPartners(slug);
-                const assignment = campaignPartners.find(p => p.partner_id === partnerId);
-                setPartnerAssignment(assignment || null);
+                // Fetch product name
+                if (campaignData.target_product_id) {
+                    try {
+                        const product = await getProduct(campaignData.target_product_id);
+                        setProductName(product.name);
+                    } catch {
+                        // Product fetch is optional
+                    }
+                }
 
-                // Get assigned companies for this partner in this campaign
+                // Get assigned companies
                 let assignments: PartnerCompanyAssignmentWithCompany[] = [];
                 try {
                     assignments = await getPartnerAssignedCompanies(slug, partnerId);
-                } catch (e) {
-                    console.log('Failed to fetch assignments, falling back to campaign companies', e);
+                } catch {
+                    // fallback below
                 }
 
-                // Fallback: If no assignments, fetch all campaign companies for demo
                 if (assignments.length === 0) {
                     const companiesResponse = await getCampaignCompanies(slug, { page_size: 100 });
-
-                    // Map MembershipRead to PartnerCompanyAssignmentWithCompany
-                    assignments = companiesResponse.items.map((company, index) => ({
-                        id: company.company_id, // Use company_id as mock assignment ID
+                    assignments = companiesResponse.items.map((company) => ({
+                        id: company.company_id,
                         campaign_partner_id: 0,
                         company_id: company.company_id,
                         status: 'active',
@@ -139,14 +147,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                     }));
                 }
 
-                // Add mock outreach status
-                const statuses: OutreachStatus[] = ['action_item', 'email', 'call', 'meet_in_person', 'linkedin'];
-                const oppsWithStatus: OpportunityWithStatus[] = assignments.map((a, i) => ({
-                    ...a,
-                    outreach_status: statuses[i % statuses.length], // Rotate through statuses for demo
-                }));
-
-                setOpportunities(oppsWithStatus);
+                setCompanies(assignments);
             } catch (error) {
                 console.error('Failed to fetch campaign data:', error);
             } finally {
@@ -157,51 +158,61 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         fetchData();
     }, [slug, partnerId, sessionStatus]);
 
+    const handleSort = (column: SortColumn) => {
+        if (sortColumn === column) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortColumn(column);
+            setSortDirection('asc');
+        }
+    };
 
-    const handleBack = useCallback(() => {
-        router.push('/partner');
-    }, [router]);
+    const pipelineValue = useMemo(() => {
+        return companies.reduce((sum, c) => sum + estimateRevenueValue(c.company_employee_count), 0);
+    }, [companies]);
 
-    const handleOpportunityClick = useCallback((domain: string) => {
-        setSelectedDomain(domain);
-        setDetailOpen(true);
-    }, []);
+    const sortedCompanies = useMemo(() => {
+        const sorted = [...companies].sort((a, b) => {
+            let aVal: string | number = '';
+            let bVal: string | number = '';
 
-    const closeDetail = useCallback(() => {
-        setDetailOpen(false);
-        setSelectedDomain(null);
-    }, []);
+            switch (sortColumn) {
+                case 'company_name':
+                    aVal = (a.company_name || '').toLowerCase();
+                    bVal = (b.company_name || '').toLowerCase();
+                    break;
+                case 'revenue':
+                    aVal = estimateRevenueValue(a.company_employee_count);
+                    bVal = estimateRevenueValue(b.company_employee_count);
+                    break;
+                case 'company_industry':
+                    aVal = (a.company_industry || '').toLowerCase();
+                    bVal = (b.company_industry || '').toLowerCase();
+                    break;
+                case 'company_employee_count':
+                    aVal = a.company_employee_count || 0;
+                    bVal = b.company_employee_count || 0;
+                    break;
+                case 'company_hq_country':
+                    aVal = (a.company_hq_country || '').toLowerCase();
+                    bVal = (b.company_hq_country || '').toLowerCase();
+                    break;
+                case 'status':
+                    aVal = (a.status || '').toLowerCase();
+                    bVal = (b.status || '').toLowerCase();
+                    break;
+                case 'created_at':
+                    aVal = new Date(a.created_at).getTime();
+                    bVal = new Date(b.created_at).getTime();
+                    break;
+            }
 
-    // Filter opportunities
-    const filteredOpportunities = useMemo(() => {
-        return opportunities.filter(opp => {
-            const matchesSearch = !searchQuery ||
-                opp.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                opp.company_domain?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                opp.company_industry?.toLowerCase().includes(searchQuery.toLowerCase());
-
-            const matchesStatus = statusFilter === 'all' || opp.outreach_status === statusFilter;
-
-            return matchesSearch && matchesStatus;
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
         });
-    }, [opportunities, searchQuery, statusFilter]);
-
-    // Stats
-    const stats = useMemo(() => {
-        const byStatus = opportunities.reduce((acc, opp) => {
-            acc[opp.outreach_status] = (acc[opp.outreach_status] || 0) + 1;
-            return acc;
-        }, {} as Record<OutreachStatus, number>);
-
-        return {
-            total: opportunities.length,
-            action_item: byStatus.action_item || 0,
-            email: byStatus.email || 0,
-            call: byStatus.call || 0,
-            meet_in_person: byStatus.meet_in_person || 0,
-            linkedin: byStatus.linkedin || 0,
-        };
-    }, [opportunities]);
+        return sorted;
+    }, [companies, sortColumn, sortDirection]);
 
     if (loading) {
         return (
@@ -215,253 +226,135 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         return (
             <div className="flex-1 flex flex-col items-center justify-center gap-4">
                 <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">Campaign not found</p>
-                <Button onClick={handleBack}>Go Back</Button>
+                <Button onClick={() => router.push('/partner')}>Go Back</Button>
             </div>
         );
     }
 
+    const SortIcon = sortDirection === 'asc' ? ChevronUp : ChevronDown;
+
     return (
         <main className="flex-1 overflow-y-auto">
-            {/* Campaign Header */}
-            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                <div className="max-w-[1600px] mx-auto px-6 py-6">
+            <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
+                {/* Back + Title */}
+                <div>
                     <button
-                        onClick={handleBack}
-                        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 mb-6 transition-colors"
+                        onClick={() => router.push('/partner')}
+                        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 mb-4 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back to Dashboard
                     </button>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {campaign.name}
+                    </h1>
+                </div>
 
-
-
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                {campaign.name}
-                            </h1>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1">
-                                {campaign.description || 'Enterprise opportunities assigned to you'}
-                            </p>
-
-                            {/* PDM Notes */}
-                            {partnerAssignment?.role_in_campaign && (
-                                <div className="mt-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800">
-                                    <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-1">
-                                        Notes from your PDM:
-                                    </p>
-                                    <p className="text-sm text-indigo-600 dark:text-indigo-400">
-                                        {partnerAssignment.role_in_campaign}
-                                    </p>
-                                </div>
-                            )}
+                {/* Stats Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <StatCard
+                        icon={Package}
+                        iconBgClass="bg-slate-100 dark:bg-slate-800"
+                        label="Product"
+                        value={productName || '—'}
+                        valueColorClass={productName ? 'text-slate-900 dark:text-white text-base' : 'text-slate-400'}
+                    />
+                    <StatCard
+                        icon={Users}
+                        iconBgClass="bg-indigo-50 dark:bg-indigo-900/30"
+                        label="Owner"
+                        value={
+                            <div className='flex items-center'>
+                                <img
+                                    src={`https://www.google.com/s2/favicons?domain=${campaign.owner || 'google.com'}&sz=64`}
+                                    className="w-10 h-10 object-contain"
+                                />
+                                <span className="text-base font-bold truncate">{campaign.owner || 'google.com'}</span>
+                            </div>
+                        }
+                    />
+                    <StatCard
+                        icon={Building2}
+                        iconBgClass="bg-slate-100 dark:bg-slate-800"
+                        label="Companies"
+                        value={companies.length}
+                    />
+                    <StatCard
+                        icon={DollarSign}
+                        iconBgClass="bg-emerald-50 dark:bg-emerald-900/30"
+                        label="Pipeline Value"
+                        value={formatCurrency(pipelineValue)}
+                        valueColorClass="text-emerald-600 dark:text-emerald-400"
+                    />
+                    <StatCard
+                        icon={Clock}
+                        iconBgClass="bg-slate-100 dark:bg-slate-800"
+                        label="Deadline"
+                        value="—"
+                        valueColorClass="text-slate-400"
+                    />
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px]">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
+                            <span>Status</span>
                         </div>
-
-                        {/* Quick Stats */}
-                        <div className="flex gap-4">
-                            <div className="flex flex-col items-center justify-center px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[110px] shadow-sm">
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {stats.total}
-                                </p>
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Total</p>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center px-4 py-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-900/30 min-w-[110px] shadow-sm">
-                                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 mb-0.5">
-                                    <CheckSquare className="w-4 h-4" />
-                                    <p className="text-2xl font-bold">{stats.action_item}</p>
-                                </div>
-                                <p className="text-xs font-medium text-amber-700/80 dark:text-amber-400/80 uppercase tracking-wider">Action Items</p>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[100px] shadow-sm">
-                                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 mb-0.5">
-                                    <Mail className="w-4 h-4 text-slate-400" />
-                                    <p className="text-2xl font-bold">{stats.email}</p>
-                                </div>
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</p>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center px-4 py-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-200 dark:border-emerald-900/30 min-w-[100px] shadow-sm">
-                                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 mb-0.5">
-                                    <Phone className="w-4 h-4" />
-                                    <p className="text-2xl font-bold">{stats.call}</p>
-                                </div>
-                                <p className="text-xs font-medium text-emerald-700/80 dark:text-emerald-400/80 uppercase tracking-wider">Call</p>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center px-4 py-3 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-900/30 min-w-[110px] shadow-sm">
-                                <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 mb-0.5">
-                                    <Users className="w-4 h-4" />
-                                    <p className="text-2xl font-bold">{stats.meet_in_person}</p>
-                                </div>
-                                <p className="text-xs font-medium text-purple-700/80 dark:text-purple-400/80 uppercase tracking-wider">In Person</p>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center px-4 py-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-900/30 min-w-[100px] shadow-sm">
-                                <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 mb-0.5">
-                                    <Linkedin className="w-4 h-4" />
-                                    <p className="text-2xl font-bold">{stats.linkedin}</p>
-                                </div>
-                                <p className="text-xs font-medium text-blue-700/80 dark:text-blue-400/80 uppercase tracking-wider">LinkedIn</p>
-                            </div>
-                        </div>
+                        <Badge
+                            variant="secondary"
+                            className="w-fit text-sm px-3 py-1"
+                        >
+                            {campaign.status}
+                        </Badge>
                     </div>
                 </div>
-            </div>
 
-            {/* Filters & Search */}
-            <div className="max-w-[1600px] mx-auto px-6 py-4">
-                <div className="flex items-center gap-4">
-                    {/* Search */}
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Search opportunities..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        />
-                    </div>
-
-                    {/* Status Filter Pills */}
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={cn(
-                                "px-3 py-1.5 text-sm rounded-lg transition-colors",
-                                statusFilter === 'all'
-                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
-                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-                            )}
-                        >
-                            All
-                        </button>
-                        {(Object.entries(STATUS_CONFIG) as [OutreachStatus, typeof STATUS_CONFIG[OutreachStatus]][]).map(([status, config]) => (
+                {/* Company Table */}
+                <div className='space-y-4 mt-15'>
+                    <h2 className='font-medium text-lg'>Companies</h2>
+                    {/* Table Header */}
+                    <div className="grid grid-cols-12 gap-4 px-4 py-2">
+                        {SORT_HEADERS.map((header) => (
                             <button
-                                key={status}
-                                onClick={() => setStatusFilter(status)}
-                                className={cn(
-                                    "px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-1.5",
-                                    statusFilter === status
-                                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
-                                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-                                )}
+                                key={header.column}
+                                onClick={() => handleSort(header.column)}
+                                className={`${header.colSpan} flex items-center gap-1 text-xs uppercase tracking-wider transition-colors ${
+                                    sortColumn === header.column
+                                        ? 'font-bold text-slate-900 dark:text-white'
+                                        : 'font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
                             >
-                                {config.label}
+                                {header.label}
+                                {sortColumn === header.column && (
+                                    <SortIcon className="w-3.5 h-3.5" />
+                                )}
                             </button>
                         ))}
                     </div>
-                </div>
-            </div>
-
-            {/* Opportunities Table */}
-            <div className="max-w-[1600px] mx-auto px-6 pb-8">
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        <div className="col-span-4">Company</div>
-                        <div className="col-span-2">Industry</div>
-                        <div className="col-span-1 text-right">Size</div>
-                        <div className="col-span-2">Location</div>
-                        <div className="col-span-2">Status</div>
-                        <div className="col-span-1"></div>
-                    </div>
 
                     {/* Table Body */}
-                    {filteredOpportunities.length === 0 ? (
+                    {sortedCompanies.length === 0 ? (
                         <div className="px-4 py-12 text-center text-slate-500 dark:text-slate-400">
-                            No opportunities match your criteria
+                            No companies found
                         </div>
                     ) : (
                         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {filteredOpportunities.map((opp) => {
-                                const statusConfig = STATUS_CONFIG[opp.outreach_status];
-                                const StatusIcon = statusConfig.icon;
-
-                                return (
-                                    <button
-                                        key={opp.id}
-                                        onClick={() => handleOpportunityClick(opp.company_domain)}
-                                        className="w-full grid grid-cols-12 gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group"
-                                    >
-                                        {/* Company */}
-                                        <div className="col-span-4 flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden">
-                                                {opp.company_logo_url ? (
-                                                    <img
-                                                        src={opp.company_logo_url}
-                                                        alt={opp.company_name || ''}
-                                                        className="w-6 h-6 object-contain"
-                                                    />
-                                                ) : (
-                                                    <Building2 className="w-5 h-5 text-slate-400" />
-                                                )}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="font-medium text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                                    {opp.company_name || opp.company_domain}
-                                                </p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                                    {opp.company_domain}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Industry */}
-                                        <div className="col-span-2 flex items-center">
-                                            <span className="text-sm text-slate-600 dark:text-slate-300 truncate">
-                                                {opp.company_industry || '-'}
-                                            </span>
-                                        </div>
-
-                                        {/* Size */}
-                                        <div className="col-span-1 flex items-center justify-end">
-                                            <span className="text-sm text-slate-600 dark:text-slate-300 tabular-nums">
-                                                {opp.company_employee_count?.toLocaleString() || '-'}
-                                            </span>
-                                        </div>
-
-                                        {/* Location */}
-                                        <div className="col-span-2 flex items-center">
-                                            <span className="text-sm text-slate-600 dark:text-slate-300 truncate">
-                                                {opp.company_hq_country || '-'}
-                                            </span>
-                                        </div>
-
-                                        {/* Status */}
-                                        <div className="col-span-2 flex items-center">
-                                            <span className={cn(
-                                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-                                                statusConfig.bgColor,
-                                                statusConfig.color
-                                            )}>
-                                                <StatusIcon className="w-3 h-3" />
-                                                {statusConfig.label}
-                                            </span>
-                                        </div>
-
-                                        {/* Action */}
-                                        <div className="col-span-1 flex items-center justify-end">
-                                            <ExternalLink className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                            {sortedCompanies.map((company) => (
+                                <CompanyRow
+                                    key={company.id}
+                                    logoUrl={company.company_logo_url}
+                                    name={company.company_name}
+                                    domain={company.company_domain}
+                                    expectedRevenue={estimateRevenue(company.company_employee_count)}
+                                    industry={company.company_industry}
+                                    employeeCount={company.company_employee_count}
+                                    location={company.company_hq_country}
+                                    status={company.status}
+                                    isNew={isNew(company.created_at)}
+                                    onClick={() => router.push(`/partner/${slug}/${company.company_domain}`)}
+                                />
+                            ))}
                         </div>
                     )}
                 </div>
             </div>
-
-            {/* Account Detail Modal */}
-            {selectedDomain && (
-                <AccountDetail
-                    domain={selectedDomain}
-                    open={detailOpen}
-                    onClose={closeDetail}
-                />
-            )}
         </main>
     );
 }
