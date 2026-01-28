@@ -164,81 +164,93 @@ export function PartnerPortalHeader({
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 {/* Accepted Opportunities */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <Building2 className="w-3.5 h-3.5" />
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px]">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
+                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <Building2 className="w-3.5 h-3.5" />
+                        </div>
                         <span>Opportunities</span>
                     </div>
-                    <div className="text-lg font-bold text-slate-900 dark:text-white">
+                    <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                         {stats.totalOpportunities}
                     </div>
                 </div>
 
                 {/* Pipeline Value */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <DollarSign className="w-3.5 h-3.5" />
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px]">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <DollarSign className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
                         <span>Est. Pipeline</span>
                     </div>
-                    <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                    <div className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">
                         {formatCurrency(stats.estimatedPipelineValue)}
                     </div>
                 </div>
 
                 {/* Active Contacts */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <Users className="w-3.5 h-3.5" />
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px]">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
+                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <Users className="w-3.5 h-3.5" />
+                        </div>
                         <span>Contacts</span>
                     </div>
-                    <div className="text-lg font-bold text-slate-900 dark:text-white">
+                    <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                         {stats.totalContacts}
                     </div>
                 </div>
 
                 {/* Avg Fit Score */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <TrendingUp className="w-3.5 h-3.5" />
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px]">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
+                        <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                            <TrendingUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
                         <span>Avg Fit</span>
                     </div>
-                    <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                    <div className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 tracking-tight">
                         {stats.avgFitScore}%
                     </div>
                 </div>
 
                 {/* Active Campaigns */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <Target className="w-3.5 h-3.5" />
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px]">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
+                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <Target className="w-3.5 h-3.5" />
+                        </div>
                         <span>Campaigns</span>
                     </div>
-                    <div className="text-lg font-bold text-slate-900 dark:text-white">
+                    <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                         {stats.activeCampaigns}
                     </div>
                 </div>
 
                 {/* Top Industries */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3 col-span-2 md:col-span-1">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <Globe className="w-3.5 h-3.5" />
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px] col-span-2 md:col-span-1">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
+                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <Globe className="w-3.5 h-3.5" />
+                        </div>
                         <span>Top Industries</span>
                     </div>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                         {stats.topIndustries.length > 0 ? (
                             stats.topIndustries.slice(0, 2).map((industry, i) => (
-                                <Badge 
-                                    key={i} 
-                                    variant="secondary" 
-                                    className="text-[10px] px-1.5 py-0 truncate max-w-[80px]"
+                                <Badge
+                                    key={i}
+                                    variant="secondary"
+                                    className="text-xs px-2 py-0.5 truncate max-w-[90px]"
                                 >
                                     {industry}
                                 </Badge>
                             ))
                         ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-sm text-slate-400">—</span>
                         )}
                     </div>
                 </div>
