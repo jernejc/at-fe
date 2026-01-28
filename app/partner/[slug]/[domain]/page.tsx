@@ -244,7 +244,7 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
 
                 {/* Product Fit Card - Above Tabs */}
                 {productFit && (
-                    <div className="mb-6">
+                    <div className="mb-8">
                         <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                             Product Fit
                         </h3>

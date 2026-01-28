@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { PlaybookSummary, PlaybookRead } from '@/lib/schemas';
 import { getCompanyPlaybook, generateCompanyPlaybook, getCompanyPlaybooks } from '@/lib/api';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { staggerContainer, fadeInUp } from '@/lib/animations';
 import {
@@ -21,8 +21,11 @@ import {
     Briefcase,
     Sparkles,
     RefreshCw,
+    ChevronDown,
+    Forklift,
+    HandCoins,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface PartnerPlaybookTabProps {
@@ -39,6 +42,7 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
     const [loading, setLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
+    const [expandedObjections, setExpandedObjections] = useState<Set<number>>(new Set());
 
     // Find the playbook matching the campaign's target product
     const targetPlaybook = playbooks.find(p => p.product_id === productId);
@@ -112,6 +116,18 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
         }
     };
 
+    const toggleObjection = (index: number) => {
+        setExpandedObjections(prev => {
+            const next = new Set(prev);
+            if (next.has(index)) {
+                next.delete(index);
+            } else {
+                next.add(index);
+            }
+            return next;
+        });
+    };
+
     if (loading) {
         return (
             <div className="h-[400px] flex items-center justify-center">
@@ -175,21 +191,210 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                 animate="show"
                 className="space-y-6 pb-8"
             >
-                {/* Header */}
-                <motion.div variants={fadeInUp} className="pb-6 border-b border-border/50">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                            <h2 className="text-xl font-semibold text-foreground tracking-tight">
-                                {playbookDetail.product_name ?? 'Unknown Product'}
-                            </h2>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Sales strategy for this account
-                            </p>
-                        </div>
+
+                {/* Two-Column Grid Layout */}
+                <motion.div variants={fadeInUp} className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+                    {/* Left Column */}
+                    <div className="space-y-4 md:space-y-6 min-w-0">
+                        {/* Outreach Cadence Card */}
+                        {playbookDetail.outreach_cadence && playbookDetail.outreach_cadence.sequence && playbookDetail.outreach_cadence.sequence.length > 0 && (
+                            <Card className='py-6'>
+                                <CardHeader className='px-6'>
+                                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                                        <Calendar className="w-4 h-4 text-primary" />
+                                        Outreach Cadence
+                                        {playbookDetail.outreach_cadence.total_days && (
+                                            <span className="text-xs font-normal text-muted-foreground">
+                                                ({playbookDetail.outreach_cadence.total_days} days)
+                                            </span>
+                                        )}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className='px-6'>
+                                    {playbookDetail.outreach_cadence.summary && (
+                                        <p className="text-sm text-muted-foreground mb-3">
+                                            {playbookDetail.outreach_cadence.summary}
+                                        </p>
+                                    )}
+                                    <div className="space-y-2">
+                                        {playbookDetail.outreach_cadence.sequence.map((step, i) => (
+                                            <div
+                                                key={i}
+                                                className="flex items-start gap-3 p-3 rounded-lg bg-slate-100"
+                                            >
+                                                <div className="flex flex-col items-center shrink-0 w-10">
+                                                    <span className="text-[10px] font-medium text-muted-foreground uppercase">Day</span>
+                                                    <span className="text-lg font-bold text-foreground">{step.day_offset}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={cn(
+                                                            "text-[10px] font-medium px-2 py-0.5 rounded capitalize inline-flex items-center gap-1",
+                                                            step.channel === 'email' ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                                                                step.channel === 'linkedin' ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300" :
+                                                                    step.channel === 'phone' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" :
+                                                                        "bg-muted text-muted-foreground"
+                                                        )}>
+                                                            {step.channel === 'email' && <Mail className="w-3 h-3" />}
+                                                            {step.channel === 'linkedin' && <Linkedin className="w-3 h-3" />}
+                                                            {step.channel === 'phone' && <Phone className="w-3 h-3" />}
+                                                            {step.channel}
+                                                        </span>
+                                                        {step.contacts && step.contacts.length > 0 && (
+                                                            <span className="text-[10px] text-muted-foreground truncate">
+                                                                → {step.contacts.join(', ')}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-foreground/80 leading-snug">{step.objective}</p>
+                                                    {step.follow_up && (
+                                                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                                            <MessageCircle className="w-3 h-3" /> {step.follow_up}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Objection Handling Card with Accordions */}
+                        {playbookDetail.objection_handling && Object.keys(playbookDetail.objection_handling).length > 0 && (
+                            <Card className='py-6'>
+                                <CardHeader className='px-6'>
+                                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                                        <ShieldAlert className="w-4 h-4 text-primary" />
+                                        Objection Handling
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className='px-6'>
+                                    <div className="space-y-2">
+                                        {Object.entries(playbookDetail.objection_handling).map(([obj, response], i) => (
+                                            <div key={i} className="rounded-lg border border-border/50 overflow-hidden">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleObjection(i)}
+                                                    className="w-full px-4 py-2.5 bg-amber-500/5 flex items-center justify-between gap-2 hover:bg-amber-500/10 transition-colors text-left"
+                                                >
+                                                    <p className="text-sm font-medium text-foreground break-words min-w-0">&quot;{obj}&quot;</p>
+                                                    <ChevronDown
+                                                        className={cn(
+                                                            "w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200",
+                                                            expandedObjections.has(i) && "rotate-180"
+                                                        )}
+                                                    />
+                                                </button>
+                                                <AnimatePresence initial={false}>
+                                                    {expandedObjections.has(i) && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: "auto", opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                                                            className="overflow-hidden"
+                                                        >
+                                                            <div className="px-4 py-3 border-t border-border/40">
+                                                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                                                    {String(response)}
+                                                                </p>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+
+                    {/* Right Column */}
+                    <div className="space-y-4 md:space-y-6 min-w-0">
+                        {/* Elevator Pitch Card */}
+                        {playbookDetail.elevator_pitch && (
+                            <Card className='py-6'>
+                                <CardHeader className='px-6'>
+                                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                                        <Forklift className="w-4 h-4 text-primary" />
+                                        Elevator pitch
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className='px-6'>
+                                    <p className="text-sm leading-relaxed text-muted-foreground">
+                                        {playbookDetail.elevator_pitch}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Value Proposition Card */}
+                        {playbookDetail.value_proposition && (
+                            <Card className='py-6'>
+                                <CardHeader className='px-6'>
+                                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                                        <HandCoins className="w-4 h-4 text-primary" />
+                                        Value Proposition
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className='px-6'>
+                                    <p className="text-sm leading-relaxed text-muted-foreground">
+                                        {playbookDetail.value_proposition}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Discovery Questions Card */}
+                        {playbookDetail.discovery_questions && playbookDetail.discovery_questions.length > 0 && (
+                            <Card className='py-6'>
+                                <CardHeader className='px-6'>
+                                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                                        <FileText className="w-4 h-4 text-primary" />
+                                        Discovery Questions
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className='px-6'>
+                                    <div className="space-y-2">
+                                        {(playbookDetail.discovery_questions as string[]).map((q, i) => (
+                                            <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-muted/30 border border-border/40">
+                                                <span className="text-xs font-medium text-muted-foreground w-5 shrink-0">{i + 1}.</span>
+                                                <span className="text-foreground/80">{q}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Recommended Channels */}
+                        {playbookDetail.recommended_channels && playbookDetail.recommended_channels.length > 0 && (
+                            <Card className='py-6'>
+                                <CardHeader className='px-6'>
+                                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                                        <Hash className="w-4 h-4 text-primary" />
+                                        Recommended Channels
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className='px-6'>
+                                    <div className="flex items-center flex-wrap gap-2">
+                                        {(playbookDetail.recommended_channels as string[]).map((ch, i) => (
+                                            <span key={i} className="px-3 py-1.5 text-xs font-medium bg-muted/50 text-foreground/70 rounded-full border border-border/40">
+                                                {ch}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </motion.div>
 
-                {/* Signal Basis (Context) */}
+                {/* Sections Below the Grid (Full Width) */}
+
+                {/* Signal Basis (Why This Account?) */}
                 {playbookDetail.generation_metadata?.signal_basis && (
                     <motion.section variants={fadeInUp}>
                         <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -251,183 +456,16 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                     </motion.section>
                 )}
 
-                {/* Elevator Pitch */}
-                {playbookDetail.elevator_pitch && (
+                {/* Strategic Rationale */}
+                {playbookDetail.fit_reasoning && (
                     <motion.section variants={fadeInUp}>
                         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                            Elevator Pitch
+                            Strategic Rationale
                         </h4>
-                        <p className="text-sm text-foreground/80 leading-relaxed pl-3 border-l-2 border-primary/30">
-                            {playbookDetail.elevator_pitch}
+                        <p className="text-sm text-foreground/80 leading-relaxed">
+                            {playbookDetail.fit_reasoning}
                         </p>
                     </motion.section>
-                )}
-
-                {/* Reasoning & Value */}
-                {(playbookDetail.fit_reasoning || playbookDetail.value_proposition) && (
-                    <motion.div variants={fadeInUp} className="space-y-4">
-                        {playbookDetail.fit_reasoning && (
-                            <div>
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                                    Strategic Rationale
-                                </h4>
-                                <p className="text-sm text-foreground/80 leading-relaxed">
-                                    {playbookDetail.fit_reasoning}
-                                </p>
-                            </div>
-                        )}
-                        {playbookDetail.value_proposition && (
-                            <div>
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                                    Value Proposition
-                                </h4>
-                                <p className="text-sm text-foreground/80 leading-relaxed">
-                                    {playbookDetail.value_proposition}
-                                </p>
-                            </div>
-                        )}
-                    </motion.div>
-                )}
-
-                {/* Outreach Cadence */}
-                {playbookDetail.outreach_cadence && playbookDetail.outreach_cadence.sequence && playbookDetail.outreach_cadence.sequence.length > 0 && (
-                    <motion.section variants={fadeInUp} className="pt-6">
-                        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-primary" />
-                            Outreach Cadence
-                            {playbookDetail.outreach_cadence.total_days && (
-                                <span className="text-xs font-normal text-muted-foreground">
-                                    ({playbookDetail.outreach_cadence.total_days} days)
-                                </span>
-                            )}
-                        </h3>
-                        {playbookDetail.outreach_cadence.summary && (
-                            <p className="text-xs text-muted-foreground mb-3">
-                                {playbookDetail.outreach_cadence.summary}
-                            </p>
-                        )}
-                        <div className="space-y-2">
-                            {playbookDetail.outreach_cadence.sequence.map((step, i) => (
-                                <div
-                                    key={i}
-                                    className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/40"
-                                >
-                                    <div className="flex flex-col items-center shrink-0 w-10">
-                                        <span className="text-[10px] font-medium text-muted-foreground uppercase">Day</span>
-                                        <span className="text-lg font-bold text-foreground">{step.day_offset}</span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className={cn(
-                                                "text-[10px] font-medium px-2 py-0.5 rounded capitalize inline-flex items-center gap-1",
-                                                step.channel === 'email' ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
-                                                    step.channel === 'linkedin' ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300" :
-                                                        step.channel === 'phone' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" :
-                                                            "bg-muted text-muted-foreground"
-                                            )}>
-                                                {step.channel === 'email' && <Mail className="w-3 h-3" />}
-                                                {step.channel === 'linkedin' && <Linkedin className="w-3 h-3" />}
-                                                {step.channel === 'phone' && <Phone className="w-3 h-3" />}
-                                                {step.channel}
-                                            </span>
-                                            {step.contacts && step.contacts.length > 0 && (
-                                                <span className="text-[10px] text-muted-foreground truncate">
-                                                    → {step.contacts.join(', ')}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-foreground/80 leading-snug">{step.objective}</p>
-                                        {step.follow_up && (
-                                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                                                <MessageCircle className="w-3 h-3" /> {step.follow_up}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.section>
-                )}
-
-                {/* Discovery Questions */}
-                {playbookDetail.discovery_questions && playbookDetail.discovery_questions.length > 0 && (
-                    <motion.section variants={fadeInUp}>
-                        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-primary" />
-                            Discovery Questions
-                        </h3>
-                        <div className="space-y-2">
-                            {(playbookDetail.discovery_questions as string[]).map((q, i) => (
-                                <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-muted/30 border border-border/40">
-                                    <span className="text-xs font-medium text-muted-foreground w-5 shrink-0">{i + 1}.</span>
-                                    <span className="text-foreground/80">{q}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.section>
-                )}
-
-                {/* Objections */}
-                {playbookDetail.objection_handling && Object.keys(playbookDetail.objection_handling).length > 0 && (
-                    <motion.section variants={fadeInUp}>
-                        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                            <ShieldAlert className="w-4 h-4 text-primary" />
-                            Objection Handling
-                        </h3>
-                        <div className="space-y-3">
-                            {Object.entries(playbookDetail.objection_handling).map(([obj, response], i) => (
-                                <div key={i} className="rounded-lg border border-border/50 overflow-hidden">
-                                    <div className="px-4 py-2.5 bg-amber-500/5 border-b border-border/40">
-                                        <p className="text-sm font-medium text-foreground">&quot;{obj}&quot;</p>
-                                    </div>
-                                    <div className="px-4 py-3">
-                                        <p className="text-sm text-muted-foreground leading-relaxed">
-                                            {String(response)}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.section>
-                )}
-
-                {/* Channels */}
-                {playbookDetail.recommended_channels && playbookDetail.recommended_channels.length > 0 && (
-                    <motion.section variants={fadeInUp}>
-                        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                            <Hash className="w-4 h-4 text-primary" />
-                            Recommended Channels
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                            {(playbookDetail.recommended_channels as string[]).map((ch, i) => (
-                                <span key={i} className="px-3 py-1.5 text-xs font-medium bg-muted/50 text-foreground/70 rounded-full border border-border/40">
-                                    {ch}
-                                </span>
-                            ))}
-                        </div>
-                    </motion.section>
-                )}
-
-                {/* Generation Metadata Footer */}
-                {playbookDetail.generation_metadata && (
-                    <motion.div variants={fadeInUp} className="mt-10 pt-4 border-t border-border/40">
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                            <div className="flex items-center gap-4">
-                                {playbookDetail.contacts && playbookDetail.contacts.length > 0 && (
-                                    <span className="flex items-center gap-1.5">
-                                        <Users className="h-3 w-3" />
-                                        {playbookDetail.contacts.length} stakeholders
-                                    </span>
-                                )}
-                            </div>
-                            {playbookDetail.regenerated_at && (
-                                <span className="flex items-center gap-1.5">
-                                    <Clock className="h-3 w-3" />
-                                    {new Date(playbookDetail.regenerated_at).toLocaleDateString()}
-                                </span>
-                            )}
-                        </div>
-                    </motion.div>
                 )}
             </motion.div>
         </div>
