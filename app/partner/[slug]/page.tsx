@@ -13,6 +13,7 @@ import {
     Clock,
     ChevronUp,
     ChevronDown,
+    CircleDot,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -253,6 +254,39 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                     <StatCard
+                        icon={DollarSign}
+                        iconBgClass="bg-emerald-50 dark:bg-emerald-900/30"
+                        label="Pipeline Value"
+                        value={formatCurrency(pipelineValue)}
+                        valueColorClass="text-emerald-600 dark:text-emerald-400"
+                    />
+                    <StatCard
+                        icon={Building2}
+                        iconBgClass="bg-slate-100 dark:bg-slate-800"
+                        label="Companies"
+                        value={companies.length}
+                    />
+                    <StatCard
+                        icon={Clock}
+                        iconBgClass="bg-slate-100 dark:bg-slate-800"
+                        label="Deadline"
+                        value="—"
+                        valueColorClass="text-slate-400"
+                    />
+                    <StatCard
+                        icon={CircleDot}
+                        iconBgClass="bg-slate-100 dark:bg-slate-800"
+                        label="Status"
+                        value={
+                            <Badge
+                                variant="secondary"
+                                className="w-fit text-sm px-3 py-1"
+                            >
+                                {campaign.status}
+                            </Badge>
+                        }
+                    />
+                    <StatCard
                         icon={Package}
                         iconBgClass="bg-slate-100 dark:bg-slate-800"
                         label="Product"
@@ -273,37 +307,6 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                             </div>
                         }
                     />
-                    <StatCard
-                        icon={Building2}
-                        iconBgClass="bg-slate-100 dark:bg-slate-800"
-                        label="Companies"
-                        value={companies.length}
-                    />
-                    <StatCard
-                        icon={DollarSign}
-                        iconBgClass="bg-emerald-50 dark:bg-emerald-900/30"
-                        label="Pipeline Value"
-                        value={formatCurrency(pipelineValue)}
-                        valueColorClass="text-emerald-600 dark:text-emerald-400"
-                    />
-                    <StatCard
-                        icon={Clock}
-                        iconBgClass="bg-slate-100 dark:bg-slate-800"
-                        label="Deadline"
-                        value="—"
-                        valueColorClass="text-slate-400"
-                    />
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px]">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
-                            <span>Status</span>
-                        </div>
-                        <Badge
-                            variant="secondary"
-                            className="w-fit text-sm px-3 py-1"
-                        >
-                            {campaign.status}
-                        </Badge>
-                    </div>
                 </div>
 
                 {/* Company Table */}

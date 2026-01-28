@@ -32,7 +32,7 @@ export function CompanyRow({
         <button
             onClick={onClick}
             className={cn(
-                'w-full grid grid-cols-12 gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg',
+                'w-full grid grid-cols-12 gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer',
                 isNew && 'border-2 border-amber-200'
             )}
         >
