@@ -137,6 +137,32 @@ export function PartnerPortalHeader({
             </div>
             )}
 
+            {/* CRM Integration Banner */}
+            <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20 rounded-xl border border-indigo-200/50 dark:border-indigo-500/30 p-4">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
+                            <Zap className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
+                                Supercharge with CRM Integration
+                            </h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                                Sync opportunities to Salesforce or HubSpot. Track pipeline, automate follow-ups.
+                            </p>
+                        </div>
+                    </div>
+                    <Button
+                        onClick={onCRMConnect}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shrink-0"
+                    >
+                        Connect CRM
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                </div>
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {/* Accepted Opportunities */}
@@ -215,32 +241,6 @@ export function PartnerPortalHeader({
                             <span className="text-xs text-slate-400">—</span>
                         )}
                     </div>
-                </div>
-            </div>
-
-            {/* CRM Integration Banner */}
-            <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20 rounded-xl border border-indigo-200/50 dark:border-indigo-500/30 p-4">
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
-                            <Zap className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-                                Supercharge with CRM Integration
-                            </h3>
-                            <p className="text-xs text-slate-600 dark:text-slate-400">
-                                Sync opportunities to Salesforce or HubSpot. Track pipeline, automate follow-ups.
-                            </p>
-                        </div>
-                    </div>
-                    <Button
-                        onClick={onCRMConnect}
-                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shrink-0"
-                    >
-                        Connect CRM
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
                 </div>
             </div>
         </div>

@@ -114,8 +114,8 @@ export default function PartnerPage() {
     return (
       <div className='flex-1'>
         {/* Header */}
-        <div className="order-b border-slate-200 dark:border-slate-700">
-          <div className="px-6 pt-8 pb-6 max-w-[1600px] mx-auto w-full">
+        <div className="border-b border-slate-200 dark:border-slate-700">
+          <div className="px-6 py-6 max-w-[1600px] mx-auto w-full">
             <PartnerPortalHeader
               partner={null}
               opportunities={allOpportunities}
