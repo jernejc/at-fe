@@ -351,7 +351,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                                     location={company.company_hq_country}
                                     status={company.status}
                                     isNew={isNew(company.created_at)}
-                                    onClick={() => router.push(`/partner/${slug}/${company.company_domain}`)}
+                                    onClick={() => router.push(`/partner/campaigns/${slug}/${company.company_domain}`)}
                                 />
                             ))}
                         </div>

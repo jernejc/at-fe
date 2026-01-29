@@ -3,8 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import type { CampaignSummary, MembershipRead } from '@/lib/schemas';
-import { Separator } from '../ui/separator';
-import { Globe, Sparkles, Target, Users } from 'lucide-react';
 
 interface CampaignRowProps {
     campaign: CampaignSummary;
@@ -45,7 +43,7 @@ export function CampaignRow({ campaign, productName, companies, pipelineValue, n
     return (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
             <div
-                onClick={() => router.push(`/partner/${campaign.slug}`)}
+                onClick={() => router.push(`/partner/campaigns/${campaign.slug}`)}
                 className="grid grid-cols-12 items-center gap-4 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
                 {/* Campaign Name */}
                 <div className="col-span-4 min-w-0 flex items-center gap-3">
