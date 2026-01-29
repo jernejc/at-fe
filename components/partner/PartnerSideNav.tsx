@@ -25,7 +25,7 @@ const navItems = [
   { label: "Companies", route: "/partner/companies", icon: Building2 },
   { label: "Integrations", route: "/partner/integrations", icon: Plug },
   { label: "Notifications", route: "/partner/notifications", icon: Bell },
-  { label: "Profile & Settings", route: "/partner/settings", icon: Settings },
+  // { label: "Profile & Settings", route: "/partner/settings", icon: Settings },
 ];
 
 function NavContent({ onItemClick }: { onItemClick?: () => void }) {

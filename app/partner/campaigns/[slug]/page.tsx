@@ -14,6 +14,7 @@ import {
     ChevronUp,
     ChevronDown,
     CircleDot,
+    Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ import {
     getPartnerAssignedCompanies,
     getCampaignCompanies,
     getProduct,
+    exportCampaignCSV,
 } from '@/lib/api';
 import type {
     CampaignRead,
@@ -87,6 +89,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
 
     const [sortColumn, setSortColumn] = useState<SortColumn>('created_at');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    const [exporting, setExporting] = useState(false);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const partnerId = (session?.user as any)?.partner_id as number | undefined;
@@ -168,6 +171,23 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         }
     };
 
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            const blob = await exportCampaignCSV(slug);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${campaign?.name || slug}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Export failed:', error);
+        } finally {
+            setExporting(false);
+        }
+    };
+
     const pipelineValue = useMemo(() => {
         return companies.reduce((sum, c) => sum + estimateRevenueValue(c.company_employee_count), 0);
     }, [companies]);
@@ -237,18 +257,19 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     return (
         <main className="flex-1 overflow-y-auto">
             <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
-                {/* Back + Title */}
-                <div>
-                    <button
-                        onClick={() => router.push('/partner')}
-                        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 mb-4 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Dashboard
-                    </button>
+                {/* Title */}
+                <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                         {campaign.name}
                     </h1>
+                    <Button onClick={handleExport} disabled={exporting} variant="outline">
+                        {exporting ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                            <Download className="w-4 h-4 mr-2" />
+                        )}
+                        Export CSV
+                    </Button>
                 </div>
 
                 {/* Stats Cards */}
