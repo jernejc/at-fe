@@ -75,10 +75,16 @@ export function CampaignRow({ campaign, productName, companies, pipelineValue, n
                 </div>
 
                 {/* # Companies */}
-                <div className="col-span-2">
+                <div className="col-span-2 flex items-center gap-3">
                     <p className="text-sm text-slate-700 dark:text-slate-300">
                         {campaign.company_count}
                     </p>
+
+                    {newOpportunities.length ? (
+                        <Badge className="bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-600">
+                            {newOpportunities.length} new
+                        </Badge>
+                    ) : null}
                 </div>
 
                 {/* Deadline */}
@@ -93,59 +99,6 @@ export function CampaignRow({ campaign, productName, companies, pipelineValue, n
                     </Badge>
                 </div>
             </div>
-
-            {newOpportunities.length > 0 && (
-                <>
-                    <Separator></Separator>
-                    <div className="flex items-center gap-2 px-4 pt-4">
-                        <Sparkles size={12} className="text-amber-500" />
-                        <h2 className="font-semibold text-slate-600 dark:text-slate-300 text-xs">
-                            New Opportunities
-                        </h2>
-                    </div>
-                    <div className="flex flex-wrap gap-3 p-4">
-                        {newOpportunities.map(opp => (
-                            <div
-                                key={opp.domain}
-                                className="max-w-[280px] rounded-lg border-2 border-amber-200 dark:border-amber-700 px-4 py-4"
-                            >
-                                <img
-                                    src={`https://www.google.com/s2/favicons?domain=${opp.domain}&sz=64`}
-                                    className="w-6 h-6 rounded object-contain shrink-0"
-                                />
-                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate mt-2">
-                                    {opp.company_name}
-                                </p>
-                                {opp.industry && (
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                        {opp.industry}
-                                    </p>
-                                )}
-                                <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 dark:text-slate-500">
-                                    {opp.employee_count && (
-                                        <div className="flex items-center gap-1">
-                                            <Users size={12} className="w-3.5 h-3.5" />
-                                            <span>{opp.employee_count.toLocaleString()}</span>
-                                        </div>
-                                    )}
-                                    {opp.hq_country && (
-                                        <div className="flex items-center gap-1">
-                                            <Globe size={12} className="w-3.5 h-3.5" />
-                                            <span>{opp.hq_country}</span>
-                                        </div>
-                                    )}
-                                    {opp.cached_fit_score && (
-                                        <div className="flex items-center gap-1">
-                                            <Target size={12} className="w-3.5 h-3.5" />
-                                            <span>{Math.round(opp.cached_fit_score)}% fit</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            )}
         </div>
     );
 }
