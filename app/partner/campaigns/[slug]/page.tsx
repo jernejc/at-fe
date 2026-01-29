@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatCard } from '@/components/partner/StatCard';
 import { CompanyRow } from '@/components/partner/CompanyRow';
+import { CampaignCRMAnalytics } from '@/components/partner/analytics';
 import {
     getCampaign,
     getPartner,
@@ -329,6 +330,9 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                         }
                     />
                 </div>
+
+                {/* CRM Insights Section */}
+                <CampaignCRMAnalytics />
 
                 {/* Company Table */}
                 <div className='space-y-4 mt-15'>
