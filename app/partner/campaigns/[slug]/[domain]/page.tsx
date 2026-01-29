@@ -195,7 +195,7 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
             <main className="flex-1 overflow-y-auto">
                 <div className="max-w-[1600px] mx-auto px-6 py-6">
                     <button
-                        onClick={() => router.push(`/partner/${slug}`)}
+                        onClick={() => router.push(`/partner/campaigns/${slug}`)}
                         className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 mb-6 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -216,7 +216,7 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
             <div className="max-w-[1600px] mx-auto px-6 py-6">
                 {/* Back Button */}
                 <button
-                    onClick={() => router.push(`/partner/${slug}`)}
+                    onClick={() => router.push(`/partner/campaigns/${slug}`)}
                     className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 mb-6 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />

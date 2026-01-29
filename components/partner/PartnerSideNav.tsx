@@ -22,7 +22,7 @@ interface PartnerSideNavProps {
 const navItems = [
   { label: "Dashboard", route: "/partner", icon: LayoutDashboard },
   { label: "Campaigns", route: "/partner/campaigns", icon: Megaphone },
-  { label: "Companies", route: "/partner/companies", icon: Building2 },
+  // { label: "Companies", route: "/partner/companies", icon: Building2 },
   { label: "Integrations", route: "/partner/integrations", icon: Plug },
   { label: "Notifications", route: "/partner/notifications", icon: Bell },
   // { label: "Profile & Settings", route: "/partner/settings", icon: Settings },

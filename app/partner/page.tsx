@@ -6,8 +6,10 @@ import { Loader2 } from 'lucide-react';
 import { PartnerPortalHeader } from '@/components/partner/PartnerPortalHeader';
 import { getCampaigns, getCampaignCompanies } from '@/lib/api';
 import type { CampaignSummary, MembershipRead } from '@/lib/schemas';
+import { useRouter } from 'next/navigation';
 
 export default function PartnerPage() {
+    const router = useRouter();
     const { status: sessionStatus } = useSession();
 
     const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
@@ -68,6 +70,9 @@ export default function PartnerPage() {
               campaigns={campaigns}
               newOpportunitiesCount={0}
               hidePartnerInfo={true}
+              onCRMConnect={() => {
+                router.push('/partner/integrations')
+              }}
             />
           </div>
         </div>
