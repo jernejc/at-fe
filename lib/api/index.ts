@@ -98,6 +98,7 @@ export { startProcessing, waitForProcessingComplete } from './processing';
 // Campaigns
 export {
     getCampaigns,
+    getMyCampaigns,
     getCampaign,
     createCampaign,
     updateCampaign,

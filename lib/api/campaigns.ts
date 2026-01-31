@@ -24,6 +24,11 @@ export async function getCampaigns(filters: CampaignFilters = {}): Promise<Pagin
     return fetchAPI<PaginatedResponse<CampaignSummary>>(`/api/v1/campaigns${query}`);
 }
 
+export async function getMyCampaigns(filters: CampaignFilters = {}): Promise<PaginatedResponse<CampaignSummary>> {
+    const query = buildQueryString(filters as Record<string, unknown>);
+    return fetchAPI<PaginatedResponse<CampaignSummary>>(`/api/v1/campaigns/me${query}`);
+}
+
 export async function getCampaign(slug: string): Promise<CampaignRead> {
     return fetchAPI<CampaignRead>(`/api/v1/campaigns/${encodeURIComponent(slug)}`);
 }

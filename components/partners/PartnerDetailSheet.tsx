@@ -143,7 +143,7 @@ export function PartnerDetailSheet({
                                         <PendingDataWrapper
                                             isPending={true}
                                             compact={true}
-                                            message="Pending data"
+                                            message="Waiting for partner"
                                             description="Partner needs to share engagement data"
                                             className="rounded-full"
                                         >
