@@ -101,6 +101,8 @@ export {
     getCampaign,
     createCampaign,
     updateCampaign,
+    publishCampaign,
+    unpublishCampaign,
     deleteCampaign,
     getCampaignOverview,
     getCampaignComparison,

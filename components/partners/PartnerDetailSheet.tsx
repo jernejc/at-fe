@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { OutreachPipeline } from './OutreachPipeline';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
+import { PendingDataWrapper } from '@/components/campaigns/performance/DataPendingOverlay';
 import {
     Building2,
     Zap,
@@ -139,11 +140,19 @@ export function PartnerDetailSheet({
                                         <span className="text-xs text-muted-foreground">/ {capacity} assigned</span>
                                     </div>
                                     {metrics && (
-                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm border bg-emerald-50 border-emerald-200 text-emerald-900 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-100">
-                                            <span className="text-base">✉️</span>
-                                            <span className="font-semibold">{metrics.engagedCount}</span>
-                                            <span className="text-xs text-emerald-700 dark:text-emerald-300">engaged</span>
-                                        </div>
+                                        <PendingDataWrapper
+                                            isPending={true}
+                                            compact={true}
+                                            message="Pending data"
+                                            description="Partner needs to share engagement data"
+                                            className="rounded-full"
+                                        >
+                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm border bg-emerald-50 border-emerald-200 text-emerald-900 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-100">
+                                                <span className="text-base">✉️</span>
+                                                <span className="font-semibold">{metrics.engagedCount}</span>
+                                                <span className="text-xs text-emerald-700 dark:text-emerald-300">engaged</span>
+                                            </div>
+                                        </PendingDataWrapper>
                                     )}
                                     <div className={cn(
                                         "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm border",
@@ -166,12 +175,18 @@ export function PartnerDetailSheet({
                 <div className="flex-1 overflow-y-auto">
                     <div className="max-w-7xl mx-auto w-full p-6 space-y-6">
                         {metrics && (
-                            <OutreachPipeline
-                                statusCounts={metrics.statusCounts}
-                                total={assignedCompanies.length}
-                                activeFilter={statusFilter}
-                                onStageClick={setStatusFilter}
-                            />
+                            <PendingDataWrapper
+                                isPending={true}
+                                message="Waiting for partner data"
+                                description="Push partners to share their performance metrics"
+                            >
+                                <OutreachPipeline
+                                    statusCounts={metrics.statusCounts}
+                                    total={assignedCompanies.length}
+                                    activeFilter={statusFilter}
+                                    onStageClick={setStatusFilter}
+                                />
+                            </PendingDataWrapper>
                         )}
 
                         <div className="space-y-4">

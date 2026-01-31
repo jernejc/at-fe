@@ -10,6 +10,7 @@ import { PartnerOverviewCard } from './overview/PartnerOverviewCard';
 import { TopCompaniesCard } from './overview/TopCompaniesCard';
 import { NeedsAttentionCard } from './overview/NeedsAttentionCard';
 import { FitDistributionCard } from './overview/FitDistributionCard';
+import { PerformancePreviewCard } from './overview/PerformancePreviewCard';
 
 export type { DrillDownFilter };
 
@@ -118,10 +119,7 @@ export function OverviewTab({
         return calculateFitDistribution(mergedList);
     }, [companies, overview.top_companies, dynamicCompanies]);
 
-    // Use derived if it has data, otherwise fallback to overview (though derived likely better if we have companies)
-    const fitDistribution = Object.values(derivedFitDistribution).some(v => v > 0)
-        ? derivedFitDistribution
-        : overview.fit_distribution;
+
 
     return (
         <div className="space-y-6">
@@ -129,6 +127,7 @@ export function OverviewTab({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left column - Pipeline + Top Companies */}
                 <div className="lg:col-span-2 space-y-6">
+                    <PerformancePreviewCard />
                     {/*<OutreachPipelineCard pipeline={pipeline} onDrillDown={onDrillDown} />*/}
                     <TopCompaniesCard
                         topCompanies={overview.top_companies}

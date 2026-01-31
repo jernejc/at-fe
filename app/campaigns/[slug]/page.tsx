@@ -4,7 +4,7 @@ import { use, useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
-import { CampaignHeader, CompaniesTab, AnalysisTab, PartnerTab, PerformanceTab, type DrillDownFilter } from '@/components/campaigns';
+import { CampaignHeader, CompaniesTab, AnalysisTab, PartnerTab, OverviewTab, OverviewTabSkeleton, type DrillDownFilter } from '@/components/campaigns';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Header } from '@/components/ui/Header';
@@ -48,6 +48,13 @@ export default function CampaignPage({ params }: CampaignPageProps) {
         // Delete functionality
         isDeleting,
         handleDelete,
+
+        // Publish functionality
+        isPublishing,
+        handlePublish,
+
+        isUnpublishing,
+        handleUnpublish,
 
         // Filter management
         filters,
@@ -112,39 +119,23 @@ export default function CampaignPage({ params }: CampaignPageProps) {
         fetchPartnerCount();
     }, [slug]);
 
-    // Publish campaign state
-    const [localCampaignStatus, setLocalCampaignStatus] = useState<string | null>(null);
+    // Publish functionality from hook
     const [showPublishConfirm, setShowPublishConfirm] = useState(false);
-    const [isPublishing, setIsPublishing] = useState(false);
 
-    // Display campaign with potentially overridden status
-    const displayCampaign = useMemo(() => {
-        if (!campaign) return null;
-        if (localCampaignStatus) {
-            return { ...campaign, status: localCampaignStatus };
-        }
-        return campaign;
-    }, [campaign, localCampaignStatus]);
+    const onPublishClick = () => setShowPublishConfirm(true);
 
-    const handlePublish = () => setShowPublishConfirm(true);
+    const confirmPublish = async () => {
+        await handlePublish();
+        setShowPublishConfirm(false);
+    };
 
-    const confirmPublish = () => {
-        setIsPublishing(true);
-        // Simulate async operation (local state only, no API)
-        setTimeout(() => {
-            setLocalCampaignStatus('published');
-            setShowPublishConfirm(false);
-            setIsPublishing(false);
-            toast.success('Campaign published!', {
-                description: 'Notifications will be sent to partners.',
-                style: {
-                    background: '#10b981',
-                    color: '#ffffff',
-                    border: 'none',
-                },
-                descriptionClassName: 'text-emerald-100',
-            });
-        }, 500);
+    // Unpublish functionality
+    const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
+    const onUnpublishClick = () => setShowUnpublishConfirm(true);
+
+    const confirmUnpublish = async () => {
+        await handleUnpublish();
+        setShowUnpublishConfirm(false);
     };
 
     // Handle drill-down filtering from overview charts
@@ -207,13 +198,15 @@ export default function CampaignPage({ params }: CampaignPageProps) {
             <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950">
                 {/* Campaign Header with Tabs */}
                 <CampaignHeader
-                    campaign={displayCampaign!}
+                    campaign={campaign}
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     onDelete={handleDelete}
                     isDeleting={isDeleting}
-                    onPublish={handlePublish}
+                    onPublish={onPublishClick}
                     isPublishing={isPublishing}
+                    onUnpublish={onUnpublishClick}
+                    isUnpublishing={isUnpublishing}
                     companyCount={overview?.company_count ?? dynamicCompaniesTotal ?? undefined}
                     partnerCount={partnerCount}
                 />
@@ -263,13 +256,24 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                             />
                         </TabsContent>
 
-                        {/* Performance Tab */}
-                        <TabsContent value="performance" className="mt-0 animate-in fade-in-50">
-                            <PerformanceTab
-                                campaignSlug={slug}
-                                partnerCount={partnerCount}
-                                hasData={false}
-                            />
+                        {/* Overview Tab */}
+                        <TabsContent value="overview" className="mt-0 animate-in fade-in-50">
+                            {overview ? (
+                                <OverviewTab
+                                    overview={overview}
+                                    companies={companies}
+                                    dynamicCompanies={filters.length > 0 ? dynamicCompanies : undefined}
+                                    dynamicCompaniesTotal={dynamicCompaniesTotal}
+                                    loadingDynamicCompanies={loadingDynamicCompanies}
+                                    onCompanyClick={handleCompanyClick}
+                                    onManagePartners={() => setActiveTab('partners')}
+                                    onViewAllCompanies={() => setActiveTab('companies')}
+                                    onDrillDown={handleDrillDown}
+                                    campaignSlug={slug}
+                                />
+                            ) : (
+                                <OverviewTabSkeleton />
+                            )}
                         </TabsContent>
                     </Tabs>
                 </div>
@@ -303,6 +307,30 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                             ) : null}
                             Publish Campaign
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Unpublish Confirmation Dialog */}
+            <Dialog open={showUnpublishConfirm} onOpenChange={setShowUnpublishConfirm}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Unpublish Campaign</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to unpublish this campaign? 
+                            It will return to draft status and partners will no longer see it.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose render={<Button variant="outline" />}>
+                            Cancel
+                        </DialogClose>
+                        <Button onClick={confirmUnpublish} disabled={isUnpublishing} variant="destructive">
+                            {isUnpublishing ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : null}
+                            Unpublish Campaign
                         </Button>
                     </DialogFooter>
                 </DialogContent>
