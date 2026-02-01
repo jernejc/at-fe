@@ -26,7 +26,7 @@ export async function getCampaigns(filters: CampaignFilters = {}): Promise<Pagin
 
 export async function getMyCampaigns(filters: CampaignFilters = {}): Promise<PaginatedResponse<CampaignSummary>> {
     const query = buildQueryString(filters as Record<string, unknown>);
-    return fetchAPI<PaginatedResponse<CampaignSummary>>(`/api/v1/campaigns/me${query}`);
+    return fetchAPI<PaginatedResponse<CampaignSummary>>(`/api/v1/campaigns`);
 }
 
 export async function getCampaign(slug: string): Promise<CampaignRead> {
@@ -149,7 +149,7 @@ export async function exportCampaignCSV(slug: string): Promise<Blob> {
     const response = await fetch(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/csv`, {
         headers: authHeaders,
     });
-    
+
     if (!response.ok) {
         // Try to refresh token if 401
         if (response.status === 401) {

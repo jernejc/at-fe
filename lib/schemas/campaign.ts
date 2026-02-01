@@ -191,6 +191,7 @@ export interface CampaignFilters {
     owner?: string;
     sort_by?: 'name' | 'created_at' | 'updated_at' | 'company_count';
     sort_order?: 'asc' | 'desc';
+    own_only?: boolean;
 }
 
 // Funnel metrics

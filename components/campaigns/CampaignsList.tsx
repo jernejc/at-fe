@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getCampaigns, getMyCampaigns, getProducts } from '@/lib/api';
+import { useSession } from 'next-auth/react';
+import { getCampaigns, getProducts } from '@/lib/api';
 import type { CampaignSummary } from '@/lib/schemas';
 import type { ProductSummary } from '@/lib/schemas/product';
 import { ProductAssignmentDialog } from './ProductAssignmentDialog';
@@ -15,6 +16,7 @@ import { staggerContainer, fadeInUp } from '@/lib/animations';
 
 export function CampaignsList() {
     const router = useRouter();
+    const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
     const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
     const [products, setProducts] = useState<ProductSummary[]>([]);
@@ -31,21 +33,31 @@ export function CampaignsList() {
         try {
             // Parallel fetch for products always, and campaigns based on tab
             const productRequest = getProducts(1, 100);
-            const campaignsRequest = activeTab === 'all' 
+
+
+            // For "my" campaigns, we use the own_only filter
+            // For "all" campaigns, we fetch everything the user has access to
+            const campaignsRequest = activeTab === 'all'
                 ? getCampaigns({ page: 1, page_size: 100, sort_by: 'updated_at', sort_order: 'desc' })
-                : getMyCampaigns({ page: 1, page_size: 100, sort_by: 'updated_at', sort_order: 'desc' });
+                : getCampaigns({
+                    page: 1,
+                    page_size: 100,
+                    sort_by: 'updated_at',
+                    sort_order: 'desc',
+                    own_only: true
+                });
 
             const [productsData, campaignsData] = await Promise.all([
                 productRequest,
                 campaignsRequest
             ]);
-            
+
             setProducts(productsData.items);
-            
+
             // Handle both paginated response ({ items: [...] }) and direct array ([...])
             const items = Array.isArray(campaignsData) ? campaignsData : campaignsData.items || [];
             setCampaigns(items);
-            
+
             setError(null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -53,11 +65,13 @@ export function CampaignsList() {
         } finally {
             setLoading(false);
         }
-    }, [activeTab]);
+    }, [activeTab, session?.user?.email]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (session) {
+            fetchData();
+        }
+    }, [fetchData, session]);
 
     // Handle new campaign - navigate to wizard
     const handleNewCampaign = (productId: number | null = null) => {
@@ -127,7 +141,7 @@ export function CampaignsList() {
 
             {/* Content */}
             {loading ? (
-                 <motion.div 
+                <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="flex items-center justify-center h-64"
@@ -135,7 +149,7 @@ export function CampaignsList() {
                     <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
                 </motion.div>
             ) : error ? (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -147,7 +161,7 @@ export function CampaignsList() {
                     </Button>
                 </motion.div>
             ) : hasNoCampaigns ? (
-                <motion.div 
+                <motion.div
                     variants={fadeInUp}
                     className="flex flex-1 flex-col items-center justify-center p-12 text-center -mt-10"
                 >
@@ -156,7 +170,7 @@ export function CampaignsList() {
                         No campaigns found
                     </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                        {activeTab === 'all' 
+                        {activeTab === 'all'
                             ? "Get started by creating your first campaign"
                             : "You haven't created any campaigns yet"}
                     </p>
