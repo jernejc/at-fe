@@ -6,20 +6,16 @@ import { useSession } from 'next-auth/react';
 import {
     Loader2,
     Building2,
-    Users,
-    DollarSign,
     Package,
-    Clock,
     ChevronUp,
     ChevronDown,
-    CircleDot,
     Download,
+    Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { StatCard } from '@/components/partner/StatCard';
 import { CompanyRow } from '@/components/partner/CompanyRow';
-// import { CampaignCRMAnalytics } from '@/components/partner/analytics';
+import { cn, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
+import { CampaignCRMAnalytics } from '@/components/partner/analytics';
 import {
     getCampaign,
     getPartner,
@@ -37,12 +33,6 @@ interface CampaignDetailPageProps {
     params: Promise<{
         slug: string;
     }>;
-}
-
-function formatCurrency(value: number): string {
-    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
-    return `$${value}`;
 }
 
 function estimateRevenue(employeeCount: number | null): string {
@@ -84,7 +74,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
 
     const [campaign, setCampaign] = useState<CampaignRead | null>(null);
     const [companies, setCompanies] = useState<PartnerCompanyAssignmentWithCompany[]>([]);
-    const [productName, setProductName] = useState<string | null>(null);
+    const [product, setProduct] = useState<{ id: number; name: string } | null>(null);
     const [loading, setLoading] = useState(true);
 
     const [sortColumn, setSortColumn] = useState<SortColumn>('created_at');
@@ -92,7 +82,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const [exporting, setExporting] = useState(false);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const partnerId = (session?.user as any)?.partner_id as number | undefined;
+    const partnerId = (session?.user as any)?.partner_id as number | undefined || 1;
 
     useEffect(() => {
         async function fetchData() {
@@ -110,11 +100,11 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
 
                 await getPartner(partnerId);
 
-                // Fetch product name
+                // Fetch product
                 if (campaignData.target_product_id) {
                     try {
-                        const product = await getProduct(campaignData.target_product_id);
-                        setProductName(product.name);
+                        const productData = await getProduct(campaignData.target_product_id);
+                        setProduct(productData);
                     } catch {
                         // Product fetch is optional
                     }
@@ -188,10 +178,6 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         }
     };
 
-    const pipelineValue = useMemo(() => {
-        return companies.reduce((sum, c) => sum + estimateRevenueValue(c.company_employee_count), 0);
-    }, [companies]);
-
     const sortedCompanies = useMemo(() => {
         const sorted = [...companies].sort((a, b) => {
             let aVal: string | number = '';
@@ -257,80 +243,61 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     return (
         <main className="flex-1 overflow-y-auto">
             <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
-                {/* Title */}
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {campaign.name}
-                    </h1>
-                    <Button onClick={handleExport} disabled={exporting} variant="outline">
-                        {exporting ? (
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                            <Download className="w-4 h-4 mr-2" />
-                        )}
-                        Export CSV
-                    </Button>
+                {/* Header */}
+                <div className="space-y-3">
+                    {/* Product Pill */}
+                    {product ? (
+                        <div className={cn(
+                            "flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full w-fit border transition-colors",
+                            getProductBadgeTheme(product.id).bg,
+                            getProductBadgeTheme(product.id).text,
+                            getProductBadgeTheme(product.id).border
+                        )}>
+                            <Package className={cn("w-3 h-3", getProductTextColor(product.id))} strokeWidth={2.5} />
+                            <span className="truncate max-w-[150px]">{product.name}</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full w-fit border border-slate-200 dark:border-slate-700">
+                            <Package className="w-3 h-3 text-slate-400" strokeWidth={2.5} />
+                            Unassigned
+                        </div>
+                    )}
+
+                    {/* Title Row */}
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                            {campaign.name}
+                        </h1>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-2 border-slate-200 dark:border-slate-700"
+                            onClick={handleExport}
+                            disabled={exporting}
+                        >
+                            {exporting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Download className="w-4 h-4" />
+                            )}
+                            Export
+                        </Button>
+                    </div>
+
+                    {/* Metadata Row */}
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>{new Date(campaign.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
+                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                        <div className="flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5" />
+                            <span>{companies.length} Companies</span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <StatCard
-                        icon={DollarSign}
-                        iconBgClass="bg-emerald-50 dark:bg-emerald-900/30"
-                        label="Pipeline Value"
-                        value={formatCurrency(pipelineValue)}
-                        valueColorClass="text-emerald-600 dark:text-emerald-400"
-                    />
-                    <StatCard
-                        icon={Building2}
-                        iconBgClass="bg-slate-100 dark:bg-slate-800"
-                        label="Companies"
-                        value={companies.length}
-                    />
-                    <StatCard
-                        icon={Clock}
-                        iconBgClass="bg-slate-100 dark:bg-slate-800"
-                        label="Deadline"
-                        value="—"
-                        valueColorClass="text-slate-400"
-                    />
-                    <StatCard
-                        icon={CircleDot}
-                        iconBgClass="bg-slate-100 dark:bg-slate-800"
-                        label="Status"
-                        value={
-                            <Badge
-                                variant="secondary"
-                                className="w-fit text-sm px-3 py-1"
-                            >
-                                {campaign.status}
-                            </Badge>
-                        }
-                    />
-                    <StatCard
-                        icon={Package}
-                        iconBgClass="bg-slate-100 dark:bg-slate-800"
-                        label="Product"
-                        value={productName || '—'}
-                        valueColorClass={productName ? 'text-slate-900 dark:text-white text-base' : 'text-slate-400'}
-                    />
-                    <StatCard
-                        icon={Users}
-                        iconBgClass="bg-indigo-50 dark:bg-indigo-900/30"
-                        label="Owner"
-                        value={
-                            <div className='flex items-center'>
-                                <img
-                                    src={`https://www.google.com/s2/favicons?domain=${campaign.owner || 'cloud.google.com'}&sz=64`}
-                                    className="w-10 h-10 object-contain"
-                                />
-                                <span className="text-base font-bold truncate">{campaign.owner || 'cloud.google.com'}</span>
-                            </div>
-                        }
-                    />
-                </div>
-
-                {/* CRM Insights Section */}
                 {/* <CampaignCRMAnalytics /> */}
 
                 {/* Company Table */}
