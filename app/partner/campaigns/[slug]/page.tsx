@@ -82,7 +82,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const [exporting, setExporting] = useState(false);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const partnerId = (session?.user as any)?.partner_id as number | undefined || 1;
+    const partnerId = (session?.user as any)?.partner_id as number | undefined;
 
     useEffect(() => {
         async function fetchData() {
