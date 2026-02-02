@@ -1,4 +1,4 @@
-import { fetchAPI, buildQueryString, API_BASE } from './core';
+import { fetchAPI, buildQueryString, API_BASE, getAuthHeaders } from './core';
 import type {
     PaginatedResponse,
     CampaignSummary,
@@ -24,6 +24,11 @@ export async function getCampaigns(filters: CampaignFilters = {}): Promise<Pagin
     return fetchAPI<PaginatedResponse<CampaignSummary>>(`/api/v1/campaigns${query}`);
 }
 
+export async function getMyCampaigns(filters: CampaignFilters = {}): Promise<PaginatedResponse<CampaignSummary>> {
+    const query = buildQueryString(filters as Record<string, unknown>);
+    return fetchAPI<PaginatedResponse<CampaignSummary>>(`/api/v1/campaigns`);
+}
+
 export async function getCampaign(slug: string): Promise<CampaignRead> {
     return fetchAPI<CampaignRead>(`/api/v1/campaigns/${encodeURIComponent(slug)}`);
 }
@@ -39,6 +44,18 @@ export async function updateCampaign(slug: string, data: CampaignUpdate): Promis
     return fetchAPI<CampaignRead>(`/api/v1/campaigns/${encodeURIComponent(slug)}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
+    });
+}
+
+export async function publishCampaign(slug: string): Promise<CampaignRead> {
+    return fetchAPI<CampaignRead>(`/api/v1/campaigns/${encodeURIComponent(slug)}/publish`, {
+        method: 'POST',
+    });
+}
+
+export async function unpublishCampaign(slug: string): Promise<CampaignRead> {
+    return fetchAPI<CampaignRead>(`/api/v1/campaigns/${encodeURIComponent(slug)}/unpublish`, {
+        method: 'POST',
     });
 }
 
@@ -128,8 +145,24 @@ export async function exportCampaign(slug: string): Promise<CampaignExport> {
 }
 
 export async function exportCampaignCSV(slug: string): Promise<Blob> {
-    const response = await fetch(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/csv`);
+    const authHeaders = await getAuthHeaders();
+    const response = await fetch(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/csv`, {
+        headers: authHeaders,
+    });
+
     if (!response.ok) {
+        // Try to refresh token if 401
+        if (response.status === 401) {
+            console.warn('Export 401, retrying with fresh token');
+            const freshHeaders = await getAuthHeaders(true);
+            const retryResponse = await fetch(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/csv`, {
+                headers: freshHeaders,
+            });
+            if (!retryResponse.ok) {
+                throw new Error(`Export failed: ${retryResponse.status}`);
+            }
+            return retryResponse.blob();
+        }
         throw new Error(`Export failed: ${response.status}`);
     }
     return response.blob();

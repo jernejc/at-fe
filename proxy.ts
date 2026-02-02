@@ -8,7 +8,7 @@ const publicRoutes = ["/signin", "/api/auth"];
 // Routes that require specific roles
 const pdmOnlyRoutes: string[] = [];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes

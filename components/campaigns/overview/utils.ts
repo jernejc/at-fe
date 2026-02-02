@@ -101,21 +101,7 @@ export function generateAccountsNeedingAttention(companies: MembershipRead[]): A
 
     const result = [...highFitUnassigned, ...newAndPromising].slice(0, 4);
 
-    // 3. Fallback: Just highest fit if list is empty
-    if (result.length === 0 && companies.length > 0) {
-        return companies
-            .sort((a, b) => (b.cached_fit_score || 0) - (a.cached_fit_score || 0))
-            .slice(0, 4)
-            .map(c => ({
-                domain: c.domain,
-                name: c.company_name || c.domain,
-                industry: c.industry,
-                fitScore: c.cached_fit_score,
-                logoBase64: c.logo_base64,
-                reason: 'stale' as const,
-                reasonLabel: 'Review recommended',
-            }));
-    }
+
 
     return result;
 }

@@ -120,8 +120,8 @@ export function PartnerOverviewCard({ partner, onClick, isSelected }: PartnerOve
                         {/* Industries */}
                         {partner.industries && partner.industries.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mt-3">
-                                {partner.industries.slice(0, 3).map((industry) => (
-                                    <Badge key={industry} variant="outline" className="text-xs font-normal">
+                                {partner.industries.slice(0, 3).map((industry, index) => (
+                                    <Badge key={`${industry}-${index}`} variant="outline" className="text-xs font-normal">
                                         {industry}
                                     </Badge>
                                 ))}

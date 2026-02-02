@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import {
     Loader2,
     Building2,
@@ -45,7 +45,8 @@ type OpportunityStatus = 'new' | 'accepted' | 'rejected';
 
 export default function PartnerPortalPage() {
     const router = useRouter();
-    const { data: session, status: sessionStatus } = useSession();
+    // Use useAuthUser hook as source of truth
+    const { user, loading: authLoading } = useAuthUser();
     
     // Core state
     const [partner, setPartner] = useState<PartnerRead | null>(null);
@@ -64,10 +65,10 @@ export default function PartnerPortalPage() {
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
 
-    // Get user info from session
-    const sessionPartnerId = (session?.user as any)?.partner_id as number | undefined;
-    const partnerName = (session?.user as any)?.partner_name as string | undefined;
-    const userRole = (session?.user as any)?.role as string | undefined;
+    // Get user info from auth hook
+    const sessionPartnerId = user?.partnerId;
+    const partnerName = user?.partnerName;
+    const userRole = user?.userType;
     
     // Determine if user is a PDM (can select partners) or a partner (fixed partner_id)
     const isPDM = userRole === 'pdm' || !sessionPartnerId;
@@ -78,7 +79,7 @@ export default function PartnerPortalPage() {
     // Fetch partner list for PDMs once session loads
     useEffect(() => {
         async function fetchPartnerList() {
-            if (sessionStatus === 'loading') return;
+            if (authLoading) return;
             if (!isPDM) return; // Partners don't need the list
             
             try {
@@ -93,13 +94,13 @@ export default function PartnerPortalPage() {
             }
         }
         fetchPartnerList();
-    }, [sessionStatus, isPDM]);
+    }, [authLoading, isPDM]);
 
     // Fetch data when effective partner ID changes
     useEffect(() => {
         async function fetchData() {
             // Wait for session to load
-            if (sessionStatus === 'loading') return;
+            if (authLoading) return;
 
             try {
                 setLoading(true);
@@ -170,7 +171,7 @@ export default function PartnerPortalPage() {
         fetchData();
         // Clear selected domain when component unmounts/mounts to ensure clean state
         setSelectedDomain(null);
-    }, [effectivePartnerId, sessionStatus]);
+    }, [effectivePartnerId, authLoading]);
 
     // All opportunities flattened and deduplicated by domain
     const allOpportunities = useMemo(() => {
@@ -237,7 +238,7 @@ export default function PartnerPortalPage() {
         setSelectedDomain(null);
     }, []);
 
-    if (loading) {
+    if (loading || authLoading) {
         return (
             <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
                 <Header />
@@ -260,7 +261,7 @@ export default function PartnerPortalPage() {
                             {/* Header using shared component */}
                             <PartnerPortalHeader
                                 partner={partner}
-                                partnerName={partnerName}
+                                partnerName={partnerName ?? undefined}
                                 opportunities={allOpportunities}
                                 campaigns={campaigns.map(c => c.campaign)}
                                 newOpportunitiesCount={newOpportunities.length}

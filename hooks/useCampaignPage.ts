@@ -10,6 +10,8 @@ import {
     getCampaignComparison,
     deleteCampaign,
     updateCampaign,
+    publishCampaign,
+    unpublishCampaign,
 } from '@/lib/api';
 import type {
     CampaignRead,
@@ -25,7 +27,7 @@ import type {
 // Helpers
 // ============================================================================
 
-export type CampaignTab = 'performance' | 'companies' | 'partners' | 'analysis';
+export type CampaignTab = 'overview' | 'companies' | 'partners' | 'analysis';
 
 interface UseCampaignPageOptions {
     slug: string;
@@ -56,6 +58,13 @@ interface UseCampaignPageReturn {
     isDeleting: boolean;
     handleDelete: () => Promise<void>;
 
+    // Publish functionality
+    isPublishing: boolean;
+    handlePublish: () => Promise<void>;
+
+    isUnpublishing: boolean;
+    handleUnpublish: () => Promise<void>;
+
     // Filter management
     filters: CampaignFilterUI[];
     handleFiltersChange: (filters: CampaignFilterUI[]) => void;
@@ -84,7 +93,7 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
     const [error, setError] = useState<string | null>(null);
 
     // Tab management
-    const [activeTab, setActiveTab] = useState<CampaignTab>('performance');
+    const [activeTab, setActiveTab] = useState<CampaignTab>('overview');
 
     // Account detail popover state
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
@@ -159,7 +168,10 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
                 // Load campaign companies if not already loaded
                 const result = await getCampaignCompanies(slug, { page_size: 200 });
                 campaignCompanies = result.items;
-                setCompanies(result.items);
+                // Only update state if we found companies to avoid infinite loop with empty array ref churn
+                if (result.items.length > 0) {
+                    setCompanies(result.items);
+                }
             }
             
             // Apply client-side filtering to campaign companies
@@ -333,7 +345,7 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
     useEffect(() => {
         async function fetchTabData() {
             try {
-                if ((activeTab === 'companies' || activeTab === 'performance') && companies.length === 0) {
+                if ((activeTab === 'companies' || activeTab === 'overview') && companies.length === 0) {
                     const result = await getCampaignCompanies(slug, { page_size: 50 });
                     // Enrich companies with mock partner data if API returns none
                     setCompanies(result.items);
@@ -357,6 +369,53 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
            // We don't need to re-enrich with mock data anymore
         }
     }, [companies.length]); */
+
+    // Publish functionality
+    const [isPublishing, setIsPublishing] = useState(false);
+
+    const handlePublish = useCallback(async () => {
+        setIsPublishing(true);
+        try {
+            const updated = await publishCampaign(slug);
+            setCampaign(updated);
+            toast.success('Campaign published', {
+                description: 'Notifications have been sent to partners.',
+                descriptionClassName: '!text-foreground font-medium',
+            });
+            // Update overview/stats if needed
+            refreshData(); 
+        } catch (error) {
+            console.error('Failed to publish campaign:', error);
+            toast.error('Failed to publish campaign', {
+                description: error instanceof Error ? error.message : 'Please try again',
+            });
+        } finally {
+            setIsPublishing(false);
+        }
+    }, [slug, refreshData]);
+
+    const [isUnpublishing, setIsUnpublishing] = useState(false);
+
+    const handleUnpublish = useCallback(async () => {
+        setIsUnpublishing(true);
+        try {
+            const updated = await unpublishCampaign(slug);
+            setCampaign(updated);
+            toast.success('Campaign unpublished', {
+                description: 'Campaign is now in draft mode.',
+                descriptionClassName: '!text-foreground font-medium',
+            });
+            // Update overview/stats if needed
+            refreshData(); 
+        } catch (error) {
+            console.error('Failed to unpublish campaign:', error);
+            toast.error('Failed to unpublish campaign', {
+                description: error instanceof Error ? error.message : 'Please try again',
+            });
+        } finally {
+            setIsUnpublishing(false);
+        }
+    }, [slug, refreshData]);
 
     return {
         // Core data
@@ -382,6 +441,13 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
         // Delete functionality
         isDeleting,
         handleDelete,
+
+        // Publish functionality
+        isPublishing,
+        handlePublish,
+
+        isUnpublishing,
+        handleUnpublish,
 
         // Filter management
         filters,

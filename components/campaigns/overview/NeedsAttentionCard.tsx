@@ -21,12 +21,23 @@ export function NeedsAttentionCard({
 }) {
     if (accounts.length === 0) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-                    <h3 className="font-medium text-sm text-slate-900 dark:text-white">Needs Attention</h3>
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[220px]">
+                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-slate-500" />
+                        <h3 className="font-medium text-sm text-slate-900 dark:text-white">Needs Attention</h3>
+                    </div>
                 </div>
-                <div className="p-6 text-center">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">All caught up</p>
+                <div className="p-6 flex flex-col items-center justify-center flex-1 text-center bg-slate-50/50 dark:bg-slate-800/20">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-3">
+                        <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h4 className="text-sm font-medium text-slate-900 dark:text-white mb-1">
+                        No urgent items
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[220px] leading-relaxed">
+                        Companies requiring manual partner assignment.
+                    </p>
                 </div>
             </div>
         );

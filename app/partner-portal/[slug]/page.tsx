@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import {
     Loader2,
     ArrowLeft,
@@ -61,7 +61,8 @@ const STATUS_CONFIG: Record<OutreachStatus, { label: string; color: string; bgCo
 export default function PartnerCampaignDetailPage({ params }: CampaignDetailPageProps) {
     const { slug } = use(params);
     const router = useRouter();
-    const { data: session, status: sessionStatus } = useSession();
+    // Use useAuthUser hook as source of truth to access claims
+    const { user, loading: authLoading } = useAuthUser();
 
     const [campaign, setCampaign] = useState<CampaignRead | null>(null);
     const [partner, setPartner] = useState<PartnerRead | null>(null);
@@ -75,13 +76,13 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
 
-    // Get partner_id from session
-    const partnerId = (session?.user as any)?.partner_id as number | undefined;
+    // Get partner_id from auth hook
+    const partnerId = user?.partnerId;
 
     useEffect(() => {
         async function fetchData() {
-            // Wait for session to load
-            if (sessionStatus === 'loading') return;
+            // Wait for auth to load
+            if (authLoading) return;
 
             // If no partner_id in session, partner user isn't properly authenticated
             if (!partnerId) {
@@ -156,7 +157,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         }
 
         fetchData();
-    }, [slug, partnerId, sessionStatus]);
+    }, [slug, partnerId, authLoading]);
 
 
     const handleBack = useCallback(() => {
@@ -204,7 +205,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         };
     }, [opportunities]);
 
-    if (loading) {
+    if (loading || authLoading) {
         return (
             <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
                 <Header />
