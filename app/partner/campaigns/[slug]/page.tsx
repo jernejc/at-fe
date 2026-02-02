@@ -7,13 +7,12 @@ import {
     Loader2,
     Building2,
     Package,
-    ChevronUp,
-    ChevronDown,
     Download,
     Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CompanyRow } from '@/components/partner/CompanyRow';
+import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { cn, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
 import { CampaignCRMAnalytics } from '@/components/partner/analytics';
 import {
@@ -58,14 +57,20 @@ function isNew(createdAt: string): boolean {
 
 type SortColumn = 'company_name' | 'revenue' | 'company_industry' | 'company_employee_count' | 'company_hq_country' | 'status' | 'created_at';
 
-const SORT_HEADERS: { label: string; column: SortColumn; colSpan: string }[] = [
-    { label: 'Company Info', column: 'company_name', colSpan: 'col-span-3' },
-    { label: 'Expected Revenue', column: 'revenue', colSpan: 'col-span-2' },
-    { label: 'Industry', column: 'company_industry', colSpan: 'col-span-2' },
-    { label: 'Size', column: 'company_employee_count', colSpan: 'col-span-1 text-right' },
-    { label: 'Location', column: 'company_hq_country', colSpan: 'col-span-2' },
-    { label: 'Status', column: 'status', colSpan: 'col-span-2' },
-];
+const SORT_COLUMN_LABELS: Record<SortColumn, string> = {
+    company_name: 'Company Name',
+    revenue: 'Expected Revenue',
+    company_industry: 'Industry',
+    company_employee_count: 'Size',
+    company_hq_country: 'Location',
+    status: 'Status',
+    created_at: 'Date Added',
+};
+
+const SORT_DIRECTION_LABELS: Record<'asc' | 'desc', string> = {
+    asc: 'Ascending',
+    desc: 'Descending',
+};
 
 export default function PartnerCampaignDetailPage({ params }: CampaignDetailPageProps) {
     const { slug } = use(params);
@@ -152,15 +157,6 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         fetchData();
     }, [slug, partnerId, sessionStatus]);
 
-    const handleSort = (column: SortColumn) => {
-        if (sortColumn === column) {
-            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortColumn(column);
-            setSortDirection('asc');
-        }
-    };
-
     const handleExport = async () => {
         setExporting(true);
         try {
@@ -238,8 +234,6 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         );
     }
 
-    const SortIcon = sortDirection === 'asc' ? ChevronUp : ChevronDown;
-
     return (
         <main className="flex-1 overflow-y-auto">
             <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
@@ -302,25 +296,39 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
 
                 {/* Company Table */}
                 <div className='space-y-4 mt-15'>
-                    <h2 className='font-medium text-lg'>Companies</h2>
-                    {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 px-4 py-2">
-                        {SORT_HEADERS.map((header) => (
-                            <button
-                                key={header.column}
-                                onClick={() => handleSort(header.column)}
-                                className={`${header.colSpan} flex items-center gap-1 text-xs uppercase tracking-wider transition-colors ${
-                                    sortColumn === header.column
-                                        ? 'font-bold text-slate-900 dark:text-white'
-                                        : 'font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                                }`}
-                            >
-                                {header.label}
-                                {sortColumn === header.column && (
-                                    <SortIcon className="w-3.5 h-3.5" />
-                                )}
-                            </button>
-                        ))}
+                    <div className="flex items-center justify-between">
+                        <h2 className='font-medium text-lg'>Companies</h2>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-500 dark:text-slate-400">Sort by</span>
+                                <Select value={sortColumn} onValueChange={(value) => setSortColumn(value as SortColumn)}>
+                                    <SelectTrigger className="w-[160px] h-8 text-xs">
+                                        <span>{SORT_COLUMN_LABELS[sortColumn]}</span>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="company_name">Company Name</SelectItem>
+                                        <SelectItem value="revenue">Expected Revenue</SelectItem>
+                                        <SelectItem value="company_industry">Industry</SelectItem>
+                                        <SelectItem value="company_employee_count">Size</SelectItem>
+                                        <SelectItem value="company_hq_country">Location</SelectItem>
+                                        <SelectItem value="status">Status</SelectItem>
+                                        <SelectItem value="created_at">Date Added</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-500 dark:text-slate-400">Order</span>
+                                <Select value={sortDirection} onValueChange={(value) => setSortDirection(value as 'asc' | 'desc')}>
+                                    <SelectTrigger className="w-[120px] h-8 text-xs">
+                                        <span>{SORT_DIRECTION_LABELS[sortDirection]}</span>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="asc">Ascending</SelectItem>
+                                        <SelectItem value="desc">Descending</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Table Body */}
@@ -329,17 +337,17 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                             No companies found
                         </div>
                     ) : (
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                             {sortedCompanies.map((company) => (
-                                <CompanyRow
+                                <CompanyRowCompact
                                     key={company.id}
                                     logoUrl={company.company_logo_url}
-                                    name={company.company_name}
+                                    name={company.company_name || 'Unknown Company'}
                                     domain={company.company_domain}
-                                    expectedRevenue={estimateRevenue(company.company_employee_count)}
                                     industry={company.company_industry}
                                     employeeCount={company.company_employee_count}
-                                    location={company.company_hq_country}
+                                    hqCountry={company.company_hq_country}
+                                    revenue={estimateRevenue(company.company_employee_count)}
                                     status={company.status}
                                     isNew={isNew(company.created_at)}
                                     onClick={() => router.push(`/partner/campaigns/${slug}/${company.company_domain}`)}

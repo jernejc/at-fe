@@ -25,6 +25,9 @@ export interface CompanyRowCompactProps {
     rank?: number;
     fitScore?: number | null;
     signals?: WSTopInterest[];
+    revenue?: string | null;
+    status?: 'active' | 'completed' | string | null;
+    isNew?: boolean;
     onClick?: () => void;
     className?: string;
     variant?: 'compact' | 'card';
@@ -47,6 +50,9 @@ export function CompanyRowCompact({
     rank,
     fitScore,
     signals,
+    revenue,
+    status,
+    isNew,
     onClick,
     className,
     variant = 'compact',
@@ -91,6 +97,14 @@ export function CompanyRowCompact({
         const percent = strength * 10;
         if (percent >= 70) return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
         if (percent >= 40) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
+    };
+
+    const getStatusStyle = (statusValue: string | null | undefined) => {
+        if (!statusValue) return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
+        const s = statusValue.toLowerCase();
+        if (s === 'active') return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
+        if (s === 'completed') return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
         return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
     };
 
@@ -207,6 +221,12 @@ export function CompanyRowCompact({
                     </div>
                 )}
 
+                {isNew && (
+                    <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-600 shrink-0">
+                        NEW
+                    </span>
+                )}
+
                 <div className="shrink-0">
                     <Avatar className="w-7 h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 after:hidden">
                         {logoSrc && (
@@ -252,6 +272,21 @@ export function CompanyRowCompact({
                             </span>
                         )}
                     </div>
+                )}
+
+                {revenue && (
+                    <span className="hidden sm:inline-flex text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
+                        {revenue}
+                    </span>
+                )}
+
+                {status && (
+                    <span className={cn(
+                        "hidden sm:inline-flex px-2 py-0.5 rounded text-xs font-medium capitalize shrink-0",
+                        getStatusStyle(status)
+                    )}>
+                        {status}
+                    </span>
                 )}
 
                 {segment && (
