@@ -13,13 +13,35 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.idToken) return null;
         
         try {
+          // Verify the token is valid
           const decoded = await getAdminAuth().verifyIdToken(credentials.idToken);
           
           if (!decoded.email) return null;
 
-          const userType = decoded.user_type;
-          const partnerId = decoded.partner_id;
-          const partnerName = decoded.partner_name;
+          // Always call /users/me to ensure user exists and get user data
+          // This creates the user if needed and returns their type/partner info
+          let userType = decoded.user_type;
+          let partnerId = decoded.partner_id;
+          let partnerName = decoded.partner_name;
+
+          try {
+            const response = await fetch(`${API_BASE}/api/v1/users/me`, {
+              headers: {
+                'Authorization': `Bearer ${credentials.idToken}`,
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (response.ok) {
+              const userData = await response.json();
+              // Use data from backend response directly (more reliable than claims)
+              userType = userData.user_type ?? userType;
+              partnerId = userData.partner_id ?? partnerId;
+              partnerName = userData.partner_name ?? partnerName;
+            }
+          } catch (e) {
+            console.warn('Failed to fetch user profile:', e);
+          }
 
           return {
             id: decoded.uid,
