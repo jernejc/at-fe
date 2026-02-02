@@ -12,7 +12,7 @@ export { SearchInsightsPanel, SearchInsightsInline } from './SearchInsightsPanel
 
 // Campaign detail
 export { CampaignHeader } from './CampaignHeader';
-export type { DrillDownFilter } from './OverviewTab';
+export { OverviewTab, OverviewTabSkeleton, type DrillDownFilter } from './OverviewTab';
 export { CompaniesTab } from './CompaniesTab';
 export { AnalysisTab, AnalysisTabSkeleton } from './AnalysisTab';
 export { PerformanceTab, PerformanceTabSkeleton } from './PerformanceTab';

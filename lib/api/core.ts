@@ -37,7 +37,7 @@ function getAuthReadyPromise(): Promise<void> {
     return authReadyPromise;
 }
 
-async function getAuthHeaders(forceRefresh: boolean = false): Promise<Record<string, string>> {
+export async function getAuthHeaders(forceRefresh: boolean = false): Promise<Record<string, string>> {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };

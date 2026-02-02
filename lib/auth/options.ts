@@ -17,33 +17,18 @@ export const authOptions: NextAuthOptions = {
           
           if (!decoded.email) return null;
 
-          // Call API validation to get user role
-          const response = await fetch(`${API_BASE}/api/v1/users/validate-email`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: decoded.email }),
-          });
-
-          if (!response.ok) {
-            console.error("Failed to validate email:", response.statusText);
-            return null; // Reject login if validation API fails
-          }
-
-          const validationData = await response.json();
-
-          if (!validationData.valid) {
-            console.warn("Login rejected:", validationData.reason);
-            return null;
-          }
+          const userType = decoded.user_type;
+          const partnerId = decoded.partner_id;
+          const partnerName = decoded.partner_name;
 
           return {
             id: decoded.uid,
             email: decoded.email,
-            name: (decoded as any).name ?? undefined,
-            image: (decoded as any).picture ?? undefined,
-            role: validationData.user_type,
-            partner_id: validationData.partner_id,
-            partner_name: validationData.partner_name,
+            name: decoded.name ?? undefined,
+            image: decoded.picture ?? undefined,
+            role: userType,
+            partner_id: partnerId,
+            partner_name: partnerName,
           } as any;
         } catch (error) {
           console.error("Authorize error:", error);
@@ -56,10 +41,10 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.uid = (user as any).id;
-        token.role = (user as any).role;
-        token.partner_id = (user as any).partner_id;
-        token.partner_name = (user as any).partner_name;
+        token.uid = user.id;
+        token.role = user.role;
+        token.partner_id = user.partner_id;
+        token.partner_name = user.partner_name;
       }
       return token as any;
     },

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/ui/Header";
 import { AccountCard, AccountCardSkeleton } from "./AccountCard";
+import { ProductNavigation } from "./ProductNavigation";
 import {
     getProducts,
     getProductCandidates,
@@ -340,98 +341,12 @@ export function AccountList({
             {!hideHeader && <Header />}
 
             {/* 1.5. Product Navigation - Glass morphism style */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-border/40 z-10 relative h-11">
-                {/* Fade gradient on right edge */}
-                <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white/90 dark:from-slate-900/90 to-transparent pointer-events-none z-10" />
-
-                <div className="max-w-[1600px] mx-auto px-6 h-full flex items-stretch justify-between gap-4">
-                    <div className="overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 h-full">
-                        {loading ? (
-                            <div className="flex items-center h-full gap-5">
-                                {Array.from({ length: 4 }).map((_, i) => (
-                                    <div key={i} className="h-5 w-28 bg-slate-100 dark:bg-slate-800 rounded-full animate-pulse" />
-                                ))}
-                            </div>
-                        ) : (
-                            <Tabs
-                                value={selectedProductId}
-                                onValueChange={setSelectedProductId}
-                                className="w-max h-full"
-                            >
-                                <TabsList
-                                    className="bg-transparent !h-full p-0 gap-1 w-max rounded-none flex-nowrap"
-                                    style={{ border: "none" }}
-                                >
-                                    {/* All Accounts Tab */}
-                                    <TabsTrigger
-                                        value="all"
-                                        className="relative h-full rounded-none px-3 font-medium text-[13px] text-muted-foreground/80 hover:text-foreground transition-all duration-200 whitespace-nowrap flex items-center gap-2"
-                                        style={{
-                                            border: "none",
-                                            borderBottom: isAllAccounts
-                                                ? "2px solid #3b82f6"
-                                                : "2px solid transparent",
-                                            color: isAllAccounts ? "#3b82f6" : undefined,
-                                            background: isAllAccounts ? "rgba(59, 130, 246, 0.04)" : "transparent",
-                                            boxShadow: "none",
-                                            outline: "none",
-                                        }}
-                                    >
-                                        <Building2 className="w-3.5 h-3.5" style={{ opacity: isAllAccounts ? 1 : 0.5 }} />
-                                        All Accounts
-                                    </TabsTrigger>
-
-                                    {/* Product Tabs */}
-                                    {products.map((product, index) => {
-                                        const color = getProductColor(index);
-                                        const isSelected = selectedProductId === product.id.toString();
-                                        return (
-                                            <TabsTrigger
-                                                key={product.id}
-                                                value={product.id.toString()}
-                                                className="relative !h-full rounded-none px-3 font-medium text-[13px] text-muted-foreground/80 hover:text-foreground transition-all duration-200 whitespace-nowrap group flex items-center gap-2"
-                                                style={{
-                                                    border: "none",
-                                                    borderBottom: isSelected
-                                                        ? `2px solid ${color}`
-                                                        : "2px solid transparent",
-                                                    color: isSelected ? color : undefined,
-                                                    background: isSelected ? `${color}08` : "transparent",
-                                                    boxShadow: "none",
-                                                    outline: "none",
-                                                }}
-                                            >
-                                                <span
-                                                    className="w-2 h-2 rounded-full transition-all duration-200 group-hover:scale-110"
-                                                    style={{
-                                                        backgroundColor: color,
-                                                        opacity: isSelected ? 1 : 0.4,
-                                                        boxShadow: isSelected ? `0 0 8px ${color}40` : "none",
-                                                    }}
-                                                />
-                                                {product.name}
-                                            </TabsTrigger>
-                                        );
-                                    })}
-                                </TabsList>
-                            </Tabs>
-                        )}
-                    </div>
-
-                    {/* Add Product Button */}
-                    <div className="pl-3 border-l border-border/40 flex items-center">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 gap-1.5 text-xs text-muted-foreground/70 hover:text-foreground hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-md transition-all duration-200"
-                            onClick={() => (window.location.href = "/products/new")}
-                        >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Add Product</span>
-                        </Button>
-                    </div>
-                </div>
-            </div>
+            <ProductNavigation
+                products={products}
+                selectedProductId={selectedProductId}
+                onSelectProduct={setSelectedProductId}
+                loading={loading}
+            />
 
             {/* 2. Control & Filter Bar - Refined */}
             <div className="relative border-b border-border/30 z-10 shrink-0 bg-gradient-to-r from-slate-50/90 via-white/80 to-slate-50/90 dark:from-slate-900/90 dark:via-slate-950/80 dark:to-slate-900/90">

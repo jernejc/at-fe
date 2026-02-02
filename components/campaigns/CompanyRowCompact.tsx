@@ -288,9 +288,9 @@ export function CompanyRowCompact({
 
             {signals && signals.length > 0 && (
                 <div className="hidden lg:flex items-center flex-wrap gap-1 shrink-0 mt-2 ml-10">
-                    {signals.map((signal) => (
+                    {signals.map((signal, idx) => (
                         <div
-                            key={signal.category}
+                            key={`${signal.category}-${idx}`}
                             className={cn(
                                 "px-1.5 py-0.5 rounded text-[10px] flex gap-1",
                                 getSignalStrengthStyle(signal.strength)

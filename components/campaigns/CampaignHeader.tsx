@@ -1,15 +1,18 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import type { CampaignRead } from '@/lib/schemas';
+import { exportCampaignCSV } from '@/lib/api';
 import type { CampaignTab } from '@/hooks/useCampaignPage';
 import { 
-    Loader2, Building2, ChevronRight, Trash2, Send, TrendingUp, Users, BarChart3,
-    Calendar, Target, Download
+    Loader2, Building2, ChevronRight, Trash2, Send, LayoutDashboard, Users, BarChart3,
+    Calendar, Target, Download, XCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 interface CampaignHeaderProps {
     campaign: CampaignRead;
@@ -20,6 +23,8 @@ interface CampaignHeaderProps {
     /** Publish the campaign (changes status from draft to published) */
     onPublish?: () => void;
     isPublishing?: boolean;
+    onUnpublish?: () => void;
+    isUnpublishing?: boolean;
     /** Override company count (for dynamic filter campaigns) */
     companyCount?: number;
     /** Number of partners assigned */
@@ -58,6 +63,8 @@ export function CampaignHeader({
     isDeleting,
     onPublish,
     isPublishing = false,
+    onUnpublish,
+    isUnpublishing = false,
     companyCount,
     partnerCount,
 }: CampaignHeaderProps) {
@@ -65,6 +72,33 @@ export function CampaignHeader({
     const displayCompanyCount = companyCount ?? campaign.company_count;
     const displayPartnerCount = partnerCount ?? 0;
     const avgFitScore = campaign.avg_fit_score ? Math.round(campaign.avg_fit_score * 100) : null;
+
+    // Export functionality
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
+            const blob = await exportCampaignCSV(campaign.slug);
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `campaign-${campaign.slug}-export.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            toast.success('Campaign exported successfully');
+        } catch (error) {
+            console.error('Export failed:', error);
+            toast.error('Failed to export campaign');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // Mock target value (can be replaced with actual campaign target)
     const targetValue = '€2.5M';
@@ -127,16 +161,42 @@ export function CampaignHeader({
                     {/* Right: Action Buttons */}
                     <div className="flex items-center gap-2 shrink-0">
                         <Button
-                            variant="default"
+                            variant="outline"
                             size="sm"
-                            className="h-8 gap-2 bg-blue-600 hover:bg-blue-700"
+                            className="h-8 gap-2 border-slate-200 dark:border-slate-700"
+                            onClick={handleExport}
+                            disabled={isExporting}
                         >
-                            <Download className="w-3.5 h-3.5" />
-                            Export Report
+                            {isExporting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Download className="w-4 h-4" />
+                            )}
+                            Export
                         </Button>
-                        
-                        {/* Divider */}
+
                         <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+
+                        {campaign.status === 'published' && onUnpublish && (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 gap-2 text-slate-900 bg-slate-100 hover:bg-slate-200 dark:text-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700"
+                                    onClick={onUnpublish}
+                                    disabled={isUnpublishing}
+                                >
+                                    {isUnpublishing ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <XCircle className="w-4 h-4" />
+                                    )}
+                                    Unpublish
+                                </Button>
+                                {/* Divider */}
+                                <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+                            </>
+                        )}
                         
                         {campaign.status === 'draft' && onPublish && (
                             <Button
@@ -174,9 +234,9 @@ export function CampaignHeader({
                 <div className="pt-5">
                     <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as CampaignTab)} className="w-full">
                         <TabsList variant="line" className="w-full justify-start gap-6">
-                            <TabsTrigger value="performance">
-                                <TrendingUp className="w-4 h-4" />
-                                Performance
+                            <TabsTrigger value="overview">
+                                <LayoutDashboard className="w-4 h-4" />
+                                Overview
                             </TabsTrigger>
                             <TabsTrigger value="companies">
                                 <Building2 className="w-4 h-4" />

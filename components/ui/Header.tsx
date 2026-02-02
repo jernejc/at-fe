@@ -108,13 +108,6 @@ export function Header() {
                       {session?.user?.email}
                     </p>
                   </div>
-                  <Link
-                    href="/"
-                    onClick={() => setShowUserMenu(false)}
-                    className="block px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    Workloads
-                  </Link>
                   <Separator></Separator>
                   <div className="text-xs text-slate-500 dark:text-slate-400 px-3 mt-3">Theme</div>
                   <button

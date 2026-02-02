@@ -1,37 +1,25 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import type { CampaignSummary } from '@/lib/schemas';
-import { Building2, Flame, Thermometer, Snowflake } from 'lucide-react';
+import { cn, formatCompactNumber, formatRelativeDate, normalizeScoreNullable, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
+import type { CampaignSummary, FitDistribution } from '@/lib/schemas';
+import type { ProductSummary } from '@/lib/schemas/product';
+import { Building2, ArrowRight, Activity, Clock, BarChart3, Users, Package } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface CampaignCardPreviewProps {
     campaign: CampaignSummary;
+    product?: ProductSummary | null;
     onAssignProduct?: () => void;
     onClick?: (campaign: CampaignSummary) => void;
 }
 
-export function CampaignCardPreview({ campaign, onAssignProduct, onClick }: CampaignCardPreviewProps) {
+export function CampaignCardPreview({ campaign, product, onAssignProduct, onClick }: CampaignCardPreviewProps) {
     const router = useRouter();
-    const avgFitScore = campaign.avg_fit_score ? Math.round(campaign.avg_fit_score * 100) : null;
-
-    // Estimate hot/warm/cold distribution based on avg fit score
-    // In reality, this would come from the campaign overview API
-    const estimateDistribution = () => {
-        if (!avgFitScore || campaign.company_count === 0) return null;
-
-        // Simple estimation - in production, fetch from API
-        const total = campaign.company_count;
-        if (avgFitScore >= 70) {
-            return { hot: Math.round(total * 0.4), warm: Math.round(total * 0.4), cold: Math.round(total * 0.2) };
-        } else if (avgFitScore >= 50) {
-            return { hot: Math.round(total * 0.2), warm: Math.round(total * 0.5), cold: Math.round(total * 0.3) };
-        } else {
-            return { hot: Math.round(total * 0.1), warm: Math.round(total * 0.3), cold: Math.round(total * 0.6) };
-        }
-    };
-
-    const distribution = estimateDistribution();
+    const avgFitScore = normalizeScoreNullable(campaign.avg_fit_score);
+    const progress = campaign.company_count > 0 
+        ? Math.round((campaign.processed_count / campaign.company_count) * 100) 
+        : 0;
 
     const handleClick = () => {
         if (onAssignProduct) {
@@ -43,57 +31,107 @@ export function CampaignCardPreview({ campaign, onAssignProduct, onClick }: Camp
         }
     };
 
+    // Determined by score
+    const scoreColor = 
+        avgFitScore >= 70 ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20' :
+        avgFitScore >= 40 ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20' :
+        'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800';
+
+    const productTheme = getProductBadgeTheme(product?.id);
+    // Use text color for the icon to match the text, slightly lighter or same
+    const productIconColor = getProductTextColor(product?.id);
+
     return (
         <div
             onClick={handleClick}
             className={cn(
-                "group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800",
-                "p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700",
-                "transition-colors min-w-[200px] max-w-[280px]"
+                "group relative bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800",
+                "p-5 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700",
+                "hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/20",
+                "transition-all duration-300 overflow-hidden flex flex-col h-full"
             )}
         >
-            {/* Campaign Name */}
-            <h4 className="font-semibold text-sm text-slate-900 dark:text-white truncate mb-2 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
-                {campaign.name}
-            </h4>
-
-            {/* Company Count */}
-            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 mb-3">
-                <Building2 className="w-3.5 h-3.5" />
-                <span className="text-xs font-medium">{campaign.company_count} companies</span>
+            {/* Header: Product & Status */}
+            <div className="flex items-start justify-between mb-3">
+                <div className="flex flex-col gap-1.5">
+                    {product ? (
+                        <div className={cn(
+                            "flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full w-fit border transition-colors",
+                            productTheme.bg, productTheme.text, productTheme.border
+                        )}>
+                            <Package className={cn("w-3 h-3", productIconColor)} strokeWidth={2.5} />
+                            <span className="truncate max-w-[150px]">{product.name}</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full w-fit border border-slate-200 dark:border-slate-700">
+                             <Package className="w-3 h-3 text-slate-400" strokeWidth={2.5} />
+                            Unassigned
+                        </div>
+                    )}
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight line-clamp-2 transition-colors">
+                        {campaign.name}
+                    </h3>
+                </div>
             </div>
 
-            {/* Fit Distribution */}
-            {distribution && (
-                <div className="flex items-center gap-3 text-xs">
-                    <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-                        <Flame className="w-3 h-3" />
-                        <span className="font-medium">{distribution.hot}</span>
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 gap-3 mb-4 mt-auto">
+                <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/50">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium mb-1">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Companies</span>
                     </div>
-                    <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                        <Thermometer className="w-3 h-3" />
-                        <span className="font-medium">{distribution.warm}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                        <Snowflake className="w-3 h-3" />
-                        <span className="font-medium">{distribution.cold}</span>
+                    <div className="text-xl font-bold text-slate-900 dark:text-white">
+                        {formatCompactNumber(campaign.company_count)}
                     </div>
                 </div>
-            )}
+                
+                <div className={cn("p-3 rounded-lg border", scoreColor.replace('text-', 'border-').replace('bg-', 'bg-opacity-20 '))}
+                     style={{ borderColor: 'transparent' }} // Override border for cleaner look
+                >
+                    <div className="flex items-center gap-2 opacity-80 text-xs font-medium mb-1">
+                        <Activity className="w-3.5 h-3.5" />
+                        <span>Avg Fit</span>
+                    </div>
+                    <div className="text-xl font-bold">
+                        {avgFitScore > 0 ? avgFitScore.toFixed(0) : '-'}
+                    </div>
+                </div>
+            </div>
 
-            {/* Status & Date */}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                <span className={cn(
-                    "text-xs px-2 py-0.5 rounded-lg font-medium",
-                    campaign.status === 'active' && "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-                    campaign.status === 'draft' && "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
-                    campaign.status === 'archived' && "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-500"
-                )}>
-                    {campaign.status}
-                </span>
-                <span className="text-xs text-slate-400 dark:text-slate-500">
-                    {new Date(campaign.updated_at).toLocaleDateString()}
-                </span>
+            {/* Progress & Footer */}
+            <div className="space-y-3">
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                        <span>Progress</span>
+                        <span className="font-medium">{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-1.5 bg-slate-100 dark:bg-slate-800" />
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{formatRelativeDate(campaign.updated_at)}</span>
+                    </div>
+                    
+                    <div className={cn(
+                        "flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold capitalize border shadow-sm",
+                        (campaign.status === 'active' || campaign.status === 'published') && "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30",
+                        campaign.status === 'draft' && "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+                        campaign.status === 'archived' && "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30",
+                        campaign.status === 'completed' && "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30"
+                    )}>
+                        <span className={cn(
+                            "w-1.5 h-1.5 rounded-full",
+                            (campaign.status === 'active' || campaign.status === 'published') && "bg-emerald-500 dark:bg-emerald-400",
+                            campaign.status === 'draft' && "bg-slate-400 dark:bg-slate-500",
+                            campaign.status === 'archived' && "bg-amber-500 dark:bg-amber-400",
+                            campaign.status === 'completed' && "bg-blue-500 dark:bg-blue-400"
+                        )} />
+                        {campaign.status}
+                    </div>
+                </div>
             </div>
         </div>
     );
