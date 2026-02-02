@@ -98,7 +98,19 @@ export async function fetchAPI<T>(endpoint: string, options?: RequestInit, baseU
         throw new APIError(response.status, response.statusText, detail);
     }
 
-    return response.json();
+    // Handle empty responses (e.g., from DELETE requests)
+    const contentLength = response.headers.get('content-length');
+    if (contentLength === '0' || response.status === 204) {
+        return undefined as T;
+    }
+
+    // Try to parse JSON, return undefined if empty
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+        return undefined as T;
+    }
+
+    return JSON.parse(text) as T;
 }
 
 export function buildQueryString(params: Record<string, unknown>): string {

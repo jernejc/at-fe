@@ -199,7 +199,9 @@ export function PartnerTab({ campaignSlug, companies: initialCompanies, onCompan
                 return c;
             }));
 
-            await fetchAllPartnerAssignments(partners);
+            // Don't refetch after successful assignment - the optimistic update is sufficient
+            // Refetching here caused a race condition where the server hadn't processed
+            // the new assignment yet, causing the company to briefly show as "unassigned"
         } catch (error) {
             console.error('Failed to assign company:', error);
             await fetchAllPartnerAssignments(partners);
