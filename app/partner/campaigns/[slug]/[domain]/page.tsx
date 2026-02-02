@@ -34,7 +34,7 @@ import { ProductFitCard } from '@/components/partner/ProductFitCard';
 import { PartnerPlaybookTab } from '@/components/partner/PartnerPlaybookTab';
 import { PartnerStakeholdersTab } from '@/components/partner/PartnerStakeholdersTab';
 import { PartnerSignalsTab } from '@/components/partner/PartnerSignalsTab';
-import { CompanyCRMStatus } from '@/components/partner/analytics';
+// import { CompanyCRMStatus } from '@/components/partner/analytics';
 import { OverviewTab } from '@/components/accounts/detail/OverviewTab';
 import { KeyStakeholderSheet } from '@/components/accounts/detail/KeyStakeholderSheet';
 import { FitBreakdownSheet } from '@/components/accounts/detail/FitBreakdownSheet';
@@ -254,9 +254,9 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
                 )}
 
                 {/* CRM Deal Progress */}
-                <div className="mb-8">
+                {/* <div className="mb-8">
                     <CompanyCRMStatus />
-                </div>
+                </div> */}
 
                 {/* Tabs */}
                 <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-0">

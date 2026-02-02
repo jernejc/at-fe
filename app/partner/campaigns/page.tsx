@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { FilterIcon, Loader2 } from 'lucide-react';
-import { CampaignRow } from '@/components/partner/CampaignRow';
+import { CampaignCard } from '@/components/partner/CampaignCard';
 import { getCampaigns, getCampaignCompanies, getProducts } from '@/lib/api';
 import type { CampaignSummary, MembershipRead, ProductSummary } from '@/lib/schemas';
 
@@ -133,38 +133,29 @@ export default function CampaignsPage() {
             </select>
           </div>
 
-          {/* Table Header */}
-          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            <div className="col-span-4">Campaign</div>
-            <div className="col-span-2">Pipeline Value</div>
-            <div className="col-span-2">Companies</div>
-            <div className="col-span-2">Deadline</div>
-            <div className="col-span-2">Status</div>
-          </div>
-
-          {/* Table Rows */}
-          <div className="space-y-2">
-            {filteredCampaigns.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-                <p className="text-slate-500 dark:text-slate-400">No campaigns match the selected filters.</p>
-              </div>
-            ) : (
-              filteredCampaigns.map(campaign => {
+          {/* Campaign Cards Grid */}
+          {filteredCampaigns.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+              <p className="text-slate-500 dark:text-slate-400">No campaigns match the selected filters.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCampaigns.map(campaign => {
                 const companies = companiesMap.get(campaign.id) || [];
                 const product = campaign.target_product_id ? productLookup.get(campaign.target_product_id) : undefined;
                 return (
-                  <CampaignRow
+                  <CampaignCard
                     key={campaign.id}
                     campaign={campaign}
-                    productName={product?.name || null}
+                    product={product}
                     companies={companies}
                     pipelineValue={computePipelineValue(companies)}
                     newOpportunities={companies.filter(c => newDomains.has(c.domain))}
                   />
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          )}
         </div>
       </div>
     );
