@@ -72,7 +72,8 @@ export async function completeEmailLinkSignIn(
   url: string
 ): Promise<string> {
   const result = await signInWithEmailLink(firebaseAuth, email, url);
-  const idToken = await result.user.getIdToken();
+  // Force token refresh to get custom claims set by backend on initial login
+  const idToken = await result.user.getIdToken(true);
   
   // Clear stored email after successful sign-in
   clearStoredEmail();
