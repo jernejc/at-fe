@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StatCard } from '@/components/partner/StatCard';
 import type { PartnerRead, MembershipRead, CampaignSummary } from '@/lib/schemas';
 
 interface PartnerStats {
@@ -32,6 +33,7 @@ interface PartnerPortalHeaderProps {
     campaigns: CampaignSummary[];
     newOpportunitiesCount: number;
     isPDM?: boolean;
+    hidePartnerInfo?: boolean;
     onCRMConnect?: () => void;
 }
 
@@ -105,6 +107,7 @@ export function PartnerPortalHeader({
     campaigns,
     newOpportunitiesCount,
     isPDM = false,
+    hidePartnerInfo = false,
     onCRMConnect,
 }: PartnerPortalHeaderProps) {
     const stats = useMemo(
@@ -115,6 +118,7 @@ export function PartnerPortalHeader({
     return (
         <div className="space-y-4">
             {/* Partner Info */}
+            {!hidePartnerInfo && (
             <div className="flex items-center gap-3 w-full">
                 <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                     {partner?.logo_url ? (
@@ -132,87 +136,7 @@ export function PartnerPortalHeader({
                     </p>
                 </div>
             </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {/* Accepted Opportunities */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <Building2 className="w-3.5 h-3.5" />
-                        <span>Opportunities</span>
-                    </div>
-                    <div className="text-lg font-bold text-slate-900 dark:text-white">
-                        {stats.totalOpportunities}
-                    </div>
-                </div>
-
-                {/* Pipeline Value */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <DollarSign className="w-3.5 h-3.5" />
-                        <span>Est. Pipeline</span>
-                    </div>
-                    <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                        {formatCurrency(stats.estimatedPipelineValue)}
-                    </div>
-                </div>
-
-                {/* Active Contacts */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <Users className="w-3.5 h-3.5" />
-                        <span>Contacts</span>
-                    </div>
-                    <div className="text-lg font-bold text-slate-900 dark:text-white">
-                        {stats.totalContacts}
-                    </div>
-                </div>
-
-                {/* Avg Fit Score */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <TrendingUp className="w-3.5 h-3.5" />
-                        <span>Avg Fit</span>
-                    </div>
-                    <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                        {stats.avgFitScore}%
-                    </div>
-                </div>
-
-                {/* Active Campaigns */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <Target className="w-3.5 h-3.5" />
-                        <span>Campaigns</span>
-                    </div>
-                    <div className="text-lg font-bold text-slate-900 dark:text-white">
-                        {stats.activeCampaigns}
-                    </div>
-                </div>
-
-                {/* Top Industries */}
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3 col-span-2 md:col-span-1">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-                        <Globe className="w-3.5 h-3.5" />
-                        <span>Top Industries</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                        {stats.topIndustries.length > 0 ? (
-                            stats.topIndustries.slice(0, 2).map((industry, i) => (
-                                <Badge 
-                                    key={i} 
-                                    variant="secondary" 
-                                    className="text-[10px] px-1.5 py-0 truncate max-w-[80px]"
-                                >
-                                    {industry}
-                                </Badge>
-                            ))
-                        ) : (
-                            <span className="text-xs text-slate-400">—</span>
-                        )}
-                    </div>
-                </div>
-            </div>
+            )}
 
             {/* CRM Integration Banner */}
             <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20 rounded-xl border border-indigo-200/50 dark:border-indigo-500/30 p-4">
@@ -237,6 +161,63 @@ export function PartnerPortalHeader({
                         Connect CRM
                         <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
+                </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <StatCard
+                    icon={Building2}
+                    label="Opportunities"
+                    value={stats.totalOpportunities}
+                />
+                <StatCard
+                    icon={DollarSign}
+                    iconBgClass="bg-emerald-50 dark:bg-emerald-900/30"
+                    label="Est. Pipeline"
+                    value={formatCurrency(stats.estimatedPipelineValue)}
+                    valueColorClass="text-emerald-600 dark:text-emerald-400"
+                />
+                <StatCard
+                    icon={Users}
+                    label="Contacts"
+                    value={stats.totalContacts}
+                />
+                <StatCard
+                    icon={TrendingUp}
+                    iconBgClass="bg-indigo-50 dark:bg-indigo-900/30"
+                    label="Avg Fit"
+                    value={`${stats.avgFitScore}%`}
+                    valueColorClass="text-indigo-600 dark:text-indigo-400"
+                />
+                <StatCard
+                    icon={Target}
+                    label="Campaigns"
+                    value={stats.activeCampaigns}
+                />
+                {/* Top Industries - custom layout for badges */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px] col-span-2 md:col-span-1">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
+                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <Globe className="w-3.5 h-3.5" />
+                        </div>
+                        <span>Top Industries</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                        {stats.topIndustries.length > 0 ? (
+                            stats.topIndustries.slice(0, 2).map((industry, i) => (
+                                <Badge
+                                    key={i}
+                                    variant="secondary"
+                                    className="text-xs px-2 py-0.5 truncate max-w-[90px]"
+                                >
+                                    {industry}
+                                </Badge>
+                            ))
+                        ) : (
+                            <span className="text-sm text-slate-400">—</span>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

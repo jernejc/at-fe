@@ -1,17 +1,21 @@
+'use client';
+
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface LogoProps {
     orientation?: 'horizontal' | 'vertical';
 }
 
 export default function Logo({ orientation = 'horizontal' }: LogoProps) {
+    const router = useRouter();
     const isVertical = orientation === 'vertical';
 
     return (
         <div
             className={`flex items-center gap-3 shrink-0 transition-opacity cursor-pointer text-slate-800 dark:text-slate-100 ${isVertical ? 'flex-col gap-4' : 'flex-row'
                 }`}
-            onClick={() => window.location.href = '/'}
+            onClick={() => router.push('/')}
         >
             <div className={`flex items-center justify-center ${isVertical ? 'w-15 h-15' : 'w-8 h-8'
                 }`}>

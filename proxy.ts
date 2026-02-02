@@ -6,7 +6,7 @@ import type { NextRequest } from "next/server";
 const publicRoutes = ["/signin", "/api/auth"];
 
 // Routes that require specific roles
-const pdmOnlyRoutes = ["/partner-portal"];
+const pdmOnlyRoutes: string[] = [];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

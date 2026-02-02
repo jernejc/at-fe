@@ -25,6 +25,9 @@ export interface CompanyRowCompactProps {
     rank?: number;
     fitScore?: number | null;
     signals?: WSTopInterest[];
+    revenue?: string | null;
+    status?: 'active' | 'completed' | string | null;
+    isNew?: boolean;
     onClick?: () => void;
     className?: string;
     variant?: 'compact' | 'card';
@@ -47,6 +50,9 @@ export function CompanyRowCompact({
     rank,
     fitScore,
     signals,
+    revenue,
+    status,
+    isNew,
     onClick,
     className,
     variant = 'compact',
@@ -94,6 +100,14 @@ export function CompanyRowCompact({
         return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
     };
 
+    const getStatusStyle = (statusValue: string | null | undefined) => {
+        if (!statusValue) return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
+        const s = statusValue.toLowerCase();
+        if (s === 'active') return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
+        if (s === 'completed') return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
+    };
+
     const fitScorePercent = fitScore != null ? Math.round(fitScore * 100) : null;
     const formattedActivity = formatLastActivity(lastActivity);
 
@@ -102,10 +116,11 @@ export function CompanyRowCompact({
         const StatusIcon = statusConfig?.icon;
 
         return (
-            <button
+            <div
                 onClick={onClick}
                 className={cn(
-                    "w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all text-left group",
+                    "w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-all text-left group",
+                    onClick && "cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md",
                     className
                 )}
             >
@@ -186,16 +201,15 @@ export function CompanyRowCompact({
                         <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all" />
                     </div>
                 </div>
-            </button>
+            </div>
         );
     }
 
     return (
         <div className={cn(
             "group px-4 py-3 transition-colors",
-            "hover:bg-slate-50 dark:hover:bg-slate-800/50",
             "border-b border-slate-100 dark:border-slate-800 last:border-0",
-            onClick && "cursor-pointer",
+            onClick && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50",
             className
         )} onClick={onClick}>
             <div
@@ -205,6 +219,12 @@ export function CompanyRowCompact({
                     <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs shrink-0">
                         {rank}
                     </div>
+                )}
+
+                {isNew && (
+                    <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-600 shrink-0">
+                        NEW
+                    </span>
                 )}
 
                 <div className="shrink-0">
@@ -252,6 +272,21 @@ export function CompanyRowCompact({
                             </span>
                         )}
                     </div>
+                )}
+
+                {revenue && (
+                    <span className="hidden sm:inline-flex text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
+                        {revenue}
+                    </span>
+                )}
+
+                {status && (
+                    <span className={cn(
+                        "hidden sm:inline-flex px-2 py-0.5 rounded text-xs font-medium capitalize shrink-0",
+                        getStatusStyle(status)
+                    )}>
+                        {status}
+                    </span>
                 )}
 
                 {segment && (
