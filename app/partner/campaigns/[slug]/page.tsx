@@ -322,10 +322,10 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                         value={
                             <div className='flex items-center'>
                                 <img
-                                    src={`https://www.google.com/s2/favicons?domain=${campaign.owner || 'google.com'}&sz=64`}
+                                    src={`https://www.google.com/s2/favicons?domain=${campaign.owner || 'cloud.google.com'}&sz=64`}
                                     className="w-10 h-10 object-contain"
                                 />
-                                <span className="text-base font-bold truncate">{campaign.owner || 'google.com'}</span>
+                                <span className="text-base font-bold truncate">{campaign.owner || 'cloud.google.com'}</span>
                             </div>
                         }
                     />

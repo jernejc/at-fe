@@ -49,7 +49,7 @@ export function CampaignRow({ campaign, productName, companies, pipelineValue, n
                 <div className="col-span-4 min-w-0 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
                         <img
-                            src={`https://www.google.com/s2/favicons?domain=${campaign.owner || 'google.com'}&sz=64`}
+                            src={`https://www.google.com/s2/favicons?domain=${campaign.owner || 'cloud.google.com'}&sz=64`}
                             className="w-5 h-5 object-contain"
                         />
                     </div>
