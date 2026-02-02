@@ -116,10 +116,11 @@ export function CompanyRowCompact({
         const StatusIcon = statusConfig?.icon;
 
         return (
-            <button
+            <div
                 onClick={onClick}
                 className={cn(
-                    "w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all text-left group",
+                    "w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-all text-left group",
+                    onClick && "cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md",
                     className
                 )}
             >
@@ -200,16 +201,15 @@ export function CompanyRowCompact({
                         <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all" />
                     </div>
                 </div>
-            </button>
+            </div>
         );
     }
 
     return (
         <div className={cn(
             "group px-4 py-3 transition-colors",
-            "hover:bg-slate-50 dark:hover:bg-slate-800/50",
             "border-b border-slate-100 dark:border-slate-800 last:border-0",
-            onClick && "cursor-pointer",
+            onClick && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50",
             className
         )} onClick={onClick}>
             <div

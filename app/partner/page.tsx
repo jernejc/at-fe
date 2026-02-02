@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 import { PartnerPortalHeader } from '@/components/partner/PartnerPortalHeader';
+import { NewOpportunitiesSection } from '@/components/partner/NewOpportunitiesSection';
 import { DashboardCRMAnalytics } from '@/components/partner/analytics';
 import { getCampaigns, getCampaignCompanies } from '@/lib/api';
 import type { CampaignSummary, MembershipRead } from '@/lib/schemas';
@@ -76,6 +77,11 @@ export default function PartnerPage() {
               }}
             />
           </div>
+        </div>
+
+        {/* New Opportunities Section */}
+        <div className="px-6 py-6 max-w-[1600px] mx-auto w-full">
+          <NewOpportunitiesSection campaigns={campaigns} companiesMap={companiesMap} />
         </div>
 
         {/* CRM Analytics Section */}

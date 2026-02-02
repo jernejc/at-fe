@@ -6,6 +6,7 @@ import { FilterIcon, Loader2 } from 'lucide-react';
 import { CampaignCard } from '@/components/partner/CampaignCard';
 import { getCampaigns, getCampaignCompanies, getProducts } from '@/lib/api';
 import type { CampaignSummary, MembershipRead, ProductSummary } from '@/lib/schemas';
+import { isNewOpportunity } from '@/lib/utils';
 
 export default function CampaignsPage() {
     const { status: sessionStatus } = useSession();
@@ -57,22 +58,9 @@ export default function CampaignsPage() {
         return map;
     }, [products]);
 
-    const newDomains = useMemo(() => {
-        const seen = new Set<string>();
-        const result = new Set<string>();
-        let count = 0;
-        const allOpps = Array.from(companiesMap.values()).flat();
-        for (const opp of allOpps) {
-            if (!seen.has(opp.domain)) {
-                seen.add(opp.domain);
-                if (count < 5) {
-                    result.add(opp.domain);
-                    count++;
-                }
-            }
-        }
-        return result;
-    }, [companiesMap]);
+    const getNewOpportunities = (companies: MembershipRead[]): MembershipRead[] => {
+        return companies.filter(c => isNewOpportunity(c.created_at));
+    };
 
     const uniqueStatuses = useMemo(() => {
         return Array.from(new Set(campaigns.map(c => c.status)));
@@ -150,7 +138,7 @@ export default function CampaignsPage() {
                     product={product}
                     companies={companies}
                     pipelineValue={computePipelineValue(companies)}
-                    newOpportunities={companies.filter(c => newDomains.has(c.domain))}
+                    newOpportunities={getNewOpportunities(companies)}
                   />
                 );
               })}

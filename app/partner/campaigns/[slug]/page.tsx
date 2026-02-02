@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import { cn, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
+import { cn, getProductBadgeTheme, getProductTextColor, isNewOpportunity } from '@/lib/utils';
 import { CampaignCRMAnalytics } from '@/components/partner/analytics';
 import {
     getCampaign,
@@ -48,11 +48,6 @@ function estimateRevenueValue(employeeCount: number | null): number {
     if (employees > 1000) return 150000;
     if (employees > 100) return 50000;
     return 15000;
-}
-
-function isNew(createdAt: string): boolean {
-    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return new Date(createdAt).getTime() > sevenDaysAgo;
 }
 
 type SortColumn = 'company_name' | 'revenue' | 'company_industry' | 'company_employee_count' | 'company_hq_country' | 'status' | 'created_at';
@@ -133,7 +128,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                         notes: null,
                         assigned_at: new Date().toISOString(),
                         assigned_by: 'system',
-                        created_at: new Date().toISOString(),
+                        created_at: company.created_at,
                         updated_at: new Date().toISOString(),
                         company_domain: company.domain,
                         company_name: company.company_name,
@@ -349,7 +344,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                                     hqCountry={company.company_hq_country}
                                     revenue={estimateRevenue(company.company_employee_count)}
                                     status={company.status}
-                                    isNew={isNew(company.created_at)}
+                                    isNew={isNewOpportunity(company.created_at)}
                                     onClick={() => router.push(`/partner/campaigns/${slug}/${company.company_domain}`)}
                                 />
                             ))}
