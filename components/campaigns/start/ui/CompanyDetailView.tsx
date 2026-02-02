@@ -166,6 +166,18 @@ export function CompanyDetailView({
                     <CompanyDetailSkeleton />
                 ) : (
                     <div className="p-7 space-y-6">
+                        {/* Product Fit */}
+                        {explainability?.fits_summary && explainability.fits_summary.length > 0 && (
+                            <section>
+                                <SectionHeader title="Product Fit" count={explainability.fits_summary.length} color="bg-emerald-600" />
+                                <div className="space-y-3">
+                                    {explainability.fits_summary.map((fit) => (
+                                        <ProductFitCard key={fit.product_id} fit={fit} />
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
                         {/* Signal Intelligence */}
                         {explainability?.signals_summary && (
                             (explainability.signals_summary.interests?.length > 0 || explainability.signals_summary.events?.length > 0) && (
@@ -233,18 +245,6 @@ export function CompanyDetailView({
                                         >
                                             {specialty}
                                         </Badge>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Product Fit */}
-                        {explainability?.fits_summary && explainability.fits_summary.length > 0 && (
-                            <section>
-                                <SectionHeader title="Product Fit" count={explainability.fits_summary.length} color="bg-emerald-600" />
-                                <div className="space-y-3">
-                                    {explainability.fits_summary.map((fit) => (
-                                        <ProductFitCard key={fit.product_id} fit={fit} />
                                     ))}
                                 </div>
                             </section>

@@ -213,7 +213,7 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
                         </div>
 
                         {/* Companies list */}
-                        <ScrollArea className="flex-1">
+                        <ScrollArea className="flex-1 min-h-0">
                             {isLoading && companies.length === 0 ? (
                                 // Skeleton loaders while searching
                                 <div className="p-2 space-y-2">
