@@ -1,34 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Header } from "@/components/ui/Header";
 import { CampaignsList } from "@/components/campaigns/CampaignsList";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!session) {
-      router.replace("/signin");
-      return;
-    }
-
-    const role = (session.user as any).role;
-
-    if (role === "partner") {
-      router.replace("/partner");
-    }
-  }, [session, status, router]);
-
-  if (status === "loading") {
-    return null;
-  }
-
-  if (!session || session.user?.role === 'partner') {
+  // Show nothing while loading or if user shouldn't be here (middleware handles redirects)
+  if (status === "loading" || !session || session.user?.role === 'partner') {
     return null;
   }
 

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AccountList, AccountDetail } from '@/components/accounts';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 // Unified account type for display (matches AccountList)
 interface AccountItem {
@@ -29,25 +28,14 @@ export default function DiscoveryPage() {
   const [selectedAccount, setSelectedAccount] = useState<AccountItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const { data: session, status } = useSession();
-  const router = useRouter();
 
   const handleAccountClick = (account: AccountItem) => {
     setSelectedAccount(account);
     setDetailOpen(true);
   };
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!session) {
-      router.replace("/signin");
-    }
-  }, [session, status, router]);
-
-  if (status === "loading") {
-    return null;
-  }
-
-  if (!session) {
+  // Show nothing while loading or if not authenticated (middleware handles redirects)
+  if (status === "loading" || !session) {
     return null;
   }
 
