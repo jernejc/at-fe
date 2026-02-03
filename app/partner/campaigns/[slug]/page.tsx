@@ -50,16 +50,16 @@ function estimateRevenueValue(employeeCount: number | null): number {
     return 15000;
 }
 
-type SortColumn = 'company_name' | 'revenue' | 'company_industry' | 'company_employee_count' | 'company_hq_country' | 'status' | 'created_at';
+type SortColumn = 'name' | 'revenue' | 'industry' | 'employee_count' | 'hq_country' | 'status' | 'assigned_at';
 
 const SORT_COLUMN_LABELS: Record<SortColumn, string> = {
-    company_name: 'Company Name',
+    name: 'Company Name',
     revenue: 'Expected Revenue',
-    company_industry: 'Industry',
-    company_employee_count: 'Size',
-    company_hq_country: 'Location',
+    industry: 'Industry',
+    employee_count: 'Size',
+    hq_country: 'Location',
     status: 'Status',
-    created_at: 'Date Added',
+    assigned_at: 'Date Added',
 };
 
 const SORT_DIRECTION_LABELS: Record<'asc' | 'desc', string> = {
@@ -77,7 +77,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const [product, setProduct] = useState<{ id: number; name: string } | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const [sortColumn, setSortColumn] = useState<SortColumn>('created_at');
+    const [sortColumn, setSortColumn] = useState<SortColumn>('assigned_at');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [exporting, setExporting] = useState(false);
 
@@ -128,16 +128,23 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                         notes: null,
                         assigned_at: new Date().toISOString(),
                         assigned_by: 'system',
-                        created_at: company.created_at,
-                        updated_at: new Date().toISOString(),
-                        company_domain: company.domain,
-                        company_name: company.company_name,
-                        company_industry: company.industry,
-                        company_employee_count: company.employee_count,
-                        company_hq_country: company.hq_country,
-                        company_logo_url: company.logo_base64
-                            ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
-                            : null,
+                        company: {
+                            id: company.company_id,
+                            domain: company.domain,
+                            name: company.company_name || company.domain,
+                            industry: company.industry,
+                            employee_count: company.employee_count,
+                            hq_city: null,
+                            hq_country: company.hq_country,
+                            linkedin_id: null,
+                            rating_overall: null,
+                            logo_url: null,
+                            logo_base64: company.logo_base64 ?? null,
+                            data_sources: [],
+                            data_depth: 'preview' as const,
+                            top_contact: null,
+                            updated_at: new Date().toISOString(),
+                        },
                     }));
                 }
 
@@ -175,33 +182,33 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
             let bVal: string | number = '';
 
             switch (sortColumn) {
-                case 'company_name':
-                    aVal = (a.company_name || '').toLowerCase();
-                    bVal = (b.company_name || '').toLowerCase();
+                case 'name':
+                    aVal = (a.company.name || '').toLowerCase();
+                    bVal = (b.company.name || '').toLowerCase();
                     break;
                 case 'revenue':
-                    aVal = estimateRevenueValue(a.company_employee_count);
-                    bVal = estimateRevenueValue(b.company_employee_count);
+                    aVal = estimateRevenueValue(a.company.employee_count);
+                    bVal = estimateRevenueValue(b.company.employee_count);
                     break;
-                case 'company_industry':
-                    aVal = (a.company_industry || '').toLowerCase();
-                    bVal = (b.company_industry || '').toLowerCase();
+                case 'industry':
+                    aVal = (a.company.industry || '').toLowerCase();
+                    bVal = (b.company.industry || '').toLowerCase();
                     break;
-                case 'company_employee_count':
-                    aVal = a.company_employee_count || 0;
-                    bVal = b.company_employee_count || 0;
+                case 'employee_count':
+                    aVal = a.company.employee_count || 0;
+                    bVal = b.company.employee_count || 0;
                     break;
-                case 'company_hq_country':
-                    aVal = (a.company_hq_country || '').toLowerCase();
-                    bVal = (b.company_hq_country || '').toLowerCase();
+                case 'hq_country':
+                    aVal = (a.company.hq_country || '').toLowerCase();
+                    bVal = (b.company.hq_country || '').toLowerCase();
                     break;
                 case 'status':
                     aVal = (a.status || '').toLowerCase();
                     bVal = (b.status || '').toLowerCase();
                     break;
-                case 'created_at':
-                    aVal = new Date(a.created_at).getTime();
-                    bVal = new Date(b.created_at).getTime();
+                case 'assigned_at':
+                    aVal = new Date(a.assigned_at).getTime();
+                    bVal = new Date(b.assigned_at).getTime();
                     break;
             }
 
@@ -301,13 +308,13 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                                         <span>{SORT_COLUMN_LABELS[sortColumn]}</span>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="company_name">Company Name</SelectItem>
+                                        <SelectItem value="name">Company Name</SelectItem>
                                         <SelectItem value="revenue">Expected Revenue</SelectItem>
-                                        <SelectItem value="company_industry">Industry</SelectItem>
-                                        <SelectItem value="company_employee_count">Size</SelectItem>
-                                        <SelectItem value="company_hq_country">Location</SelectItem>
+                                        <SelectItem value="industry">Industry</SelectItem>
+                                        <SelectItem value="employee_count">Size</SelectItem>
+                                        <SelectItem value="hq_country">Location</SelectItem>
                                         <SelectItem value="status">Status</SelectItem>
-                                        <SelectItem value="created_at">Date Added</SelectItem>
+                                        <SelectItem value="assigned_at">Date Added</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -333,19 +340,19 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                         </div>
                     ) : (
                         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                            {sortedCompanies.map((company) => (
+                            {sortedCompanies.map((assignment) => (
                                 <CompanyRowCompact
-                                    key={company.id}
-                                    logoUrl={company.company_logo_url}
-                                    name={company.company_name || 'Unknown Company'}
-                                    domain={company.company_domain}
-                                    industry={company.company_industry}
-                                    employeeCount={company.company_employee_count}
-                                    hqCountry={company.company_hq_country}
-                                    revenue={estimateRevenue(company.company_employee_count)}
-                                    status={company.status}
-                                    isNew={isNewOpportunity(company)}
-                                    onClick={() => router.push(`/partner/campaigns/${slug}/${company.company_domain}`)}
+                                    key={assignment.id}
+                                    logoUrl={assignment.company.logo_url || (assignment.company.logo_base64 ? `data:image/png;base64,${assignment.company.logo_base64}` : null)}
+                                    name={assignment.company.name || 'Unknown Company'}
+                                    domain={assignment.company.domain}
+                                    industry={assignment.company.industry}
+                                    employeeCount={assignment.company.employee_count}
+                                    hqCountry={assignment.company.hq_country}
+                                    revenue={estimateRevenue(assignment.company.employee_count)}
+                                    status={assignment.status}
+                                    isNew={isNewOpportunity(assignment)}
+                                    onClick={() => router.push(`/partner/campaigns/${slug}/${assignment.company.domain}`)}
                                 />
                             ))}
                         </div>

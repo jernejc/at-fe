@@ -120,7 +120,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                     const companiesResponse = await getCampaignCompanies(slug, { page_size: 100 });
 
                     // Map MembershipRead to PartnerCompanyAssignmentWithCompany
-                    assignments = companiesResponse.items.map((company, index) => ({
+                    assignments = companiesResponse.items.map((company) => ({
                         id: company.company_id, // Use company_id as mock assignment ID
                         campaign_partner_id: 0,
                         company_id: company.company_id,
@@ -128,16 +128,23 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                         notes: null,
                         assigned_at: new Date().toISOString(),
                         assigned_by: 'system',
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                        company_domain: company.domain,
-                        company_name: company.company_name,
-                        company_industry: company.industry,
-                        company_employee_count: company.employee_count,
-                        company_hq_country: company.hq_country,
-                        company_logo_url: company.logo_base64
-                            ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
-                            : null,
+                        company: {
+                            id: company.company_id,
+                            domain: company.domain,
+                            name: company.company_name || company.domain,
+                            industry: company.industry,
+                            employee_count: company.employee_count,
+                            hq_city: null,
+                            hq_country: company.hq_country,
+                            linkedin_id: null,
+                            rating_overall: null,
+                            logo_url: null,
+                            logo_base64: company.logo_base64 ?? null,
+                            data_sources: [],
+                            data_depth: 'preview' as const,
+                            top_contact: null,
+                            updated_at: new Date().toISOString(),
+                        },
                     }));
                 }
 
@@ -178,9 +185,9 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const filteredOpportunities = useMemo(() => {
         return opportunities.filter(opp => {
             const matchesSearch = !searchQuery ||
-                opp.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                opp.company_domain?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                opp.company_industry?.toLowerCase().includes(searchQuery.toLowerCase());
+                opp.company.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                opp.company.domain?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                opp.company.industry?.toLowerCase().includes(searchQuery.toLowerCase());
 
             const matchesStatus = statusFilter === 'all' || opp.outreach_status === statusFilter;
 
@@ -390,20 +397,21 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                                 {filteredOpportunities.map((opp) => {
                                     const statusConfig = STATUS_CONFIG[opp.outreach_status];
                                     const StatusIcon = statusConfig.icon;
+                                    const logoUrl = opp.company.logo_url || (opp.company.logo_base64 ? `data:image/png;base64,${opp.company.logo_base64}` : null);
 
                                     return (
                                         <button
                                             key={opp.id}
-                                            onClick={() => handleOpportunityClick(opp.company_domain)}
+                                            onClick={() => handleOpportunityClick(opp.company.domain)}
                                             className="w-full grid grid-cols-12 gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group"
                                         >
                                             {/* Company */}
                                             <div className="col-span-4 flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden">
-                                                    {opp.company_logo_url ? (
+                                                    {logoUrl ? (
                                                         <img
-                                                            src={opp.company_logo_url}
-                                                            alt={opp.company_name || ''}
+                                                            src={logoUrl}
+                                                            alt={opp.company.name || ''}
                                                             className="w-6 h-6 object-contain"
                                                         />
                                                     ) : (
@@ -412,10 +420,10 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-medium text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                                        {opp.company_name || opp.company_domain}
+                                                        {opp.company.name || opp.company.domain}
                                                     </p>
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                                        {opp.company_domain}
+                                                        {opp.company.domain}
                                                     </p>
                                                 </div>
                                             </div>
@@ -423,21 +431,21 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                                             {/* Industry */}
                                             <div className="col-span-2 flex items-center">
                                                 <span className="text-sm text-slate-600 dark:text-slate-300 truncate">
-                                                    {opp.company_industry || '-'}
+                                                    {opp.company.industry || '-'}
                                                 </span>
                                             </div>
 
                                             {/* Size */}
                                             <div className="col-span-1 flex items-center justify-end">
                                                 <span className="text-sm text-slate-600 dark:text-slate-300 tabular-nums">
-                                                    {opp.company_employee_count?.toLocaleString() || '-'}
+                                                    {opp.company.employee_count?.toLocaleString() || '-'}
                                                 </span>
                                             </div>
 
                                             {/* Location */}
                                             <div className="col-span-2 flex items-center">
                                                 <span className="text-sm text-slate-600 dark:text-slate-300 truncate">
-                                                    {opp.company_hq_country || '-'}
+                                                    {opp.company.hq_country || '-'}
                                                 </span>
                                             </div>
 

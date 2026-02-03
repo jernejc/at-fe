@@ -60,12 +60,12 @@ export function NewOpportunitiesSection({
 
                         {/* Company Rows */}
                         <div className="space-y-1 -mx-4 px-0">
-                            {newCompanies.slice(0, 3).map(company => (
+                            {newCompanies.slice(0, 3).map(assignment => (
                                 <CompanyRowCompact
-                                    key={company.id}
-                                    name={company.company_name || company.company_domain}
-                                    domain={company.company_domain}
-                                    logoUrl={company.company_logo_url}
+                                    key={assignment.id}
+                                    name={assignment.company.name || assignment.company.domain}
+                                    domain={assignment.company.domain}
+                                    logoUrl={assignment.company.logo_url || (assignment.company.logo_base64 ? `data:image/png;base64,${assignment.company.logo_base64}` : null)}
                                     isNew={true}
                                 />
                             ))}

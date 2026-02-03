@@ -48,8 +48,8 @@ function calculateStats(
     // Calculate top industries from actual data
     const industryCounts = new Map<string, number>();
     opportunities.forEach(o => {
-        if (o.company_industry) {
-            industryCounts.set(o.company_industry, (industryCounts.get(o.company_industry) || 0) + 1);
+        if (o.company.industry) {
+            industryCounts.set(o.company.industry, (industryCounts.get(o.company.industry) || 0) + 1);
         }
     });
     const topIndustries = Array.from(industryCounts.entries())
@@ -60,7 +60,7 @@ function calculateStats(
     // Estimate pipeline value based on employee count tiers
     // Simple heuristic: larger companies = higher deal values
     const estimatedPipelineValue = opportunities.reduce((sum, o) => {
-        const employees = o.company_employee_count || 0;
+        const employees = o.company.employee_count || 0;
         if (employees > 10000) return sum + 500000;
         if (employees > 1000) return sum + 150000;
         if (employees > 100) return sum + 50000;

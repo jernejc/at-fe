@@ -24,7 +24,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const isPartner = token.role === "partner";
-  const isPartnerRoute = pathname.startsWith("/partner");
+  const isPartnerRoute = pathname.startsWith("/partner") && !pathname.startsWith("/partner-portal");
 
   // Partners can only access /partner routes
   if (isPartner && !isPartnerRoute) {

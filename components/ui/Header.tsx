@@ -112,17 +112,6 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
-
-              {/* Partner Logo - Square with small border radius */}
-              {partner?.logo_url && (
-                <div className="h-8 w-8 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 flex items-center justify-center">
-                  <img
-                    src={partner.logo_url}
-                    alt={partner.name}
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
             </button>
 
             {/* Dropdown Menu */}

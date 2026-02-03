@@ -83,7 +83,7 @@ export default function CampaignsPage() {
 
     function computePipelineValue(companies: PartnerCompanyAssignmentWithCompany[]): number {
         return companies.reduce((sum, o) => {
-            const employees = o.company_employee_count || 0;
+            const employees = o.company.employee_count || 0;
             if (employees > 10000) return sum + 500000;
             if (employees > 1000) return sum + 150000;
             if (employees > 100) return sum + 50000;

@@ -1,5 +1,7 @@
 // Partner-related TypeScript schemas (matching backend API)
 
+import type { CompanySummary, DataDepth } from './company';
+
 export interface PartnerSummary {
     id: number;
     name: string;
@@ -108,13 +110,15 @@ export interface PartnerCompanyAssignmentUpdate {
 }
 
 // Includes company details when listing partner's assigned companies
-export interface PartnerCompanyAssignmentWithCompany extends PartnerCompanyAssignmentRead {
-    company_domain: string;
-    company_name: string | null;
-    company_industry: string | null;
-    company_employee_count: number | null;
-    company_hq_country: string | null;
-    company_logo_url: string | null;
+export interface PartnerCompanyAssignmentWithCompany {
+    id: number;
+    campaign_partner_id: number;
+    company_id: number;
+    status: string | null;
+    notes: string | null;
+    assigned_at: string;
+    assigned_by: string | null;
+    company: CompanySummary & { data_depth: DataDepth };
 }
 
 // Includes partner details when listing company's assigned partners
