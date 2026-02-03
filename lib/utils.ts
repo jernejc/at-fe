@@ -17,10 +17,10 @@ export function formatCompactNumber(num: number): string {
 /**
  * Check if a date is within the last 7 days (used for "new" opportunity badges)
  */
-export function isNewOpportunity(createdAt: string): boolean {
+export function isNewOpportunity(company: { assigned_at: string }): boolean {
   const days = 7;
   const daysAgo = Date.now() - days * 24 * 60 * 60 * 1000;
-  return new Date(createdAt).getTime() > daysAgo;
+  return new Date(company.assigned_at).getTime() > daysAgo;
 }
 
 /**

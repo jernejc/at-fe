@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatCard } from '@/components/partner/StatCard';
-import type { PartnerRead, MembershipRead, CampaignSummary } from '@/lib/schemas';
+import type { PartnerRead, PartnerCompanyAssignmentWithCompany, CampaignSummary } from '@/lib/schemas';
 
 interface PartnerStats {
     totalOpportunities: number;
@@ -29,7 +29,7 @@ interface PartnerStats {
 interface PartnerPortalHeaderProps {
     partner: PartnerRead | null;
     partnerName?: string;
-    opportunities: MembershipRead[];
+    opportunities: PartnerCompanyAssignmentWithCompany[];
     campaigns: CampaignSummary[];
     newOpportunitiesCount: number;
     isPDM?: boolean;
@@ -41,21 +41,15 @@ interface PartnerPortalHeaderProps {
  * Calculates real stats from opportunity data
  */
 function calculateStats(
-    opportunities: MembershipRead[],
+    opportunities: PartnerCompanyAssignmentWithCompany[],
     campaigns: CampaignSummary[],
     newOpportunitiesCount: number
 ): PartnerStats {
-    // Calculate average fit score from actual data
-    const scoresWithValues = opportunities.filter(o => o.cached_fit_score != null);
-    const avgFitScore = scoresWithValues.length > 0
-        ? Math.round(scoresWithValues.reduce((sum, o) => sum + (o.cached_fit_score || 0), 0) / scoresWithValues.length)
-        : 0;
-
     // Calculate top industries from actual data
     const industryCounts = new Map<string, number>();
     opportunities.forEach(o => {
-        if (o.industry) {
-            industryCounts.set(o.industry, (industryCounts.get(o.industry) || 0) + 1);
+        if (o.company_industry) {
+            industryCounts.set(o.company_industry, (industryCounts.get(o.company_industry) || 0) + 1);
         }
     });
     const topIndustries = Array.from(industryCounts.entries())
@@ -66,7 +60,7 @@ function calculateStats(
     // Estimate pipeline value based on employee count tiers
     // Simple heuristic: larger companies = higher deal values
     const estimatedPipelineValue = opportunities.reduce((sum, o) => {
-        const employees = o.employee_count || 0;
+        const employees = o.company_employee_count || 0;
         if (employees > 10000) return sum + 500000;
         if (employees > 1000) return sum + 150000;
         if (employees > 100) return sum + 50000;
@@ -80,7 +74,7 @@ function calculateStats(
         totalOpportunities: opportunities.length - newOpportunitiesCount,
         newOpportunities: newOpportunitiesCount,
         activeCampaigns: campaigns.length,
-        avgFitScore,
+        avgFitScore: 0, // Not available in partner assignments
         topIndustries,
         estimatedPipelineValue,
         totalContacts,

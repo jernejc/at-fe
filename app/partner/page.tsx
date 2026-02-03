@@ -6,32 +6,39 @@ import { Loader2 } from 'lucide-react';
 import { PartnerPortalHeader } from '@/components/partner/PartnerPortalHeader';
 import { NewOpportunitiesSection } from '@/components/partner/NewOpportunitiesSection';
 import { DashboardCRMAnalytics } from '@/components/partner/analytics';
-import { getCampaigns, getCampaignCompanies } from '@/lib/api';
-import type { CampaignSummary, MembershipRead } from '@/lib/schemas';
+import { getCampaigns, getPartnerAssignedCompanies } from '@/lib/api';
+import type { CampaignSummary, PartnerCompanyAssignmentWithCompany } from '@/lib/schemas';
 import { useRouter } from 'next/navigation';
 
 export default function PartnerPage() {
     const router = useRouter();
-    const { status: sessionStatus } = useSession();
+    const { data: session, status: sessionStatus } = useSession();
 
     const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
-    const [companiesMap, setCompaniesMap] = useState<Map<number, MembershipRead[]>>(new Map());
+    const [companiesMap, setCompaniesMap] = useState<Map<number, PartnerCompanyAssignmentWithCompany[]>>(new Map());
     const [loading, setLoading] = useState(true);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const partnerId = (session?.user as any)?.partner_id as number | undefined;
 
     useEffect(() => {
         async function fetchData() {
             if (sessionStatus === 'loading') return;
+            if (!partnerId) {
+                setLoading(false);
+                return;
+            }
             try {
                 setLoading(true);
 
                 const campaignsRes = await getCampaigns();
                 setCampaigns(campaignsRes.items);
 
-                const cMap = new Map<number, MembershipRead[]>();
+                const cMap = new Map<number, PartnerCompanyAssignmentWithCompany[]>();
                 for (const campaign of campaignsRes.items) {
                     try {
-                        const res = await getCampaignCompanies(campaign.slug, { page_size: 100 });
-                        cMap.set(campaign.id, res.items);
+                        const companies = await getPartnerAssignedCompanies(campaign.slug, partnerId);
+                        cMap.set(campaign.id, companies);
                     } catch (e) {
                         console.error(`Failed to fetch companies for ${campaign.slug}:`, e);
                         cMap.set(campaign.id, []);
@@ -45,10 +52,10 @@ export default function PartnerPage() {
             }
         }
         fetchData();
-    }, [sessionStatus]);
+    }, [sessionStatus, partnerId]);
 
     const allOpportunities = useMemo(() => {
-        const all: MembershipRead[] = [];
+        const all: PartnerCompanyAssignmentWithCompany[] = [];
         companiesMap.forEach(companies => all.push(...companies));
         return all;
     }, [companiesMap]);

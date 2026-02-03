@@ -4,23 +4,30 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { FilterIcon, Loader2 } from 'lucide-react';
 import { CampaignCard } from '@/components/partner/CampaignCard';
-import { getCampaigns, getCampaignCompanies, getProducts } from '@/lib/api';
-import type { CampaignSummary, MembershipRead, ProductSummary } from '@/lib/schemas';
+import { getCampaigns, getPartnerAssignedCompanies, getProducts } from '@/lib/api';
+import type { CampaignSummary, PartnerCompanyAssignmentWithCompany, ProductSummary } from '@/lib/schemas';
 import { isNewOpportunity } from '@/lib/utils';
 
 export default function CampaignsPage() {
-    const { status: sessionStatus } = useSession();
+    const { data: session, status: sessionStatus } = useSession();
 
     const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
     const [products, setProducts] = useState<ProductSummary[]>([]);
-    const [companiesMap, setCompaniesMap] = useState<Map<number, MembershipRead[]>>(new Map());
+    const [companiesMap, setCompaniesMap] = useState<Map<number, PartnerCompanyAssignmentWithCompany[]>>(new Map());
     const [loading, setLoading] = useState(true);
     const [productFilter, setProductFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const partnerId = (session?.user as any)?.partner_id as number | undefined;
+
     useEffect(() => {
         async function fetchData() {
             if (sessionStatus === 'loading') return;
+            if (!partnerId) {
+                setLoading(false);
+                return;
+            }
             try {
                 setLoading(true);
 
@@ -32,11 +39,11 @@ export default function CampaignsPage() {
                 setCampaigns(campaignsRes.items);
                 setProducts(productsRes.items);
 
-                const cMap = new Map<number, MembershipRead[]>();
+                const cMap = new Map<number, PartnerCompanyAssignmentWithCompany[]>();
                 for (const campaign of campaignsRes.items) {
                     try {
-                        const res = await getCampaignCompanies(campaign.slug, { page_size: 100 });
-                        cMap.set(campaign.id, res.items);
+                        const companies = await getPartnerAssignedCompanies(campaign.slug, partnerId);
+                        cMap.set(campaign.id, companies);
                     } catch (e) {
                         console.error(`Failed to fetch companies for ${campaign.slug}:`, e);
                         cMap.set(campaign.id, []);
@@ -50,7 +57,7 @@ export default function CampaignsPage() {
             }
         }
         fetchData();
-    }, [sessionStatus]);
+    }, [sessionStatus, partnerId]);
 
     const productLookup = useMemo(() => {
         const map = new Map<number, ProductSummary>();
@@ -58,8 +65,8 @@ export default function CampaignsPage() {
         return map;
     }, [products]);
 
-    const getNewOpportunities = (companies: MembershipRead[]): MembershipRead[] => {
-        return companies.filter(c => isNewOpportunity(c.created_at));
+    const getNewOpportunities = (companies: PartnerCompanyAssignmentWithCompany[]): PartnerCompanyAssignmentWithCompany[] => {
+        return companies.filter(c => isNewOpportunity(c));
     };
 
     const uniqueStatuses = useMemo(() => {
@@ -74,9 +81,9 @@ export default function CampaignsPage() {
         });
     }, [campaigns, productFilter, statusFilter]);
 
-    function computePipelineValue(companies: MembershipRead[]): number {
+    function computePipelineValue(companies: PartnerCompanyAssignmentWithCompany[]): number {
         return companies.reduce((sum, o) => {
-            const employees = o.employee_count || 0;
+            const employees = o.company_employee_count || 0;
             if (employees > 10000) return sum + 500000;
             if (employees > 1000) return sum + 150000;
             if (employees > 100) return sum + 50000;

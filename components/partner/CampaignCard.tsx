@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { cn, formatCompactNumber, formatRelativeDate, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
-import type { CampaignSummary, MembershipRead } from '@/lib/schemas';
+import type { CampaignSummary, PartnerCompanyAssignmentWithCompany } from '@/lib/schemas';
 import type { ProductSummary } from '@/lib/schemas/product';
 import { Clock, Package, DollarSign, Building2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -10,9 +10,9 @@ import { Progress } from '@/components/ui/progress';
 interface CampaignCardProps {
     campaign: CampaignSummary;
     product?: ProductSummary | null;
-    companies: MembershipRead[];
+    companies: PartnerCompanyAssignmentWithCompany[];
     pipelineValue: number;
-    newOpportunities?: MembershipRead[];
+    newOpportunities?: PartnerCompanyAssignmentWithCompany[];
 }
 
 function formatCurrency(value: number): string {

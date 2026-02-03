@@ -27,15 +27,15 @@ import { AccountDetail } from '@/components/accounts';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
 import { ProductSection } from '@/components/campaigns/ProductSection';
 import { PartnerPortalHeader } from '@/components/partner/PartnerPortalHeader';
-import { getCampaigns, getCampaignCompanies, getProducts, getPartner, getPartners } from '@/lib/api';
-import type { CampaignSummary, MembershipRead, ProductSummary, PartnerRead, PartnerSummary } from '@/lib/schemas';
+import { getCampaigns, getPartnerAssignedCompanies, getProducts, getPartner, getPartners } from '@/lib/api';
+import type { CampaignSummary, PartnerCompanyAssignmentWithCompany, ProductSummary, PartnerRead, PartnerSummary } from '@/lib/schemas';
 
 interface CampaignWithCompanies {
     campaign: CampaignSummary;
-    companies: MembershipRead[];
+    companies: PartnerCompanyAssignmentWithCompany[];
 }
 
-interface OpportunityWithMeta extends MembershipRead {
+interface OpportunityWithMeta extends PartnerCompanyAssignmentWithCompany {
     campaignName: string;
     campaignSlug: string;
 }
@@ -101,33 +101,33 @@ export default function PartnerPortalPage() {
         async function fetchData() {
             // Wait for session to load
             if (authLoading) return;
+            if (!effectivePartnerId) {
+                setLoading(false);
+                return;
+            }
 
             try {
                 setLoading(true);
 
-                // Fetch partner details if we have a partner_id
-                if (effectivePartnerId) {
-                    try {
-                        const partnerData = await getPartner(effectivePartnerId);
-                        setPartner(partnerData);
-                    } catch (e) {
-                        console.error('Failed to fetch partner:', e);
-                    }
+                // Fetch partner details
+                try {
+                    const partnerData = await getPartner(effectivePartnerId);
+                    setPartner(partnerData);
+                } catch (e) {
+                    console.error('Failed to fetch partner:', e);
                 }
 
                 // Get all campaigns
                 const campaignsResponse = await getCampaigns();
                 const campaignsWithCompanies: CampaignWithCompanies[] = [];
 
-                // Fetch companies for each campaign
+                // Fetch partner-assigned companies for each campaign
                 for (const campaign of campaignsResponse.items) {
                     try {
-                        const companiesResponse = await getCampaignCompanies(campaign.slug, {
-                            page_size: 100,
-                        });
+                        const companies = await getPartnerAssignedCompanies(campaign.slug, effectivePartnerId);
                         campaignsWithCompanies.push({
                             campaign,
-                            companies: companiesResponse.items,
+                            companies,
                         });
                     } catch (e) {
                         console.error(`Failed to fetch companies for ${campaign.slug}:`, e);
@@ -154,9 +154,9 @@ export default function PartnerPortalPage() {
                 const initial: Record<string, OpportunityStatus> = {};
                 let newCount = 0;
                 allOpps.forEach(opp => {
-                    if (!seen.has(opp.domain)) {
-                        seen.add(opp.domain);
-                        initial[opp.domain] = newCount < 5 ? 'new' : 'accepted';
+                    if (!seen.has(opp.company_domain)) {
+                        seen.add(opp.company_domain);
+                        initial[opp.company_domain] = newCount < 5 ? 'new' : 'accepted';
                         newCount++;
                     }
                 });
@@ -183,20 +183,20 @@ export default function PartnerPortalPage() {
                 campaignSlug: c.campaign.slug,
             }))
         ).filter(opp => {
-            if (seen.has(opp.domain)) return false;
-            seen.add(opp.domain);
+            if (seen.has(opp.company_domain)) return false;
+            seen.add(opp.company_domain);
             return true;
         });
     }, [campaigns]);
 
     // Split by status
     const newOpportunities = useMemo(() =>
-        allOpportunities.filter(o => opportunityStatus[o.domain] === 'new'),
+        allOpportunities.filter(o => opportunityStatus[o.company_domain] === 'new'),
         [allOpportunities, opportunityStatus]
     );
 
     const acceptedOpportunities = useMemo(() =>
-        allOpportunities.filter(o => opportunityStatus[o.domain] === 'accepted'),
+        allOpportunities.filter(o => opportunityStatus[o.company_domain] === 'accepted'),
         [allOpportunities, opportunityStatus]
     );
 
@@ -206,8 +206,8 @@ export default function PartnerPortalPage() {
         const q = searchQuery.toLowerCase();
         return acceptedOpportunities.filter(o =>
             o.company_name?.toLowerCase().includes(q) ||
-            o.domain?.toLowerCase().includes(q) ||
-            o.industry?.toLowerCase().includes(q) ||
+            o.company_domain?.toLowerCase().includes(q) ||
+            o.company_industry?.toLowerCase().includes(q) ||
             o.campaignName?.toLowerCase().includes(q)
         );
     }, [acceptedOpportunities, searchQuery]);
@@ -223,7 +223,7 @@ export default function PartnerPortalPage() {
     const handleAcceptAll = useCallback(() => {
         const newStatus = { ...opportunityStatus };
         newOpportunities.forEach(opp => {
-            newStatus[opp.domain] = 'accepted';
+            newStatus[opp.company_domain] = 'accepted';
         });
         setOpportunityStatus(newStatus);
     }, [opportunityStatus, newOpportunities]);
@@ -355,26 +355,26 @@ export default function PartnerPortalPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {newOpportunities.map((opp) => (
                                                 <div
-                                                    key={opp.domain}
+                                                    key={opp.company_domain}
                                                     className="bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-200 dark:border-amber-800 p-4 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md transition-all group"
                                                 >
                                                     <div className="flex items-start gap-4">
                                                         {/* Clickable content area */}
                                                         <button
-                                                            onClick={() => handleOpportunityClick(opp.domain)}
+                                                            onClick={() => handleOpportunityClick(opp.company_domain)}
                                                             className="flex items-start gap-4 flex-1 min-w-0 text-left"
                                                         >
                                                             {/* Company Logo */}
                                                             <div className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
-                                                                {opp.logo_base64 ? (
+                                                                {opp.company_logo_url ? (
                                                                     <img
-                                                                        src={opp.logo_base64.startsWith('data:') ? opp.logo_base64 : `data:image/png;base64,${opp.logo_base64}`}
+                                                                        src={opp.company_logo_url}
                                                                         alt=""
                                                                         className="w-8 h-8 object-contain"
                                                                     />
                                                                 ) : (
                                                                     <img
-                                                                        src={`https://www.google.com/s2/favicons?domain=${opp.domain}&sz=64`}
+                                                                        src={`https://www.google.com/s2/favicons?domain=${opp.company_domain}&sz=64`}
                                                                         alt=""
                                                                         className="w-7 h-7 object-contain"
                                                                         onError={(e) => {
@@ -387,28 +387,22 @@ export default function PartnerPortalPage() {
                                                             {/* Company Info */}
                                                             <div className="flex-1 min-w-0">
                                                                 <span className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate block">
-                                                                    {opp.company_name || opp.domain}
+                                                                    {opp.company_name || opp.company_domain}
                                                                 </span>
                                                                 <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                                                                    {opp.industry || 'Unknown Industry'}
+                                                                    {opp.company_industry || 'Unknown Industry'}
                                                                 </div>
                                                                 <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 dark:text-slate-500">
-                                                                    {opp.employee_count && (
+                                                                    {opp.company_employee_count && (
                                                                         <div className="flex items-center gap-1">
                                                                             <Users className="w-3.5 h-3.5" />
-                                                                            <span>{opp.employee_count.toLocaleString()}</span>
+                                                                            <span>{opp.company_employee_count.toLocaleString()}</span>
                                                                         </div>
                                                                     )}
-                                                                    {opp.hq_country && (
+                                                                    {opp.company_hq_country && (
                                                                         <div className="flex items-center gap-1">
                                                                             <Globe className="w-3.5 h-3.5" />
-                                                                            <span>{opp.hq_country}</span>
-                                                                        </div>
-                                                                    )}
-                                                                    {opp.cached_fit_score && (
-                                                                        <div className="flex items-center gap-1">
-                                                                            <Target className="w-3.5 h-3.5" />
-                                                                            <span>{Math.round(opp.cached_fit_score)}% fit</span>
+                                                                            <span>{opp.company_hq_country}</span>
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -421,14 +415,14 @@ export default function PartnerPortalPage() {
                                                                 size="sm"
                                                                 variant="outline"
                                                                 className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
-                                                                onClick={() => handleReject(opp.domain)}
+                                                                onClick={() => handleReject(opp.company_domain)}
                                                             >
                                                                 <X className="w-4 h-4" />
                                                             </Button>
                                                             <Button
                                                                 size="sm"
                                                                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                                                                onClick={() => handleAccept(opp.domain)}
+                                                                onClick={() => handleAccept(opp.company_domain)}
                                                             >
                                                                 <Check className="w-4 h-4 mr-1" />
                                                                 Accept
@@ -529,15 +523,14 @@ export default function PartnerPortalPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                     {filteredOpportunities.map((opp) => (
                                         <CompanyRowCompact
-                                            key={opp.domain}
-                                            name={opp.company_name || opp.domain}
-                                            domain={opp.domain}
-                                            logoBase64={opp.logo_base64}
-                                            industry={opp.industry}
-                                            employeeCount={opp.employee_count}
-                                            hqCountry={opp.hq_country}
-                                            fitScore={opp.cached_fit_score ? opp.cached_fit_score / 100 : null}
-                                            onClick={() => handleOpportunityClick(opp.domain)}
+                                            key={opp.company_domain}
+                                            name={opp.company_name || opp.company_domain}
+                                            domain={opp.company_domain}
+                                            logoUrl={opp.company_logo_url}
+                                            industry={opp.company_industry}
+                                            employeeCount={opp.company_employee_count}
+                                            hqCountry={opp.company_hq_country}
+                                            onClick={() => handleOpportunityClick(opp.company_domain)}
                                             variant="card"
                                         />
                                     ))}

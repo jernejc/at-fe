@@ -3,12 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
-import type { CampaignSummary, MembershipRead } from '@/lib/schemas';
+import type { CampaignSummary, PartnerCompanyAssignmentWithCompany } from '@/lib/schemas';
 import { isNewOpportunity } from '@/lib/utils';
 
 interface NewOpportunitiesSectionProps {
     campaigns: CampaignSummary[];
-    companiesMap: Map<number, MembershipRead[]>;
+    companiesMap: Map<number, PartnerCompanyAssignmentWithCompany[]>;
 }
 
 export function NewOpportunitiesSection({
@@ -21,7 +21,7 @@ export function NewOpportunitiesSection({
     const campaignsWithNewCompanies = campaigns
         .map(campaign => {
             const companies = companiesMap.get(campaign.id) || [];
-            const newCompanies = companies.filter(c => isNewOpportunity(c.created_at));
+            const newCompanies = companies.filter(c => isNewOpportunity(c));
             return { campaign, newCompanies };
         })
         .filter(({ newCompanies }) => newCompanies.length > 0);
@@ -63,9 +63,9 @@ export function NewOpportunitiesSection({
                             {newCompanies.slice(0, 3).map(company => (
                                 <CompanyRowCompact
                                     key={company.id}
-                                    name={company.company_name || company.domain}
-                                    domain={company.domain}
-                                    logoBase64={company.logo_base64}
+                                    name={company.company_name || company.company_domain}
+                                    domain={company.company_domain}
+                                    logoUrl={company.company_logo_url}
                                     isNew={true}
                                 />
                             ))}

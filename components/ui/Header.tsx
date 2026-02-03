@@ -47,7 +47,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
   return (
     <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-20 sticky top-0">
-      <div className="max-w-[1600px] mx-auto px-6 h-14 flex items-center gap-4">
+      <div className="mx-auto px-6 h-14 flex items-center gap-4">
         {/* Mobile menu button */}
         {showMenuButton && (
           <button
