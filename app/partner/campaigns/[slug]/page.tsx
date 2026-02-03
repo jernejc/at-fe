@@ -138,6 +138,22 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                         company_logo_url: company.logo_base64
                             ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
                             : null,
+                        company: {
+                            id: company.company_id,
+                            domain: company.domain,
+                            name: company.company_name || '',
+                            industry: company.industry,
+                            employee_count: company.employee_count,
+                            hq_country: company.hq_country,
+                            logo_url: null,
+                            logo_base64: company.logo_base64 || null,
+                            hq_city: null,
+                            linkedin_id: null,
+                            rating_overall: null,
+                            data_sources: [],
+                            top_contact: null,
+                            updated_at: new Date().toISOString()
+                        }
                     }));
                 }
 
@@ -176,24 +192,24 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
 
             switch (sortColumn) {
                 case 'company_name':
-                    aVal = (a.company_name || '').toLowerCase();
-                    bVal = (b.company_name || '').toLowerCase();
+                    aVal = (a.company?.name || a.company_name || '').toLowerCase();
+                    bVal = (b.company?.name || b.company_name || '').toLowerCase();
                     break;
                 case 'revenue':
-                    aVal = estimateRevenueValue(a.company_employee_count);
-                    bVal = estimateRevenueValue(b.company_employee_count);
+                    aVal = estimateRevenueValue(a.company?.employee_count ?? a.company_employee_count);
+                    bVal = estimateRevenueValue(b.company?.employee_count ?? b.company_employee_count);
                     break;
                 case 'company_industry':
-                    aVal = (a.company_industry || '').toLowerCase();
-                    bVal = (b.company_industry || '').toLowerCase();
+                    aVal = (a.company?.industry || a.company_industry || '').toLowerCase();
+                    bVal = (b.company?.industry || b.company_industry || '').toLowerCase();
                     break;
                 case 'company_employee_count':
-                    aVal = a.company_employee_count || 0;
-                    bVal = b.company_employee_count || 0;
+                    aVal = a.company?.employee_count ?? a.company_employee_count ?? 0;
+                    bVal = b.company?.employee_count ?? b.company_employee_count ?? 0;
                     break;
                 case 'company_hq_country':
-                    aVal = (a.company_hq_country || '').toLowerCase();
-                    bVal = (b.company_hq_country || '').toLowerCase();
+                    aVal = (a.company?.hq_country || a.company_hq_country || '').toLowerCase();
+                    bVal = (b.company?.hq_country || b.company_hq_country || '').toLowerCase();
                     break;
                 case 'status':
                     aVal = (a.status || '').toLowerCase();
@@ -336,13 +352,13 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                             {sortedCompanies.map((company) => (
                                 <CompanyRowCompact
                                     key={company.id}
-                                    logoUrl={company.company_logo_url}
-                                    name={company.company_name || 'Unknown Company'}
-                                    domain={company.company_domain}
-                                    industry={company.company_industry}
-                                    employeeCount={company.company_employee_count}
-                                    hqCountry={company.company_hq_country}
-                                    revenue={estimateRevenue(company.company_employee_count)}
+                                    logoUrl={company.company?.logo_url || company.company_logo_url}
+                                    name={company.company?.name || company.company_name || 'Unknown Company'}
+                                    domain={company.company?.domain || company.company_domain}
+                                    industry={company.company?.industry || company.company_industry}
+                                    employeeCount={company.company?.employee_count ?? company.company_employee_count}
+                                    hqCountry={company.company?.hq_country || company.company_hq_country}
+                                    revenue={estimateRevenue(company.company?.employee_count ?? company.company_employee_count)}
                                     status={company.status}
                                     isNew={isNewOpportunity(company.created_at)}
                                     onClick={() => router.push(`/partner/campaigns/${slug}/${company.company_domain}`)}

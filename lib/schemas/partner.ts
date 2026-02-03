@@ -1,4 +1,5 @@
 // Partner-related TypeScript schemas (matching backend API)
+import type { CompanySummary } from './company';
 
 export interface PartnerSummary {
     id: number;
@@ -115,6 +116,7 @@ export interface PartnerCompanyAssignmentWithCompany extends PartnerCompanyAssig
     company_employee_count: number | null;
     company_hq_country: string | null;
     company_logo_url: string | null;
+    company?: CompanySummary;
 }
 
 // Includes partner details when listing company's assigned partners
