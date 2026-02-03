@@ -94,6 +94,7 @@ export interface MembershipRead {
     notes: string | null;
     priority: number;
     logo_base64?: string | null;
+    logo_url?: string | null;
     created_at: string;
     // Partner assignment fields
     partner_id?: string | null;

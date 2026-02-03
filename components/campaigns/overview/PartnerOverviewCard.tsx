@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getPartnerAssignedCompanies, getCampaignPartners } from '@/lib/api';
+import { getCampaignPartners } from '@/lib/api';
 import { Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MembershipRead } from '@/lib/schemas';
+import { MembershipRead, PartnerAssignmentSummary } from '@/lib/schemas';
 
 interface PartnerCardData {
     id: string;
@@ -14,26 +14,27 @@ interface PartnerCardData {
 
 export function PartnerOverviewCard({
     campaignSlug,
+    partners: preloadedPartners,
     onManagePartners,
     totalCompanyCount = 0,
     companies,
 }: {
     campaignSlug?: string;
+    partners?: PartnerAssignmentSummary[];
     onManagePartners: () => void;
     totalCompanyCount?: number;
     companies?: MembershipRead[];
 }) {
-    const [partners, setPartners] = useState<PartnerCardData[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [fetchedPartners, setFetchedPartners] = useState<PartnerAssignmentSummary[]>([]);
+    const [loading, setLoading] = useState(!preloadedPartners);
 
-    // Calculate counts from companies list
+    // Calculate counts from companies list (companies now have partner_id enriched)
     const partnerCounts = useMemo(() => {
         const counts = new Map<string, number>();
         if (!companies) return counts;
         
         companies.forEach(company => {
             if (company.partner_id) {
-                // partner_id in MembershipRead is string according to schema, but let's handle numeric too
                 const pId = String(company.partner_id);
                 counts.set(pId, (counts.get(pId) || 0) + 1);
             }
@@ -41,10 +42,10 @@ export function PartnerOverviewCard({
         return counts;
     }, [companies]);
 
-    // The API now returns full partner details directly (PartnerAssignmentSummary)
+    // Only fetch if partners were not pre-loaded
     useEffect(() => {
         async function fetchPartners() {
-            if (!campaignSlug) {
+            if (preloadedPartners || !campaignSlug) {
                 setLoading(false);
                 return;
             }
@@ -52,50 +53,39 @@ export function PartnerOverviewCard({
             try {
                 setLoading(true);
                 const partnerAssignments = await getCampaignPartners(campaignSlug);
-                
-                // Map API PartnerAssignmentSummary to PartnerCardData
-                // If API count is missing (0), fetch actual assignments
-                const mappedPartners = await Promise.all(partnerAssignments.map(async (p) => {
-                    let count = p.assigned_count ?? 0;
-                    
-                    // Fallback to calculated if matches (optimization)
-                    const calculatedCount = partnerCounts.get(String(p.partner_id)) || 0;
-                    count = Math.max(count, calculatedCount);
-                    
-                    // If still 0, try fetching explicit assignments (expensive fallback)
-                    if (count === 0 && campaignSlug) {
-                        try {
-                            const assignments = await getPartnerAssignedCompanies(campaignSlug, p.partner_id);
-                            if (assignments.length > 0) {
-                                count = assignments.length;
-                            }
-                        } catch (e) {
-                            // ignore error
-                        }
-                    }
-
-                    return {
-                        id: String(p.partner_id),
-                        name: p.partner_name,
-                        logo_url: p.partner_logo_url,
-                        count, 
-                        capacity: p.partner_capacity,
-                    };
-                }));
-                
-                setPartners(mappedPartners);
+                setFetchedPartners(partnerAssignments);
             } catch (error) {
                 console.error('Failed to fetch partners:', error);
-                setPartners([]);
+                setFetchedPartners([]);
             } finally {
                 setLoading(false);
             }
         }
         
         fetchPartners();
-    }, [campaignSlug, partnerCounts]);
+    }, [campaignSlug, preloadedPartners]);
 
-    const topPartners = partners;
+    // Use preloaded partners if available, otherwise use fetched
+    const partnerData = preloadedPartners ?? fetchedPartners;
+
+    // Map to display format, using company counts from enriched companies list
+    const topPartners = useMemo<PartnerCardData[]>(() => {
+        return partnerData.map((p) => {
+            // Prefer counts from companies (accurate local state)
+            // Fallback to API assigned_count if companies not available
+            const localCount = partnerCounts.get(String(p.partner_id)) || 0;
+            const apiCount = p.assigned_count ?? 0;
+            const count = localCount > 0 ? localCount : apiCount;
+
+            return {
+                id: String(p.partner_id),
+                name: p.partner_name,
+                logo_url: p.partner_logo_url,
+                count, 
+                capacity: p.partner_capacity,
+            };
+        });
+    }, [partnerData, partnerCounts]);
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">

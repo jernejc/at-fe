@@ -11,8 +11,8 @@ import { Header } from '@/components/ui/Header';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useCampaignPage } from '@/hooks/useCampaignPage';
 import { toast } from 'sonner';
-import { getCampaignPartners } from '@/lib/api';
-import type { CampaignFilterUI, MembershipRead } from '@/lib/schemas';
+import { getCampaignPartners, getPartnerAssignedCompanies } from '@/lib/api';
+import type { CampaignFilterUI, MembershipRead, PartnerAssignmentSummary } from '@/lib/schemas';
 
 interface CampaignPageProps {
     params: Promise<{
@@ -105,19 +105,62 @@ export default function CampaignPage({ params }: CampaignPageProps) {
         return [];
     }, [companies, dynamicCompanies]);
 
-    // Fetch partner count from API
-    const [partnerCount, setPartnerCount] = useState<number>(0);
-    useEffect(() => {
-        async function fetchPartnerCount() {
-            try {
-                const assignments = await getCampaignPartners(slug);
-                setPartnerCount(assignments.length);
-            } catch {
-                setPartnerCount(0);
+    // Centralized partner data loading (shared by Overview and Partners tabs)
+    const [partners, setPartners] = useState<PartnerAssignmentSummary[]>([]);
+    const [companyToPartnerMap, setCompanyToPartnerMap] = useState<Map<number, string>>(new Map());
+    const [partnersLoading, setPartnersLoading] = useState(true);
+
+    const fetchPartnerData = async () => {
+        try {
+            setPartnersLoading(true);
+            
+            // Step 1: Fetch all partners in the campaign
+            const partnerAssignments = await getCampaignPartners(slug);
+            setPartners(partnerAssignments);
+
+            // Step 2: Fetch partner-company assignments for all partners in parallel
+            // O(P) requests where P = number of partners (typically 5-10)
+            const partnerCompanyAssignments = await Promise.all(
+                partnerAssignments.map(async (p) => {
+                    try {
+                        const assignments = await getPartnerAssignedCompanies(slug, p.partner_id);
+                        return { partnerId: String(p.partner_id), assignments };
+                    } catch {
+                        return { partnerId: String(p.partner_id), assignments: [] };
+                    }
+                })
+            );
+
+            // Step 3: Build lookup map: company_id -> partner_id
+            const newMap = new Map<number, string>();
+            for (const { partnerId, assignments } of partnerCompanyAssignments) {
+                for (const assignment of assignments) {
+                    newMap.set(assignment.company_id, partnerId);
+                }
             }
+            setCompanyToPartnerMap(newMap);
+        } catch (error) {
+            console.error('Failed to fetch partner data:', error);
+            setPartners([]);
+        } finally {
+            setPartnersLoading(false);
         }
-        fetchPartnerCount();
+    };
+
+    useEffect(() => {
+        fetchPartnerData();
     }, [slug]);
+
+    const partnerCount = partners.length;
+
+    // Enrich companies with partner_id from the centralized lookup
+    const companiesWithPartners = useMemo<MembershipRead[]>(() => {
+        if (companyToPartnerMap.size === 0) return companies;
+        return companies.map(company => ({
+            ...company,
+            partner_id: companyToPartnerMap.get(company.company_id) ?? company.partner_id ?? null,
+        }));
+    }, [companies, companyToPartnerMap]);
 
     // Publish functionality from hook
     const [showPublishConfirm, setShowPublishConfirm] = useState(false);
@@ -252,7 +295,9 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                             <PartnerTab
                                 campaignSlug={slug}
                                 companies={partnerTabCompanies}
+                                partners={partners}
                                 onCompanyClick={handleCompanyClick}
+                                onPartnersUpdated={fetchPartnerData}
                             />
                         </TabsContent>
 
@@ -261,7 +306,8 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                             {overview ? (
                                 <OverviewTab
                                     overview={overview}
-                                    companies={companies}
+                                    companies={companiesWithPartners}
+                                    partners={partners}
                                     dynamicCompanies={filters.length > 0 ? dynamicCompanies : undefined}
                                     dynamicCompaniesTotal={dynamicCompaniesTotal}
                                     loadingDynamicCompanies={loadingDynamicCompanies}

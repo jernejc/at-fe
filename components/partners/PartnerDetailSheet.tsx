@@ -23,6 +23,7 @@ interface PartnerDetailSheetProps {
     onClose: () => void;
     assignedCompanies: MembershipWithProgress[];
     onCompanyClick: (domain: string) => void;
+    isLoading?: boolean;
 }
 
 export function PartnerDetailSheet({
@@ -30,7 +31,8 @@ export function PartnerDetailSheet({
     open,
     onClose,
     assignedCompanies,
-    onCompanyClick
+    onCompanyClick,
+    isLoading = false,
 }: PartnerDetailSheetProps) {
     const [statusFilter, setStatusFilter] = useState<OutreachStatus | 'all'>('all');
 
@@ -173,6 +175,14 @@ export function PartnerDetailSheet({
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
+                    {isLoading ? (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="w-8 h-8 border-2 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
+                                <span className="text-sm text-slate-500">Loading company data...</span>
+                            </div>
+                        </div>
+                    ) : (
                     <div className="max-w-7xl mx-auto w-full p-6 space-y-6">
                         {metrics && (
                             <PendingDataWrapper
@@ -211,7 +221,7 @@ export function PartnerDetailSheet({
                                 {filteredCompanies.map((company) => (
                                     <CompanyRowCompact
                                         key={company.id}
-                                        name={company.company_name || company.domain}
+                                        name={company.company_name || company.domain || 'Unknown Company'}
                                         domain={company.domain}
                                         logoBase64={company.logo_base64}
                                         industry={company.industry}
@@ -246,6 +256,7 @@ export function PartnerDetailSheet({
                             </div>
                         </div>
                     </div>
+                    )}
                 </div>
             </SheetContent>
         </Sheet>

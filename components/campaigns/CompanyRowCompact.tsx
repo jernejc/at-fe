@@ -57,7 +57,7 @@ export function CompanyRowCompact({
     className,
     variant = 'compact',
 }: CompanyRowCompactProps) {
-    const companyInitials = name
+    const companyInitials = (name || domain || '?')
         .split(' ')
         .map(w => w[0])
         .slice(0, 2)

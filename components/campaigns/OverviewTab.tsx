@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { CampaignOverview, MembershipRead, CompanySummary, CompanySummaryWithFit } from '@/lib/schemas';
+import type { CampaignOverview, MembershipRead, CompanySummary, CompanySummaryWithFit, PartnerAssignmentSummary } from '@/lib/schemas';
 import { CompanyRowCompactSkeleton } from './CompanyRowCompact';
 import { DrillDownFilter } from './overview/types';
 import { generateMockPipeline, generateAccountsNeedingAttention, calculateFitDistribution } from './overview/utils';
@@ -17,6 +17,7 @@ export type { DrillDownFilter };
 interface OverviewTabProps {
     overview: CampaignOverview;
     companies: MembershipRead[];
+    partners?: PartnerAssignmentSummary[];
     dynamicCompanies?: (CompanySummary | CompanySummaryWithFit)[];
     dynamicCompaniesTotal?: number;
     loadingDynamicCompanies?: boolean;
@@ -34,6 +35,7 @@ interface OverviewTabProps {
 export function OverviewTab({
     overview,
     companies,
+    partners,
     dynamicCompanies,
     dynamicCompaniesTotal = 0,
     loadingDynamicCompanies = false,
@@ -144,6 +146,7 @@ export function OverviewTab({
                 <div className="space-y-6">
                     <PartnerOverviewCard
                         campaignSlug={campaignSlug}
+                        partners={partners}
                         onManagePartners={onManagePartners}
                         totalCompanyCount={overview.company_count}
                         companies={displayCompanies}

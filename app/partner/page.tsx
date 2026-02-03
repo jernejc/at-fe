@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from "next-auth/react";
 import { Loader2 } from 'lucide-react';
 import { PartnerPortalHeader } from '@/components/partner/PartnerPortalHeader';
 import { NewOpportunitiesSection } from '@/components/partner/NewOpportunitiesSection';
@@ -9,6 +9,7 @@ import { DashboardCRMAnalytics } from '@/components/partner/analytics';
 import { getCampaigns, getPartnerAssignedCompanies } from '@/lib/api';
 import type { CampaignSummary, PartnerCompanyAssignmentWithCompany } from '@/lib/schemas';
 import { useRouter } from 'next/navigation';
+
 
 export default function PartnerPage() {
     const router = useRouter();
