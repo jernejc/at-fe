@@ -66,6 +66,7 @@ export function NewOpportunitiesSection({
                                     name={company.company_name || company.domain}
                                     domain={company.domain}
                                     logoBase64={company.logo_base64}
+                                    logoUrl={company.logo_url}
                                     isNew={true}
                                 />
                             ))}

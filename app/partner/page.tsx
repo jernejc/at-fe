@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+
 import { Loader2 } from 'lucide-react';
 import { PartnerPortalHeader } from '@/components/partner/PartnerPortalHeader';
 import { NewOpportunitiesSection } from '@/components/partner/NewOpportunitiesSection';
 import { DashboardCRMAnalytics } from '@/components/partner/analytics';
 import { getCampaigns, getCampaignCompanies } from '@/lib/api';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import type { CampaignSummary, MembershipRead } from '@/lib/schemas';
 import { useRouter } from 'next/navigation';
 
 export default function PartnerPage() {
     const router = useRouter();
-    const { status: sessionStatus } = useSession();
+    const { user, loading: authLoading } = useAuthUser();
 
     const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
     const [companiesMap, setCompaniesMap] = useState<Map<number, MembershipRead[]>>(new Map());
@@ -20,7 +21,7 @@ export default function PartnerPage() {
 
     useEffect(() => {
         async function fetchData() {
-            if (sessionStatus === 'loading') return;
+            if (authLoading) return;
             try {
                 setLoading(true);
 
@@ -45,7 +46,7 @@ export default function PartnerPage() {
             }
         }
         fetchData();
-    }, [sessionStatus]);
+    }, [authLoading]);
 
     const allOpportunities = useMemo(() => {
         const all: MembershipRead[] = [];
