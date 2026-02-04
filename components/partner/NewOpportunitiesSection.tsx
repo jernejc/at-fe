@@ -46,7 +46,7 @@ export function NewOpportunitiesSection({
                     <button
                         key={campaign.id}
                         onClick={() => router.push(`/partner/campaigns/${campaign.slug}`)}
-                        className="bg-gradient-to-br from-amber-50/80  to-purple-50 dark:from-amber-950 dark:via-yellow-950/10 dark:to-slate-900 border-2 border-amber-200/60 dark:border-amber-800/30 rounded-xl p-4 shadow-lg shadow-pink-100/50 dark:shadow-black/30 hover:shadow-xl hover:border-amber-300 dark:hover:border-amber-700/50 hover:scale-[1.01] transition-all text-left"
+                        className="flex flex-col bg-gradient-to-br from-amber-50/80 to-purple-50 dark:from-amber-950 dark:via-yellow-950/10 dark:to-slate-900 border-2 border-amber-200/60 dark:border-amber-800/30 rounded-xl p-4 shadow-lg shadow-pink-100/50 dark:shadow-black/30 hover:shadow-xl hover:border-amber-300 dark:hover:border-amber-700/50 hover:scale-[1.01] transition-all text-left"
                     >
                         {/* Campaign Header */}
                         <div className="flex items-center justify-between mb-3">

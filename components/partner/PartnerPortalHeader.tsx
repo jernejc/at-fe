@@ -203,7 +203,7 @@ export function PartnerPortalHeader({
                                 <Badge
                                     key={i}
                                     variant="secondary"
-                                    className="text-xs px-2 py-0.5 truncate max-w-[90px]"
+                                    className="text-xs px-2 py-0.5"
                                 >
                                     {industry}
                                 </Badge>
