@@ -104,36 +104,40 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
         }
     };
 
-    // TODO: Remove sample content after backend returns real narratives
-    const sampleSignalNarrative = signal_narrative ?? "This company shows strong buying signals across multiple dimensions. Employee activity on LinkedIn indicates active research into solutions similar to your offering, with 12 employees engaging with relevant content in the past 30 days. Technical job postings suggest they're building capabilities that align with your product's value proposition.";
-    const sampleInterestNarrative = interest_narrative ?? "Based on content engagement patterns, this company has demonstrated sustained interest in cloud infrastructure modernization and DevOps automation. Key decision-makers have been consuming thought leadership content around cost optimization and scalability challenges.";
-    const sampleEventNarrative = event_narrative ?? "Recent funding round of $50M Series C positions them for expansion. Leadership changes in the past quarter include a new CTO with a track record of digital transformation initiatives. They recently announced a partnership that signals strategic alignment with your target market.";
+    const hasNarratives = signal_narrative || interest_narrative || event_narrative;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
-            {/* TODO: Remove sample content section after backend returns real narratives */}
-            <section className="space-y-3 pb-6 border-b border-slate-200 dark:border-slate-800">
-                <div className="space-y-3">
-                    <NarrativeCard
-                        title="Signal Analysis"
-                        icon={Brain}
-                        content={sampleSignalNarrative}
-                        accentColor="violet"
-                    />
-                    <NarrativeCard
-                        title="Interest Analysis"
-                        icon={Target}
-                        content={sampleInterestNarrative}
-                        accentColor="amber"
-                    />
-                    <NarrativeCard
-                        title="Event Analysis"
-                        icon={Calendar}
-                        content={sampleEventNarrative}
-                        accentColor="blue"
-                    />
-                </div>
-            </section>
+            {hasNarratives && (
+                <section className="space-y-3 pb-6 border-b border-slate-200 dark:border-slate-800">
+                    <div className="space-y-3">
+                        {signal_narrative && (
+                            <NarrativeCard
+                                title="Signal Analysis"
+                                icon={Brain}
+                                content={signal_narrative}
+                                accentColor="violet"
+                            />
+                        )}
+                        {interest_narrative && (
+                            <NarrativeCard
+                                title="Interest Analysis"
+                                icon={Target}
+                                content={interest_narrative}
+                                accentColor="amber"
+                            />
+                        )}
+                        {event_narrative && (
+                            <NarrativeCard
+                                title="Event Analysis"
+                                icon={Calendar}
+                                content={event_narrative}
+                                accentColor="blue"
+                            />
+                        )}
+                    </div>
+                </section>
+            )}
 
             {/* Product Fit Section */}
             <section>

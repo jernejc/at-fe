@@ -205,9 +205,10 @@ export function CompanyDetailView({
     const [activeTab, setActiveTab] = useState<CompanyDetailTab>('narratives');
 
     // Extract narrative content
-    const sampleSignalNarrative = explainability?.signal_narrative ?? "This company shows strong buying signals across multiple dimensions. Employee activity on LinkedIn indicates active research into solutions similar to your offering, with 12 employees engaging with relevant content in the past 30 days. Technical job postings suggest they're building capabilities that align with your product's value proposition.";
-    const sampleInterestNarrative = explainability?.interest_narrative ?? "Based on content engagement patterns, this company has demonstrated sustained interest in cloud infrastructure modernization and DevOps automation. Key decision-makers have been consuming thought leadership content around cost optimization and scalability challenges.";
-    const sampleEventNarrative = explainability?.event_narrative ?? "Recent funding round of $50M Series C positions them for expansion. Leadership changes in the past quarter include a new CTO with a track record of digital transformation initiatives. They recently announced a partnership that signals strategic alignment with your target market.";
+    const signalNarrative = explainability?.signal_narrative;
+    const interestNarrative = explainability?.interest_narrative;
+    const eventNarrative = explainability?.event_narrative;
+    const hasNarratives = signalNarrative || interestNarrative || eventNarrative;
 
     const hasProductFit = explainability?.fits_summary && explainability.fits_summary.length > 0;
     const hasSignals = explainability?.signals_summary && (
@@ -246,26 +247,41 @@ export function CompanyDetailView({
                         </div>
 
                         <TabsContent value="narratives" className="p-7">
-                            <div className="space-y-3">
-                                <NarrativeCard
-                                    title="Signal Analysis"
-                                    icon={Brain}
-                                    content={sampleSignalNarrative}
-                                    accentColor="violet"
-                                />
-                                <NarrativeCard
-                                    title="Interest Analysis"
-                                    icon={Target}
-                                    content={sampleInterestNarrative}
-                                    accentColor="amber"
-                                />
-                                <NarrativeCard
-                                    title="Event Analysis"
-                                    icon={Calendar}
-                                    content={sampleEventNarrative}
-                                    accentColor="blue"
-                                />
-                            </div>
+                            {hasNarratives ? (
+                                <div className="space-y-3">
+                                    {signalNarrative && (
+                                        <NarrativeCard
+                                            title="Signal Analysis"
+                                            icon={Brain}
+                                            content={signalNarrative}
+                                            accentColor="violet"
+                                        />
+                                    )}
+                                    {interestNarrative && (
+                                        <NarrativeCard
+                                            title="Interest Analysis"
+                                            icon={Target}
+                                            content={interestNarrative}
+                                            accentColor="amber"
+                                        />
+                                    )}
+                                    {eventNarrative && (
+                                        <NarrativeCard
+                                            title="Event Analysis"
+                                            icon={Calendar}
+                                            content={eventNarrative}
+                                            accentColor="blue"
+                                        />
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                    <CircleQuestionMark className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
+                                    <p className="text-slate-500 dark:text-slate-400">
+                                        No narrative data available.
+                                    </p>
+                                </div>
+                            )}
                         </TabsContent>
 
                         <TabsContent value="product-fit" className="p-7">
