@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -7,9 +8,12 @@ import { SectionHeader, DetailCell } from '@/components/accounts/detail/componen
 import { CompanyDetailHeader } from './CompanyDetailHeader';
 import { CompanyDetailSkeleton } from './CompanyDetailSkeleton';
 import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse, FitSummaryFit, SignalInterest, SignalEvent } from '@/lib/schemas';
-import { Sparkles, TrendingUp, Zap, Calendar, Brain, Target } from 'lucide-react';
+import { Sparkles, TrendingUp, Zap, Calendar, Brain, Target, Package, Radio, Building, CircleQuestionMark } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { LucideIcon } from 'lucide-react';
+
+type CompanyDetailTab = 'narratives' | 'product-fit' | 'signals' | 'details';
 
 interface CompanyDetailViewProps {
     company: WSCompanyResult;
@@ -70,13 +74,6 @@ function getFitScoreColor(score: number): string {
     if (score >= 60) return 'bg-blue-500';
     if (score >= 40) return 'bg-amber-500';
     return 'bg-slate-400';
-}
-
-function getFitScoreBgColor(score: number): string {
-    if (score >= 80) return 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
-    if (score >= 60) return 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-    if (score >= 40) return 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
-    return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
 }
 
 function formatLocation(company: CompanyRead): string {
@@ -205,6 +202,19 @@ export function CompanyDetailView({
     isLoading,
     onClose,
 }: CompanyDetailViewProps) {
+    const [activeTab, setActiveTab] = useState<CompanyDetailTab>('narratives');
+
+    // Extract narrative content
+    const sampleSignalNarrative = explainability?.signal_narrative ?? "This company shows strong buying signals across multiple dimensions. Employee activity on LinkedIn indicates active research into solutions similar to your offering, with 12 employees engaging with relevant content in the past 30 days. Technical job postings suggest they're building capabilities that align with your product's value proposition.";
+    const sampleInterestNarrative = explainability?.interest_narrative ?? "Based on content engagement patterns, this company has demonstrated sustained interest in cloud infrastructure modernization and DevOps automation. Key decision-makers have been consuming thought leadership content around cost optimization and scalability challenges.";
+    const sampleEventNarrative = explainability?.event_narrative ?? "Recent funding round of $50M Series C positions them for expansion. Leadership changes in the past quarter include a new CTO with a track record of digital transformation initiatives. They recently announced a partnership that signals strategic alignment with your target market.";
+
+    const hasProductFit = explainability?.fits_summary && explainability.fits_summary.length > 0;
+    const hasSignals = explainability?.signals_summary && (
+        (explainability.signals_summary.interests?.length ?? 0) > 0 ||
+        (explainability.signals_summary.events?.length ?? 0) > 0
+    );
+
     return (
         <div className="flex flex-col h-full min-h-0">
             <CompanyDetailHeader company={company} onClose={onClose} />
@@ -213,65 +223,79 @@ export function CompanyDetailView({
                 {isLoading ? (
                     <CompanyDetailSkeleton />
                 ) : (
-                    <div className="p-7 space-y-6">
-                        {/* TODO: Remove sample content after backend returns real narratives */}
-                        {(() => {
-                            const sampleSignalNarrative = explainability?.signal_narrative ?? "This company shows strong buying signals across multiple dimensions. Employee activity on LinkedIn indicates active research into solutions similar to your offering, with 12 employees engaging with relevant content in the past 30 days. Technical job postings suggest they're building capabilities that align with your product's value proposition.";
-                            const sampleInterestNarrative = explainability?.interest_narrative ?? "Based on content engagement patterns, this company has demonstrated sustained interest in cloud infrastructure modernization and DevOps automation. Key decision-makers have been consuming thought leadership content around cost optimization and scalability challenges.";
-                            const sampleEventNarrative = explainability?.event_narrative ?? "Recent funding round of $50M Series C positions them for expansion. Leadership changes in the past quarter include a new CTO with a track record of digital transformation initiatives. They recently announced a partnership that signals strategic alignment with your target market.";
+                    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as CompanyDetailTab)}>
+                        <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 px-7 pt-4">
+                            <TabsList className="w-full justify-start gap-4">
+                                <TabsTrigger value="narratives" className="gap-2">
+                                    <CircleQuestionMark className="w-4 h-4" />
+                                    Why
+                                </TabsTrigger>
+                                <TabsTrigger value="product-fit" className="gap-2">
+                                    <Package className="w-4 h-4" />
+                                    Product Fit
+                                </TabsTrigger>
+                                <TabsTrigger value="signals" className="gap-2">
+                                    <Radio className="w-4 h-4" />
+                                    Signals
+                                </TabsTrigger>
+                                <TabsTrigger value="details" className="gap-2">
+                                    <Building className="w-4 h-4" />
+                                    Details
+                                </TabsTrigger>
+                            </TabsList>
+                        </div>
 
-                            return (
-                                <section className="pb-6 border-b border-slate-200 dark:border-slate-700">
-                                    <div className="space-y-3">
-                                        <NarrativeCard
-                                            title="Signal Analysis"
-                                            icon={Brain}
-                                            content={sampleSignalNarrative}
-                                            accentColor="violet"
-                                        />
-                                        <NarrativeCard
-                                            title="Interest Analysis"
-                                            icon={Target}
-                                            content={sampleInterestNarrative}
-                                            accentColor="amber"
-                                        />
-                                        <NarrativeCard
-                                            title="Event Analysis"
-                                            icon={Calendar}
-                                            content={sampleEventNarrative}
-                                            accentColor="blue"
-                                        />
-                                    </div>
-                                </section>
-                            );
-                        })()}
+                        <TabsContent value="narratives" className="p-7">
+                            <div className="space-y-3">
+                                <NarrativeCard
+                                    title="Signal Analysis"
+                                    icon={Brain}
+                                    content={sampleSignalNarrative}
+                                    accentColor="violet"
+                                />
+                                <NarrativeCard
+                                    title="Interest Analysis"
+                                    icon={Target}
+                                    content={sampleInterestNarrative}
+                                    accentColor="amber"
+                                />
+                                <NarrativeCard
+                                    title="Event Analysis"
+                                    icon={Calendar}
+                                    content={sampleEventNarrative}
+                                    accentColor="blue"
+                                />
+                            </div>
+                        </TabsContent>
 
-                        {/* Product Fit */}
-                        {explainability?.fits_summary && explainability.fits_summary.length > 0 && (
-                            <section>
-                                <SectionHeader title="Product Fit" count={explainability.fits_summary.length} color="bg-emerald-600" />
+                        <TabsContent value="product-fit" className="p-7">
+                            {hasProductFit ? (
                                 <div className="space-y-3">
-                                    {explainability.fits_summary.map((fit) => (
+                                    {explainability!.fits_summary!.map((fit) => (
                                         <ProductFitCard key={fit.product_id} fit={fit} />
                                     ))}
                                 </div>
-                            </section>
-                        )}
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                    <Package className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
+                                    <p className="text-slate-500 dark:text-slate-400">
+                                        No product fit data available.
+                                    </p>
+                                </div>
+                            )}
+                        </TabsContent>
 
-                        {/* Signal Intelligence */}
-                        {explainability?.signals_summary && (
-                            (explainability.signals_summary.interests?.length > 0 || explainability.signals_summary.events?.length > 0) && (
-                                <section>
-                                    <SectionHeader title="Signal Intelligence" color="bg-indigo-600" />
-
+                        <TabsContent value="signals" className="p-7">
+                            {hasSignals ? (
+                                <div className="space-y-6">
                                     {/* Interests */}
-                                    {explainability.signals_summary.interests?.length > 0 && (
-                                        <div className="mb-4">
+                                    {(explainability!.signals_summary!.interests?.length ?? 0) > 0 && (
+                                        <div>
                                             <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                                                 Detected Interests
                                             </h4>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                {explainability.signals_summary.interests.slice(0, 6).map((interest) => (
+                                                {explainability!.signals_summary!.interests!.slice(0, 6).map((interest) => (
                                                     <SignalCard key={interest.id} signal={interest} type="interest" />
                                                 ))}
                                             </div>
@@ -279,76 +303,85 @@ export function CompanyDetailView({
                                     )}
 
                                     {/* Events */}
-                                    {explainability.signals_summary.events?.length > 0 && (
+                                    {(explainability!.signals_summary!.events?.length ?? 0) > 0 && (
                                         <div>
                                             <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                                                 Key Events
                                             </h4>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                {explainability.signals_summary.events.slice(0, 6).map((event) => (
+                                                {explainability!.signals_summary!.events!.slice(0, 6).map((event) => (
                                                     <SignalCard key={event.id} signal={event} type="event" />
                                                 ))}
                                             </div>
                                         </div>
                                     )}
-                                </section>
-                            )
-                        )}
-
-                        {/* Company Details Grid */}
-                        {companyData && (
-                            <section>
-                                <SectionHeader title="Company Details" color="bg-slate-600" />
-                                <div className="grid grid-cols-2 sm:grid-cols-4 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                                    <DetailCell label="Industry" value={companyData.industry} />
-                                    <DetailCell label="Type" value={companyData.company_type} />
-                                    <DetailCell label="Size" value={companyData.employee_count_range} />
-                                    <DetailCell label="Revenue" value={companyData.revenue} />
-                                    <DetailCell label="Headquarters" value={formatLocation(companyData)} />
-                                    <DetailCell label="Country" value={companyData.hq_country} />
-                                    <DetailCell label="Founded" value={companyData.founded_year} />
-                                    <DetailCell label="Stock" value={companyData.ticker} />
                                 </div>
-                            </section>
-                        )}
-
-                        {/* Specialties */}
-                        {companyData?.specialties && companyData.specialties.length > 0 && (
-                            <section>
-                                <SectionHeader title="Specialties" count={companyData.specialties.length} color="bg-indigo-600" />
-                                <div className="flex flex-wrap gap-2">
-                                    {companyData.specialties.map((specialty, idx) => (
-                                        <Badge
-                                            key={idx}
-                                            variant="secondary"
-                                            className="text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800"
-                                        >
-                                            {specialty}
-                                        </Badge>
-                                    ))}
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                    <Radio className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
+                                    <p className="text-slate-500 dark:text-slate-400">
+                                        No signal intelligence data available.
+                                    </p>
                                 </div>
-                            </section>
-                        )}
+                            )}
+                        </TabsContent>
 
-                        {/* About Section */}
-                        {companyData?.description && (
-                            <section>
-                                <SectionHeader title="About" color="bg-blue-600" />
-                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    {companyData.description}
-                                </p>
-                            </section>
-                        )}
+                        <TabsContent value="details" className="p-7">
+                            {companyData ? (
+                                <div className="space-y-6">
+                                    {/* Company Details Grid */}
+                                    <section>
+                                        <SectionHeader title="Company Details" color="bg-slate-600" />
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
+                                            <DetailCell label="Industry" value={companyData.industry} />
+                                            <DetailCell label="Type" value={companyData.company_type} />
+                                            <DetailCell label="Size" value={companyData.employee_count_range} />
+                                            <DetailCell label="Revenue" value={companyData.revenue} />
+                                            <DetailCell label="Headquarters" value={formatLocation(companyData)} />
+                                            <DetailCell label="Country" value={companyData.hq_country} />
+                                            <DetailCell label="Founded" value={companyData.founded_year} />
+                                            <DetailCell label="Stock" value={companyData.ticker} />
+                                        </div>
+                                    </section>
 
-                        {/* Empty state if no data */}
-                        {!companyData && !isLoading && (
-                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <p className="text-slate-500 dark:text-slate-400">
-                                    Unable to load company details.
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                                    {/* Specialties */}
+                                    {companyData.specialties && companyData.specialties.length > 0 && (
+                                        <section>
+                                            <SectionHeader title="Specialties" count={companyData.specialties.length} color="bg-indigo-600" />
+                                            <div className="flex flex-wrap gap-2">
+                                                {companyData.specialties.map((specialty, idx) => (
+                                                    <Badge
+                                                        key={idx}
+                                                        variant="secondary"
+                                                        className="text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800"
+                                                    >
+                                                        {specialty}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </section>
+                                    )}
+
+                                    {/* About Section */}
+                                    {companyData.description && (
+                                        <section>
+                                            <SectionHeader title="About" color="bg-blue-600" />
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                                {companyData.description}
+                                            </p>
+                                        </section>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                    <Building className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
+                                    <p className="text-slate-500 dark:text-slate-400">
+                                        Unable to load company details.
+                                    </p>
+                                </div>
+                            )}
+                        </TabsContent>
+                    </Tabs>
                 )}
             </ScrollArea>
         </div>
