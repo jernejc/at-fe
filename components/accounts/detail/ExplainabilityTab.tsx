@@ -17,8 +17,59 @@ import {
     AlertCircle,
     ArrowRight,
     Users,
+    Brain,
+    Target,
+    Calendar,
 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import type { LucideIcon } from 'lucide-react';
+
+interface NarrativeCardProps {
+    title: string;
+    icon: LucideIcon;
+    content: string;
+    accentColor: 'violet' | 'amber' | 'blue';
+}
+
+function NarrativeCard({ title, icon: Icon, content, accentColor }: NarrativeCardProps) {
+    const colorClasses = {
+        violet: {
+            iconBg: 'bg-violet-100 dark:bg-violet-900/30',
+            iconText: 'text-violet-600 dark:text-violet-400',
+        },
+        amber: {
+            iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+            iconText: 'text-amber-600 dark:text-amber-400',
+        },
+        blue: {
+            iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+            iconText: 'text-blue-600 dark:text-blue-400',
+        },
+    };
+
+    const colors = colorClasses[accentColor];
+
+    return (
+        <Card>
+            <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                    <div className={cn('w-7 h-7 rounded-md flex items-center justify-center', colors.iconBg)}>
+                        <Icon className={cn('w-4 h-4', colors.iconText)} />
+                    </div>
+                    <CardTitle className="text-sm font-semibold text-slate-900 dark:text-white">
+                        {title}
+                    </CardTitle>
+                </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">
+                    {content}
+                </p>
+            </CardContent>
+        </Card>
+    );
+}
 
 interface ExplainabilityTabProps {
     data: CompanyExplainabilityResponse;
@@ -29,7 +80,7 @@ interface ExplainabilityTabProps {
 }
 
 export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess }: ExplainabilityTabProps) {
-    const { signals_summary, fits_summary, data_coverage, freshness } = data;
+    const { signals_summary, fits_summary, data_coverage, freshness, signal_narrative, interest_narrative, event_narrative } = data;
     const [processingStatus, setProcessingStatus] = useState<string | undefined>(undefined);
 
     const handleFitClick = (productId: number) => {
@@ -53,8 +104,37 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
         }
     };
 
+    // TODO: Remove sample content after backend returns real narratives
+    const sampleSignalNarrative = signal_narrative ?? "This company shows strong buying signals across multiple dimensions. Employee activity on LinkedIn indicates active research into solutions similar to your offering, with 12 employees engaging with relevant content in the past 30 days. Technical job postings suggest they're building capabilities that align with your product's value proposition.";
+    const sampleInterestNarrative = interest_narrative ?? "Based on content engagement patterns, this company has demonstrated sustained interest in cloud infrastructure modernization and DevOps automation. Key decision-makers have been consuming thought leadership content around cost optimization and scalability challenges.";
+    const sampleEventNarrative = event_narrative ?? "Recent funding round of $50M Series C positions them for expansion. Leadership changes in the past quarter include a new CTO with a track record of digital transformation initiatives. They recently announced a partnership that signals strategic alignment with your target market.";
+
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
+            {/* TODO: Remove sample content section after backend returns real narratives */}
+            <section className="space-y-3 pb-6 border-b border-slate-200 dark:border-slate-800">
+                <div className="space-y-3">
+                    <NarrativeCard
+                        title="Signal Analysis"
+                        icon={Brain}
+                        content={sampleSignalNarrative}
+                        accentColor="violet"
+                    />
+                    <NarrativeCard
+                        title="Interest Analysis"
+                        icon={Target}
+                        content={sampleInterestNarrative}
+                        accentColor="amber"
+                    />
+                    <NarrativeCard
+                        title="Event Analysis"
+                        icon={Calendar}
+                        content={sampleEventNarrative}
+                        accentColor="blue"
+                    />
+                </div>
+            </section>
+
             {/* Product Fit Section */}
             <section>
                 {onProcess ? (

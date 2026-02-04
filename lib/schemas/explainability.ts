@@ -104,6 +104,9 @@ export interface CompanyExplainabilityResponse {
     company_domain: string;
     company_name: string;
     signals_summary: SignalsSummary;
+    signal_narrative?: string | null;
+    interest_narrative?: string | null;
+    event_narrative?: string | null;
     fits_summary: FitSummaryFit[];
     playbooks_count: number;
     data_coverage?: DataCoverage | null;
