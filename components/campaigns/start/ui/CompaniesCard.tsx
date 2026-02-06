@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -143,6 +143,12 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
     const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(null);
     const [fitBreakdown, setFitBreakdown] = useState<FitScore | null>(null);
     const [isDetailLoading, setIsDetailLoading] = useState(false);
+
+    useEffect(() => {
+        if (isLoading && selectedCompany) {
+            handleCloseDetail();
+        }
+    }, [isLoading]);
 
     const handleCompanyClick = async (company: WSCompanyResult) => {
         setSelectedCompany(company);
