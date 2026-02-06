@@ -16,6 +16,7 @@ export interface Integration {
   logoUrl: string;
   website: string;
   connectionFields: ConnectionField[];
+  comingSoon?: boolean;
 }
 
 export const CATEGORY_LABELS: Record<Integration['category'], string> = {
@@ -41,6 +42,7 @@ export const integrations: Integration[] = [
       { name: 'clientId', label: 'Client ID', type: 'text', placeholder: 'Enter your Client ID', required: true },
       { name: 'clientSecret', label: 'Client Secret', type: 'password', placeholder: 'Enter your Client Secret', required: true },
     ],
+    comingSoon: true,
   },
   {
     id: 'hubspot',
@@ -53,6 +55,7 @@ export const integrations: Integration[] = [
     connectionFields: [
       { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'Enter your HubSpot API key', required: true, helpText: 'Found in Settings > Integrations > API key' },
     ],
+    comingSoon: true,
   },
   {
     id: 'pipedrive',
@@ -65,6 +68,7 @@ export const integrations: Integration[] = [
     connectionFields: [
       { name: 'apiToken', label: 'API Token', type: 'password', placeholder: 'Enter your Pipedrive API token', required: true, helpText: 'Found in Settings > Personal preferences > API' },
     ],
+    comingSoon: true,
   },
 
   // Sales Engagement
@@ -79,6 +83,7 @@ export const integrations: Integration[] = [
     connectionFields: [
       { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'Enter your Apollo API key', required: true, helpText: 'Found in Settings > Integrations > API Keys' },
     ],
+    comingSoon: true,
   },
   {
     id: 'outreach',
@@ -93,6 +98,7 @@ export const integrations: Integration[] = [
       { name: 'clientSecret', label: 'Client Secret', type: 'password', placeholder: 'Enter your Client Secret', required: true },
       { name: 'redirectUri', label: 'Redirect URI', type: 'url', placeholder: 'https://your-app.com/callback', required: true, helpText: 'Must match the URI configured in your Outreach app' },
     ],
+    comingSoon: true,
   },
   {
     id: 'salesloft',
@@ -105,6 +111,7 @@ export const integrations: Integration[] = [
     connectionFields: [
       { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'Enter your Salesloft API key', required: true, helpText: 'Found in Settings > API' },
     ],
+    comingSoon: true,
   },
 
   // Communication
@@ -120,6 +127,7 @@ export const integrations: Integration[] = [
       { name: 'webhookUrl', label: 'Webhook URL', type: 'url', placeholder: 'https://hooks.slack.com/services/...', required: true, helpText: 'Create an incoming webhook in your Slack workspace' },
       { name: 'channel', label: 'Default Channel', type: 'text', placeholder: '#general', required: false, helpText: 'Optional default channel for notifications' },
     ],
+    comingSoon: true,
   },
   {
     id: 'teams',
@@ -133,6 +141,7 @@ export const integrations: Integration[] = [
       { name: 'webhookUrl', label: 'Webhook URL', type: 'url', placeholder: 'https://outlook.office.com/webhook/...', required: true, helpText: 'Create an incoming webhook connector in your Teams channel' },
       { name: 'channel', label: 'Default Channel', type: 'text', placeholder: 'General', required: false, helpText: 'Optional channel name for reference' },
     ],
+    comingSoon: true,
   },
 
   // Data Enrichment
@@ -148,6 +157,7 @@ export const integrations: Integration[] = [
       { name: 'username', label: 'Username', type: 'text', placeholder: 'Enter your ZoomInfo username', required: true },
       { name: 'password', label: 'Password', type: 'password', placeholder: 'Enter your password', required: true },
     ],
+    comingSoon: true,
   },
   {
     id: 'linkedin-sales-navigator',
@@ -160,6 +170,7 @@ export const integrations: Integration[] = [
     connectionFields: [
       { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'Enter your access token', required: true, helpText: 'OAuth access token from LinkedIn Developer Portal' },
     ],
+    comingSoon: true,
   },
 
   // Calendar
@@ -174,6 +185,7 @@ export const integrations: Integration[] = [
     connectionFields: [
       { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'Enter your Calendly API key', required: true, helpText: 'Found in Account Settings > Integrations' },
     ],
+    comingSoon: true,
   },
 ];
 

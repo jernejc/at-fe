@@ -25,7 +25,7 @@ export function DashboardCRMAnalytics() {
             {/* Section Header */}
             <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                    CRM Analytics
+                    Analytics
                 </h2>
                 <span className="text-xs text-slate-500 dark:text-slate-400">
                     Synced from your CRM

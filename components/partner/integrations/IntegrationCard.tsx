@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, Plug } from 'lucide-react';
+import { CheckCircle2, Clock, Plug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Integration } from './integrations-data';
@@ -19,6 +19,7 @@ export function IntegrationCard({
   onConnect,
   onDisconnect,
 }: IntegrationCardProps) {
+  const comingSoon = integration.comingSoon ?? false;
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -71,7 +72,12 @@ export function IntegrationCard({
 
       {/* Action button */}
       <div className="mt-auto pt-1 text-right">
-        {isConnected ? (
+        {comingSoon ? (
+          <div className="flex items-center justify-center gap-1.5 w-full py-2 text-sm text-slate-400 dark:text-slate-500">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Coming soon</span>
+          </div>
+        ) : isConnected ? (
           <Button
             variant="outline"
             onClick={onDisconnect}
