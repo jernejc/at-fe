@@ -7,7 +7,7 @@ import type { ProductSummary, WSCompanyResult, PartnerSummary, WSPartnerSuggesti
 import type { CampaignStep } from '@/components/campaigns/start/ui/StepProgressIndicator';
 import { getPartners, bulkAssignPartners, bulkAssignCompaniesToPartner } from '@/lib/api/partners';
 import { createCampaign, addCompaniesBulk } from '@/lib/api/campaigns';
-import { generateRandomCampaignName } from '@/lib/utils';
+// import { generateRandomCampaignName } from '@/lib/utils';
 
 export type CreatePhase = 'naming' | 'ready' | 'creating';
 
@@ -393,8 +393,9 @@ export function useCampaignStartFlow({
         setMessages(prev => [...prev, transitionMessage]);
         setCurrentStep('create');
         setCreatePhase('naming');
-        setCampaignName(generateRandomCampaignName());
-    }, [companies.length, selectedPartnerIds.size]);
+        // TODO add response suggested campaign name
+        setCampaignName(messages[2].content.charAt(0).toUpperCase() + messages[2].content.slice(1));
+    }, [companies.length, selectedPartnerIds.size, messages]);
 
     const handleNameSubmit = useCallback(() => {
         if (!campaignName.trim()) return;
