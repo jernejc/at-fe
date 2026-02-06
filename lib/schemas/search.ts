@@ -53,6 +53,7 @@ export interface WSSearchInterpretation {
 // Top interest for a company
 export interface WSTopInterest {
     category: string;
+    display_name?: string;
     strength: number;
     contributors: number;
 }

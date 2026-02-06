@@ -32,7 +32,7 @@ export function MetricPill({ icon, value, label, highlight = false }: {
 
 export function DetailCell({ label, value }: { label: string; value: string | number | null | undefined }) {
     return (
-        <div className="p-4 border-r border-b border-slate-200 dark:border-slate-700 last:border-r-0 [&:nth-child(4n)]:border-r-0 [&:nth-child(n+5)]:border-b-0 md:[&:nth-child(n+5)]:border-b md:[&:nth-last-child(-n+4)]:border-b-0">
+        <div className="p-4 border-r border-b border-slate-200 dark:border-slate-700 [&:nth-child(4n)]:border-r-0 [&:nth-child(n+5)]:border-b-0 md:[&:nth-child(n+5)]:border-b">
             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</p>
             <p className="font-medium mt-1 text-slate-900 dark:text-white">{value || '—'}</p>
         </div>

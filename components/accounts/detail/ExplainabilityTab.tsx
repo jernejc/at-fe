@@ -20,6 +20,11 @@ import {
     Brain,
     Target,
     Calendar,
+    Signal,
+    SignalHigh,
+    SignalMedium,
+    SignalLow,
+    SignalZero,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
@@ -317,6 +322,14 @@ function FitCard({ fit, onClick, index }: { fit: FitSummaryFit, onClick: () => v
     );
 }
 
+function SignalStrengthIcon({ strength, className }: { strength: number; className?: string }) {
+    if (strength >= 8) return <Signal className={className} />;
+    if (strength >= 6) return <SignalHigh className={className} />;
+    if (strength >= 4) return <SignalMedium className={className} />;
+    if (strength >= 2) return <SignalLow className={className} />;
+    return <SignalZero className={className} />;
+}
+
 function SignalCard({ signal, type, onClick }: { signal: SignalInterest | SignalEvent, type: 'interest' | 'event', onClick: () => void }) {
     const isHighConfidence = signal.confidence > 0.8;
 
@@ -402,7 +415,10 @@ function SignalCard({ signal, type, onClick }: { signal: SignalInterest | Signal
                                 </span>
                             )}
                         </div>
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{Math.round(signal.strength)}%</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300 inline-flex items-center gap-1">
+                            <SignalStrengthIcon strength={signal.strength} className="w-3 h-3" />
+                            {Math.round(signal.strength)}/10
+                        </span>
                     </div>
                 </div>
             </div>

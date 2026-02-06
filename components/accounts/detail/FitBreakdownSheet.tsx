@@ -101,8 +101,8 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                         </h3>
                                         <div className="flex flex-wrap gap-2">
                                             {fit.top_drivers.map((driver, i) => (
-                                                <Badge key={i} variant="secondary" className="px-2.5 py-1 text-sm bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                                                    {driver}
+                                                <Badge key={i} variant="secondary" className="px-2.5 py-1 text-sm capitalize bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                                    {driver.replace(/_/g, ' ')}
                                                 </Badge>
                                             ))}
                                         </div>

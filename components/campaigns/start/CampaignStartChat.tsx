@@ -252,6 +252,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                     isLoading={isSearching}
                                     insights={agenticState.insights}
                                     interestSummary={agenticState.interestSummary}
+                                    selectedProductId={selectedProduct?.id}
                                     className='max-h-[500px]'
                                 />
                             </div>
@@ -460,6 +461,7 @@ export function CampaignStartChat({ products, flowState, currentStep }: Campaign
                                         isLoading={isSearching}
                                         insights={agenticState.insights}
                                         interestSummary={agenticState.interestSummary}
+                                        selectedProductId={selectedProduct?.id}
                                         className="h-full max-h-full"
                                     />
                                 </motion.div>

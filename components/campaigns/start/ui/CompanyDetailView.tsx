@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn, normalizeScore } from '@/lib/utils';
 import { SectionHeader, DetailCell } from '@/components/accounts/detail/components';
 import { CompanyDetailHeader } from './CompanyDetailHeader';
 import { CompanyDetailSkeleton } from './CompanyDetailSkeleton';
-import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse, FitSummaryFit, SignalInterest, SignalEvent } from '@/lib/schemas';
-import { Sparkles, TrendingUp, Zap, Calendar, Brain, Target, Package, Radio, Building, CircleQuestionMark } from 'lucide-react';
+import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse, SignalInterest, SignalEvent, FitScore, SignalContribution } from '@/lib/schemas';
+import { Sparkles, TrendingUp, Zap, Calendar, Brain, Target, Package, Radio, Building, CircleQuestionMark, Signal, SignalHigh, SignalMedium, SignalLow, SignalZero, CheckCircle2, Activity } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { LucideIcon } from 'lucide-react';
@@ -19,6 +20,7 @@ interface CompanyDetailViewProps {
     company: WSCompanyResult;
     companyData: CompanyRead | null;
     explainability: CompanyExplainabilityResponse | null;
+    fitBreakdown?: FitScore | null;
     isLoading: boolean;
     onClose: () => void;
 }
@@ -69,80 +71,57 @@ function NarrativeCard({ title, icon: Icon, content, accentColor }: NarrativeCar
     );
 }
 
-function getFitScoreColor(score: number): string {
-    if (score >= 80) return 'bg-emerald-500';
-    if (score >= 60) return 'bg-blue-500';
-    if (score >= 40) return 'bg-amber-500';
-    return 'bg-slate-400';
-}
-
 function formatLocation(company: CompanyRead): string {
     const parts = [company.hq_city, company.hq_state, company.hq_country].filter(Boolean);
     return parts.join(', ') || '—';
 }
 
-function ProductFitCard({ fit }: { fit: FitSummaryFit }) {
-    const combinedPercent = Math.round(fit.combined_score * 100);
-    const likelihoodPercent = Math.round(fit.likelihood_score * 100);
-    const urgencyPercent = Math.round(fit.urgency_score * 100);
+function FitSignalMatchCard({ match }: { match: SignalContribution }) {
+    const formatCategory = (cat: string) =>
+        cat.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    const displayName = match.display_name || formatCategory(match.category);
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
-            <div className="flex items-center gap-3 mb-3">
-                <div className={cn(
-                    "w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg",
-                    getFitScoreColor(combinedPercent)
-                )}>
-                    {combinedPercent}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-slate-900 dark:text-white truncate">
-                        {fit.product_name}
-                    </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
-                        {fit.top_drivers.slice(0, 3).join(', ')}
-                    </p>
-                </div>
-            </div>
-
-            <div className="space-y-2">
-                <div>
-                    <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3" />
-                            Likelihood
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="font-medium text-sm text-slate-900 dark:text-white">
+                        {displayName}
+                    </div>
+                    {match.display_name && match.display_name !== match.category && (
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            {match.category.replace(/_/g, ' ')}
+                        </div>
+                    )}
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="flex items-center gap-1">
+                            <TrendingUp className="h-3 w-3" />
+                            {Math.round(match.strength)}% strength
                         </span>
-                        <span className="font-medium text-slate-900 dark:text-white">{likelihoodPercent}%</span>
-                    </div>
-                    <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-blue-500 rounded-full transition-all"
-                            style={{ width: `${likelihoodPercent}%` }}
-                        />
+                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                        <span>{match.weight}x weight</span>
                     </div>
                 </div>
-                <div>
-                    <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                            <Zap className="w-3 h-3" />
-                            Urgency
-                        </span>
-                        <span className="font-medium text-slate-900 dark:text-white">{urgencyPercent}%</span>
-                    </div>
-                    <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-amber-500 rounded-full transition-all"
-                            style={{ width: `${urgencyPercent}%` }}
-                        />
-                    </div>
+                <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded text-xs font-semibold shrink-0">
+                    <CheckCircle2 className="h-3 w-3" />
+                    +{Math.round(match.contribution)}
                 </div>
             </div>
         </div>
     );
 }
 
+function SignalStrengthIcon({ strength, className }: { strength: number; className?: string }) {
+    if (strength >= 8) return <Signal className={className} />;
+    if (strength >= 6) return <SignalHigh className={className} />;
+    if (strength >= 4) return <SignalMedium className={className} />;
+    if (strength >= 2) return <SignalLow className={className} />;
+    return <SignalZero className={className} />;
+}
+
 function SignalCard({ signal, type }: { signal: SignalInterest | SignalEvent; type: 'interest' | 'event' }) {
-    const strengthPercent = Math.round(signal.strength * 10);
+    const strengthValue = Math.round(signal.strength);
     const Icon = type === 'interest' ? Sparkles : Calendar;
 
     return (
@@ -160,18 +139,19 @@ function SignalCard({ signal, type }: { signal: SignalInterest | SignalEvent; ty
                     <h5 className="font-medium text-sm text-slate-900 dark:text-white truncate">
                         {signal.display_name || signal.category}
                     </h5>
-                    <div className="flex items-center gap-2 mt-0.5">
-                        <span className={cn(
-                            "text-xs font-medium px-1.5 py-0.5 rounded",
-                            strengthPercent >= 70
-                                ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                                : strengthPercent >= 40
-                                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                        )}>
-                            {strengthPercent}% strength
-                        </span>
-                    </div>
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                    <span className={cn(
+                        "text-xs font-medium px-1.5 py-0.5 rounded inline-flex items-center gap-1",
+                        strengthValue >= 7
+                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
+                            : strengthValue >= 4
+                                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                    )}>
+                        <SignalStrengthIcon strength={signal.strength} className="w-3 h-3" />
+                        {strengthValue}/10
+                    </span>
                 </div>
             </div>
             {signal.evidence_summary && (
@@ -199,6 +179,7 @@ export function CompanyDetailView({
     company,
     companyData,
     explainability,
+    fitBreakdown,
     isLoading,
     onClose,
 }: CompanyDetailViewProps) {
@@ -210,7 +191,7 @@ export function CompanyDetailView({
     const eventNarrative = explainability?.event_narrative;
     const hasNarratives = signalNarrative || interestNarrative || eventNarrative;
 
-    const hasProductFit = explainability?.fits_summary && explainability.fits_summary.length > 0;
+    const hasProductFit = !!fitBreakdown;
     const hasSignals = explainability?.signals_summary && (
         (explainability.signals_summary.interests?.length ?? 0) > 0 ||
         (explainability.signals_summary.events?.length ?? 0) > 0
@@ -285,13 +266,95 @@ export function CompanyDetailView({
                         </TabsContent>
 
                         <TabsContent value="product-fit" className="p-7">
-                            {hasProductFit ? (
-                                <div className="space-y-3">
-                                    {explainability!.fits_summary!.map((fit) => (
-                                        <ProductFitCard key={fit.product_id} fit={fit} />
-                                    ))}
-                                </div>
-                            ) : (
+                            {hasProductFit ? (() => {
+                                const score = normalizeScore(fitBreakdown!.combined_score);
+                                const likelihood = normalizeScore(fitBreakdown!.likelihood_score);
+                                const urgency = normalizeScore(fitBreakdown!.urgency_score);
+
+                                return (
+                                    <div className="space-y-6">
+                                        {/* Score header */}
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="space-y-1">
+                                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                                                    {fitBreakdown!.product_name}
+                                                </h3>
+                                            </div>
+                                            <div className="flex flex-col items-center justify-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 min-w-20">
+                                                <span className="text-3xl font-bold text-slate-900 dark:text-white">
+                                                    {Math.round(score)}
+                                                </span>
+                                                <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mt-0.5 tracking-wider">Fit Score</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Likelihood / Urgency bars */}
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    <span>Likelihood</span>
+                                                    <span className="text-slate-900 dark:text-white">{Math.round(likelihood)}%</span>
+                                                </div>
+                                                <Progress value={likelihood} className="h-2" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    <span>Urgency</span>
+                                                    <span className="text-slate-900 dark:text-white">{Math.round(urgency)}%</span>
+                                                </div>
+                                                <Progress value={urgency} className="h-2" />
+                                            </div>
+                                        </div>
+
+                                        {/* Top drivers */}
+                                        {fitBreakdown!.top_drivers && fitBreakdown!.top_drivers.length > 0 && (
+                                            <section className="space-y-3">
+                                                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                                    <Target className="h-4 w-4 text-blue-500" />
+                                                    Top Drivers
+                                                </h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {fitBreakdown!.top_drivers.map((driver, i) => (
+                                                        <Badge key={i} variant="secondary" className="px-2.5 py-1 text-sm capitalize bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                                            {driver.replace(/_/g, ' ')}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {/* Matched interests */}
+                                        {fitBreakdown!.interest_matches && fitBreakdown!.interest_matches.length > 0 && (
+                                            <section className="space-y-3">
+                                                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                                    <Zap className="h-4 w-4 text-blue-500" />
+                                                    Matched Interests
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {fitBreakdown!.interest_matches.map((match, i) => (
+                                                        <FitSignalMatchCard key={i} match={match} />
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {/* Matched events */}
+                                        {fitBreakdown!.event_matches && fitBreakdown!.event_matches.length > 0 && (
+                                            <section className="space-y-3">
+                                                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                                    <Activity className="h-4 w-4 text-blue-500" />
+                                                    Matched Events
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {fitBreakdown!.event_matches.map((match, i) => (
+                                                        <FitSignalMatchCard key={i} match={match} />
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+                                    </div>
+                                );
+                            })() : (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
                                     <Package className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
                                     <p className="text-slate-500 dark:text-slate-400">

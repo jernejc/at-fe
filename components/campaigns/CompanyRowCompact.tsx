@@ -3,7 +3,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn, formatCompactNumber } from '@/lib/utils';
 import { OutreachStatus, OUTREACH_CONFIG } from '@/lib/config/outreach';
-import { Building2, Users, MapPin, Clock, Target, ChevronRight } from 'lucide-react';
+import { Building2, Users, MapPin, Clock, Target, ChevronRight, Signal, SignalHigh, SignalMedium, SignalLow, SignalZero } from 'lucide-react';
 import type { WSTopInterest } from '@/lib/schemas';
 
 export type { OutreachStatus };
@@ -94,10 +94,17 @@ export function CompanyRowCompact({
     };
 
     const getSignalStrengthStyle = (strength: number) => {
-        const percent = strength * 10;
-        if (percent >= 70) return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
-        if (percent >= 40) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+        if (strength >= 7) return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
+        if (strength >= 4) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
         return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
+    };
+
+    const getSignalIcon = (strength: number) => {
+        if (strength >= 8) return Signal;
+        if (strength >= 6) return SignalHigh;
+        if (strength >= 4) return SignalMedium;
+        if (strength >= 2) return SignalLow;
+        return SignalZero;
     };
 
     const getStatusStyle = (statusValue: string | null | undefined) => {
@@ -323,19 +330,23 @@ export function CompanyRowCompact({
 
             {signals && signals.length > 0 && (
                 <div className="hidden lg:flex items-center flex-wrap gap-1 shrink-0 mt-2 ml-10">
-                    {signals.map((signal, idx) => (
-                        <div
-                            key={`${signal.category}-${idx}`}
-                            className={cn(
-                                "px-1.5 py-0.5 rounded text-[10px] flex gap-1",
-                                getSignalStrengthStyle(signal.strength)
-                            )}
-                            title={`${signal.category}: ${Math.round(signal.strength * 10)}%`}
-                        >
-                            <span className='truncate max-w-[100px]'>{signal.category}</span>
-                            <span className='font-semibold'>{Math.round(signal.strength * 10)}%</span>
-                        </div>
-                    ))}
+                    {signals.map((signal, idx) => {
+                        const SignalIcon = getSignalIcon(signal.strength);
+                        return (
+                            <div
+                                key={`${signal.category}-${idx}`}
+                                className={cn(
+                                    "px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1",
+                                    getSignalStrengthStyle(signal.strength)
+                                )}
+                                title={`${signal.category}: ${Math.round(signal.strength)}/10`}
+                            >
+                                <span className='truncate max-w-[100px]'>{signal.display_name || signal.category}</span>
+                                <SignalIcon className="w-2.5 h-2.5 shrink-0" />
+                                <span className='font-semibold'>{Math.round(signal.strength)}</span>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </div>

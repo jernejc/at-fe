@@ -8,7 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
 import { CompanyDetailView } from './CompanyDetailView';
 import { getCompany, getCompanyExplainability } from '@/lib/api/companies';
-import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse, WSSearchInsights, WSInterestFrequency } from '@/lib/schemas';
+import { getFitBreakdown } from '@/lib/api/fit-scores';
+import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse, WSSearchInsights, WSInterestFrequency, FitScore } from '@/lib/schemas';
 import { Building2, SearchX, Sparkles, TrendingUp } from 'lucide-react';
 
 interface CompaniesCardProps {
@@ -18,6 +19,7 @@ interface CompaniesCardProps {
     isLoading?: boolean;
     insights?: WSSearchInsights | null;
     interestSummary?: WSInterestFrequency[];
+    selectedProductId?: number;
 }
 
 const animationConfig = {
@@ -135,10 +137,11 @@ function CompaniesInsights({
     );
 }
 
-export function CompaniesCard({ companies, totalCount, className, isLoading = false, insights, interestSummary = [] }: CompaniesCardProps) {
+export function CompaniesCard({ companies, totalCount, className, isLoading = false, insights, interestSummary = [], selectedProductId }: CompaniesCardProps) {
     const [selectedCompany, setSelectedCompany] = useState<WSCompanyResult | null>(null);
     const [companyData, setCompanyData] = useState<CompanyRead | null>(null);
     const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(null);
+    const [fitBreakdown, setFitBreakdown] = useState<FitScore | null>(null);
     const [isDetailLoading, setIsDetailLoading] = useState(false);
 
     const handleCompanyClick = async (company: WSCompanyResult) => {
@@ -146,15 +149,20 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
         setIsDetailLoading(true);
         setCompanyData(null);
         setExplainability(null);
+        setFitBreakdown(null);
 
         try {
-            const [companyRes, explainRes] = await Promise.all([
+            const [companyRes, explainRes, fitRes] = await Promise.all([
                 getCompany(company.domain),
                 getCompanyExplainability(company.domain),
+                selectedProductId
+                    ? getFitBreakdown(company.domain, selectedProductId).catch(() => null)
+                    : Promise.resolve(null),
             ]);
 
             setCompanyData(companyRes.company);
             setExplainability(explainRes);
+            setFitBreakdown(fitRes);
         } catch (error) {
             console.error('Failed to load company details:', error);
         } finally {
@@ -166,6 +174,7 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
         setSelectedCompany(null);
         setCompanyData(null);
         setExplainability(null);
+        setFitBreakdown(null);
     };
 
     return (
@@ -308,6 +317,7 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
                             company={selectedCompany}
                             companyData={companyData}
                             explainability={explainability}
+                            fitBreakdown={fitBreakdown}
                             isLoading={isDetailLoading}
                             onClose={handleCloseDetail}
                         />
