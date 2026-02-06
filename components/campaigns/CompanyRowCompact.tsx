@@ -341,7 +341,7 @@ export function CompanyRowCompact({
                                 )}
                                 title={`${signal.category}: ${Math.round(signal.strength)}/10`}
                             >
-                                <span className='truncate max-w-[100px]'>{signal.display_name || signal.category}</span>
+                                <span className='truncate max-w-[100px]'>{signal.display_name || signal.category.replace(/_/g, ' ')}</span>
                                 <SignalIcon className="w-2.5 h-2.5 shrink-0" />
                                 <span className='font-semibold'>{Math.round(signal.strength)}</span>
                             </div>
