@@ -15,6 +15,8 @@ interface PaginationProps {
     onPageChange: (page: number) => void;
     /** Optional: Show page jump input for large datasets */
     showPageJump?: boolean;
+    /** Optional: Disable all pagination controls */
+    disabled?: boolean;
 }
 
 /**
@@ -26,6 +28,7 @@ export function Pagination({
     pageSize,
     onPageChange,
     showPageJump = true,
+    disabled = false,
 }: PaginationProps) {
     const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -83,7 +86,7 @@ export function Pagination({
                             variant="outline"
                             size="sm"
                             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
+                            disabled={disabled || currentPage === 1}
                             className="h-8 w-8 p-0"
                         >
                             <ChevronLeft className="h-4 w-4" />
@@ -104,6 +107,7 @@ export function Pagination({
                                     variant={currentPage === pageNum ? "default" : "outline"}
                                     size="sm"
                                     onClick={() => onPageChange(pageNum as number)}
+                                    disabled={disabled}
                                     className="h-8 w-8 p-0"
                                 >
                                     {pageNum}
@@ -116,7 +120,7 @@ export function Pagination({
                             variant="outline"
                             size="sm"
                             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage >= totalPages}
+                            disabled={disabled || currentPage >= totalPages}
                             className="h-8 w-8 p-0"
                         >
                             <ChevronRight className="h-4 w-4" />
@@ -138,6 +142,7 @@ export function Pagination({
                                         onPageChange(newPage);
                                     }
                                 }}
+                                disabled={disabled}
                                 className="h-8 w-16 text-center text-sm"
                             />
                         </div>

@@ -538,9 +538,19 @@ export function AccountList({
             </div>
 
             {/* Account List */}
-            <div className="flex-1 overflow-auto bg-white/50 dark:bg-slate-950/20">
+            <div className="flex-1 overflow-auto bg-white/50 dark:bg-slate-950/20 relative">
                 <div className="max-w-[1600px] mx-auto min-h-full border-x border-border/40 bg-white dark:bg-slate-900/50">
-                    {loading || loadingAccounts ? (
+                    {/* Loading Overlay - Only shows when paginating, not initial load */}
+                    {loadingAccounts && accounts.length > 0 && (
+                        <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm z-10 flex items-center justify-center">
+                            <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg shadow-lg border border-border">
+                                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                <span className="text-sm font-medium text-muted-foreground">Loading...</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {loading || (loadingAccounts && accounts.length === 0) ? (
                         <div>
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <AccountCardSkeleton key={i} />
@@ -582,13 +592,14 @@ export function AccountList({
                     )}
                 </div>
 
-                {/* Pagination Controls */}
-                {!loading && !loadingAccounts && filteredAccounts.length > 0 && (
+                {/* Pagination Controls - Always visible when there's data */}
+                {!loading && totalCount > 0 && (
                     <Pagination
                         currentPage={page}
                         totalCount={totalCount}
                         pageSize={pageSize}
                         onPageChange={setPage}
+                        disabled={loadingAccounts}
                     />
                 )}
             </div>
