@@ -50,8 +50,8 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                     </div>
                 ) : fit ? (
                     <>
-                        <div className="p-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
-                            <SheetHeader className="space-y-6">
+                        <div className="p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                            <SheetHeader className="space-y-4">
                                 <div className="flex items-start justify-between gap-6">
                                     <div className="space-y-2">
                                         <Badge variant="outline" className="mb-2 w-fit text-slate-500 font-normal border-slate-200">
@@ -156,6 +156,12 @@ function SignalMatchCard({ match, type }: { match: SignalContribution, type: 'in
     
     const displayName = match.display_name || formatCategory(match.category);
     
+    // Only show category as secondary label if it's meaningfully different from display_name
+    // (not just a formatting difference like "Rapid Hiring" vs "rapid_hiring")
+    const shouldShowCategory = match.display_name && 
+        match.display_name !== match.category &&
+        match.display_name.toLowerCase().replace(/\s+/g, '') !== match.category.toLowerCase().replace(/_/g, '');
+    
     return (
         <div className="bg-card border border-border rounded-lg p-3 hover:shadow-sm transition-shadow">
             <div className="flex items-start justify-between gap-3">
@@ -163,7 +169,7 @@ function SignalMatchCard({ match, type }: { match: SignalContribution, type: 'in
                     <div className="font-medium text-sm text-foreground">
                         {displayName}
                     </div>
-                    {match.display_name && match.display_name !== match.category && (
+                    {shouldShowCategory && (
                         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                             {match.category.replace(/_/g, ' ')}
                         </div>

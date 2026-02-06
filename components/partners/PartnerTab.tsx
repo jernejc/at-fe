@@ -200,13 +200,10 @@ export function PartnerTab({
                 created_at: a.assigned_at,
                 partner_id: selectedPartner.id,
                 partner_name: selectedPartner.name,
-                // Mock outreach data for now
-                outreach_status: OUTREACH_STATUSES[idx % OUTREACH_STATUSES.length],
-                outreach_sent_at: idx % 3 !== 0
-                    ? new Date(Date.now() - (idx * 2 + 1) * 86400000).toISOString()
-                    : undefined,
-                decision_makers_count: Math.floor((idx + 1) % 5) + 1,
-                last_activity: new Date(Date.now() - idx * 43200000).toISOString(),
+                outreach_status: 'not_started',
+                outreach_sent_at: undefined,
+                decision_makers_count: 0,
+                last_activity: undefined,
             }));
         }
 
@@ -214,12 +211,10 @@ export function PartnerTab({
         const assignedCompanies = companies.filter(c => c.partner_id === selectedPartner.id);
         return assignedCompanies.map((c, idx) => ({
             ...c,
-            outreach_status: OUTREACH_STATUSES[idx % OUTREACH_STATUSES.length],
-            outreach_sent_at: idx % 3 !== 0
-                ? new Date(Date.now() - (idx * 2 + 1) * 86400000).toISOString()
-                : undefined,
-            decision_makers_count: Math.floor((idx + 1) % 5) + 1,
-            last_activity: new Date(Date.now() - idx * 43200000).toISOString(),
+            outreach_status: 'not_started',
+            outreach_sent_at: undefined,
+            decision_makers_count: 0,
+            last_activity: undefined,
         }));
     }, [selectedPartner, selectedPartnerCompanies, companies]);
 

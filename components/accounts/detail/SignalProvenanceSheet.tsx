@@ -36,7 +36,7 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                     </div>
                 ) : signal ? (
                     <>
-                        <div className="p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                        <div className="p-6 pb-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
                             <SheetHeader className="space-y-4">
                                 <div className="space-y-3">
                                     {/* Signal type and confidence badges */}
@@ -57,7 +57,7 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                     </div>
 
                                     {/* Main title with strength badge */}
-                                    <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center justify-between gap-2">
                                         <SheetTitle className="text-2xl font-bold tracking-tight">
                                             {signal.display_name || signal.signal_category.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                                         </SheetTitle>

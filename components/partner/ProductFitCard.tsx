@@ -14,6 +14,14 @@ export function ProductFitCard({ fit, onClick }: ProductFitCardProps) {
     const likelihood = normalizeScore(fit.likelihood_score);
     const urgency = normalizeScore(fit.urgency_score);
 
+    // Format driver slugs into display names (e.g., "rapid_hiring" -> "Rapid Hiring")
+    const formatDriverName = (slug: string): string => {
+        return slug
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
     return (
         <div
             onClick={onClick}
@@ -33,7 +41,7 @@ export function ProductFitCard({ fit, onClick }: ProductFitCardProps) {
                             {fit.top_drivers && fit.top_drivers.length > 0 ? (
                                 fit.top_drivers.slice(0, 3).map((driver, i) => (
                                     <span key={i} className="inline-flex items-center text-[10px] text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-700/50 px-1.5 py-0.5 rounded">
-                                        {driver}
+                                        {formatDriverName(driver)}
                                     </span>
                                 ))
                             ) : (

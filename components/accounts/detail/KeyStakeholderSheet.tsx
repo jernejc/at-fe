@@ -14,7 +14,6 @@ import { normalizeScoreNullable, copyToClipboard } from '@/lib/utils';
 import {
     User,
     Mail,
-    Phone,
     Linkedin,
     Copy,
     Target,
@@ -48,8 +47,8 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                     </div>
                 ) : contact ? (
                     <>
-                        <div className="p-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
-                            <SheetHeader className="space-y-6">
+                        <div className="p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                            <SheetHeader className="space-y-4">
                                 <div className="flex items-start justify-between gap-6">
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 flex-wrap">
@@ -67,6 +66,17 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                         </div>
                                         <SheetTitle className="text-2xl font-bold flex items-center gap-2">
                                             {contact.name}
+                                            {contact.linkedin_url && (
+                                                <a
+                                                    href={contact.linkedin_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                                                    title="View LinkedIn Profile"
+                                                >
+                                                    <Linkedin className="w-4 h-4" />
+                                                </a>
+                                            )}
                                         </SheetTitle>
                                         {contact.title && (
                                             <SheetDescription className="text-base">
@@ -81,40 +91,6 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                             </span>
                                             <span className="text-[10px] uppercase font-bold text-muted-foreground mt-1 tracking-wider">Fit</span>
                                         </div>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-wrap gap-2">
-                                    {contact.linkedin_url && (
-                                        <a
-                                            href={contact.linkedin_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                                        >
-                                            <Linkedin className="w-3.5 h-3.5" />
-                                            LinkedIn
-                                        </a>
-                                    )}
-                                    {contact.email && (
-                                        <button
-                                            onClick={() => copyToClipboard(contact.email!)}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                        >
-                                            <Mail className="w-3.5 h-3.5" />
-                                            {contact.email}
-                                            <Copy className="w-3 h-3 ml-1 opacity-50" />
-                                        </button>
-                                    )}
-                                    {contact.phone && (
-                                        <button
-                                            onClick={() => copyToClipboard(contact.phone!)}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                        >
-                                            <Phone className="w-3.5 h-3.5" />
-                                            {contact.phone}
-                                            <Copy className="w-3 h-3 ml-1 opacity-50" />
-                                        </button>
                                     )}
                                 </div>
                             </SheetHeader>

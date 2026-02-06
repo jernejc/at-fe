@@ -121,7 +121,7 @@ export function PartnerDetailSheet({
                                     </Badge>
                                 </div>
 
-                                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-1">
+                                <div className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground mt-1">
                                     {partner.description && (
                                         <span className="text-foreground/80 font-medium">
                                             {partner.description}
@@ -142,19 +142,11 @@ export function PartnerDetailSheet({
                                         <span className="text-xs text-muted-foreground">/ {capacity} assigned</span>
                                     </div>
                                     {metrics && (
-                                        <PendingDataWrapper
-                                            isPending={true}
-                                            compact={true}
-                                            message="Waiting for partner"
-                                            description="Partner needs to share engagement data"
-                                            className="rounded-full"
-                                        >
                                             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm border bg-emerald-50 border-emerald-200 text-emerald-900 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-100">
                                                 <span className="text-base">✉️</span>
                                                 <span className="font-semibold">{metrics.engagedCount}</span>
                                                 <span className="text-xs text-emerald-700 dark:text-emerald-300">engaged</span>
                                             </div>
-                                        </PendingDataWrapper>
                                     )}
                                     <div className={cn(
                                         "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm border",
