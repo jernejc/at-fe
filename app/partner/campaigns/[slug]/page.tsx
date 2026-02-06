@@ -349,7 +349,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                                     industry={assignment.company.industry}
                                     employeeCount={assignment.company.employee_count}
                                     hqCountry={assignment.company.hq_country}
-                                    revenue={estimateRevenue(assignment.company.employee_count)}
+                                    // revenue={estimateRevenue(assignment.company.employee_count)}
                                     status={assignment.status}
                                     isNew={isNewOpportunity(assignment)}
                                     onClick={() => router.push(`/partner/campaigns/${slug}/${assignment.company.domain}`)}

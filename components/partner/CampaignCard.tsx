@@ -86,7 +86,7 @@ export function CampaignCard({ campaign, product, companies, pipelineValue, newO
                 </div>
 
                 {/* Pipeline Value */}
-                <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50">
+                {/* <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50">
                     <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium mb-1">
                         <DollarSign className="w-3.5 h-3.5" />
                         <span>Pipeline</span>
@@ -94,7 +94,7 @@ export function CampaignCard({ campaign, product, companies, pipelineValue, newO
                     <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                         {formatCurrency(pipelineValue)}
                     </div>
-                </div>
+                </div> */}
             </div>
 
             {/* Progress & Footer */}

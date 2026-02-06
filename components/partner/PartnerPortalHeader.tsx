@@ -3,11 +3,9 @@
 import { useMemo } from 'react';
 import {
     Building2,
-    TrendingUp,
     Target,
     Globe,
     Users,
-    DollarSign,
     Zap,
     ArrowRight,
 } from 'lucide-react';
@@ -159,18 +157,11 @@ export function PartnerPortalHeader({
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <StatCard
                     icon={Building2}
                     label="Opportunities"
                     value={stats.totalOpportunities}
-                />
-                <StatCard
-                    icon={DollarSign}
-                    iconBgClass="bg-emerald-50 dark:bg-emerald-900/30"
-                    label="Est. Pipeline"
-                    value={formatCurrency(stats.estimatedPipelineValue)}
-                    valueColorClass="text-emerald-600 dark:text-emerald-400"
                 />
                 <StatCard
                     icon={Users}
@@ -178,19 +169,12 @@ export function PartnerPortalHeader({
                     value={stats.totalContacts}
                 />
                 <StatCard
-                    icon={TrendingUp}
-                    iconBgClass="bg-indigo-50 dark:bg-indigo-900/30"
-                    label="Avg Fit"
-                    value={`${stats.avgFitScore}%`}
-                    valueColorClass="text-indigo-600 dark:text-indigo-400"
-                />
-                <StatCard
                     icon={Target}
                     label="Campaigns"
                     value={stats.activeCampaigns}
                 />
                 {/* Top Industries - custom layout for badges */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px] col-span-2 md:col-span-1">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 flex flex-col justify-between min-h-[120px]">
                     <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium tracking-wide uppercase">
                         <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                             <Globe className="w-3.5 h-3.5" />
