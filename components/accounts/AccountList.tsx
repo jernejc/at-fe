@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/ui/Header";
 import { AccountCard, AccountCardSkeleton } from "./AccountCard";
 import { ProductNavigation } from "./ProductNavigation";
+import { Pagination } from "@/components/ui/pagination";
 import {
     getProducts,
     getProductCandidates,
@@ -95,6 +96,8 @@ export function AccountList({
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [totalCount, setTotalCount] = useState(0);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(50);
 
     // Add to Campaign State
     const [showAddToCampaign, setShowAddToCampaign] = useState(false);
@@ -127,7 +130,7 @@ export function AccountList({
         fetchProducts();
     }, []);
 
-    // Fetch accounts when product selection changes
+    // Fetch accounts when product selection or page changes
     useEffect(() => {
         async function fetchAccounts() {
             setLoadingAccounts(true);
@@ -137,8 +140,8 @@ export function AccountList({
                 if (selectedProductId === "all") {
                     // Fetch all companies
                     const response = await getCompanies({
-                        page: 1,
-                        page_size: 100,
+                        page,
+                        page_size: pageSize,
                         sort_by: "updated_at",
                         sort_order: "desc",
                     });
@@ -171,8 +174,8 @@ export function AccountList({
                     // Fetch candidates for specific product
                     const productId = Number(selectedProductId);
                     const response = await getProductCandidates(productId, {
-                        page: 1,
-                        page_size: 100,
+                        page,
+                        page_size: pageSize,
                     });
 
                     // Map CandidateFitSummary to AccountItem
@@ -211,7 +214,12 @@ export function AccountList({
         }
 
         fetchAccounts();
-    }, [selectedProductId]);
+    }, [selectedProductId, page, pageSize]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [selectedProductId, scoreFilter, searchQuery]);
 
     // Filter and sort accounts
     const filteredAccounts = useMemo(() => {
@@ -517,7 +525,15 @@ export function AccountList({
                             <span className="text-blue-500/80">• {selectedProduct.name}</span>
                         )}
                     </div>
-                    <span className="tabular-nums">{filteredAccounts.length} results</span>
+                    <span className="tabular-nums">
+                        {totalCount > 0 ? (
+                            <>
+                                {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, totalCount)} of {totalCount} results
+                            </>
+                        ) : (
+                            "0 results"
+                        )}
+                    </span>
                 </div>
             </div>
 
@@ -565,6 +581,16 @@ export function AccountList({
                         ))
                     )}
                 </div>
+
+                {/* Pagination Controls */}
+                {!loading && !loadingAccounts && filteredAccounts.length > 0 && (
+                    <Pagination
+                        currentPage={page}
+                        totalCount={totalCount}
+                        pageSize={pageSize}
+                        onPageChange={setPage}
+                    />
+                )}
             </div>
         </div>
     );

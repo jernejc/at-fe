@@ -335,7 +335,7 @@ export function CompanyRowCompact({
                             e.stopPropagation();
                             onRemove(e);
                         }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 shrink-0"
+                        className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 shrink-0"
                         title="Remove from campaign"
                     >
                         <X className="w-4 h-4" />
