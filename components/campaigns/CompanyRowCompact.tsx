@@ -189,7 +189,7 @@ export function CompanyRowCompact({
                                     <span>{formattedActivity}</span>
                                 </div>
                             )}
-                            {decisionMakersCount !== undefined && (
+                            {decisionMakersCount !== undefined && decisionMakersCount > 0 && (
                                 <div className="flex items-center gap-1">
                                     <Target className="w-3.5 h-3.5" />
                                     <span>{decisionMakersCount} contacts</span>
