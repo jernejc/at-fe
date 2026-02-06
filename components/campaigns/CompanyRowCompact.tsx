@@ -3,7 +3,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn, formatCompactNumber } from '@/lib/utils';
 import { OutreachStatus, OUTREACH_CONFIG } from '@/lib/config/outreach';
-import { Building2, Users, MapPin, Clock, Target, ChevronRight, Signal, SignalHigh, SignalMedium, SignalLow, SignalZero } from 'lucide-react';
+import { Building2, Users, MapPin, Clock, Target, ChevronRight, Signal, SignalHigh, SignalMedium, SignalLow, SignalZero, X } from 'lucide-react';
 import type { WSTopInterest } from '@/lib/schemas';
 
 export type { OutreachStatus };
@@ -29,6 +29,7 @@ export interface CompanyRowCompactProps {
     status?: 'active' | 'completed' | string | null;
     isNew?: boolean;
     onClick?: () => void;
+    onRemove?: (e: React.MouseEvent) => void;
     className?: string;
     variant?: 'compact' | 'card';
 }
@@ -54,6 +55,7 @@ export function CompanyRowCompact({
     status,
     isNew,
     onClick,
+    onRemove,
     className,
     variant = 'compact',
 }: CompanyRowCompactProps) {
@@ -325,6 +327,19 @@ export function CompanyRowCompact({
                     <div className="text-sm font-semibold text-slate-900 dark:text-white min-w-[40px] text-right shrink-0">
                         {Math.round(fitScore * 100)}%
                     </div>
+                )}
+
+                {onRemove && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onRemove(e);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 shrink-0"
+                        title="Remove from campaign"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
                 )}
             </div>
 

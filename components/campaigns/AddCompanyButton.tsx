@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Plus, Loader2, X, Search, Building2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Loader2, Search, Building2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
 import { addCompanyToCampaign, searchCompanies } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { CompanySummary } from '@/lib/schemas';
+import { toast } from 'sonner';
 
 interface AddCompanyButtonProps {
     slug: string;
     onCompanyAdded: () => void;
+    existingDomains?: string[];
     className?: string;
     variant?: 'default' | 'outline' | 'ghost';
 }
@@ -43,242 +46,287 @@ function useDebouncedValue<T>(value: T, delay: number): T {
     return debouncedValue;
 }
 
-export function AddCompanyButton({ slug, onCompanyAdded, className, variant = 'ghost' }: AddCompanyButtonProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
+export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], className, variant = 'ghost' }: AddCompanyButtonProps) {
+    const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [adding, setAdding] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<CompanySummary[]>([]);
-    const [showResults, setShowResults] = useState(false);
+    const [selectedCompany, setSelectedCompany] = useState<CompanySummary | null>(null);
 
     // Search logic
     const debouncedQuery = useDebouncedValue(query, 300);
-    const wrapperRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         async function fetchResults() {
             if (!debouncedQuery || debouncedQuery.length < 2) {
                 setResults([]);
-                setShowResults(false);
                 return;
             }
 
             setLoading(true);
             try {
-                const data = await searchCompanies(debouncedQuery, 5);
-                setResults(data.companies || []);
-                setShowResults(true);
+                const data = await searchCompanies(debouncedQuery, 20);
+                // Filter out companies already in the campaign
+                const filteredCompanies = (data.companies || []).filter(
+                    company => !existingDomains.includes(company.domain)
+                );
+                setResults(filteredCompanies);
             } catch (err) {
                 console.error('Search failed', err);
+                setResults([]);
             } finally {
                 setLoading(false);
             }
         }
 
-        fetchResults();
-    }, [debouncedQuery]);
-
-    // Click outside to close results
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-                // If clicking outside, close expand entirely if query is empty
-                if (query.length === 0 && !adding) {
-                    setIsExpanded(false);
-                }
-                setShowResults(false);
-            }
+        if (open) {
+            fetchResults();
         }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [query, adding]);
+    }, [debouncedQuery, open]);
+
+    // Reset state when dialog closes
+    useEffect(() => {
+        if (!open) {
+            setQuery('');
+            setResults([]);
+            setSelectedCompany(null);
+        }
+    }, [open]);
 
     const handleAdd = async (domain: string) => {
         if (!domain) return;
         setAdding(true);
-        setError(null);
         try {
             await addCompanyToCampaign(slug, { domain });
-            setQuery('');
-            setResults([]);
-            setIsExpanded(false);
+            toast.success('Company added', {
+                description: `${domain} has been added to the campaign`,
+                descriptionClassName: '!text-foreground font-medium',
+            });
             onCompanyAdded();
+            setOpen(false);
         } catch (err) {
             console.error('Failed to add company:', err);
-            setError('Failed to add');
+            toast.error('Failed to add company', {
+                description: err instanceof Error ? err.message : 'Please try again',
+            });
         } finally {
             setAdding(false);
         }
     };
 
-    const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Escape') {
-            if (showResults) setShowResults(false);
-            else {
-                setIsExpanded(false);
-                setQuery('');
-            }
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (query.includes('.')) {
-                handleAdd(query);
-            } else if (results.length > 0) {
-                handleAdd(results[0].domain);
-            }
+    const handleCompanyClick = (company: CompanySummary) => {
+        setSelectedCompany(company);
+    };
+
+    const handleConfirmAdd = () => {
+        if (selectedCompany) {
+            handleAdd(selectedCompany.domain);
         }
     };
 
-    if (isExpanded) {
-        return (
-            <div ref={wrapperRef} className={cn("relative w-full", className)}>
-                <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="h-4 w-4 text-slate-400" />
-                    </div>
-                    <Input
-                        ref={inputRef}
-                        autoFocus
-                        placeholder="Search specific companies or pasting a domain..."
-                        value={query}
-                        onChange={(e) => {
-                            setQuery(e.target.value);
-                            setError(null);
-                            if (!showResults && e.target.value.length >= 2) setShowResults(true);
-                        }}
-                        onKeyDown={handleSearchKeyDown}
-                        className={cn(
-                            "pl-9 h-10 bg-white dark:bg-slate-900 shadow-sm transition-all",
-                            "border-slate-200 dark:border-slate-800 focus:border-blue-500 dark:focus:border-blue-500",
-                            "placeholder:text-slate-400 dark:placeholder:text-slate-500",
-                            error && "border-red-500 focus:border-red-500"
-                        )}
-                        disabled={adding}
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-                        {loading ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                        ) : (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"
-                                onClick={() => {
-                                    setIsExpanded(false);
-                                    setQuery('');
-                                }}
-                            >
-                                <X className="h-3.5 w-3.5 text-slate-400" />
-                            </Button>
-                        )}
-                    </div>
-                </div>
+    const getCompanyLogo = (company: CompanySummary) => {
+        // Check logo_base64 first (from search results)
+        if (company.logo_base64) {
+            return company.logo_base64.startsWith('data:') 
+                ? company.logo_base64 
+                : `data:image/png;base64,${company.logo_base64}`;
+        }
+        // Fallback to logo_url
+        return company.logo_url || null;
+    };
 
-                {/* Search Results Dropdown */}
-                {showResults && (results.length > 0 || query.length > 0) && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 overflow-hidden z-20 animate-in fade-in slide-in-from-top-1">
-                        <div className="max-h-[320px] overflow-y-auto">
-                            {results.length > 0 ? (
-                                <div className="p-1.5 space-y-0.5">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2.5 py-1.5">Suggested Companies</div>
-                                    {results.map((company) => (
-                                        <button
+    return (
+        <>
+            <Button
+                variant="ghost"
+                className={cn(
+                    "group w-full flex items-center justify-center gap-2 h-10",
+                    "rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-800",
+                    "text-sm font-medium text-slate-500 dark:text-slate-400",
+                    "hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-slate-200",
+                    "hover:bg-slate-50 dark:hover:bg-slate-800/50",
+                    "transition-all duration-200 ease-out",
+                    className
+                )}
+                onClick={() => setOpen(true)}
+            >
+                <Plus className="w-4 h-4 transition-transform group-hover:scale-110" />
+                <span>Add another company</span>
+            </Button>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Add Company to Campaign</DialogTitle>
+                        <DialogDescription>
+                            Search for companies to add to this campaign, or paste a domain directly.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {/* Search */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search by company name or paste a domain (e.g., example.com)..."
+                            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
+                            autoFocus
+                        />
+                    </div>
+
+                    {/* Results Grid */}
+                    <div className="flex-1 overflow-auto min-h-0 py-2">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+                                <p className="text-slate-500 dark:text-slate-400">Searching companies...</p>
+                            </div>
+                        ) : results.length === 0 && query.length >= 2 ? (
+                            <div className="text-center py-12">
+                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+                                    <Search className="w-6 h-6 text-slate-400" />
+                                </div>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    No companies found matching "{query}"
+                                </p>
+                                {query.includes('.') && (
+                                    <p className="text-xs text-slate-400 mt-2">
+                                        You can add this domain directly using the option below
+                                    </p>
+                                )}
+                            </div>
+                        ) : results.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {results.map((company) => {
+                                    const isSelected = selectedCompany?.domain === company.domain;
+                                    const logoSrc = getCompanyLogo(company);
+
+                                    return (
+                                        <Card
                                             key={company.id || company.domain}
-                                            className="w-full flex items-center gap-3 p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-lg transition-colors text-left group"
-                                            onClick={() => handleAdd(company.domain)}
-                                            disabled={adding}
+                                            onClick={() => handleCompanyClick(company)}
+                                            className={cn(
+                                                "group relative transition-all duration-200 cursor-pointer overflow-hidden border-2",
+                                                isSelected
+                                                    ? "bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 ring-1 ring-blue-500/20 shadow-md"
+                                                    : "bg-white dark:bg-slate-900 border-transparent hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-lg"
+                                            )}
                                         >
-                                            <div className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm">
-                                                {company.logo_url ? (
-                                                    /* eslint-disable-next-line @next/next/no-img-element */
-                                                    <img src={company.logo_url} alt="" className="w-5 h-5 object-contain" />
-                                                ) : (
-                                                    <Building2 className="w-4 h-4 text-slate-400" />
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="font-medium text-sm text-slate-900 dark:text-white truncate">
-                                                        <Highlight text={company.name || company.domain} highlight={query} />
-                                                    </div>
+                                            <CardContent className="p-3 flex gap-3 items-start select-none">
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors border overflow-hidden",
+                                                    isSelected
+                                                        ? "bg-blue-100 border-blue-200 dark:bg-blue-900/40 dark:border-blue-800"
+                                                        : "bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-700"
+                                                )}>
+                                                    {logoSrc ? (
+                                                        <img 
+                                                            src={logoSrc} 
+                                                            alt="" 
+                                                            className="w-full h-full object-contain p-1"
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none';
+                                                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <Building2 className={cn(
+                                                        "w-5 h-5",
+                                                        logoSrc ? "hidden" : "",
+                                                        isSelected ? "text-blue-600 dark:text-blue-300" : "text-slate-400"
+                                                    )} />
                                                 </div>
-                                                <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
-                                                    <span className="truncate">{company.domain}</span>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className={cn(
+                                                        "font-bold text-sm truncate pr-6",
+                                                        isSelected ? "text-blue-700 dark:text-blue-300" : "text-slate-900 dark:text-white"
+                                                    )}>
+                                                        <Highlight text={company.name || company.domain} highlight={query} />
+                                                    </h3>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                        {company.domain}
+                                                    </p>
                                                     {company.industry && (
-                                                        <>
-                                                            <span className="w-0.5 h-0.5 bg-slate-400 rounded-full" />
-                                                            <span className="truncate max-w-[120px]">{company.industry}</span>
-                                                        </>
+                                                        <p className="text-xs text-slate-400 dark:text-slate-500 truncate mt-1">
+                                                            {company.industry}
+                                                        </p>
                                                     )}
                                                 </div>
-                                            </div>
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-md bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 shadow-sm">
-                                                    <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+
+                                                <div className={cn(
+                                                    "absolute top-3 right-3 w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-300",
+                                                    isSelected
+                                                        ? "bg-blue-600 border-blue-600 text-white scale-100 shadow-sm"
+                                                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-transparent scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
+                                                )}>
+                                                    <Check className="w-3 h-3" strokeWidth={3} />
                                                 </div>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : query.length > 2 && !loading && (
-                                <div className="p-8 text-center bg-slate-50/50 dark:bg-slate-900/50">
-                                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 mb-2">
-                                        <Search className="w-5 h-5 text-slate-400" />
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-slate-400">
+                                <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                <p className="text-sm">Start typing to search for companies</p>
+                            </div>
+                        )}
+
+                        {/* Domain Direct Add */}
+                        {query.includes('.') && (
+                            <div className="mt-3 p-3 border-t border-slate-100 dark:border-slate-800">
+                                <button
+                                    className="w-full flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all text-left border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                                    onClick={() => handleAdd(query)}
+                                    disabled={adding}
+                                >
+                                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                                        <Plus className="w-5 h-5 text-slate-500" />
                                     </div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                                        No companies found matching "{query}"
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Fallback to add domain */}
-                            {query.includes('.') && (
-                                <div className="p-1.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                                    <button
-                                        className="w-full flex items-center gap-3 p-2.5 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all text-left group border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-sm"
-                                        onClick={() => handleAdd(query)}
-                                        disabled={adding}
-                                    >
-                                        <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-dashed border-slate-300 dark:border-slate-600">
-                                            <Plus className="w-4 h-4 text-slate-500" />
+                                    <div>
+                                        <div className="font-medium text-sm text-slate-900 dark:text-white">
+                                            Add <span className="font-bold">"{query}"</span> directly
                                         </div>
-                                        <div>
-                                            <div className="font-medium text-sm text-slate-900 dark:text-white">
-                                                Add <span className="font-bold">"{query}"</span>
-                                            </div>
-                                            <div className="text-xs text-slate-500">
-                                                Add as new domain directly
-                                            </div>
+                                        <div className="text-xs text-slate-500">
+                                            Add this domain to the campaign
                                         </div>
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
-        );
-    }
 
-    // Idle State - Dashed Slot Style
-    return (
-        <Button
-            variant="ghost"
-            className={cn(
-                "group w-full flex items-center justify-center gap-2 h-10",
-                "rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-800",
-                "text-sm font-medium text-slate-500 dark:text-slate-400",
-                "hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-slate-200",
-                "hover:bg-slate-50 dark:hover:bg-slate-800/50",
-                "transition-all duration-200 ease-out",
-                className
-            )}
-            onClick={() => setIsExpanded(true)}
-        >
-            <Plus className="w-4 h-4 transition-transform group-hover:scale-110" />
-            <span>Add another company</span>
-        </Button>
+                    <DialogFooter className="border-t pt-4">
+                        <div className="flex items-center justify-between w-full">
+                            <span className="text-sm text-slate-500">
+                                {selectedCompany && `${selectedCompany.name || selectedCompany.domain} selected`}
+                            </span>
+                            <div className="flex gap-2">
+                                <DialogClose render={<Button variant="outline" />}>
+                                    Cancel
+                                </DialogClose>
+                                <Button
+                                    onClick={handleConfirmAdd}
+                                    disabled={!selectedCompany || adding}
+                                    className="gap-2"
+                                >
+                                    {adding ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Plus className="w-4 h-4" />
+                                    )}
+                                    Add to Campaign
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

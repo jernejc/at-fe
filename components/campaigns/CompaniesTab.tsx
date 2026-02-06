@@ -15,6 +15,7 @@ interface CompaniesTabProps {
     loadingDynamicCompanies?: boolean;
     onCompanyClick: (domain: string) => void;
     onCompanyAdded: () => void;
+    onCompanyRemoved?: (domain: string) => void;
     filters: CampaignFilterUI[];
     onFiltersChange: (filters: CampaignFilterUI[]) => void;
     isSavingFilters?: boolean;
@@ -28,6 +29,7 @@ export function CompaniesTab({
     loadingDynamicCompanies = false,
     onCompanyClick,
     onCompanyAdded,
+    onCompanyRemoved,
     filters,
     onFiltersChange,
     isSavingFilters,
@@ -123,6 +125,10 @@ export function CompaniesTab({
                                     logoBase64={membership.logo_base64}
                                     partnerName={membership.partner_name}
                                     onClick={() => onCompanyClick(membership.domain)}
+                                    onRemove={onCompanyRemoved ? (e) => {
+                                        e.stopPropagation();
+                                        onCompanyRemoved(membership.domain);
+                                    } : undefined}
                                     className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                 />
                             ))
@@ -151,6 +157,7 @@ export function CompaniesTab({
                 <AddCompanyButton
                     slug={slug}
                     onCompanyAdded={onCompanyAdded}
+                    existingDomains={companies.map(c => c.domain)}
                     className="h-10 bg-white dark:bg-slate-900 border-dashed"
                 />
             )}

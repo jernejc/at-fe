@@ -56,6 +56,9 @@ export default function CampaignPage({ params }: CampaignPageProps) {
         isUnpublishing,
         handleUnpublish,
 
+        // Company removal
+        handleCompanyRemove,
+
         // Filter management
         filters,
         handleFiltersChange,
@@ -181,6 +184,18 @@ export default function CampaignPage({ params }: CampaignPageProps) {
         setShowUnpublishConfirm(false);
     };
 
+    // Company removal confirmation
+    const [companyToRemove, setCompanyToRemove] = useState<string | null>(null);
+    const [isRemovingCompany, setIsRemovingCompany] = useState(false);
+
+    const confirmRemoveCompany = async () => {
+        if (!companyToRemove) return;
+        setIsRemovingCompany(true);
+        await handleCompanyRemove(companyToRemove);
+        setIsRemovingCompany(false);
+        setCompanyToRemove(null);
+    };
+
     // Handle drill-down filtering from overview charts
     const handleDrillDown = (filter: DrillDownFilter) => {
         if (filter.type === 'industry') {
@@ -269,6 +284,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 loadingDynamicCompanies={loadingDynamicCompanies}
                                 onCompanyClick={handleCompanyClick}
                                 onCompanyAdded={refreshData}
+                                onCompanyRemoved={setCompanyToRemove}
                                 filters={filters}
                                 onFiltersChange={handleFiltersChange}
                                 isSavingFilters={isSavingFilters}
@@ -377,6 +393,30 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                             ) : null}
                             Unpublish Campaign
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Remove Company Confirmation Dialog */}
+            <Dialog open={!!companyToRemove} onOpenChange={(open) => !open && setCompanyToRemove(null)}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Remove Company</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to remove <span className="font-semibold text-slate-900 dark:text-white">{companyToRemove}</span> from this campaign?
+                            This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose render={<Button variant="outline" />}>
+                            Cancel
+                        </DialogClose>
+                        <Button onClick={confirmRemoveCompany} disabled={isRemovingCompany} variant="destructive">
+                            {isRemovingCompany ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : null}
+                            Remove Company
                         </Button>
                     </DialogFooter>
                 </DialogContent>

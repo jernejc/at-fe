@@ -12,6 +12,7 @@ import {
     updateCampaign,
     publishCampaign,
     unpublishCampaign,
+    removeCompanyFromCampaign,
 } from '@/lib/api';
 import type {
     CampaignRead,
@@ -64,6 +65,9 @@ interface UseCampaignPageReturn {
 
     isUnpublishing: boolean;
     handleUnpublish: () => Promise<void>;
+
+    // Company removal
+    handleCompanyRemove: (domain: string) => Promise<void>;
 
     // Filter management
     filters: CampaignFilterUI[];
@@ -417,6 +421,24 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
         }
     }, [slug, refreshData]);
 
+    // Remove company from campaign
+    const handleCompanyRemove = useCallback(async (domain: string) => {
+        try {
+            await removeCompanyFromCampaign(slug, domain);
+            toast.success('Company removed', {
+                description: `${domain} has been removed from the campaign`,
+                descriptionClassName: '!text-foreground font-medium',
+            });
+            // Refresh data to update the company list
+            await refreshData();
+        } catch (error) {
+            console.error('Failed to remove company:', error);
+            toast.error('Failed to remove company', {
+                description: error instanceof Error ? error.message : 'Please try again',
+            });
+        }
+    }, [slug, refreshData]);
+
     return {
         // Core data
         campaign,
@@ -448,6 +470,9 @@ export function useCampaignPage({ slug }: UseCampaignPageOptions): UseCampaignPa
 
         isUnpublishing,
         handleUnpublish,
+
+        // Company removal
+        handleCompanyRemove,
 
         // Filter management
         filters,
