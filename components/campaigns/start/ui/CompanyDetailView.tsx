@@ -7,8 +7,9 @@ import { cn, normalizeScore } from '@/lib/utils';
 import { SectionHeader, DetailCell } from '@/components/accounts/detail/components';
 import { CompanyDetailHeader } from './CompanyDetailHeader';
 import { CompanyDetailSkeleton } from './CompanyDetailSkeleton';
-import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse, SignalInterest, SignalEvent, FitScore, SignalContribution } from '@/lib/schemas';
-import { Sparkles, TrendingUp, Zap, Calendar, Brain, Target, Package, Radio, Building, CircleQuestionMark, Signal, SignalHigh, SignalMedium, SignalLow, SignalZero, CheckCircle2, Activity } from 'lucide-react';
+import type { WSCompanyResult, CompanyRead, CompanyExplainabilityResponse, FitScore, SignalContribution } from '@/lib/schemas';
+import { TrendingUp, Zap, Calendar, Brain, Target, Package, Radio, Building, CircleQuestionMark, CheckCircle2, Activity } from 'lucide-react';
+import { SignalCard } from '@/components/signals/SignalCard';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -108,69 +109,6 @@ function FitSignalMatchCard({ match }: { match: SignalContribution }) {
                     +{Math.round(match.contribution)}
                 </div>
             </div>
-        </div>
-    );
-}
-
-function SignalStrengthIcon({ strength, className }: { strength: number; className?: string }) {
-    if (strength >= 8) return <Signal className={className} />;
-    if (strength >= 6) return <SignalHigh className={className} />;
-    if (strength >= 4) return <SignalMedium className={className} />;
-    if (strength >= 2) return <SignalLow className={className} />;
-    return <SignalZero className={className} />;
-}
-
-function SignalCard({ signal, type }: { signal: SignalInterest | SignalEvent; type: 'interest' | 'event' }) {
-    const strengthValue = Math.round(signal.strength);
-    const Icon = type === 'interest' ? Sparkles : Calendar;
-
-    return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-            <div className="flex items-start gap-2 mb-2">
-                <div className={cn(
-                    "w-6 h-6 rounded flex items-center justify-center shrink-0",
-                    type === 'interest'
-                        ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
-                        : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                )}>
-                    <Icon className="w-3.5 h-3.5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                    <h5 className="font-medium text-sm text-slate-900 dark:text-white truncate">
-                        {signal.display_name || signal.category}
-                    </h5>
-                </div>
-                <div className="flex items-center gap-2 mt-0.5">
-                    <span className={cn(
-                        "text-xs font-medium px-1.5 py-0.5 rounded inline-flex items-center gap-1",
-                        strengthValue >= 7
-                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                            : strengthValue >= 4
-                                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                    )}>
-                        <SignalStrengthIcon strength={signal.strength} className="w-3 h-3" />
-                        {strengthValue}/10
-                    </span>
-                </div>
-            </div>
-            {signal.evidence_summary && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-2">
-                    {signal.evidence_summary}
-                </p>
-            )}
-            {signal.source_types && signal.source_types.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                    {signal.source_types.slice(0, 3).map(source => (
-                        <span
-                            key={source}
-                            className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded"
-                        >
-                            {source}
-                        </span>
-                    ))}
-                </div>
-            )}
         </div>
     );
 }
