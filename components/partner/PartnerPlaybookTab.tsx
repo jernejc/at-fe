@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { PlaybookSummary, PlaybookRead } from '@/lib/schemas';
-import { getCompanyPlaybook, generateCompanyPlaybook, getCompanyPlaybooks } from '@/lib/api';
+import { getCompanyPlaybook, generateCompanyPlaybook, getCompanyPlaybooks, waitForProcessingComplete } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { staggerContainer, fadeInUp } from '@/lib/animations';
@@ -32,17 +32,30 @@ interface PartnerPlaybookTabProps {
     domain: string;
     productId: number;
     playbooks: PlaybookSummary[];
+    playbookDetail?: PlaybookRead | null;
     productName?: string;
-    onPlaybookGenerated?: (playbook: PlaybookRead) => void;
+    onPlaybookGenerated?: (playbook: PlaybookRead, updatedPlaybooks: PlaybookSummary[]) => void;
 }
 
-export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybooks, productName, onPlaybookGenerated }: PartnerPlaybookTabProps) {
+export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybooks, playbookDetail: initialPlaybookDetail, productName, onPlaybookGenerated }: PartnerPlaybookTabProps) {
     const [playbooks, setPlaybooks] = useState<PlaybookSummary[]>(initialPlaybooks);
-    const [playbookDetail, setPlaybookDetail] = useState<PlaybookRead | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [playbookDetail, setPlaybookDetail] = useState<PlaybookRead | null>(initialPlaybookDetail ?? null);
+    const [loading, setLoading] = useState(!initialPlaybookDetail);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
     const [expandedObjections, setExpandedObjections] = useState<Set<number>>(new Set());
+
+    // Sync props into local state on remount (tab switch back)
+    useEffect(() => {
+        setPlaybooks(initialPlaybooks);
+    }, [initialPlaybooks]);
+
+    useEffect(() => {
+        if (initialPlaybookDetail) {
+            setPlaybookDetail(initialPlaybookDetail);
+            setLoading(false);
+        }
+    }, [initialPlaybookDetail]);
 
     // Find the playbook matching the campaign's target product
     const targetPlaybook = playbooks.find(p => p.product_id === productId);
@@ -53,11 +66,18 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
             return;
         }
 
+        // Skip fetch if we already have the detail from props
+        if (playbookDetail && playbookDetail.product_id === productId) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         getCompanyPlaybook(domain, targetPlaybook.id)
             .then(setPlaybookDetail)
             .catch(console.error)
             .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [domain, targetPlaybook]);
 
     const handleGeneratePlaybook = async () => {
@@ -68,45 +88,27 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
 
         try {
             // Start the generation process
-            await generateCompanyPlaybook(domain, productId);
+            const response = await generateCompanyPlaybook(domain, productId);
 
-            // Poll for completion by fetching playbooks
-            let attempts = 0;
-            const maxAttempts = 30; // 30 seconds max
-            const pollInterval = 1000; // 1 second
+            // Wait for processing to complete via SSE stream
+            if (response?.process_id) {
+                await waitForProcessingComplete(domain, response.process_id);
+            }
 
-            const poll = async (): Promise<PlaybookRead | null> => {
-                attempts++;
-                const playbooksData = await getCompanyPlaybooks(domain);
-                const newPlaybook = playbooksData.playbooks.find(p => p.product_id === productId);
+            // Fetch the updated playbooks list and detail
+            const updatedPlaybooks = await getCompanyPlaybooks(domain);
+            const newPlaybook = updatedPlaybooks.playbooks.find(p => p.product_id === productId);
 
-                if (newPlaybook) {
-                    // Playbook found, fetch details
-                    const detail = await getCompanyPlaybook(domain, newPlaybook.id);
-                    return detail;
-                }
-
-                if (attempts < maxAttempts) {
-                    await new Promise(resolve => setTimeout(resolve, pollInterval));
-                    return poll();
-                }
-
-                return null;
-            };
-
-            const generatedPlaybook = await poll();
-
-            if (generatedPlaybook) {
-                // Refresh playbooks list
-                const updatedPlaybooks = await getCompanyPlaybooks(domain);
+            if (newPlaybook) {
+                const detail = await getCompanyPlaybook(domain, newPlaybook.id);
                 setPlaybooks(updatedPlaybooks.playbooks);
-                setPlaybookDetail(generatedPlaybook);
+                setPlaybookDetail(detail);
 
                 if (onPlaybookGenerated) {
-                    onPlaybookGenerated(generatedPlaybook);
+                    onPlaybookGenerated(detail, updatedPlaybooks.playbooks);
                 }
             } else {
-                setGenerationError('Playbook generation is taking longer than expected. Please refresh the page.');
+                setGenerationError('Playbook generation completed but playbook was not found. Please refresh the page.');
             }
         } catch (error) {
             console.error('Failed to generate playbook:', error);
@@ -176,7 +178,7 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
 
                 {isGenerating && (
                     <p className="text-xs text-muted-foreground mt-4">
-                        This may take up to 30 seconds...
+                        This may take up to a minute...
                     </p>
                 )}
             </div>

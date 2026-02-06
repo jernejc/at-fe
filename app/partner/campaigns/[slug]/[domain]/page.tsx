@@ -142,8 +142,9 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
     }, [productFit]);
 
     // Handlers
-    const handlePlaybookGenerated = (playbook: PlaybookRead) => {
+    const handlePlaybookGenerated = (playbook: PlaybookRead, updatedPlaybooks: PlaybookSummary[]) => {
         setPlaybookDetail(playbook);
+        setPlaybooks(updatedPlaybooks);
     };
 
     const handleSelectStakeholder = (contact: PlaybookContactResponse) => {
@@ -287,6 +288,7 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
                                 domain={decodedDomain}
                                 productId={campaign.target_product_id}
                                 playbooks={playbooks}
+                                playbookDetail={playbookDetail}
                                 productName={productName || undefined}
                                 onPlaybookGenerated={handlePlaybookGenerated}
                             />
