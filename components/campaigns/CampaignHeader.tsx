@@ -5,9 +5,10 @@ import { useState } from 'react';
 import type { CampaignRead } from '@/lib/schemas';
 import { exportCampaignCSV } from '@/lib/api';
 import type { CampaignTab } from '@/hooks/useCampaignPage';
-import { 
+import { cn, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
+import {
     Loader2, Building2, ChevronRight, Trash2, Send, LayoutDashboard, Users, BarChart3,
-    Calendar, Target, Download, XCircle
+    Calendar, Target, Download, XCircle, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,10 @@ interface CampaignHeaderProps {
     companyCount?: number;
     /** Number of partners assigned */
     partnerCount?: number;
+    /** Product ID for badge coloring */
+    productId?: number | null;
+    /** Product name to display */
+    productName?: string | null;
 }
 
 // Format date range for display
@@ -67,6 +72,8 @@ export function CampaignHeader({
     isUnpublishing = false,
     companyCount,
     partnerCount,
+    productId,
+    productName,
 }: CampaignHeaderProps) {
     // Use provided count or fall back to campaign data
     const displayCompanyCount = companyCount ?? campaign.company_count;
@@ -99,6 +106,9 @@ export function CampaignHeader({
             setIsExporting(false);
         }
     };
+
+    const productTheme = getProductBadgeTheme(productId);
+    const productIconColor = getProductTextColor(productId);
 
     // Mock target value (can be replaced with actual campaign target)
     const targetValue = '€2.5M';
@@ -136,6 +146,21 @@ export function CampaignHeader({
 
                         {/* Campaign Meta Strip */}
                         <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
+                            {productName ? (
+                                <div className={cn(
+                                    "flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full w-fit border transition-colors",
+                                    productTheme.bg, productTheme.text, productTheme.border
+                                )}>
+                                    <Package className={cn("w-3 h-3", productIconColor)} strokeWidth={2.5} />
+                                    <span className="truncate max-w-[200px]">{productName}</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full w-fit border border-slate-200 dark:border-slate-700">
+                                    <Package className="w-3 h-3 text-slate-400" strokeWidth={2.5} />
+                                    Unassigned
+                                </div>
+                            )}
+                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
                             <div className="flex items-center gap-1.5">
                                 <Calendar className="w-3.5 h-3.5" />
                                 <span>{dateRange}</span>

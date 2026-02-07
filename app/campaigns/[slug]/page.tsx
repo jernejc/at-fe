@@ -267,6 +267,8 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                     isUnpublishing={isUnpublishing}
                     companyCount={overview?.company_count ?? dynamicCompaniesTotal ?? undefined}
                     partnerCount={partnerCount}
+                    productId={campaign.target_product_id}
+                    productName={overview?.product_name}
                 />
 
                 {/* Content Area */}
