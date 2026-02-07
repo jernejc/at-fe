@@ -75,10 +75,15 @@ interface ExplainabilityTabProps {
     onSelectSignal: (signalId: number) => void;
     /** Callback to regenerate signals and fits for all products */
     onProcess?: (onProgress?: (status: string) => void) => Promise<void>;
+    /** When provided, only show the FitCard for this product */
+    productId?: number;
 }
 
-export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess }: ExplainabilityTabProps) {
+export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess, productId }: ExplainabilityTabProps) {
     const { signals_summary, fits_summary, data_coverage, freshness, signal_narrative, interest_narrative, event_narrative } = data;
+    const filteredFits = productId != null
+        ? fits_summary.filter(fit => fit.product_id === productId)
+        : fits_summary;
     const [processingStatus, setProcessingStatus] = useState<string | undefined>(undefined);
 
     const handleFitClick = (productId: number) => {
@@ -139,16 +144,16 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
 
             {/* Product Fit Section */}
             <section>
-                {onProcess ? (
+                {onProcess && !productId ? (
                     <TabHeaderWithAction
                         title="Product Fit"
                         actionLabel="Recalculate All"
                         onAction={handleRecalculate}
                         loadingStatus={processingStatus}
                     />
-                ) : (
+                ) : filteredFits.length ? (
                     <SectionHeader title="Product Fit" />
-                )}
+                ) : null}
 
                 <motion.div
                     variants={staggerContainer}
@@ -156,7 +161,7 @@ export function ExplainabilityTab({ data, onSelectFit, onSelectSignal, onProcess
                     animate="show"
                     className="grid grid-cols-1 gap-2"
                 >
-                    {fits_summary.map((fit, idx) => (
+                    {filteredFits.map((fit, idx) => (
                         <motion.div key={fit.product_id} variants={fadeInUp}>
                             <FitCard
                                 fit={fit}

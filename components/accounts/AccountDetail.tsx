@@ -17,9 +17,10 @@ interface AccountDetailProps {
     domain: string;
     open: boolean;
     onClose: () => void;
+    productId?: number;
 }
 
-export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
+export function AccountDetail({ domain, open, onClose, productId }: AccountDetailProps) {
     const [activeTab, setActiveTab] = useState('overview');
 
     const {
@@ -164,6 +165,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                                 onTabChange={setActiveTab}
                                 counts={tabCounts}
                                 hasExplainability={!!explainability}
+                                productId={productId}
                             />
 
                             <AccountDetailContent
@@ -171,6 +173,7 @@ export function AccountDetail({ domain, open, onClose }: AccountDetailProps) {
                                 company={company}
                                 domain={domain}
                                 explainability={explainability}
+                                productId={productId}
                                 playbooks={playbooks}
                                 decisionMakers={decisionMakers}
                                 employees={employees}

@@ -25,6 +25,7 @@ interface AccountDetailTabsProps {
     onTabChange: (tab: string) => void;
     counts: TabCounts;
     hasExplainability: boolean;
+    productId?: number;
 }
 
 function CountBadge({ count }: { count: number }) {
@@ -40,6 +41,7 @@ export function AccountDetailTabs({
     onTabChange,
     counts,
     hasExplainability,
+    productId,
 }: AccountDetailTabsProps) {
     const hasPlaybooks = counts.playbooks > 0;
     const hasPeople = counts.employees > 0;
@@ -64,11 +66,13 @@ export function AccountDetailTabs({
                             </TabsTrigger>
                         )}
 
-                        <TabsTrigger value="playbooks" className="gap-2">
-                            <BookOpen className="w-4 h-4" />
-                            Playbooks
-                            {hasPlaybooks && <CountBadge count={counts.playbooks} />}
-                        </TabsTrigger>
+                        {productId == null && (
+                            <TabsTrigger value="playbooks" className="gap-2">
+                                <BookOpen className="w-4 h-4" />
+                                Playbooks
+                                {hasPlaybooks && <CountBadge count={counts.playbooks} />}
+                            </TabsTrigger>
+                        )}
 
                         {hasPeople && (
                             <TabsTrigger value="people" className="gap-2">

@@ -52,6 +52,7 @@ interface AccountDetailContentProps {
     onRegeneratePlaybooks: (productId?: number) => Promise<void>;
     allProducts: ProductSummary[];
     onSelectStakeholder: (contact: PlaybookContactResponse) => void;
+    productId?: number;
 }
 
 function AnimatedPanel({ children }: { children: ReactNode }) {
@@ -92,6 +93,7 @@ export function AccountDetailContent({
     onRegeneratePlaybooks,
     allProducts,
     onSelectStakeholder,
+    productId,
 }: AccountDetailContentProps) {
     const hasExplainability = !!explainability;
     const hasPlaybooks = playbooks.length > 0;
@@ -120,6 +122,7 @@ export function AccountDetailContent({
                                 onSelectFit={onSelectFit}
                                 onSelectSignal={onSelectSignal}
                                 onProcess={onRegenerateExplainability}
+                                productId={productId}
                             />
                         ) : (
                             <EnrichedEmptyState

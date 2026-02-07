@@ -347,6 +347,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                     domain={selectedDomain}
                     open={detailOpen}
                     onClose={closeDetail}
+                    productId={campaign.target_product_id ?? undefined}
                 />
             )}
 
