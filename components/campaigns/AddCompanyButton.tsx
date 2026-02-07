@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, Loader2, Search, Building2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -16,6 +16,7 @@ interface AddCompanyButtonProps {
     existingDomains?: string[];
     className?: string;
     variant?: 'default' | 'outline' | 'ghost';
+    label?: string;
 }
 
 // Simple text highlighter
@@ -46,7 +47,14 @@ function useDebouncedValue<T>(value: T, delay: number): T {
     return debouncedValue;
 }
 
-export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], className, variant = 'ghost' }: AddCompanyButtonProps) {
+export function AddCompanyButton({
+    slug,
+    onCompanyAdded,
+    existingDomains = [],
+    className,
+    variant = 'ghost',
+    label = 'Add company',
+}: AddCompanyButtonProps) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
@@ -56,6 +64,7 @@ export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], c
 
     // Search logic
     const debouncedQuery = useDebouncedValue(query, 300);
+    const existingDomainsSet = useMemo(() => new Set(existingDomains), [existingDomains]);
 
     useEffect(() => {
         async function fetchResults() {
@@ -69,7 +78,7 @@ export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], c
                 const data = await searchCompanies(debouncedQuery, 20);
                 // Filter out companies already in the campaign
                 const filteredCompanies = (data.companies || []).filter(
-                    company => !existingDomains.includes(company.domain)
+                    company => !existingDomainsSet.has(company.domain)
                 );
                 setResults(filteredCompanies);
             } catch (err) {
@@ -83,7 +92,7 @@ export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], c
         if (open) {
             fetchResults();
         }
-    }, [debouncedQuery, open]);
+    }, [debouncedQuery, existingDomainsSet, open]);
 
     // Reset state when dialog closes
     useEffect(() => {
@@ -139,9 +148,9 @@ export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], c
     return (
         <>
             <Button
-                variant="ghost"
+                variant={variant}
                 className={cn(
-                    "group w-full flex items-center justify-center gap-2 h-10",
+                    "group flex items-center justify-center gap-2 h-10",
                     "rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-800",
                     "text-sm font-medium text-slate-500 dark:text-slate-400",
                     "hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-slate-200",
@@ -152,7 +161,7 @@ export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], c
                 onClick={() => setOpen(true)}
             >
                 <Plus className="w-4 h-4 transition-transform group-hover:scale-110" />
-                <span>Add another company</span>
+                <span>{label}</span>
             </Button>
 
             <Dialog open={open} onOpenChange={setOpen}>
@@ -190,7 +199,7 @@ export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], c
                                     <Search className="w-6 h-6 text-slate-400" />
                                 </div>
                                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    No companies found matching "{query}"
+                                    No companies found matching &quot;{query}&quot;
                                 </p>
                                 {query.includes('.') && (
                                     <p className="text-xs text-slate-400 mt-2">
@@ -290,7 +299,7 @@ export function AddCompanyButton({ slug, onCompanyAdded, existingDomains = [], c
                                     </div>
                                     <div>
                                         <div className="font-medium text-sm text-slate-900 dark:text-white">
-                                            Add <span className="font-bold">"{query}"</span> directly
+                                            Add <span className="font-bold">&quot;{query}&quot;</span> directly
                                         </div>
                                         <div className="text-xs text-slate-500">
                                             Add this domain to the campaign
