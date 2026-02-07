@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Package, ChevronDown, Check } from 'lucide-react';
@@ -22,6 +22,21 @@ const fadeInUp = {
 
 export function ProductSelector({ products, selectedProduct, onSelect, className, disabled = false }: ProductSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [placement, setPlacement] = useState<'bottom' | 'top'>('bottom');
+    const triggerRef = useRef<HTMLButtonElement>(null);
+
+    const toggleOpen = () => {
+        if (disabled) return;
+        if (!isOpen && triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - 100 - rect.bottom;
+            const spaceAbove = rect.top;
+            const dropdownHeight = Math.min(272, products.length * 60) + 8;
+
+            setPlacement(spaceBelow < dropdownHeight && spaceAbove > spaceBelow ? 'top' : 'bottom');
+        }
+        setIsOpen(!isOpen);
+    };
 
     const handleSelect = (product: ProductSummary) => {
         onSelect(product);
@@ -35,8 +50,9 @@ export function ProductSelector({ products, selectedProduct, onSelect, className
         >
             {/* Trigger button - card style */}
             <button
+                ref={triggerRef}
                 type="button"
-                onClick={() => !disabled && setIsOpen(!isOpen)}
+                onClick={toggleOpen}
                 disabled={disabled}
                 className={cn(
                     'w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left',
@@ -85,14 +101,15 @@ export function ProductSelector({ products, selectedProduct, onSelect, className
 
                         {/* Menu */}
                         <motion.div
-                            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                            initial={{ opacity: 0, y: placement === 'bottom' ? -8 : 8, scale: 0.96 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                            exit={{ opacity: 0, y: placement === 'bottom' ? -8 : 8, scale: 0.96 }}
                             transition={{ duration: 0.15 }}
                             className={cn(
-                                'absolute z-20 top-full left-0 right-0 mt-2',
+                                'absolute z-20 left-0 right-0',
+                                placement === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2',
                                 'bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700',
-                                'shadow-lg overflow-hidden max-h-64 overflow-y-auto'
+                                'shadow-lg overflow-hidden max-h-68 overflow-y-auto'
                             )}
                         >
                             {products.map((product) => {
