@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
@@ -27,7 +27,8 @@ export function CampaignsList() {
     const [assignProductOpen, setAssignProductOpen] = useState(false);
     const [campaignToAssign, setCampaignToAssign] = useState<CampaignSummary | null>(null);
 
-    // Fetch data
+    // Fetch data - note: we intentionally exclude session from dependencies
+    // to prevent refetching on window focus (session object reference changes)
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
@@ -65,13 +66,23 @@ export function CampaignsList() {
         } finally {
             setLoading(false);
         }
-    }, [activeTab, session?.user?.email]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab]);
+
+    // Track if we've done initial fetch to prevent refetching on session object changes
+    const hasFetchedRef = useRef(false);
+    const prevTabRef = useRef(activeTab);
 
     useEffect(() => {
-        if (session) {
+        // Only fetch on initial load or when activeTab actually changes
+        const tabChanged = prevTabRef.current !== activeTab;
+        prevTabRef.current = activeTab;
+        
+        if (session && (!hasFetchedRef.current || tabChanged)) {
+            hasFetchedRef.current = true;
             fetchData();
         }
-    }, [fetchData, session]);
+    }, [fetchData, session, activeTab]);
 
     // Handle new campaign - navigate to wizard
     const handleNewCampaign = (productId: number | null = null) => {

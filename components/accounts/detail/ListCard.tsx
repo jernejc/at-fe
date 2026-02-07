@@ -33,8 +33,8 @@ export function ListCard({
         <div
             onClick={onClick}
             className={cn(
-                "group relative rounded-lg border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all overflow-hidden bg-white dark:bg-slate-800",
-                isClickable && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50",
+                "group relative rounded-lg border border-slate-200 dark:border-slate-700 transition-all overflow-hidden bg-white dark:bg-slate-800",
+                isClickable && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600",
                 className
             )}
         >

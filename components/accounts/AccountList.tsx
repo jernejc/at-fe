@@ -97,7 +97,7 @@ export function AccountList({
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(50);
+    const [pageSize] = useState(100);
 
     // Add to Campaign State
     const [showAddToCampaign, setShowAddToCampaign] = useState(false);

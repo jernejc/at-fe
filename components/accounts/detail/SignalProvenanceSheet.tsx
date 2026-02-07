@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import {
     Sheet,
     SheetContent,
@@ -7,9 +8,10 @@ import {
     SheetDescription,
 } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SourceDetail, SignalProvenanceResponse, SignalContributor } from '@/lib/schemas/provenance';
-import { ExternalLink, Database, Users, Calendar, Quote, Signal, SignalHigh, SignalMedium, SignalLow, SignalZero } from 'lucide-react';
+import { ExternalLink, Database, Users, Calendar, Quote, Signal, SignalHigh, SignalMedium, SignalLow, SignalZero, Briefcase, FileText, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SignalProvenanceSheetProps {
@@ -20,6 +22,8 @@ interface SignalProvenanceSheetProps {
 }
 
 export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }: SignalProvenanceSheetProps) {
+    const [showAllSources, setShowAllSources] = useState(false);
+    
     if (!signal && !isLoading) return null;
 
     return (
@@ -111,19 +115,45 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                 )}
 
                                 {/* Source Details */}
-                                {signal.source_details && signal.source_details.length > 0 && (
-                                    <section className="space-y-4">
-                                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                            <Database className="h-4 w-4 text-primary" />
-                                            Primary Sources
-                                        </h3>
-                                        <div className="space-y-3">
-                                            {signal.source_details.map((source, i) => (
-                                                <SourceCard key={i} source={source} />
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
+                                {signal.source_details && signal.source_details.length > 0 && (() => {
+                                    // Sort by collected_at descending (most recent first)
+                                    const sortedSources = [...signal.source_details].sort((a, b) => {
+                                        const dateA = a.collected_at ? new Date(a.collected_at).getTime() : 0;
+                                        const dateB = b.collected_at ? new Date(b.collected_at).getTime() : 0;
+                                        return dateB - dateA;
+                                    });
+                                    const visibleSources = showAllSources ? sortedSources : sortedSources.slice(0, 5);
+                                    const remainingCount = sortedSources.length - 5;
+                                    
+                                    return (
+                                        <section className="space-y-4">
+                                            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                                <Database className="h-4 w-4 text-primary" />
+                                                Primary Sources
+                                                <span className="text-xs text-muted-foreground font-normal">({sortedSources.length})</span>
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {visibleSources.map((source, i) => (
+                                                    <SourceCard key={i} source={source} />
+                                                ))}
+                                            </div>
+                                            {remainingCount > 0 && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setShowAllSources(!showAllSources)}
+                                                    className="w-full text-muted-foreground hover:text-foreground"
+                                                >
+                                                    {showAllSources ? (
+                                                        <><ChevronUp className="h-4 w-4 mr-1" /> Show less</>
+                                                    ) : (
+                                                        <><ChevronDown className="h-4 w-4 mr-1" /> Show {remainingCount} more</>
+                                                    )}
+                                                </Button>
+                                            )}
+                                        </section>
+                                    );
+                                })()}
 
                                 {/* Contributors (Employees) */}
                                 {signal.contributors && signal.contributors.length > 0 && (
@@ -179,30 +209,85 @@ function SignalStrengthIcon({ strength, className }: { strength: number; classNa
     return <SignalZero className={className} />;
 }
 
+function getSourceTypeConfig(sourceType: string): { icon: React.ReactNode; label: string; className: string; isPost: boolean } {
+    const type = sourceType.toLowerCase();
+    if (type.includes('job') || type === 'job_posting') {
+        return {
+            icon: <Briefcase className="h-3 w-3" />,
+            label: 'Job Posting',
+            className: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+            isPost: false
+        };
+    }
+    if (type.includes('employee') || type === 'employee_profile') {
+        return {
+            icon: <User className="h-3 w-3" />,
+            label: 'Employee',
+            className: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            isPost: false
+        };
+    }
+    if (type.includes('post') || type === 'linkedin_post') {
+        return {
+            icon: <FileText className="h-3 w-3" />,
+            label: 'Post',
+            className: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+            isPost: true
+        };
+    }
+    // Default fallback
+    return {
+        icon: <Database className="h-3 w-3" />,
+        label: sourceType.replace(/_/g, ' '),
+        className: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+        isPost: false
+    };
+}
+
 function SourceCard({ source }: { source: SourceDetail }) {
+    const typeConfig = getSourceTypeConfig(source.source_type);
+    
     return (
         <div className="bg-card border border-border rounded-lg p-3 text-sm hover:bg-muted/20 transition-colors">
-            <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1 min-w-0">
-                    {source.snippet && (
-                        <p className="line-clamp-2 text-sm leading-relaxed">
-                            &quot;{source.snippet}&quot;
-                        </p>
-                    )}
-                </div>
+            {/* Source Type Badge */}
+            <div className="flex items-center justify-between gap-2 mb-2">
+                <span className={cn(
+                    "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border",
+                    typeConfig.className
+                )}>
+                    {typeConfig.icon}
+                    {typeConfig.label}
+                </span>
                 {source.url && (
                     <a
                         href={source.url}
                         target="_blank"
                         rel="noopener"
-                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
+                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded-md transition-colors shrink-0"
                     >
                         <ExternalLink className="h-4 w-4" />
                     </a>
                 )}
             </div>
+            
+            {/* Title and Snippet */}
+            <div className="space-y-1 min-w-0">
+                {source.title && !typeConfig.isPost && (
+                    <p className="font-medium text-sm text-foreground line-clamp-1">
+                        {source.title}
+                    </p>
+                )}
+                {source.snippet && (
+                    <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                        &quot;{source.snippet}&quot;
+                    </p>
+                )}
+            </div>
+            
+            {/* Collected date */}
             {source.collected_at && (
-                <div className="mt-2 text-[10px] text-muted-foreground">
+                <div className="mt-2 text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Calendar className="h-2.5 w-2.5" />
                     Collected: {new Date(source.collected_at).toLocaleDateString()}
                 </div>
             )}

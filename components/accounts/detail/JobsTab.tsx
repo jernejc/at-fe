@@ -33,8 +33,6 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore, onSelectJob, onP
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            <SectionHeader title="Open Positions" count={total} color="bg-emerald-600" />
-
             {showGrouping ? (
                 departments.map(dept => (
                     <section key={dept} className="space-y-3">
@@ -44,7 +42,6 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore, onSelectJob, onP
                                 <JobCard
                                     key={job.id}
                                     job={job}
-                                    onClick={() => onSelectJob(job)}
                                 />
                             ))}
                         </div>
@@ -56,7 +53,6 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore, onSelectJob, onP
                         <JobCard
                             key={job.id}
                             job={job}
-                            onClick={() => onSelectJob(job)}
                         />
                     ))}
                 </div>
@@ -77,12 +73,11 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore, onSelectJob, onP
 }
 
 
-function JobCard({ job, onClick }: { job: JobPostingSummary, onClick: () => void }) {
+function JobCard({ job }: { job: JobPostingSummary }) {
     return (
         <ListCard
             leftColumn={job.posted_at ? formatRelativeDate(job.posted_at) : '—'}
-            onClick={onClick}
-            rightIcon="arrow"
+            rightIcon="none"
         >
             <h5 className="font-medium text-sm text-foreground truncate">
                 {job.title}

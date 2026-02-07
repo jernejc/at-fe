@@ -47,7 +47,6 @@ export function PeopleTab({
                                 key={e.id}
                                 person={e}
                                 highlight
-                                onClick={() => onSelectEmployee(e)}
                             />
                         ))}
                     </div>
@@ -66,7 +65,6 @@ export function PeopleTab({
                             <PersonRow
                                 key={e.id}
                                 person={e}
-                                onClick={() => onSelectEmployee(e)}
                             />
                         ))}
                     </div>
@@ -96,27 +94,19 @@ export function PeopleTab({
     );
 }
 
-// PersonRow component
+// PersonRow component - displays employee with LinkedIn link
 function PersonRow({
     person,
     highlight = false,
-    onClick
 }: {
     person: EmployeeSummary;
     highlight?: boolean;
-    onClick?: () => void;
 }) {
     const hasMetadata = person.department || person.city || person.country;
+    const hasLinkedIn = !!person.profile_url;
 
-    return (
-        <div
-            className={cn(
-                "flex items-center gap-4 p-4 transition-colors",
-                onClick && "cursor-pointer",
-                highlight ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/50" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
-            )}
-            onClick={onClick}
-        >
+    const content = (
+        <>
             <Avatar className="w-10 h-10">
                 {person.avatar_url && <AvatarImage src={person.avatar_url} />}
                 <AvatarFallback className={cn(
@@ -140,19 +130,38 @@ function PersonRow({
                 )}
             </div>
             {highlight && <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-1 rounded">Key Contact</span>}
-            {person.profile_url && (
-                <a
-                    href={person.profile_url}
-                    target="_blank"
-                    rel="noopener"
-                    className="text-blue-600 hover:text-blue-700 p-2"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                    </svg>
-                </a>
+            {hasLinkedIn && (
+                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                </svg>
             )}
+        </>
+    );
+
+    if (hasLinkedIn) {
+        return (
+            <a
+                href={person.profile_url!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                    "flex items-center gap-4 p-4 transition-colors cursor-pointer",
+                    highlight ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/50" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                )}
+            >
+                {content}
+            </a>
+        );
+    }
+
+    return (
+        <div
+            className={cn(
+                "flex items-center gap-4 p-4",
+                highlight ? "bg-amber-50 dark:bg-amber-950/50" : ""
+            )}
+        >
+            {content}
         </div>
     );
 }
