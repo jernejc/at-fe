@@ -184,11 +184,8 @@ function SourceCard({ source }: { source: SourceDetail }) {
         <div className="bg-card border border-border rounded-lg p-3 text-sm hover:bg-muted/20 transition-colors">
             <div className="flex items-start justify-between gap-2">
                 <div className="space-y-1 min-w-0">
-                    <div className="font-medium text-foreground truncate">
-                        {source.title || source.source_type}
-                    </div>
                     {source.snippet && (
-                        <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
+                        <p className="line-clamp-2 text-sm leading-relaxed">
                             &quot;{source.snippet}&quot;
                         </p>
                     )}

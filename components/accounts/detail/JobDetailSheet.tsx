@@ -34,7 +34,7 @@ export function JobDetailSheet({ job, isOpen, onClose }: JobDetailSheetProps) {
                 <div className="p-6 border-b shrink-0 bg-muted/5 space-y-4">
                     <div className="space-y-2">
                         <div className="flex items-start justify-between gap-4">
-                            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 capitalize">
                                 {job.department || 'General'}
                             </Badge>
                             <span className="text-xs text-muted-foreground font-mono">

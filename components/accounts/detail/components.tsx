@@ -59,7 +59,7 @@ export function SectionHeader({ title, count, color = "bg-blue-600", children }:
     return (
         <div className="flex items-center gap-3 mb-4">
             <div className={cn("w-1 h-5 rounded-full", color)} />
-            <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-white capitalize">{title}</h3>
             {count !== undefined && <span className="text-sm text-slate-500 dark:text-slate-400">({count})</span>}
             {children}
         </div>

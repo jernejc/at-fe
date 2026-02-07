@@ -38,7 +38,7 @@ export function JobsTab({ jobs, total, onLoadMore, loadingMore, onSelectJob, onP
             {showGrouping ? (
                 departments.map(dept => (
                     <section key={dept} className="space-y-3">
-                        <SectionHeader title={dept} count={byDept[dept].length} />
+                        <SectionHeader title={dept.length === 2 ? dept.toUpperCase() : dept} count={byDept[dept].length} />
                         <div className="grid grid-cols-1 gap-2">
                             {byDept[dept].map((job) => (
                                 <JobCard
