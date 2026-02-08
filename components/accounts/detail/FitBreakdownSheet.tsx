@@ -80,13 +80,13 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                         </div>
                                         <Progress value={likelihood} className="h-2" />
                                     </div>
-                                    <div className="space-y-2">
+                                    {/* <div className="space-y-2">
                                         <div className="flex justify-between text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             <span>Urgency</span>
                                             <span className="text-foreground">{Math.round(urgency)}%</span>
                                         </div>
                                         <Progress value={urgency} className="h-2" />
-                                    </div>
+                                    </div> */}
                                 </div>
                             </SheetHeader>
                         </div>

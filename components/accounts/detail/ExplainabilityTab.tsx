@@ -300,7 +300,7 @@ function FitCard({ fit, onClick, index }: { fit: FitSummaryFit, onClick: () => v
                             <span className="w-7 text-right font-mono text-[11px] text-slate-900 dark:text-white">{Math.round(likelihood)}%</span>
                         </div>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    {/* <div className="flex items-center justify-between text-xs">
                         <span className="text-slate-500 dark:text-slate-400">Urgency</span>
                         <div className="flex items-center gap-2">
                             <div className="h-1 w-12 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -308,7 +308,7 @@ function FitCard({ fit, onClick, index }: { fit: FitSummaryFit, onClick: () => v
                             </div>
                             <span className="w-7 text-right font-mono text-[11px] text-slate-900 dark:text-white">{Math.round(urgency)}%</span>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Arrow Icon */}
