@@ -262,6 +262,27 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                             </Card>
                         )}
 
+                        {/* Recommended Channels */}
+                        {playbookDetail.recommended_channels && playbookDetail.recommended_channels.length > 0 && (
+                            <Card className='py-6'>
+                                <CardHeader className='px-6'>
+                                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                                        <Hash className="w-4 h-4 text-primary" />
+                                        Recommended Channels
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className='px-6'>
+                                    <div className="flex items-center flex-wrap gap-2">
+                                        {(playbookDetail.recommended_channels as string[]).map((ch, i) => (
+                                            <span key={i} className="px-3 py-1.5 text-xs font-medium bg-muted/50 text-foreground/70 rounded-full border border-border/40">
+                                                {ch}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Objection Handling Card with Accordions */}
                         {playbookDetail.objection_handling && Object.keys(playbookDetail.objection_handling).length > 0 && (
                             <Card className='py-6'>
@@ -308,6 +329,23 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                                             </div>
                                         ))}
                                     </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Strategic Rationale */}
+                        {playbookDetail.fit_reasoning && (
+                            <Card className='py-6'>
+                                <CardHeader className='px-6'>
+                                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                                        <Lightbulb className="w-4 h-4 text-primary" />
+                                        Strategic Rationale
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className='px-6'>
+                                    <p className="text-sm leading-relaxed text-muted-foreground">
+                                        {playbookDetail.fit_reasoning}
+                                    </p>
                                 </CardContent>
                             </Card>
                         )}
@@ -371,104 +409,73 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                             </Card>
                         )}
 
-                        {/* Recommended Channels */}
-                        {playbookDetail.recommended_channels && playbookDetail.recommended_channels.length > 0 && (
+                        {/* Signal Basis (Why This Account?) */}
+                        {playbookDetail.generation_metadata?.signal_basis && (
                             <Card className='py-6'>
                                 <CardHeader className='px-6'>
                                     <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                                        <Hash className="w-4 h-4 text-primary" />
-                                        Recommended Channels
+                                        <Lightbulb className="w-4 h-4 text-primary" />
+                                        Why This Account?
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className='px-6'>
-                                    <div className="flex items-center flex-wrap gap-2">
-                                        {(playbookDetail.recommended_channels as string[]).map((ch, i) => (
-                                            <span key={i} className="px-3 py-1.5 text-xs font-medium bg-muted/50 text-foreground/70 rounded-full border border-border/40">
-                                                {ch}
-                                            </span>
-                                        ))}
+                                    <div className="space-y-4">
+                                        {/* Top Events */}
+                                        {playbookDetail.generation_metadata.signal_basis.top_events?.length > 0 && (
+                                            <div className="space-y-3">
+                                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                                    Recent Signals
+                                                </h4>
+                                                <div className="space-y-3">
+                                                    {playbookDetail.generation_metadata.signal_basis.top_events.map((event, i) => (
+                                                        <div key={i} className="flex items-start gap-2.5">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="font-medium text-sm text-foreground capitalize">
+                                                                        {event.category.replace('_', ' ')}
+                                                                    </span>
+                                                                    {event.urgency >= 7 && (
+                                                                        <span className="text-[10px] font-medium px-1.5 py-0.5 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded">
+                                                                            Urgent
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-muted-foreground text-xs mt-1 leading-relaxed">{event.influence_on_strategy}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Top Interests */}
+                                        {playbookDetail.generation_metadata.signal_basis.top_interests?.length > 0 && (
+                                            <div className="space-y-3">
+                                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                                    Strategic Interests
+                                                </h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {playbookDetail.generation_metadata.signal_basis.top_interests.map((interest, i) => (
+                                                        <span
+                                                            key={i}
+                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-background border border-border/60 rounded-md"
+                                                        >
+                                                            <span className="font-medium text-foreground capitalize">{interest.category.replace('_', ' ')}</span>
+                                                            {interest.strength > 0 && (
+                                                                <span className="text-muted-foreground">{interest.strength}/10</span>
+                                                            )}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
                         )}
                     </div>
                 </motion.div>
-
-                {/* Sections Below the Grid (Full Width) */}
-
-                {/* Signal Basis (Why This Account?) */}
-                {playbookDetail.generation_metadata?.signal_basis && (
-                    <motion.section variants={fadeInUp}>
-                        <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-                            <Lightbulb className="w-4 h-4 text-primary" />
-                            Why This Account?
-                        </h3>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            {/* Top Events */}
-                            {playbookDetail.generation_metadata.signal_basis.top_events?.length > 0 && (
-                                <div className="space-y-3 p-4 rounded-lg bg-muted/30 border border-border/50">
-                                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Recent Signals
-                                    </h4>
-                                    <div className="space-y-3">
-                                        {playbookDetail.generation_metadata.signal_basis.top_events.map((event, i) => (
-                                            <div key={i} className="flex items-start gap-2.5">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="font-medium text-sm text-foreground capitalize">
-                                                            {event.category.replace('_', ' ')}
-                                                        </span>
-                                                        {event.urgency >= 7 && (
-                                                            <span className="text-[10px] font-medium px-1.5 py-0.5 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded">
-                                                                Urgent
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-muted-foreground text-xs mt-1 leading-relaxed">{event.influence_on_strategy}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Top Interests */}
-                            {playbookDetail.generation_metadata.signal_basis.top_interests?.length > 0 && (
-                                <div className="space-y-3 p-4 rounded-lg bg-muted/30 border border-border/50">
-                                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Strategic Interests
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {playbookDetail.generation_metadata.signal_basis.top_interests.map((interest, i) => (
-                                            <span
-                                                key={i}
-                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-background border border-border/60 rounded-md"
-                                            >
-                                                <span className="font-medium text-foreground capitalize">{interest.category.replace('_', ' ')}</span>
-                                                {interest.strength > 0 && (
-                                                    <span className="text-muted-foreground">{interest.strength}/10</span>
-                                                )}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </motion.section>
-                )}
-
-                {/* Strategic Rationale */}
-                {playbookDetail.fit_reasoning && (
-                    <motion.section variants={fadeInUp}>
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                            Strategic Rationale
-                        </h4>
-                        <p className="text-sm text-foreground/80 leading-relaxed">
-                            {playbookDetail.fit_reasoning}
-                        </p>
-                    </motion.section>
-                )}
             </motion.div>
         </div>
     );
