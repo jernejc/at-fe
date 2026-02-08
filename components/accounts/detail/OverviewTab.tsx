@@ -1,5 +1,6 @@
 // Overview Tab Component
 
+import { useState } from 'react';
 import type { CompanyRead } from '@/lib/schemas';
 import { DetailCell, RatingBar, SectionHeader } from './components';
 
@@ -8,6 +9,9 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ company }: OverviewTabProps) {
+    const [showAllSpecialties, setShowAllSpecialties] = useState(false);
+    const [showAllTech, setShowAllTech] = useState(false);
+
     return (
         <div className="space-y-8">
             {/* About */}
@@ -42,13 +46,15 @@ export function OverviewTab({ company }: OverviewTabProps) {
                 <section>
                     <SectionHeader title="Specialties" count={company.specialties.length} />
                     <div className="flex flex-wrap gap-2">
-                        {company.specialties.slice(0, 20).map((specialty, i) => (
+                        {(showAllSpecialties ? company.specialties : company.specialties.slice(0, 20)).map((specialty, i) => (
                             <span key={i} className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-md">
                                 {specialty}
                             </span>
                         ))}
                         {company.specialties.length > 20 && (
-                            <span className="px-3 py-1.5 text-xs text-slate-500">+{company.specialties.length - 20} more</span>
+                            <button type="button" onClick={() => setShowAllSpecialties(v => !v)} className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                                {showAllSpecialties ? 'Show less' : `+${company.specialties.length - 20} more`}
+                            </button>
                         )}
                     </div>
                 </section>
@@ -59,13 +65,15 @@ export function OverviewTab({ company }: OverviewTabProps) {
                 <section>
                     <SectionHeader title="Tech Stack" count={company.technologies.length} color="bg-emerald-600" />
                     <div className="flex flex-wrap gap-2">
-                        {company.technologies.slice(0, 20).map((tech, i) => (
+                        {(showAllTech ? company.technologies : company.technologies.slice(0, 20)).map((tech, i) => (
                             <span key={i} className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-md">
                                 {tech.technology}
                             </span>
                         ))}
                         {company.technologies.length > 20 && (
-                            <span className="px-3 py-1.5 text-xs text-slate-500">+{company.technologies.length - 20} more</span>
+                            <button type="button" onClick={() => setShowAllTech(v => !v)} className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                                {showAllTech ? 'Show less' : `+${company.technologies.length - 20} more`}
+                            </button>
                         )}
                     </div>
                 </section>
