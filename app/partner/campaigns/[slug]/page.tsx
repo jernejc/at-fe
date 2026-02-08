@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect, useMemo } from 'react';
+import { use, useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -9,6 +9,8 @@ import {
     Package,
     Download,
     Calendar,
+    ChevronDown,
+    FolderInput,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CompanyRowCompact } from '@/components/campaigns/CompanyRowCompact';
@@ -82,6 +84,8 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [exporting, setExporting] = useState(false);
     const [exportingContacts, setExportingContacts] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const partnerId = (session?.user as any)?.partner_id as number | undefined;
@@ -279,40 +283,64 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                     )}
 
                     {/* Title Row */}
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    <div className="flex items-center gap-4">
+                        <h1 className="flex-1 text-2xl font-bold tracking-tight text-foreground">
                             {campaign.name}
                         </h1>
-                        <div className="flex items-center gap-2">
+                        <div className="relative">
                             <Button
-                                variant="outline"
                                 size="sm"
                                 className="h-8 gap-2 border-slate-200 dark:border-slate-700"
-                                onClick={handleExport}
-                                disabled={exporting}
+                                onClick={() => setExportOpen(!exportOpen)}
+                                disabled={exporting || exportingContacts}
                             >
-                                {exporting ? (
+                                {(exporting || exportingContacts) ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
                                     <Download className="w-4 h-4" />
                                 )}
-                                Export Companies
+                                Export
+                                <ChevronDown className="w-3.5 h-3.5" />
                             </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 gap-2 border-slate-200 dark:border-slate-700"
-                                onClick={handleExportContacts}
-                                disabled={exportingContacts}
-                            >
-                                {exportingContacts ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Download className="w-4 h-4" />
-                                )}
-                                Export Contacts
-                            </Button>
+
+                            {exportOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setExportOpen(false)} />
+                                    <div className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 z-50 overflow-hidden py-1">
+                                        <button
+                                            type="button"
+                                            className="w-full px-3 py-2 text-sm text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                            onClick={() => { setExportOpen(false); handleExport(); }}
+                                        >
+                                            Companies
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="w-full px-3 py-2 text-sm text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                            onClick={() => { setExportOpen(false); handleExportContacts(); }}
+                                        >
+                                            Contacts
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".csv,.xlsx,.xls"
+                            className="hidden"
+                            onChange={() => { /* demo — no handler yet */ }}
+                        />
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-2 border-slate-200 dark:border-slate-700"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <FolderInput />
+                            Import
+                        </Button>
                     </div>
 
                     {/* Metadata Row */}

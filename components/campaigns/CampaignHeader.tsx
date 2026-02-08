@@ -8,7 +8,7 @@ import type { CampaignTab } from '@/hooks/useCampaignPage';
 import { cn, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
 import {
     Loader2, Building2, ChevronRight, Trash2, Send, LayoutDashboard, Users, BarChart3,
-    Calendar, Target, Download, XCircle, Package
+    Calendar, Target, Download, XCircle, Package, ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +83,7 @@ export function CampaignHeader({
     // Export functionality
     const [isExporting, setIsExporting] = useState(false);
     const [isExportingContacts, setIsExportingContacts] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
 
     const handleExport = async () => {
         try {
@@ -206,34 +207,45 @@ export function CampaignHeader({
 
                     {/* Right: Action Buttons */}
                     <div className="flex items-center gap-2 shrink-0">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-2 border-slate-200 dark:border-slate-700"
-                            onClick={handleExport}
-                            disabled={isExporting}
-                        >
-                            {isExporting ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Download className="w-4 h-4" />
+                        <div className="relative">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-2 border-slate-200 dark:border-slate-700"
+                                onClick={() => setExportOpen(!exportOpen)}
+                                disabled={isExporting || isExportingContacts}
+                            >
+                                {(isExporting || isExportingContacts) ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Download className="w-4 h-4" />
+                                )}
+                                Export
+                                <ChevronDown className="w-3.5 h-3.5" />
+                            </Button>
+
+                            {exportOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setExportOpen(false)} />
+                                    <div className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 z-50 overflow-hidden py-1">
+                                        <button
+                                            type="button"
+                                            className="w-full px-3 py-2 text-sm text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                            onClick={() => { setExportOpen(false); handleExport(); }}
+                                        >
+                                            Companies
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="w-full px-3 py-2 text-sm text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                            onClick={() => { setExportOpen(false); handleExportContacts(); }}
+                                        >
+                                            Contacts
+                                        </button>
+                                    </div>
+                                </>
                             )}
-                            Export Companies
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-2 border-slate-200 dark:border-slate-700"
-                            onClick={handleExportContacts}
-                            disabled={isExportingContacts}
-                        >
-                            {isExportingContacts ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Download className="w-4 h-4" />
-                            )}
-                            Export Contacts
-                        </Button>
+                        </div>
 
                         <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
 
