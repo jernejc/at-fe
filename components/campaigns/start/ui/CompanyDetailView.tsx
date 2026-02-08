@@ -121,7 +121,7 @@ export function CompanyDetailView({
     isLoading,
     onClose,
 }: CompanyDetailViewProps) {
-    const [activeTab, setActiveTab] = useState<CompanyDetailTab>('narratives');
+    const [activeTab, setActiveTab] = useState<CompanyDetailTab>('details');
 
     // Extract narrative content
     const signalNarrative = explainability?.signal_narrative;
@@ -146,9 +146,9 @@ export function CompanyDetailView({
                     <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as CompanyDetailTab)}>
                         <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 px-7 pt-4">
                             <TabsList className="w-full justify-start gap-4">
-                                <TabsTrigger value="narratives" className="gap-2">
-                                    <CircleQuestionMark className="w-4 h-4" />
-                                    Why
+                                <TabsTrigger value="details" className="gap-2">
+                                    <Building className="w-4 h-4" />
+                                    Details
                                 </TabsTrigger>
                                 <TabsTrigger value="product-fit" className="gap-2">
                                     <Package className="w-4 h-4" />
@@ -158,50 +158,8 @@ export function CompanyDetailView({
                                     <Radio className="w-4 h-4" />
                                     Signals
                                 </TabsTrigger>
-                                <TabsTrigger value="details" className="gap-2">
-                                    <Building className="w-4 h-4" />
-                                    Details
-                                </TabsTrigger>
                             </TabsList>
                         </div>
-
-                        <TabsContent value="narratives" className="p-7">
-                            {hasNarratives ? (
-                                <div className="space-y-3">
-                                    {signalNarrative && (
-                                        <NarrativeCard
-                                            title="Signal Analysis"
-                                            icon={Brain}
-                                            content={signalNarrative}
-                                            accentColor="violet"
-                                        />
-                                    )}
-                                    {interestNarrative && (
-                                        <NarrativeCard
-                                            title="Interest Analysis"
-                                            icon={Target}
-                                            content={interestNarrative}
-                                            accentColor="amber"
-                                        />
-                                    )}
-                                    {eventNarrative && (
-                                        <NarrativeCard
-                                            title="Event Analysis"
-                                            icon={Calendar}
-                                            content={eventNarrative}
-                                            accentColor="blue"
-                                        />
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <CircleQuestionMark className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
-                                    <p className="text-slate-500 dark:text-slate-400">
-                                        No narrative data available.
-                                    </p>
-                                </div>
-                            )}
-                        </TabsContent>
 
                         <TabsContent value="product-fit" className="p-7">
                             {hasProductFit ? (() => {
@@ -344,6 +302,33 @@ export function CompanyDetailView({
                         </TabsContent>
 
                         <TabsContent value="details" className="p-7">
+                            <div className="space-y-3">
+                                {signalNarrative && (
+                                    <NarrativeCard
+                                        title="Signal Analysis"
+                                        icon={Brain}
+                                        content={signalNarrative}
+                                        accentColor="violet"
+                                    />
+                                )}
+                                {interestNarrative && (
+                                    <NarrativeCard
+                                        title="Interest Analysis"
+                                        icon={Target}
+                                        content={interestNarrative}
+                                        accentColor="amber"
+                                    />
+                                )}
+                                {eventNarrative && (
+                                    <NarrativeCard
+                                        title="Event Analysis"
+                                        icon={Calendar}
+                                        content={eventNarrative}
+                                        accentColor="blue"
+                                    />
+                                )}
+                            </div>
+
                             {companyData ? (
                                 <div className="space-y-6">
                                     {/* Company Details Grid */}
