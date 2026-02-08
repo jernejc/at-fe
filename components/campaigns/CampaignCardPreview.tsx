@@ -1,22 +1,28 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { cn, formatCompactNumber, formatRelativeDate, normalizeScoreNullable, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
+import { cn, formatCompactNumber, formatRelativeDate, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
 import type { CampaignSummary } from '@/lib/schemas';
 import type { ProductSummary } from '@/lib/schemas/product';
-import { Building2, Activity, Clock, Package } from 'lucide-react';
+import { Building2, Clock, Package } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 interface CampaignCardPreviewProps {
     campaign: CampaignSummary;
     product?: ProductSummary | null;
+    unassignedCompaniesCount?: number;
     onAssignProduct?: () => void;
     onClick?: (campaign: CampaignSummary) => void;
 }
 
-export function CampaignCardPreview({ campaign, product, onAssignProduct, onClick }: CampaignCardPreviewProps) {
+export function CampaignCardPreview({
+    campaign,
+    product,
+    unassignedCompaniesCount = 0,
+    onAssignProduct,
+    onClick
+}: CampaignCardPreviewProps) {
     const router = useRouter();
-    const avgFitScore = normalizeScoreNullable(campaign.avg_fit_score);
     const progress = campaign.company_count > 0 
         ? Math.round((campaign.processed_count / campaign.company_count) * 100) 
         : 0;
@@ -30,12 +36,6 @@ export function CampaignCardPreview({ campaign, product, onAssignProduct, onClic
             router.push(`/campaigns/${campaign.slug}`);
         }
     };
-
-    // Determined by score
-    const scoreColor = 
-        avgFitScore >= 70 ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20' :
-        avgFitScore >= 40 ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20' :
-        'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800';
 
     const productTheme = getProductBadgeTheme(product?.id);
     // Use text color for the icon to match the text, slightly lighter or same
@@ -82,19 +82,14 @@ export function CampaignCardPreview({ campaign, product, onAssignProduct, onClic
                         <span>Companies</span>
                     </div>
                     <div className="text-xl font-bold text-slate-900 dark:text-white">
-                        {formatCompactNumber(campaign.company_count)}
-                    </div>
-                </div>
-                
-                <div className={cn("p-3 rounded-lg border", scoreColor.replace('text-', 'border-').replace('bg-', 'bg-opacity-20 '))}
-                     style={{ borderColor: 'transparent' }} // Override border for cleaner look
-                >
-                    <div className="flex items-center gap-2 opacity-80 text-xs font-medium mb-1">
-                        <Activity className="w-3.5 h-3.5" />
-                        <span>Avg Fit</span>
-                    </div>
-                    <div className="text-xl font-bold">
-                        {avgFitScore > 0 ? avgFitScore.toFixed(0) : '-'}
+                        <div className="flex items-center gap-2">
+                            <span>{formatCompactNumber(campaign.company_count)}</span>
+                            {unassignedCompaniesCount > 0 && (
+                                <span className="inline-flex items-center whitespace-nowrap text-[11px] leading-none font-medium px-1.5 py-1 rounded bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700">
+                                    {unassignedCompaniesCount} to assign
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

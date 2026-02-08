@@ -40,7 +40,7 @@ export default function DiscoveryPage() {
   }
 
   return (
-    <div className="h-screen bg-background overflow-hidden">
+    <div className="h-[100dvh] bg-background overflow-hidden">
       {/* Main Content - Full Height */}
       <main className="h-full">
         <AccountList

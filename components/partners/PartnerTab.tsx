@@ -26,7 +26,8 @@ interface PartnerTabProps {
     companies: MembershipRead[];
     partners?: PartnerAssignmentSummary[];
     onCompanyClick?: (domain: string) => void;
-    onPartnersUpdated?: () => void;
+    onPartnersUpdated?: () => void | Promise<void>;
+    onAssignmentsChanged?: (updates: { companyId: number; partnerId: string | null }[]) => void;
 }
 
 export function PartnerTab({ 
@@ -34,7 +35,8 @@ export function PartnerTab({
     companies: initialCompanies, 
     partners: preloadedPartners,
     onCompanyClick,
-    onPartnersUpdated
+    onPartnersUpdated,
+    onAssignmentsChanged
 }: PartnerTabProps) {
     const [activeSubTab, setActiveSubTab] = useState<'overview' | 'assignments'>('overview');
     const [partners, setPartners] = useState<Partner[]>([]);
@@ -282,6 +284,7 @@ export function PartnerTab({
                 }
                 return c;
             }));
+            onAssignmentsChanged?.([{ companyId, partnerId }]);
         } catch (error) {
             console.error('Failed to assign company:', error);
         } finally {
@@ -333,6 +336,17 @@ export function PartnerTab({
                 }
                 return company;
             }));
+            const changedAssignments = Object.entries(assignments)
+                .map(([domain, partnerId]) => {
+                    const company = companies.find(c => c.domain === domain);
+                    if (!company || !company.company_id || company.company_id === 0) return null;
+                    return { companyId: company.company_id, partnerId };
+                })
+                .filter((assignment): assignment is { companyId: number; partnerId: string } => assignment !== null);
+
+            if (changedAssignments.length > 0) {
+                onAssignmentsChanged?.(changedAssignments);
+            }
         } catch (error) {
             console.error('Failed to bulk assign companies:', error);
         } finally {

@@ -21,7 +21,7 @@ import type {
     CompanySummary,
     CampaignSummary,
 } from "@/lib/schemas";
-import { Loader2, Plus, FolderPlus, Package, Building2 } from "lucide-react";
+import { Loader2, Plus, FolderPlus, Building2 } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -41,17 +41,12 @@ import { Label } from "@/components/ui/label";
 
 type ScoreFilter = "all" | "hot" | "warm" | "cold";
 
-// Color palette for product tabs
-const PRODUCT_COLORS = [
-    "#8b5cf6", // violet
-    "#3b82f6", // blue
-    "#10b981", // emerald
-    "#f59e0b", // amber
-    "#ef4444", // red
-    "#ec4899", // pink
-    "#06b6d4", // cyan
-    "#84cc16", // lime
-];
+function isAbortError(error: unknown): boolean {
+    return (
+        (error instanceof DOMException && error.name === "AbortError") ||
+        (error instanceof Error && error.name === "AbortError")
+    );
+}
 
 // Unified account type for display
 interface AccountItem {
@@ -80,12 +75,8 @@ interface AccountListProps {
     compact?: boolean;
 }
 
-export function AccountList({
-    productGroup,
-    onAccountClick,
-    hideHeader = false,
-    compact = false,
-}: AccountListProps) {
+export function AccountList(props: AccountListProps) {
+    const { onAccountClick, hideHeader = false } = props;
     const [products, setProducts] = useState<ProductSummary[]>([]);
     const [accounts, setAccounts] = useState<AccountItem[]>([]);
     const [selectedProductId, setSelectedProductId] = useState<string>("all");
@@ -132,6 +123,8 @@ export function AccountList({
 
     // Fetch accounts when product selection or page changes
     useEffect(() => {
+        const controller = new AbortController();
+
         async function fetchAccounts() {
             setLoadingAccounts(true);
             setError(null);
@@ -144,7 +137,7 @@ export function AccountList({
                         page_size: pageSize,
                         sort_by: "updated_at",
                         sort_order: "desc",
-                    });
+                    }, { signal: controller.signal });
 
                     // Map CompanySummary to AccountItem
                     const items: AccountItem[] = response.items.map((company: CompanySummary) => ({
@@ -176,7 +169,7 @@ export function AccountList({
                     const response = await getProductCandidates(productId, {
                         page,
                         page_size: pageSize,
-                    });
+                    }, { signal: controller.signal });
 
                     // Map CandidateFitSummary to AccountItem
                     const items: AccountItem[] = response.candidates.map((candidate: CandidateFitSummary) => ({
@@ -204,16 +197,25 @@ export function AccountList({
                     setTotalCount(response.total);
                 }
             } catch (err) {
+                if (isAbortError(err)) {
+                    return;
+                }
                 setError(
                     err instanceof Error ? err.message : "Failed to fetch accounts"
                 );
                 console.error("Error fetching accounts:", err);
             } finally {
-                setLoadingAccounts(false);
+                if (!controller.signal.aborted) {
+                    setLoadingAccounts(false);
+                }
             }
         }
 
         fetchAccounts();
+
+        return () => {
+            controller.abort();
+        };
     }, [selectedProductId, page, pageSize]);
 
     // Reset to page 1 when filters change
@@ -337,9 +339,8 @@ export function AccountList({
     };
 
     const selectedProduct = products.find((p) => p.id.toString() === selectedProductId);
-
-    // Get color for product tab
-    const getProductColor = (index: number) => PRODUCT_COLORS[index % PRODUCT_COLORS.length];
+    const isInitialLoading = loading || (loadingAccounts && accounts.length === 0);
+    const isRefreshingPage = loadingAccounts && accounts.length > 0;
 
     const isAllAccounts = selectedProductId === "all";
 
@@ -539,18 +540,15 @@ export function AccountList({
 
             {/* Account List */}
             <div className="flex-1 overflow-auto bg-white/50 dark:bg-slate-950/20 relative">
-                <div className="max-w-[1600px] mx-auto min-h-full border-x border-border/40 bg-white dark:bg-slate-900/50">
-                    {/* Loading Overlay - Only shows when paginating, not initial load */}
-                    {loadingAccounts && accounts.length > 0 && (
-                        <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm z-10 flex items-center justify-center">
-                            <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg shadow-lg border border-border">
-                                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                <span className="text-sm font-medium text-muted-foreground">Loading...</span>
-                            </div>
-                        </div>
-                    )}
-
-                    {loading || (loadingAccounts && accounts.length === 0) ? (
+                <div className="max-w-[1600px] mx-auto min-h-full border-x border-border/40 bg-white dark:bg-slate-900/50 relative">
+                    <div
+                        aria-busy={isRefreshingPage}
+                        className={isRefreshingPage
+                            ? "transition-opacity duration-200 opacity-70"
+                            : "transition-opacity duration-200 opacity-100"
+                        }
+                    >
+                    {isInitialLoading ? (
                         <div>
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <AccountCardSkeleton key={i} />
@@ -590,6 +588,7 @@ export function AccountList({
                             />
                         ))
                     )}
+                    </div>
                 </div>
 
                 {/* Pagination Controls - Always visible when there's data */}
@@ -603,6 +602,18 @@ export function AccountList({
                     />
                 )}
             </div>
+
+            {/* Fixed loading status - stays visible during list scroll and does not affect layout */}
+            {isRefreshingPage && (
+                <div className="pointer-events-none fixed bottom-20 right-6 md:right-10 z-40">
+                    <div className="rounded-full border border-blue-200/70 dark:border-blue-800/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 shadow-lg">
+                        <div className="flex items-center gap-2 text-xs font-medium text-blue-700 dark:text-blue-300">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Loading page {page}...</span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

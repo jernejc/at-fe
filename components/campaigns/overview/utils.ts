@@ -1,5 +1,5 @@
 import type { CampaignOverview, MembershipRead } from '@/lib/schemas';
-import { AccountNeedingAttention, OutreachPipeline } from './types';
+import { OutreachPipeline } from './types';
 
 // ============================================================================
 // Mock Data Generation (to be replaced with real API data)
@@ -58,52 +58,6 @@ export function generateMockPipeline(companies: MembershipRead[]): OutreachPipel
     const notStarted = total - meetingBooked - responded - contacted;
 
     return { not_started: notStarted, contacted, responded, meeting_booked: meetingBooked };
-}
-
-export function generateAccountsNeedingAttention(companies: MembershipRead[]): AccountNeedingAttention[] {
-    // 1. Unassigned High Fit (Priority)
-    const highFitUnassigned = companies
-        .filter(c => !c.partner_id && (c.cached_fit_score || 0) >= 0.7)
-        .sort((a, b) => (b.cached_fit_score || 0) - (a.cached_fit_score || 0))
-        .map(c => ({
-            domain: c.domain,
-            name: c.company_name || c.domain,
-            industry: c.industry,
-            fitScore: c.cached_fit_score,
-            logoBase64: c.logo_base64,
-            reason: 'unassigned_high_fit' as const,
-            reasonLabel: 'High fit, unassigned',
-        }));
-
-    // If we have enough unassigned, just return them
-    if (highFitUnassigned.length >= 4) return highFitUnassigned.slice(0, 4);
-
-    // 2. Newly Added High Potential (Last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const newAndPromising = companies
-        .filter(c =>
-            new Date(c.created_at) > sevenDaysAgo &&
-            (c.cached_fit_score || 0) >= 0.6 &&
-            !highFitUnassigned.find(h => h.domain === c.domain)
-        )
-        .sort((a, b) => (b.cached_fit_score || 0) - (a.cached_fit_score || 0))
-        .map(c => ({
-            domain: c.domain,
-            name: c.company_name || c.domain,
-            industry: c.industry,
-            fitScore: c.cached_fit_score,
-            logoBase64: c.logo_base64,
-            reason: 'newly_added' as const,
-            reasonLabel: 'New high potential',
-        }));
-
-    const result = [...highFitUnassigned, ...newAndPromising].slice(0, 4);
-
-
-
-    return result;
 }
 
 // Calculate fit distribution from actual companies

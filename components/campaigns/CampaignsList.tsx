@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
-import { getCampaigns, getProducts } from '@/lib/api';
+import { getCampaignPartners, getCampaigns, getPartnerAssignedCompanies, getProducts } from '@/lib/api';
 import type { CampaignSummary } from '@/lib/schemas';
 import type { ProductSummary } from '@/lib/schemas/product';
 import { ProductAssignmentDialog } from './ProductAssignmentDialog';
@@ -20,6 +20,7 @@ export function CampaignsList() {
     const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
     const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
     const [products, setProducts] = useState<ProductSummary[]>([]);
+    const [unassignedByCampaign, setUnassignedByCampaign] = useState<Record<number, number>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +59,39 @@ export function CampaignsList() {
             // Handle both paginated response ({ items: [...] }) and direct array ([...])
             const items = Array.isArray(campaignsData) ? campaignsData : campaignsData.items || [];
             setCampaigns(items);
+
+            // Compute unassigned companies per campaign from live partner-company assignments
+            const unassignedEntries = await Promise.all(
+                items.map(async (campaign) => {
+                    try {
+                        const partnerAssignments = await getCampaignPartners(campaign.slug);
+
+                        const assignedCompanyIds = new Set<number>();
+                        await Promise.all(
+                            partnerAssignments.map(async (assignment) => {
+                                try {
+                                    const companyAssignments = await getPartnerAssignedCompanies(
+                                        campaign.slug,
+                                        assignment.partner_id
+                                    );
+                                    companyAssignments.forEach((companyAssignment) => {
+                                        assignedCompanyIds.add(companyAssignment.company_id);
+                                    });
+                                } catch {
+                                    // Ignore per-partner failures and continue
+                                }
+                            })
+                        );
+
+                        const unassignedCount = Math.max(campaign.company_count - assignedCompanyIds.size, 0);
+                        return [campaign.id, unassignedCount] as const;
+                    } catch {
+                        // Conservative fallback if assignment data is unavailable
+                        return [campaign.id, campaign.company_count] as const;
+                    }
+                })
+            );
+            setUnassignedByCampaign(Object.fromEntries(unassignedEntries));
 
             setError(null);
         } catch (err) {
@@ -200,6 +234,7 @@ export function CampaignsList() {
                             key={campaign.id}
                             campaign={campaign}
                             product={products.find(p => p.id === campaign.target_product_id)}
+                            unassignedCompaniesCount={unassignedByCampaign[campaign.id] ?? 0}
                             onAssignProduct={!campaign.target_product_id ? () => handleAssignProduct(campaign) : undefined}
                         />
                     ))}

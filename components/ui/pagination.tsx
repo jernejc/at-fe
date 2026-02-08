@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PaginationProps {
@@ -13,8 +12,6 @@ interface PaginationProps {
     pageSize: number;
     /** Callback when page changes */
     onPageChange: (page: number) => void;
-    /** Optional: Show page jump input for large datasets */
-    showPageJump?: boolean;
     /** Optional: Disable all pagination controls */
     disabled?: boolean;
 }
@@ -27,7 +24,6 @@ export function Pagination({
     totalCount,
     pageSize,
     onPageChange,
-    showPageJump = true,
     disabled = false,
 }: PaginationProps) {
     const totalPages = Math.ceil(totalCount / pageSize);
@@ -126,27 +122,6 @@ export function Pagination({
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
-
-                    {/* Jump to page (optional, only show if many pages) */}
-                    {showPageJump && totalPages > 10 && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">Go to:</span>
-                            <Input
-                                type="number"
-                                min={1}
-                                max={totalPages}
-                                value={currentPage}
-                                onChange={(e) => {
-                                    const newPage = parseInt(e.target.value);
-                                    if (newPage >= 1 && newPage <= totalPages) {
-                                        onPageChange(newPage);
-                                    }
-                                }}
-                                disabled={disabled}
-                                className="h-8 w-16 text-center text-sm"
-                            />
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

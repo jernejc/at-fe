@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useMemo, useState, useEffect } from 'react';
+import { use, useMemo, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { AccountDetail } from '@/components/accounts';
@@ -155,6 +155,20 @@ export default function CampaignPage({ params }: CampaignPageProps) {
     }, [slug]);
 
     const partnerCount = partners.length;
+
+    const handleAssignmentsChanged = useCallback((updates: { companyId: number; partnerId: string | null }[]) => {
+        setCompanyToPartnerMap(prev => {
+            const next = new Map(prev);
+            updates.forEach(({ companyId, partnerId }) => {
+                if (partnerId) {
+                    next.set(companyId, partnerId);
+                } else {
+                    next.delete(companyId);
+                }
+            });
+            return next;
+        });
+    }, []);
 
     // Enrich companies with partner_id from the centralized lookup
     const companiesWithPartners = useMemo<MembershipRead[]>(() => {
@@ -316,6 +330,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                                 partners={partners}
                                 onCompanyClick={handleCompanyClick}
                                 onPartnersUpdated={fetchPartnerData}
+                                onAssignmentsChanged={handleAssignmentsChanged}
                             />
                         </TabsContent>
 

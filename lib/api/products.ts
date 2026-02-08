@@ -56,10 +56,14 @@ export async function getProductCandidates(
         min_urgency_score?: number;
         industry?: string;
         country?: string;
-    }
+    },
+    requestOptions?: RequestInit
 ): Promise<ProductCandidatesResponse> {
     const query = buildQueryString(options || {});
-    return fetchAPI<ProductCandidatesResponse>(`/api/v1/products/${productId}/candidates${query}`);
+    return fetchAPI<ProductCandidatesResponse>(
+        `/api/v1/products/${productId}/candidates${query}`,
+        requestOptions
+    );
 }
 
 export async function calculateProductCandidates(

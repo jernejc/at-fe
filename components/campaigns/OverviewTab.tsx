@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { CampaignOverview, MembershipRead, CompanySummary, CompanySummaryWithFit, PartnerAssignmentSummary } from '@/lib/schemas';
 import { CompanyRowCompactSkeleton } from './CompanyRowCompact';
 import { DrillDownFilter } from './overview/types';
-import { generateMockPipeline, generateAccountsNeedingAttention, calculateFitDistribution } from './overview/utils';
+import { generateMockPipeline, calculateFitDistribution } from './overview/utils';
 import { OutreachPipelineCard } from './overview/OutreachPipelineCard';
 import { PartnerOverviewCard } from './overview/PartnerOverviewCard';
 import { TopCompaniesCard } from './overview/TopCompaniesCard';
@@ -53,7 +53,21 @@ export function OverviewTab({
 
     const pipeline = useMemo(() => generateMockPipeline(displayCompanies.length > 0 ? displayCompanies :
         Array.from({ length: overview.company_count || 0 }) as MembershipRead[]), [displayCompanies, overview.company_count]);
-    const accountsNeedingAttention = useMemo(() => generateAccountsNeedingAttention(displayCompanies), [displayCompanies]);
+    const accountsNeedingAttention = useMemo(() => {
+        return companies
+            .filter((company) => !company.partner_id)
+            .sort((a, b) => (b.cached_fit_score || 0) - (a.cached_fit_score || 0))
+            .slice(0, 4)
+            .map((company) => ({
+                domain: company.domain,
+                name: company.company_name || company.domain,
+                industry: company.industry,
+                fitScore: company.cached_fit_score,
+                logoBase64: company.logo_base64,
+                reason: 'unassigned_high_fit' as const,
+                reasonLabel: 'Unassigned company',
+            }));
+    }, [companies]);
 
     // Calculate fit distribution from loaded companies (better than potentially empty backend overview)
     // We merge companies (loaded list) and top_companies (backend summary) to get the most complete picture available on client

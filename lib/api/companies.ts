@@ -14,9 +14,15 @@ import type {
 } from '../schemas';
 import type { SignalProvenanceResponse } from '../schemas/provenance';
 
-export async function getCompanies(filters: CompanyFilters = {}): Promise<PaginatedResponse<CompanySummary | CompanySummaryWithFit>> {
+export async function getCompanies(
+    filters: CompanyFilters = {},
+    requestOptions?: RequestInit
+): Promise<PaginatedResponse<CompanySummary | CompanySummaryWithFit>> {
     const query = buildQueryString(filters);
-    return fetchAPI<PaginatedResponse<CompanySummary | CompanySummaryWithFit>>(`/api/v1/companies${query}`);
+    return fetchAPI<PaginatedResponse<CompanySummary | CompanySummaryWithFit>>(
+        `/api/v1/companies${query}`,
+        requestOptions
+    );
 }
 
 export async function getCompany(

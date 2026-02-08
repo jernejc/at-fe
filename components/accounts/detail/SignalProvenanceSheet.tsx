@@ -23,6 +23,10 @@ interface SignalProvenanceSheetProps {
 
 export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }: SignalProvenanceSheetProps) {
     const [showAllSources, setShowAllSources] = useState(false);
+    const visibleSourceTypes = (signal?.source_types ?? []).filter((sourceType) => {
+        const normalized = sourceType.toLowerCase();
+        return normalized !== 'apollo_industry' && normalized !== 'apollo_growth' && normalized !== 'apollo_revenue';
+    });
     
     if (!signal && !isLoading) return null;
 
@@ -51,8 +55,8 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                         <Badge variant={signal.confidence > 0.7 ? "default" : "secondary"} className="text-xs">
                                             {Math.round(signal.confidence * 100)}% Confidence
                                         </Badge>
-                                        {signal.source_types && signal.source_types.length > 0 && (
-                                            signal.source_types.slice(0, 3).map((sourceType, i) => (
+                                        {visibleSourceTypes.length > 0 && (
+                                            visibleSourceTypes.slice(0, 3).map((sourceType, i) => (
                                                 <Badge key={i} variant="secondary" className="capitalize text-xs">
                                                     {sourceType.replace(/_/g, ' ')}
                                                 </Badge>

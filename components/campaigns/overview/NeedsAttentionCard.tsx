@@ -33,10 +33,10 @@ export function NeedsAttentionCard({
                         <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <h4 className="text-sm font-medium text-slate-900 dark:text-white mb-1">
-                        No urgent items
+                        No unassigned companies
                     </h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[220px] leading-relaxed">
-                        Companies requiring manual partner assignment.
+                        This card lists campaign companies that do not have a partner assigned.
                     </p>
                 </div>
             </div>

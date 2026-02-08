@@ -37,6 +37,11 @@ function formatSourceType(sourceType: string) {
 }
 
 export function SignalCard({ signal, type, onClick }: { signal: SignalInterest | SignalEvent, type: 'interest' | 'event', onClick?: () => void }) {
+    const visibleSourceTypes = (signal.source_types ?? []).filter((sourceType) => {
+        const normalized = sourceType.toLowerCase();
+        return normalized !== 'apollo_industry' && normalized !== 'apollo_growth' && normalized !== 'apollo_revenue';
+    });
+
     return (
         <div
             onClick={onClick}
@@ -71,9 +76,9 @@ export function SignalCard({ signal, type, onClick }: { signal: SignalInterest |
                 </div>
 
                 {/* Source types badges */}
-                {signal.source_types && signal.source_types.length > 0 && (
+                {visibleSourceTypes.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
-                        {signal.source_types.slice(0, 3).map((sourceType, i) => (
+                        {visibleSourceTypes.slice(0, 3).map((sourceType, i) => (
                             <span
                                 key={i}
                                 className={cn(
@@ -84,9 +89,9 @@ export function SignalCard({ signal, type, onClick }: { signal: SignalInterest |
                                 {formatSourceType(sourceType)}
                             </span>
                         ))}
-                        {signal.source_types.length > 3 && (
+                        {visibleSourceTypes.length > 3 && (
                             <span className="text-[9px] text-slate-500 dark:text-slate-400 px-1">
-                                +{signal.source_types.length - 3}
+                                +{visibleSourceTypes.length - 3}
                             </span>
                         )}
                     </div>
