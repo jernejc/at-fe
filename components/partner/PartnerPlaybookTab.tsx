@@ -5,6 +5,8 @@ import type { PlaybookSummary, PlaybookRead } from '@/lib/schemas';
 import { getCompanyPlaybook, generateCompanyPlaybook, getCompanyPlaybooks, waitForProcessingComplete } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { staggerContainer, fadeInUp } from '@/lib/animations';
 import {
     Lightbulb,
@@ -12,8 +14,6 @@ import {
     ShieldAlert,
     Hash,
     Calendar,
-    Clock,
-    Users,
     Mail,
     Phone,
     Linkedin,
@@ -24,6 +24,8 @@ import {
     ChevronDown,
     Forklift,
     HandCoins,
+    Send,
+    Activity,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -44,6 +46,7 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
     const [expandedObjections, setExpandedObjections] = useState<Set<number>>(new Set());
+    const [feedbackInput, setFeedbackInput] = useState('');
 
     // Sync props into local state on remount (tab switch back)
     useEffect(() => {
@@ -193,6 +196,51 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                 animate="show"
                 className="space-y-6 pb-8"
             >
+
+                {/* Dynamic Playbook Banner */}
+                <motion.div variants={fadeInUp}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
+                        <div className="flex items-center gap-3">
+                            <Card className='w-9 h-9 flex items-center justify-center rounded-xl'>
+                                <Activity className="w-4 h-4 text-primary shrink-0" />
+                            </Card>
+                            <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className='text-sm font-semibold'>Dynamic Playbook</span>
+                                    <Badge className="bg-emerald-500/10 text-emerald-600 border-none hover:bg-emerald-500/10 gap-1.5 text-[10px] px-2 py-0.5">
+                                        <span className="relative flex h-1.5 w-1.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                                        </span>
+                                        Live
+                                    </Badge>
+                                </div>
+                                <div className="text-xs text-muted-foreground">Playbook is adjusted to recent signals</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:max-w-xs">
+                            <Input
+                                placeholder="Adjust playbook with feedback..."
+                                value={feedbackInput}
+                                onChange={(e) => setFeedbackInput(e.target.value)}
+                                onKeyDown={() => { }}
+                                className="h-8 text-xs"
+                            />
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 shrink-0"
+                                disabled={isGenerating}
+                            >
+                                {isGenerating ? (
+                                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <Send className="w-3.5 h-3.5" />
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </motion.div>
 
                 {/* Two-Column Grid Layout */}
                 <motion.div variants={fadeInUp} className="grid lg:grid-cols-2 gap-4 lg:gap-6">
