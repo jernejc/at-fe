@@ -33,6 +33,8 @@ export function ProcessingStatus() {
     });
     const [showOptions, setShowOptions] = useState(false);
 
+    const isDev = process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname === 'localhost');
+
     // Store event source in ref to handle stopping
     const eventSourceRef = useRef<EventSource | null>(null);
     const logsEndRef = useRef<HTMLDivElement>(null);
@@ -248,6 +250,8 @@ export function ProcessingStatus() {
     };
 
     const toggleOpen = () => setIsOpen(!isOpen);
+
+    if (!isDev) return null;
 
     return (
         <div className="relative">
