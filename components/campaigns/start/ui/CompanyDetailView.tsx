@@ -81,7 +81,14 @@ function FitSignalMatchCard({ match }: { match: SignalContribution }) {
     const formatCategory = (cat: string) =>
         cat.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
+    const normalizeLabel = (value: string) =>
+        value.replace(/_/g, ' ').trim().toLowerCase();
+
+    const formattedCategory = formatCategory(match.category);
     const displayName = match.display_name || formatCategory(match.category);
+    const showCategoryLabel =
+        Boolean(match.display_name) &&
+        normalizeLabel(match.display_name!) !== normalizeLabel(formattedCategory);
 
     return (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:shadow-sm transition-shadow">
@@ -90,7 +97,7 @@ function FitSignalMatchCard({ match }: { match: SignalContribution }) {
                     <div className="font-medium text-sm text-slate-900 dark:text-white">
                         {displayName}
                     </div>
-                    {match.display_name && match.display_name !== match.category && (
+                    {showCategoryLabel && (
                         <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                             {match.category.replace(/_/g, ' ')}
                         </div>
