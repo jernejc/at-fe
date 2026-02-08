@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -143,10 +143,35 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
     const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(null);
     const [fitBreakdown, setFitBreakdown] = useState<FitScore | null>(null);
     const [isDetailLoading, setIsDetailLoading] = useState(false);
+    const detailOpenRef = useRef(false);
+
+    const handleCloseDetail = useCallback(() => {
+        setSelectedCompany(null);
+        setCompanyData(null);
+        setExplainability(null);
+        setFitBreakdown(null);
+    }, []);
+
+    const handleBack = useCallback(() => {
+        if (detailOpenRef.current) {
+            window.history.back();
+        }
+    }, []);
+
+    useEffect(() => {
+        const onPopState = () => {
+            if (detailOpenRef.current) {
+                detailOpenRef.current = false;
+                handleCloseDetail();
+            }
+        };
+        window.addEventListener('popstate', onPopState);
+        return () => window.removeEventListener('popstate', onPopState);
+    }, [handleCloseDetail]);
 
     useEffect(() => {
         if (isLoading && selectedCompany) {
-            handleCloseDetail();
+            handleBack();
         }
     }, [isLoading]);
 
@@ -156,6 +181,8 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
         setCompanyData(null);
         setExplainability(null);
         setFitBreakdown(null);
+        window.history.pushState({ companyDetail: true }, '');
+        detailOpenRef.current = true;
 
         try {
             const [companyRes, explainRes, fitRes] = await Promise.all([
@@ -174,13 +201,6 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
         } finally {
             setIsDetailLoading(false);
         }
-    };
-
-    const handleCloseDetail = () => {
-        setSelectedCompany(null);
-        setCompanyData(null);
-        setExplainability(null);
-        setFitBreakdown(null);
     };
 
     return (
@@ -325,7 +345,7 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
                             explainability={explainability}
                             fitBreakdown={fitBreakdown}
                             isLoading={isDetailLoading}
-                            onClose={handleCloseDetail}
+                            onClose={handleBack}
                         />
                     </motion.div>
                 )}
