@@ -56,7 +56,7 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
     const searchParams = useSearchParams();
 
     // URL state for tabs
-    const activeTab = (searchParams.get('tab') as TabValue) || 'playbook';
+    const activeTab = (searchParams.get('tab') as TabValue) || 'overview';
 
     const handleTabChange = (tab: string) => {
         const params = new URLSearchParams(searchParams);
@@ -262,6 +262,10 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
                 {/* Tabs */}
                 <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-0">
                     <TabsList variant="line" className="gap-5">
+                        <TabsTrigger value="overview" className="gap-1.5">
+                            <Info className="w-4 h-4" />
+                            Overview
+                        </TabsTrigger>
                         <TabsTrigger value="playbook" className="gap-1.5">
                             <BookOpen className="w-4 h-4" />
                             Playbook
@@ -273,10 +277,6 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
                         <TabsTrigger value="signals" className="gap-1.5">
                             <Zap className="w-4 h-4" />
                             Signals
-                        </TabsTrigger>
-                        <TabsTrigger value="overview" className="gap-1.5">
-                            <Info className="w-4 h-4" />
-                            Overview
                         </TabsTrigger>
                     </TabsList>
 
