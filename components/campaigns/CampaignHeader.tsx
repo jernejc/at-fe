@@ -133,9 +133,6 @@ export function CampaignHeader({
 
     const productTheme = getProductBadgeTheme(productId);
     const productIconColor = getProductTextColor(productId);
-
-    // Mock target value (can be replaced with actual campaign target)
-    const targetValue = '€2.5M';
     
     // Format dates
     const dateRange = formatDateRange(campaign.created_at, null);

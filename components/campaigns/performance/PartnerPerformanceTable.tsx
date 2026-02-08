@@ -67,12 +67,12 @@ const SAMPLE_PARTNERS: PartnerPerformance[] = [
 
 function formatCurrency(value: number): string {
     if (value >= 1000000) {
-        return `€${(value / 1000000).toFixed(1)}M`;
+        return `$${(value / 1000000).toFixed(1)}M`;
     }
     if (value >= 1000) {
-        return `€${(value / 1000).toFixed(0)},${(value % 1000).toString().padStart(3, '0')}`;
+        return `$${(value / 1000).toFixed(0)},${(value % 1000).toString().padStart(3, '0')}`;
     }
-    return `€${value.toLocaleString()}`;
+    return `$${value.toLocaleString()}`;
 }
 
 function SlaStatusBadge({ status }: { status: PartnerPerformance['slaStatus'] }) {
@@ -187,7 +187,7 @@ export function PartnerPerformanceTable({
                                 </td>
                                 <td className="px-4 py-4 text-right">
                                     <span className="text-sm text-slate-600 dark:text-slate-400 tabular-nums">
-                                        €{partner.avgDeal.toLocaleString()}
+                                        ${partner.avgDeal.toLocaleString()}
                                     </span>
                                 </td>
                                 <td className="px-4 py-4 text-center">

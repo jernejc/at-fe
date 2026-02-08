@@ -171,7 +171,7 @@ export function PerformancePreviewCard() {
                     <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 opacity-90 grayscale-[0.05]">
                         <KPICompact 
                             label="Avg. Pipeline Value"
-                            value="€42.5K"
+                            value="$42.5K"
                             trend="12% vs last mo"
                             trendUp={true}
                             visual={<AreaSparkline data={[20, 25, 45, 30, 40, 35, 55, 60, 45, 75]} color="#3b82f6" />}

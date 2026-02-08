@@ -27,8 +27,8 @@ interface KpiCardData {
 const SAMPLE_KPIS: KpiCardData[] = [
     { label: 'LEADS TOTAL', value: '1,240', change: 5.2, highlight: true },
     { label: 'LEADS ASSIGNED', value: '890', change: -2.1, subtext: '71.7% assignment rate' },
-    { label: 'PIPELINE', value: '€4.2M', change: 12.4, subtext: 'Expected yield: €1.8M' },
-    { label: 'CLOSED WON', value: '€1.1M', change: 8.7, subtext: '44% of total target' },
+    { label: 'PIPELINE', value: '$4.2M', change: 12.4, subtext: 'Expected yield: $1.8M' },
+    { label: 'CLOSED WON', value: '$1.1M', change: 8.7, subtext: '44% of total target' },
     { label: 'WIN RATE', value: '14%', change: 1.5, subtext: 'Industry avg: 12%' },
 ];
 
