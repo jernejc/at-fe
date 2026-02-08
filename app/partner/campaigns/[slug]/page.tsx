@@ -22,6 +22,7 @@ import {
     getCampaignCompanies,
     getProduct,
     exportCampaignCSV,
+    exportCampaignContactsCSV,
 } from '@/lib/api';
 import type {
     CampaignRead,
@@ -80,6 +81,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
     const [sortColumn, setSortColumn] = useState<SortColumn>('assigned_at');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [exporting, setExporting] = useState(false);
+    const [exportingContacts, setExportingContacts] = useState(false);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const partnerId = (session?.user as any)?.partner_id as number | undefined;
@@ -176,6 +178,23 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
         }
     };
 
+    const handleExportContacts = async () => {
+        setExportingContacts(true);
+        try {
+            const blob = await exportCampaignContactsCSV(slug);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${campaign?.name || slug}-contacts.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Export contacts failed:', error);
+        } finally {
+            setExportingContacts(false);
+        }
+    };
+
     const sortedCompanies = useMemo(() => {
         const sorted = [...companies].sort((a, b) => {
             let aVal: string | number = '';
@@ -264,20 +283,36 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
                         <h1 className="text-2xl font-bold tracking-tight text-foreground">
                             {campaign.name}
                         </h1>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-2 border-slate-200 dark:border-slate-700"
-                            onClick={handleExport}
-                            disabled={exporting}
-                        >
-                            {exporting ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Download className="w-4 h-4" />
-                            )}
-                            Export
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-2 border-slate-200 dark:border-slate-700"
+                                onClick={handleExport}
+                                disabled={exporting}
+                            >
+                                {exporting ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Download className="w-4 h-4" />
+                                )}
+                                Export Companies
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-2 border-slate-200 dark:border-slate-700"
+                                onClick={handleExportContacts}
+                                disabled={exportingContacts}
+                            >
+                                {exportingContacts ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Download className="w-4 h-4" />
+                                )}
+                                Export Contacts
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Metadata Row */}

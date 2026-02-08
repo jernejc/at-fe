@@ -114,6 +114,7 @@ export {
     removeCompanyFromCampaign,
     exportCampaign,
     exportCampaignCSV,
+    exportCampaignContactsCSV,
     importCampaign,
     refreshCampaignStats,
     processCampaign,

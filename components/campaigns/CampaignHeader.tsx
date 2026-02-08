@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import type { CampaignRead } from '@/lib/schemas';
-import { exportCampaignCSV } from '@/lib/api';
+import { exportCampaignCSV, exportCampaignContactsCSV } from '@/lib/api';
 import type { CampaignTab } from '@/hooks/useCampaignPage';
 import { cn, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
 import {
@@ -82,12 +82,13 @@ export function CampaignHeader({
 
     // Export functionality
     const [isExporting, setIsExporting] = useState(false);
+    const [isExportingContacts, setIsExportingContacts] = useState(false);
 
     const handleExport = async () => {
         try {
             setIsExporting(true);
             const blob = await exportCampaignCSV(campaign.slug);
-            
+
             // Create download link
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -97,13 +98,36 @@ export function CampaignHeader({
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            
+
             toast.success('Campaign exported successfully');
         } catch (error) {
             console.error('Export failed:', error);
             toast.error('Failed to export campaign');
         } finally {
             setIsExporting(false);
+        }
+    };
+
+    const handleExportContacts = async () => {
+        try {
+            setIsExportingContacts(true);
+            const blob = await exportCampaignContactsCSV(campaign.slug);
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `campaign-${campaign.slug}-contacts.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast.success('Contacts exported successfully');
+        } catch (error) {
+            console.error('Export contacts failed:', error);
+            toast.error('Failed to export contacts');
+        } finally {
+            setIsExportingContacts(false);
         }
     };
 
@@ -197,7 +221,21 @@ export function CampaignHeader({
                             ) : (
                                 <Download className="w-4 h-4" />
                             )}
-                            Export
+                            Export Companies
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-2 border-slate-200 dark:border-slate-700"
+                            onClick={handleExportContacts}
+                            disabled={isExportingContacts}
+                        >
+                            {isExportingContacts ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Download className="w-4 h-4" />
+                            )}
+                            Export Contacts
                         </Button>
 
                         <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />

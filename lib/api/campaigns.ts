@@ -144,28 +144,29 @@ export async function exportCampaign(slug: string): Promise<CampaignExport> {
     return fetchAPI<CampaignExport>(`/api/v1/campaigns/${encodeURIComponent(slug)}/export`);
 }
 
-export async function exportCampaignCSV(slug: string): Promise<Blob> {
+async function fetchCSVExport(url: string): Promise<Blob> {
     const authHeaders = await getAuthHeaders();
-    const response = await fetch(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/csv`, {
-        headers: authHeaders,
-    });
+    const response = await fetch(url, { headers: authHeaders });
 
     if (!response.ok) {
-        // Try to refresh token if 401
         if (response.status === 401) {
             console.warn('Export 401, retrying with fresh token');
             const freshHeaders = await getAuthHeaders(true);
-            const retryResponse = await fetch(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/csv`, {
-                headers: freshHeaders,
-            });
-            if (!retryResponse.ok) {
-                throw new Error(`Export failed: ${retryResponse.status}`);
-            }
+            const retryResponse = await fetch(url, { headers: freshHeaders });
+            if (!retryResponse.ok) throw new Error(`Export failed: ${retryResponse.status}`);
             return retryResponse.blob();
         }
         throw new Error(`Export failed: ${response.status}`);
     }
     return response.blob();
+}
+
+export async function exportCampaignCSV(slug: string): Promise<Blob> {
+    return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/csv`);
+}
+
+export async function exportCampaignContactsCSV(slug: string): Promise<Blob> {
+    return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/csv`);
 }
 
 export async function importCampaign(data: CampaignImport): Promise<ImportResult> {
