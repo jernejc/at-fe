@@ -270,7 +270,7 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                                         {playbookDetail.outreach_cadence.sequence.map((step, i) => (
                                             <div
                                                 key={i}
-                                                className="flex items-start gap-3 p-3 rounded-lg bg-slate-100"
+                                                className="flex items-start gap-3 p-3 rounded-lg bg-muted/50"
                                             >
                                                 <div className="flex flex-col items-center shrink-0 w-10">
                                                     <span className="text-[10px] font-medium text-muted-foreground uppercase">Day</span>
