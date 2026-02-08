@@ -106,7 +106,7 @@ function FitSignalMatchCard({ match }: { match: SignalContribution }) {
                 </div>
                 <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded text-xs font-semibold shrink-0">
                     <CheckCircle2 className="h-3 w-3" />
-                    +{Math.round(match.contribution)}
+                    +{match.contribution.toFixed(2)}
                 </div>
             </div>
         </div>
