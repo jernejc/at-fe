@@ -162,11 +162,11 @@ async function fetchCSVExport(url: string): Promise<Blob> {
 }
 
 export async function exportCampaignCSV(slug: string): Promise<Blob> {
-    return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/csv`);
+    return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/xlsx`);
 }
 
 export async function exportCampaignContactsCSV(slug: string): Promise<Blob> {
-    return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/csv`);
+    return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/xlsx`);
 }
 
 export async function importCampaign(data: CampaignImport): Promise<ImportResult> {

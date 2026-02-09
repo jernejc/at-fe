@@ -94,7 +94,7 @@ export function CampaignHeader({
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `campaign-${campaign.slug}-export.csv`;
+            a.download = `campaign-${campaign.slug}-export.xlsx`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -117,7 +117,7 @@ export function CampaignHeader({
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `campaign-${campaign.slug}-contacts.csv`;
+            a.download = `campaign-${campaign.slug}-contacts.xlsx`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
