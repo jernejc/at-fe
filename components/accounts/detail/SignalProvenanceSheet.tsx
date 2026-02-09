@@ -27,6 +27,10 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
         const normalized = sourceType.toLowerCase();
         return normalized !== 'apollo_industry' && normalized !== 'apollo_growth' && normalized !== 'apollo_revenue';
     });
+    const uniqueContributors = (signal?.contributors ?? []).filter((contributor, index, contributors) => {
+        const contributorName = contributor.employee_name.trim().toLowerCase();
+        return contributors.findIndex((candidate) => candidate.employee_name.trim().toLowerCase() === contributorName) === index;
+    });
     
     if (!signal && !isLoading) return null;
 
@@ -160,15 +164,15 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                 })()}
 
                                 {/* Contributors (Employees) */}
-                                {signal.contributors && signal.contributors.length > 0 && (
+                                {uniqueContributors.length > 0 && (
                                     <section className="space-y-4">
                                         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                                             <Users className="h-4 w-4 text-primary" />
-                                            Contributing Employees ({signal.contributors.length})
+                                            Contributing Employees ({uniqueContributors.length})
                                         </h3>
                                         <div className="grid gap-3">
-                                            {signal.contributors.map((contributor, i) => (
-                                                <ContributorCard key={i} contributor={contributor} />
+                                            {uniqueContributors.map((contributor, i) => (
+                                                <ContributorCard key={`${contributor.employee_id}-${contributor.employee_name}-${i}`} contributor={contributor} />
                                             ))}
                                         </div>
                                     </section>
