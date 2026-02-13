@@ -27,3 +27,11 @@ env:
     secret: FIREBASE_CLIENT_EMAIL
   - variable: FIREBASE_PRIVATE_KEY
     secret: FIREBASE_PRIVATE_KEY
+  - variable: STORAGE_BUCKET
+    value: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    availability:
+      - BUILD
+      - RUNTIME
+outputFiles:
+  serverApp:
+    include: [.]
