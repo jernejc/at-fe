@@ -6,7 +6,9 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "preserve": "rm -rf public/* && cp -r src/public/* public/",
+    "predeploy": "rm -rf public/* && cp -r src/public/* public/"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
