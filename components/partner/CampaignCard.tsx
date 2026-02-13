@@ -75,7 +75,7 @@ export function CampaignCard({ campaign, product, companies, pipelineValue, newO
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-xl font-bold text-slate-900 dark:text-white">
-                            {formatCompactNumber(campaign.company_count)}
+                            {formatCompactNumber(companies.length)}
                         </span>
                         {newOpportunities.length > 0 && (
                             <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-600">

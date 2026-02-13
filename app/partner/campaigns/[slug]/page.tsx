@@ -172,7 +172,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${campaign?.name || slug}.csv`;
+            a.download = `${campaign?.name || slug}.xlsx`;
             a.click();
             URL.revokeObjectURL(url);
         } catch (error) {
@@ -189,7 +189,7 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${campaign?.name || slug}-contacts.csv`;
+            a.download = `${campaign?.name || slug}-contacts.xlsx`;
             a.click();
             URL.revokeObjectURL(url);
         } catch (error) {
