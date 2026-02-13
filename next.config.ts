@@ -9,6 +9,17 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    loader: "custom",
+    loaderFile: "./loader.ts",
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/_fah/image/:path*",
+        destination:
+          "<CLOUD_FUNCTIONS_URL>/:path*",
+      },
+    ];
   },
   serverExternalPackages: ["firebase-admin"],
 };
