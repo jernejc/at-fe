@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
       {
         source: "/_fah/image/:path*",
         destination:
-          "<CLOUD_FUNCTIONS_URL>/:path*",
+          "https://us-central1-lookacross-dba84.cloudfunctions.net/ext-image-processing-api-handler/:path*",
       },
     ];
   },
