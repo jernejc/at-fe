@@ -32,6 +32,3 @@ env:
     availability:
       - BUILD
       - RUNTIME
-outputFiles:
-  serverApp:
-    include: [.]
