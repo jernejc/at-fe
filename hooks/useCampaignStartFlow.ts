@@ -204,7 +204,6 @@ export function useCampaignStartFlow({
                 product_id: selectedProduct?.id,
                 include_partner_suggestions: true,
                 entity_types: ['companies', 'partners'],
-                limit: 20,
                 context: filterContext,
             });
         }, 400);
@@ -320,7 +319,6 @@ export function useCampaignStartFlow({
             product_id: selectedProduct?.id,
             include_partner_suggestions: true,
             entity_types: ['companies', 'partners'],
-            limit: 20,
             context: filterContext,
         });
     }, [inputValue, searchHistory, selectedProduct, search, filters]);
@@ -350,7 +348,6 @@ export function useCampaignStartFlow({
                     product_id: product.id,
                     include_partner_suggestions: true,
                     entity_types: ['companies', 'partners'],
-                    limit: 20,
                 });
             }
         }
