@@ -337,7 +337,7 @@ export function CompanyDetailView({
                             </div>
 
                             {companyData ? (
-                                <div className="space-y-6">
+                                <div className="space-y-6 mt-4">
                                     {/* Company Details Grid */}
                                     <section>
                                         <SectionHeader title="Company Details" color="bg-slate-600" />
