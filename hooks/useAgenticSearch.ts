@@ -223,7 +223,7 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
             const request: WSSearchRequest = {
                 query,
                 entity_types: searchOptions?.entity_types || ['companies', 'partners'],
-                limit: searchOptions?.limit,
+                limit: searchOptions?.limit || 100,
                 include_partner_suggestions: searchOptions?.include_partner_suggestions ?? true,
                 partner_suggestion_limit: searchOptions?.partner_suggestion_limit || 5,
                 product_id: searchOptions?.product_id,
