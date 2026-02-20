@@ -15,6 +15,7 @@ import {
     getCampaigns,
     addCompaniesBulk,
 } from "@/lib/api";
+import { searchCompanies } from "@/lib/api/search";
 import type {
     ProductSummary,
     CandidateFitSummary,
@@ -46,6 +47,16 @@ function isAbortError(error: unknown): boolean {
         (error instanceof DOMException && error.name === "AbortError") ||
         (error instanceof Error && error.name === "AbortError")
     );
+}
+
+/** Debounce a value by `delay` ms. */
+function useDebouncedValue<T>(value: T, delay: number): T {
+    const [debounced, setDebounced] = useState(value);
+    useEffect(() => {
+        const timer = setTimeout(() => setDebounced(value), delay);
+        return () => clearTimeout(timer);
+    }, [value, delay]);
+    return debounced;
 }
 
 // Unified account type for display
@@ -85,6 +96,7 @@ export function AccountList(props: AccountListProps) {
     const [error, setError] = useState<string | null>(null);
     const [scoreFilter, setScoreFilter] = useState<ScoreFilter>("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 300);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(1);
@@ -121,7 +133,7 @@ export function AccountList(props: AccountListProps) {
         fetchProducts();
     }, []);
 
-    // Fetch accounts when product selection or page changes
+    // Fetch accounts when product selection, page, or search query changes
     useEffect(() => {
         const controller = new AbortController();
 
@@ -130,7 +142,35 @@ export function AccountList(props: AccountListProps) {
             setError(null);
 
             try {
-                if (selectedProductId === "all") {
+                // If there's a search query (≥2 chars to match API minimum), use the search API
+                if (debouncedSearchQuery.length >= 2) {
+                    const productId = selectedProductId !== "all" ? Number(selectedProductId) : undefined;
+                    const searchResults = await searchCompanies(debouncedSearchQuery, pageSize, productId);
+
+                    const items: AccountItem[] = searchResults.companies.map((company: CompanySummary) => ({
+                        company_id: company.id,
+                        company_domain: company.domain,
+                        company_name: company.name,
+                        industry: company.industry,
+                        employee_count: company.employee_count,
+                        hq_country: company.hq_country,
+                        logo_url: company.logo_url || (company.logo_base64
+                            ? (company.logo_base64.startsWith('data:') ? company.logo_base64 : `data:image/png;base64,${company.logo_base64}`)
+                            : null),
+                        combined_score: null,
+                        urgency_score: null,
+                        top_drivers: null,
+                        calculated_at: company.updated_at,
+                        top_contact: company.top_contact ? {
+                            full_name: company.top_contact.full_name,
+                            current_title: company.top_contact.current_title,
+                            avatar_url: company.top_contact.avatar_url,
+                        } : null,
+                    }));
+
+                    setAccounts(items);
+                    setTotalCount(searchResults.total_results);
+                } else if (selectedProductId === "all") {
                     // Fetch all companies
                     const response = await getCompanies({
                         page,
@@ -216,7 +256,7 @@ export function AccountList(props: AccountListProps) {
         return () => {
             controller.abort();
         };
-    }, [selectedProductId, page, pageSize]);
+    }, [selectedProductId, page, pageSize, debouncedSearchQuery]);
 
     // Reset to page 1 when filters change
     useEffect(() => {
@@ -237,17 +277,15 @@ export function AccountList(props: AccountListProps) {
                 return false;
             }
 
-            // Search filter
-            if (searchQuery) {
-                const query = searchQuery.toLowerCase();
-                const matchesName = account.company_name.toLowerCase().includes(query);
-                const matchesIndustry = account.industry?.toLowerCase().includes(query);
-                const matchesLocation = account.hq_country?.toLowerCase().includes(query);
-                if (!matchesName && !matchesIndustry && !matchesLocation) return false;
-            }
+            // Search filtering is now done server-side via the API
 
             return true;
         });
+
+        // When searching, preserve API relevance order; otherwise sort by score/name
+        if (debouncedSearchQuery.length >= 2) {
+            return result;
+        }
 
         // Sort by score descending if available, otherwise by name
         return result.sort((a, b) => {
@@ -258,7 +296,7 @@ export function AccountList(props: AccountListProps) {
             if (b.combined_score !== null) return 1;
             return a.company_name.localeCompare(b.company_name);
         });
-    }, [accounts, scoreFilter, searchQuery]);
+    }, [accounts, scoreFilter, debouncedSearchQuery]);
 
     // Count by score category
     const scoreCounts = useMemo(() => {
@@ -548,46 +586,46 @@ export function AccountList(props: AccountListProps) {
                             : "transition-opacity duration-200 opacity-100"
                         }
                     >
-                    {isInitialLoading ? (
-                        <div>
-                            {Array.from({ length: 8 }).map((_, i) => (
-                                <AccountCardSkeleton key={i} />
-                            ))}
-                        </div>
-                    ) : error ? (
-                        <div className="flex items-center justify-center h-64 text-destructive">
-                            <p>{error}</p>
-                        </div>
-                    ) : filteredAccounts.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-80 text-muted-foreground gap-5">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-slate-100 dark:from-blue-900/20 dark:to-slate-800/20 rounded-full blur-xl opacity-60" />
-                                <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-border/30">
-                                    <Building2 className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+                        {isInitialLoading ? (
+                            <div>
+                                {Array.from({ length: 8 }).map((_, i) => (
+                                    <AccountCardSkeleton key={i} />
+                                ))}
+                            </div>
+                        ) : error ? (
+                            <div className="flex items-center justify-center h-64 text-destructive">
+                                <p>{error}</p>
+                            </div>
+                        ) : filteredAccounts.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-80 text-muted-foreground gap-5">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-slate-100 dark:from-blue-900/20 dark:to-slate-800/20 rounded-full blur-xl opacity-60" />
+                                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-border/30">
+                                        <Building2 className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+                                    </div>
+                                </div>
+                                <div className="text-center space-y-1.5">
+                                    <p className="font-semibold text-foreground/80">
+                                        {isAllAccounts ? "No accounts yet" : "No matches found"}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground/60 max-w-[280px]">
+                                        {isAllAccounts
+                                            ? "Add your first company to get started with discovery"
+                                            : "Try adjusting your filters or search query"}
+                                    </p>
                                 </div>
                             </div>
-                            <div className="text-center space-y-1.5">
-                                <p className="font-semibold text-foreground/80">
-                                    {isAllAccounts ? "No accounts yet" : "No matches found"}
-                                </p>
-                                <p className="text-sm text-muted-foreground/60 max-w-[280px]">
-                                    {isAllAccounts
-                                        ? "Add your first company to get started with discovery"
-                                        : "Try adjusting your filters or search query"}
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        filteredAccounts.map((account) => (
-                            <AccountCard
-                                key={account.company_id}
-                                account={account}
-                                selected={selectedIds.has(account.company_id)}
-                                onSelect={(selected) => handleSelect(account.company_id, selected)}
-                                onClick={() => onAccountClick?.(account)}
-                            />
-                        ))
-                    )}
+                        ) : (
+                            filteredAccounts.map((account) => (
+                                <AccountCard
+                                    key={account.company_id}
+                                    account={account}
+                                    selected={selectedIds.has(account.company_id)}
+                                    onSelect={(selected) => handleSelect(account.company_id, selected)}
+                                    onClick={() => onAccountClick?.(account)}
+                                />
+                            ))
+                        )}
                     </div>
                 </div>
 
