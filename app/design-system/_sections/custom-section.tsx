@@ -1,3 +1,4 @@
+import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { TrendIndicator } from '@/components/ui/trend-indicator';
 import { Separator } from '@/components/ui/separator';
@@ -66,6 +67,40 @@ export function CustomSection() {
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Large:</span>
             <TrendIndicator change={12} />
+          </div>
+        </div>
+      </div>
+      <Separator />
+
+      {/* Engagement Indicator */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          EngagementIndicator
+        </h3>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <span className="w-28 text-xs text-muted-foreground">Empty</span>
+            <EngagementIndicator engaged={0} total={10} />
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="w-28 text-xs text-muted-foreground">Partial</span>
+            <EngagementIndicator engaged={4} total={12} />
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="w-28 text-xs text-muted-foreground">High</span>
+            <EngagementIndicator engaged={8} total={10} />
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="w-28 text-xs text-muted-foreground">Full</span>
+            <EngagementIndicator engaged={10} total={10} />
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="w-28 text-xs text-muted-foreground">Large (48px)</span>
+            <EngagementIndicator engaged={7} total={12} size={48} />
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="w-28 text-xs text-muted-foreground">Hidden count</span>
+            <EngagementIndicator engaged={5} total={10} hideCount />
           </div>
         </div>
       </div>
