@@ -13,7 +13,7 @@ export default function Logo({ orientation = 'horizontal' }: LogoProps) {
 
     return (
         <div
-            className={`flex items-center gap-3 shrink-0 transition-opacity cursor-pointer text-slate-800 dark:text-slate-100 ${isVertical ? 'flex-col gap-4' : 'flex-row'
+            className={`flex items-center gap-3 shrink-0 transition-opacity cursor-pointer text-foreground ${isVertical ? 'flex-col gap-4' : 'flex-row'
                 }`}
             onClick={() => router.push('/')}
         >

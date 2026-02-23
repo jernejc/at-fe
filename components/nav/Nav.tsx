@@ -31,7 +31,7 @@ export function Nav() {
             height={20}
             className="dark:invert"
           />
-          <span className="font-[family-name:var(--font-display)] text-[18px] font-medium text-foreground">
+          <span className="font-display text-[18px] font-medium text-foreground">
             LookAcross
           </span>
           {partner && (
