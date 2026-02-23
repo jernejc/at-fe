@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createProduct } from '@/lib/api';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Header } from '@/components/ui/Header';
 
 export default function NewProductPage() {
     const router = useRouter();
@@ -53,9 +52,7 @@ export default function NewProductPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900/10">
-            <Header />
-
+        <div className="flex-1 bg-slate-50 dark:bg-slate-900/10">
             <div className="max-w-2xl mx-auto px-6 py-8">
                 <Button
                     variant="ghost"

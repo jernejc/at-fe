@@ -18,7 +18,6 @@ import {
     Linkedin,
     CheckSquare,
 } from 'lucide-react';
-import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/button';
 import { AccountDetail } from '@/components/accounts';
 import {
@@ -214,31 +213,23 @@ export default function PartnerCampaignDetailPage({ params }: CampaignDetailPage
 
     if (loading || authLoading) {
         return (
-            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
-                <Header />
-                <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-                </div>
+            <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
             </div>
         );
     }
 
     if (!campaign) {
         return (
-            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
-                <Header />
-                <div className="flex-1 flex flex-col items-center justify-center gap-4">
-                    <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">Campaign not found</p>
-                    <Button onClick={handleBack}>Go Back</Button>
-                </div>
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950">
+                <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">Campaign not found</p>
+                <Button onClick={handleBack}>Go Back</Button>
             </div>
         );
     }
 
     return (
-        <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
-            <Header />
-
+        <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
             <main className="flex-1 overflow-y-auto">
                 {/* Campaign Header */}
                 <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">

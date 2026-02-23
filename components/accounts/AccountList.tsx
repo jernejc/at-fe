@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/ui/Header";
 import { AccountCard, AccountCardSkeleton } from "./AccountCard";
 import { ProductNavigation } from "./ProductNavigation";
 import { Pagination } from "@/components/ui/pagination";
@@ -82,12 +81,11 @@ interface AccountItem {
 interface AccountListProps {
     productGroup?: string;
     onAccountClick?: (account: AccountItem) => void;
-    hideHeader?: boolean;
     compact?: boolean;
 }
 
 export function AccountList(props: AccountListProps) {
-    const { onAccountClick, hideHeader = false } = props;
+    const { onAccountClick } = props;
     const [products, setProducts] = useState<ProductSummary[]>([]);
     const [accounts, setAccounts] = useState<AccountItem[]>([]);
     const [selectedProductId, setSelectedProductId] = useState<string>("all");
@@ -384,10 +382,7 @@ export function AccountList(props: AccountListProps) {
 
     return (
         <div className="flex flex-col h-full bg-slate-50/30 dark:bg-slate-900/10">
-            {/* 1. Main Application Header */}
-            {!hideHeader && <Header />}
-
-            {/* 1.5. Product Navigation - Glass morphism style */}
+            {/* 1. Product Navigation - Glass morphism style */}
             <ProductNavigation
                 products={products}
                 selectedProductId={selectedProductId}

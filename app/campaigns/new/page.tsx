@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react';
 import { getProducts } from '@/lib/api';
 import type { ProductSummary } from '@/lib/schemas';
 import { Loader2 } from 'lucide-react';
-import { Header } from '@/components/ui/Header';
 import { CampaignCreateWizard } from '@/components/campaigns';
 import { Suspense } from 'react';
 
@@ -43,11 +42,8 @@ function NewCampaignContent() {
 
     if (status === 'loading' || loading) {
         return (
-            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col">
-                <Header />
-                <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-                </div>
+            <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
             </div>
         );
     }
@@ -58,17 +54,14 @@ function NewCampaignContent() {
 
     if (error) {
         return (
-            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col">
-                <Header />
-                <div className="flex-1 flex flex-col items-center justify-center gap-4">
-                    <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{error}</p>
-                    <button
-                        onClick={() => router.push('/')}
-                        className="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800"
-                    >
-                        Go Home
-                    </button>
-                </div>
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950">
+                <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{error}</p>
+                <button
+                    onClick={() => router.push('/')}
+                    className="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800"
+                >
+                    Go Home
+                </button>
             </div>
         );
     }
@@ -76,26 +69,20 @@ function NewCampaignContent() {
     const preselectedProductId = productParam ? parseInt(productParam) : null;
 
     return (
-        <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col">
-            <Header />
-            <main className="flex-1 overflow-y-auto">
-                <CampaignCreateWizard
-                    products={products}
-                    preselectedProductId={preselectedProductId}
-                />
-            </main>
-        </div>
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950">
+            <CampaignCreateWizard
+                products={products}
+                preselectedProductId={preselectedProductId}
+            />
+        </main>
     );
 }
 
 export default function NewCampaignPage() {
     return (
         <Suspense fallback={
-            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col">
-                <Header />
-                <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-                </div>
+            <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
             </div>
         }>
             <NewCampaignContent />

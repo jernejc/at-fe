@@ -7,7 +7,6 @@ import { AccountDetail } from '@/components/accounts';
 import { CampaignHeader, CompaniesTab, AnalysisTab, PartnerTab, OverviewTab, OverviewTabSkeleton, type DrillDownFilter } from '@/components/campaigns';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Header } from '@/components/ui/Header';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useCampaignPage } from '@/hooks/useCampaignPage';
 import { toast } from 'sonner';
@@ -236,37 +235,29 @@ export default function CampaignPage({ params }: CampaignPageProps) {
 
     if (loading) {
         return (
-            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
-                <Header />
-                <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-                </div>
+            <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
             </div>
         );
     }
 
     if (error || !campaign) {
         return (
-            <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
-                <Header />
-                <div className="flex-1 flex flex-col items-center justify-center gap-4">
-                    <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{error || 'Campaign not found'}</p>
-                    <Button
-                        onClick={() => router.push('/')}
-                        size="lg"
-                        className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow-md transition-all"
-                    >
-                        Go Home
-                    </Button>
-                </div>
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950">
+                <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{error || 'Campaign not found'}</p>
+                <Button
+                    onClick={() => router.push('/')}
+                    size="lg"
+                    className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm hover:shadow-md transition-all"
+                >
+                    Go Home
+                </Button>
             </div>
         );
     }
 
     return (
-        <div className="h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden flex flex-col font-sans">
-            <Header />
-
+        <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
             <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950">
                 {/* Campaign Header with Tabs */}
                 <CampaignHeader

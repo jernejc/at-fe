@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Header } from "@/components/ui/Header";
 import { CampaignsList } from "@/components/campaigns/CampaignsList";
 
 export default function Dashboard() {
@@ -13,13 +12,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
-      <Header />
-      <main className="flex flex-1 overflow-y-auto">
-        <div className="max-w-[1600px] mx-auto px-6 py-8 flex flex-1">
-          <CampaignsList />
-        </div>
-      </main>
-    </div>
+    <main className="flex flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950">
+      <div className="max-w-[1600px] mx-auto px-6 py-8 flex flex-1">
+        <CampaignsList />
+      </div>
+    </main>
   );
 }
