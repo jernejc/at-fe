@@ -34,6 +34,11 @@ const scoreTokens = [
   { name: 'score-cold-bg', tw: 'bg-score-cold-bg' },
 ];
 
+const accentGreenTokens = [
+  { name: 'accent-green', tw: 'bg-accent-green' },
+  { name: 'accent-green-dark', tw: 'bg-accent-green-dark' },
+];
+
 function Swatch({ name, tw }: { name: string; tw: string }) {
   return (
     <div className="flex items-center gap-3">
@@ -88,6 +93,16 @@ export function ColorSection() {
           </h3>
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
             {scoreTokens.map((t) => (
+              <Swatch key={t.name} {...t} />
+            ))}
+          </div>
+        </div>
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            Accent Green
+          </h3>
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
+            {accentGreenTokens.map((t) => (
               <Swatch key={t.name} {...t} />
             ))}
           </div>

@@ -1,7 +1,16 @@
+import { CampaignProgress } from '@/components/ui/campaign-progress';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { TrendIndicator } from '@/components/ui/trend-indicator';
 import { Separator } from '@/components/ui/separator';
+
+const campaignProgressSamples = [
+  { label: 'Empty', total: 20, inProgress: 0, completed: 0, taskCompletion: 0 },
+  { label: 'In progress', total: 20, inProgress: 8, completed: 0, taskCompletion: 25 },
+  { label: 'Mixed', total: 20, inProgress: 8, completed: 5, taskCompletion: 50 },
+  { label: 'Mostly done', total: 20, inProgress: 3, completed: 15, taskCompletion: 80 },
+  { label: 'All complete', total: 20, inProgress: 0, completed: 20, taskCompletion: 0 },
+];
 
 const fitScoreSamples = [
   { score: 0, label: 'No data' },
@@ -102,6 +111,29 @@ export function CustomSection() {
             <span className="w-28 text-xs text-muted-foreground">Hidden count</span>
             <EngagementIndicator engaged={5} total={10} hideCount />
           </div>
+        </div>
+      </div>
+      <Separator />
+
+      {/* Campaign Progress */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          CampaignProgress
+        </h3>
+        <div className="space-y-4">
+          {campaignProgressSamples.map((s) => (
+            <div key={s.label} className="flex items-center gap-4">
+              <span className="w-28 text-xs text-muted-foreground">
+                {s.label}
+              </span>
+              <CampaignProgress
+                total={s.total}
+                inProgress={s.inProgress}
+                completed={s.completed}
+                taskCompletion={s.taskCompletion}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
