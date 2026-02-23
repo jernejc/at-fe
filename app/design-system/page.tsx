@@ -28,7 +28,7 @@ export default function DesignSystemPage() {
   return (
     <div className="flex flex-1 overflow-hidden">
       {/* Sidebar TOC */}
-      <nav className="hidden lg:flex w-52 shrink-0 flex-col gap-1 border-r border-border p-4 overflow-y-auto">
+      <nav className="hidden lg:flex w-52 shrink-0 flex-col gap-1 border-r-[0.5px] border-border-d p-4 overflow-y-auto">
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
           Design System
         </h2>

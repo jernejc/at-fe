@@ -18,8 +18,7 @@ export function Nav() {
 
   return (
     <nav
-      className="bg-background shrink-0 z-20 sticky top-0"
-      style={{ borderBottom: "0.5px solid hsl(0, 0%, 70%)" }}
+      className="bg-background shrink-0 z-20 sticky top-0 border-b-[0.5px] border-border-d"
     >
       {/* Row 1: Logo + Actions */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
