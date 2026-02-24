@@ -6,6 +6,15 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Format a dollar amount in compact notation (e.g., $1.2K, $4.2M)
+ */
+export function formatCurrency(value: number): string {
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+  return `$${value.toFixed(0)}`;
+}
+
+/**
  * Format large numbers in compact notation (e.g., 1.2K, 3.5M)
  */
 export function formatCompactNumber(num: number): string {

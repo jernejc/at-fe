@@ -2,7 +2,12 @@ import { CampaignProgress } from '@/components/ui/campaign-progress';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { TrendIndicator } from '@/components/ui/trend-indicator';
+import { StatusIndicator } from '@/components/ui/status-indicator';
+import { CampaignRow } from '@/components/campaigns/CampaignRow';
+import { CampaignIcon } from '@/lib/config/campaign-icons';
+import { CAMPAIGN_ICON_NAMES } from '@/lib/config/campaign-icons';
 import { Separator } from '@/components/ui/separator';
+import type { CampaignRowData } from '@/lib/schemas';
 
 const campaignProgressSamples = [
   { label: 'Empty', total: 20, inProgress: 0, completed: 0, taskCompletion: 0 },
@@ -20,6 +25,47 @@ const fitScoreSamples = [
   { score: 95, change: 5, label: 'Very high' },
 ];
 
+const sampleCampaigns: CampaignRowData[] = [
+  {
+    id: 1, name: 'Companies looking for cloud security in SMB', slug: 'cloud-security-smb',
+    status: 'active', company_count: 98, processed_count: 47, avg_fit_score: 78,
+    target_product_id: 3, owner: 'user@example.com',
+    created_at: '2026-01-15T10:30:00Z', updated_at: '2026-02-20T14:22:00Z',
+    icon: 'cat', product_name: 'Google Workspace (GWS)',
+    avg_employee_size: '100-200', main_location: 'United States',
+    in_progress_count: 32, completed_won_count: 10, completed_lost_count: 5,
+    task_completion_pct: 67, total_won_amount: 4200000,
+    avg_fit_score_change: 3,
+  },
+  {
+    id: 2, name: 'Enterprise AI adoption outreach', slug: 'enterprise-ai',
+    status: 'draft', company_count: 45, processed_count: 0, avg_fit_score: 62,
+    target_product_id: 1, owner: 'user@example.com',
+    created_at: '2026-02-10T09:00:00Z', updated_at: '2026-02-22T11:00:00Z',
+    icon: 'rat', product_name: 'AI Platform Pro',
+    avg_employee_size: '500-1000', main_location: 'Germany',
+  },
+  {
+    id: 3, name: 'Q1 partner expansion drive', slug: 'q1-partner-expansion',
+    status: 'completed', company_count: 120, processed_count: 120, avg_fit_score: 85,
+    target_product_id: 2, owner: 'user@example.com',
+    created_at: '2025-10-01T08:00:00Z', updated_at: '2026-01-31T17:00:00Z',
+    icon: 'ghost', product_name: 'Partner Connect',
+    avg_employee_size: '50-100', main_location: 'United Kingdom',
+    in_progress_count: 0, completed_won_count: 42, completed_lost_count: 78,
+    task_completion_pct: 0, total_won_amount: 1850000,
+    avg_fit_score_change: -2,
+  },
+  {
+    id: 4, name: 'Startup fintech signal campaign', slug: 'startup-fintech',
+    status: 'archived', company_count: 30, processed_count: 28, avg_fit_score: 44,
+    target_product_id: null, owner: null,
+    created_at: '2025-06-15T12:00:00Z', updated_at: '2025-09-01T09:00:00Z',
+    icon: 'skull',
+    main_location: 'Singapore',
+  },
+];
+
 /** Custom project components: FitScoreIndicator and TrendIndicator. */
 export function CustomSection() {
   return (
@@ -32,6 +78,69 @@ export function CustomSection() {
           Project-specific UI primitives.
         </p>
       </div>
+
+      {/* Campaign Icons */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Campaign Icons
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          20 playful Lucide icons available for campaigns. Stored as a name string in the database.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {CAMPAIGN_ICON_NAMES.map((name) => (
+            <div
+              key={name}
+              className="flex flex-col items-center gap-1.5 p-2 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+            >
+              <div className="w-8 h-8 flex items-center justify-center">
+                <CampaignIcon name={name} className="w-6 h-6" />
+              </div>
+              <span className="text-[10px] text-muted-foreground font-mono">{name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Status Indicator */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          StatusIndicator
+        </h3>
+        <div className="flex items-center gap-6">
+          {(['active', 'published', 'draft', 'completed', 'archived'] as const).map((status) => (
+            <div key={status} className="flex items-center gap-2">
+              <StatusIndicator status={status} />
+              <span className="text-xs text-muted-foreground capitalize">{status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Campaign Row */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          CampaignRow
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Table row variant showing icon, status, title, product, metadata, fit score, progress, conversion, and revenue.
+        </p>
+        <div>
+          <Separator />
+          {sampleCampaigns.map((campaign) => (
+            <div key={campaign.id}>
+              <CampaignRow campaign={campaign} onClick={() => {}} className='-mx-6' />
+              <Separator />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      
 
       {/* Fit Score Indicator */}
       <div className="space-y-3">

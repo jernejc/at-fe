@@ -184,6 +184,34 @@ export interface CampaignImport {
     companies?: Record<string, any>[] | null;
 }
 
+/**
+ * Extended campaign data for the CampaignRow component.
+ * Adds optional fields that the backend will provide once supported.
+ * All new fields are optional so the row degrades gracefully.
+ */
+export interface CampaignRowData extends CampaignSummary {
+    /** Lucide icon name chosen by the user (e.g. "rocket", "target") */
+    icon?: string | null;
+    /** Resolved target product name(s) */
+    product_name?: string | null;
+    /** Average employee size range, e.g. "100-200" */
+    avg_employee_size?: string | null;
+    /** Primary geographic location, e.g. "United States" */
+    main_location?: string | null;
+    /** Companies with active outreach (in-progress) */
+    in_progress_count?: number;
+    /** Companies that completed the funnel and were won */
+    completed_won_count?: number;
+    /** Companies that completed the funnel and were lost */
+    completed_lost_count?: number;
+    /** 0-100 task completion percentage for in-progress companies */
+    task_completion_pct?: number;
+    /** Total revenue won in dollars */
+    total_won_amount?: number | null;
+    /** Fit score change since last period */
+    avg_fit_score_change?: number | null;
+}
+
 // Filters for campaign list
 export interface CampaignFilters {
     page?: number;

@@ -1,6 +1,7 @@
 // Campaign list & homepage
 export { CampaignsList } from './CampaignsList';
 export { CampaignCardPreview } from './CampaignCardPreview';
+export { CampaignRow, CampaignRowSkeleton } from './CampaignRow';
 export { ProductSection } from './ProductSection';
 export { ProductAssignmentDialog } from './ProductAssignmentDialog';
 export { CampaignCreateWizard } from './CampaignCreateWizard';

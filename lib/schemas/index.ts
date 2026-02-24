@@ -150,6 +150,7 @@ export type {
 // Campaign types
 export type {
     CampaignSummary,
+    CampaignRowData,
     CampaignRead,
     CampaignCreate,
     CampaignUpdate,
