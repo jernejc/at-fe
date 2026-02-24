@@ -220,3 +220,15 @@ export type {
     Invocation,
 } from './a2a';
 
+// Filter & Sort types
+export type {
+    FilterOperator,
+    FilterOption,
+    FilterDefinition,
+    ActiveFilter,
+    SortOptionDefinition,
+    SortState,
+} from './filter';
+
+export { FILTER_OPERATOR_LABELS } from './filter';
+

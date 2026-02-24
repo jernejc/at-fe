@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { CampaignProgress } from '@/components/ui/campaign-progress';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
@@ -7,7 +10,49 @@ import { CampaignRow } from '@/components/campaigns/CampaignRow';
 import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { CAMPAIGN_ICON_NAMES } from '@/lib/config/campaign-icons';
 import { Separator } from '@/components/ui/separator';
-import type { CampaignRowData } from '@/lib/schemas';
+import { Filter } from '@/components/ui/filter';
+import { Sort } from '@/components/ui/sort';
+import type { CampaignRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState } from '@/lib/schemas';
+
+const sampleFilterDefs: FilterDefinition[] = [
+  {
+    key: 'status',
+    label: 'Status',
+    options: [
+      { value: 'active', label: 'Active' },
+      { value: 'draft', label: 'Draft' },
+      { value: 'completed', label: 'Completed' },
+      { value: 'archived', label: 'Archived' },
+    ],
+  },
+  {
+    key: 'industry',
+    label: 'Industry',
+    options: [
+      { value: 'technology', label: 'Technology' },
+      { value: 'healthcare', label: 'Healthcare' },
+      { value: 'finance', label: 'Finance' },
+      { value: 'manufacturing', label: 'Manufacturing' },
+    ],
+  },
+  {
+    key: 'location',
+    label: 'Location',
+    options: [
+      { value: 'us', label: 'United States' },
+      { value: 'uk', label: 'United Kingdom' },
+      { value: 'de', label: 'Germany' },
+      { value: 'sg', label: 'Singapore' },
+    ],
+  },
+];
+
+const sampleSortOpts: SortOptionDefinition[] = [
+  { value: 'created_at', label: 'Date Created' },
+  { value: 'name', label: 'Name' },
+  { value: 'company_count', label: 'Companies' },
+  { value: 'avg_fit_score', label: 'Fit Score' },
+];
 
 const campaignProgressSamples = [
   { label: 'Empty', total: 20, inProgress: 0, completed: 0, taskCompletion: 0 },
@@ -68,6 +113,9 @@ const sampleCampaigns: CampaignRowData[] = [
 
 /** Custom project components: FitScoreIndicator and TrendIndicator. */
 export function CustomSection() {
+  const [filters, setFilters] = useState<ActiveFilter[]>([]);
+  const [sort, setSort] = useState<SortState | null>(null);
+
   return (
     <section id="custom" className="space-y-8">
       <div>
@@ -117,6 +165,26 @@ export function CustomSection() {
             </div>
           ))}
         </div>
+      </div>
+
+      <Separator />
+
+      {/* Filter & Sort */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Filter &amp; Sort
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Reusable controlled filter (with submenu) and sort dropdown. Select filters to see active badges.
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Filter definitions={sampleFilterDefs} value={filters} onValueChange={setFilters} />
+          <Sort options={sampleSortOpts} value={sort} onValueChange={setSort} />
+        </div>
+        <p className="text-xs text-muted-foreground font-mono">
+          filters: {JSON.stringify(filters.map(f => `${f.fieldLabel} ${f.operator} ${f.valueLabel}`))}
+          {' · '}sort: {sort ? `${sort.field} ${sort.direction}` : 'none'}
+        </p>
       </div>
 
       <Separator />
