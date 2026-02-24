@@ -101,6 +101,7 @@ export function CampaignRow({ campaign, onClick, className }: CampaignRowProps) 
             completed={completedCount || campaign.processed_count}
             taskCompletion={campaign.task_completion_pct ?? 0}
             height={10}
+            showTooltip
             className="flex-1"
           />
           <span className="text-sm tabular-nums">

@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { CampaignProgress, calcWidths } from './campaign-progress';
+import { TooltipProvider } from './tooltip';
 
 describe('calcWidths', () => {
   it('returns all zeros when total is 0', () => {
@@ -178,5 +180,106 @@ describe('CampaignProgress', () => {
     const inner = container.querySelector('.relative');
     const stripedBar = inner?.children[1] as HTMLElement;
     expect(stripedBar.style.backgroundImage).toContain('repeating-linear-gradient');
+  });
+
+  it('does not render tooltip wrapper when showTooltip is false', () => {
+    const { container } = render(
+      <CampaignProgress total={10} inProgress={3} completed={2} taskCompletion={50} />
+    );
+    // Without tooltip, the root element is the progressbar itself
+    expect(container.firstElementChild).toHaveAttribute('role', 'progressbar');
+  });
+
+  it('wraps the bar in a tooltip trigger when showTooltip is true', () => {
+    render(
+      <TooltipProvider>
+        <CampaignProgress total={10} inProgress={3} completed={2} taskCompletion={50} showTooltip />
+      </TooltipProvider>
+    );
+    // The progressbar still exists inside the trigger
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  it('shows tooltip content with correct values on hover', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TooltipProvider delay={0}>
+        <CampaignProgress
+          total={200}
+          inProgress={40}
+          completed={60}
+          taskCompletion={75}
+          showTooltip
+        />
+      </TooltipProvider>
+    );
+
+    await user.hover(screen.getByRole('progressbar'));
+
+    // Header: total companies
+    expect(await screen.findByText('Companies')).toBeInTheDocument();
+    expect(screen.getByText('200')).toBeInTheDocument();
+
+    // Completed: 60 (30%)
+    expect(screen.getByText('Completed')).toBeInTheDocument();
+    expect(screen.getByText('60 (30%)')).toBeInTheDocument();
+
+    // In progress: 40 (20%)
+    expect(screen.getByText('In progress')).toBeInTheDocument();
+    expect(screen.getByText('40 (20%)')).toBeInTheDocument();
+
+    // Tasks done: 75%
+    expect(screen.getByText('Tasks done')).toBeInTheDocument();
+    expect(screen.getByText('75%')).toBeInTheDocument();
+
+    // Remaining: 100 (50%)
+    expect(screen.getByText('Remaining')).toBeInTheDocument();
+    expect(screen.getByText('100 (50%)')).toBeInTheDocument();
+  });
+
+  it('shows compact numbers for large totals in tooltip', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TooltipProvider delay={0}>
+        <CampaignProgress
+          total={5000}
+          inProgress={1500}
+          completed={2000}
+          taskCompletion={60}
+          showTooltip
+        />
+      </TooltipProvider>
+    );
+
+    await user.hover(screen.getByRole('progressbar'));
+
+    expect(await screen.findByText('5.0K')).toBeInTheDocument();
+    expect(screen.getByText('2.0K (40%)')).toBeInTheDocument();
+    // Both "In progress" and "Remaining" are 1.5K (30%)
+    const matching = screen.getAllByText('1.5K (30%)');
+    expect(matching).toHaveLength(2);
+  });
+
+  it('clamps remaining to zero when inProgress + completed exceed total', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TooltipProvider delay={0}>
+        <CampaignProgress
+          total={10}
+          inProgress={6}
+          completed={7}
+          taskCompletion={50}
+          showTooltip
+        />
+      </TooltipProvider>
+    );
+
+    await user.hover(screen.getByRole('progressbar'));
+
+    expect(await screen.findByText('Remaining')).toBeInTheDocument();
+    expect(screen.getByText('0 (0%)')).toBeInTheDocument();
   });
 });
