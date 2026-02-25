@@ -383,3 +383,99 @@ describe('SORT_OPTIONS', () => {
     expect(values).toEqual(['name', 'created_at', 'updated_at', 'company_count']);
   });
 });
+
+describe('useCampaignsList — metrics', () => {
+  it('returns campaign count from filtered list', async () => {
+    const { result } = renderHook(() => useCampaignsList());
+    await act(async () => {});
+
+    expect(result.current.metrics.campaignCount).toBe(3);
+  });
+
+  it('sums completed_won_count across campaigns', async () => {
+    mockSuccessfulFetch([
+      makeCampaign({ id: 1, name: 'A', slug: 'a', completed_won_count: 5 } as any),
+      makeCampaign({ id: 2, name: 'B', slug: 'b', completed_won_count: 8 } as any),
+      makeCampaign({ id: 3, name: 'C', slug: 'c' }),
+    ]);
+
+    const { result } = renderHook(() => useCampaignsList());
+    await act(async () => {});
+
+    expect(result.current.metrics.opportunitiesWon).toBe(13);
+  });
+
+  it('sums total_won_amount across campaigns', async () => {
+    mockSuccessfulFetch([
+      makeCampaign({ id: 1, name: 'A', slug: 'a', total_won_amount: 50000 } as any),
+      makeCampaign({ id: 2, name: 'B', slug: 'b', total_won_amount: 100000 } as any),
+      makeCampaign({ id: 3, name: 'C', slug: 'c' }),
+    ]);
+
+    const { result } = renderHook(() => useCampaignsList());
+    await act(async () => {});
+
+    expect(result.current.metrics.totalWon).toBe(150000);
+  });
+
+  it('computes average conversion from campaigns with data', async () => {
+    mockSuccessfulFetch([
+      makeCampaign({ id: 1, name: 'A', slug: 'a', company_count: 100, completed_won_count: 20 } as any),
+      makeCampaign({ id: 2, name: 'B', slug: 'b', company_count: 50, completed_won_count: 25 } as any),
+      makeCampaign({ id: 3, name: 'C', slug: 'c', company_count: 80 }),
+    ]);
+
+    const { result } = renderHook(() => useCampaignsList());
+    await act(async () => {});
+
+    // A: 20/100 = 20%, B: 25/50 = 50%, C excluded (no completed_won_count)
+    // Average: (20 + 50) / 2 = 35
+    expect(result.current.metrics.avgConversion).toBe(35);
+  });
+
+  it('returns zero avgConversion when no campaigns have conversion data', async () => {
+    mockSuccessfulFetch([
+      makeCampaign({ id: 1, name: 'A', slug: 'a', company_count: 100 }),
+    ]);
+
+    const { result } = renderHook(() => useCampaignsList());
+    await act(async () => {});
+
+    expect(result.current.metrics.avgConversion).toBe(0);
+  });
+
+  it('updates metrics when search filters the list', async () => {
+    mockSuccessfulFetch([
+      makeCampaign({ id: 1, name: 'Alpha', slug: 'alpha', completed_won_count: 10, total_won_amount: 50000 } as any),
+      makeCampaign({ id: 2, name: 'Beta', slug: 'beta', completed_won_count: 5, total_won_amount: 30000 } as any),
+    ]);
+
+    const { result } = renderHook(() => useCampaignsList());
+    await act(async () => {});
+
+    expect(result.current.metrics.campaignCount).toBe(2);
+    expect(result.current.metrics.totalWon).toBe(80000);
+
+    act(() => {
+      result.current.handleSearchChange('alpha');
+    });
+
+    expect(result.current.metrics.campaignCount).toBe(1);
+    expect(result.current.metrics.opportunitiesWon).toBe(10);
+    expect(result.current.metrics.totalWon).toBe(50000);
+  });
+
+  it('handles all metrics at zero when campaigns have no enrichment data', async () => {
+    mockSuccessfulFetch([]);
+
+    const { result } = renderHook(() => useCampaignsList());
+    await act(async () => {});
+
+    expect(result.current.metrics).toEqual({
+      campaignCount: 0,
+      opportunitiesWon: 0,
+      avgConversion: 0,
+      totalWon: 0,
+    });
+  });
+});

@@ -53,9 +53,17 @@ function makeCampaignRow(overrides: Partial<CampaignRowData> = {}): CampaignRowD
   };
 }
 
+const defaultMetrics = {
+  campaignCount: 0,
+  opportunitiesWon: 0,
+  avgConversion: 0,
+  totalWon: 0,
+};
+
 const defaultHookValues = {
   paginatedRows: [] as CampaignRowData[],
   totalFiltered: 0,
+  metrics: defaultMetrics,
   loading: false,
   error: null as string | null,
   hasNoCampaigns: false,
@@ -82,7 +90,7 @@ describe('CampaignsList', () => {
   it('renders the page title and subtitle', () => {
     render(<CampaignsList />);
 
-    expect(screen.getByText('Campaigns')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Campaigns' })).toBeInTheDocument();
     expect(screen.getByText('Manage your outreach campaigns and track performance')).toBeInTheDocument();
   });
 
@@ -183,6 +191,54 @@ describe('CampaignsList — no results state (search/filter yields nothing)', ()
 
     render(<CampaignsList />);
     expect(screen.queryByText('Create Campaign')).not.toBeInTheDocument();
+  });
+});
+
+describe('CampaignsList — dashboard metrics', () => {
+  it('renders all four dashboard metric cells', () => {
+    mockUseCampaignsList.mockReturnValue({
+      ...defaultHookValues,
+      metrics: { campaignCount: 5, opportunitiesWon: 12, avgConversion: 34.7, totalWon: 150000 },
+    });
+
+    render(<CampaignsList />);
+    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('Opportunities won')).toBeInTheDocument();
+    expect(screen.getByText('12')).toBeInTheDocument();
+    expect(screen.getByText('Avg. conversion')).toBeInTheDocument();
+    expect(screen.getByText('35%')).toBeInTheDocument();
+    expect(screen.getByText('Total earned')).toBeInTheDocument();
+    expect(screen.getByText('$150.0K')).toBeInTheDocument();
+  });
+
+  it('displays $0 and no gradient when totalWon is zero', () => {
+    mockUseCampaignsList.mockReturnValue({
+      ...defaultHookValues,
+      metrics: { campaignCount: 3, opportunitiesWon: 0, avgConversion: 0, totalWon: 0 },
+    });
+
+    render(<CampaignsList />);
+    expect(screen.getByText('$0')).toBeInTheDocument();
+  });
+
+  it('displays 0% for avgConversion when no data', () => {
+    mockUseCampaignsList.mockReturnValue({
+      ...defaultHookValues,
+      metrics: { campaignCount: 0, opportunitiesWon: 0, avgConversion: 0, totalWon: 0 },
+    });
+
+    render(<CampaignsList />);
+    expect(screen.getByText('0%')).toBeInTheDocument();
+  });
+
+  it('formats large totalWon values in millions', () => {
+    mockUseCampaignsList.mockReturnValue({
+      ...defaultHookValues,
+      metrics: { campaignCount: 10, opportunitiesWon: 50, avgConversion: 42, totalWon: 3420000 },
+    });
+
+    render(<CampaignsList />);
+    expect(screen.getByText('$3.4M')).toBeInTheDocument();
   });
 });
 

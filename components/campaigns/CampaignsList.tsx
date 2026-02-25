@@ -6,15 +6,18 @@ import { SearchField } from '@/components/ui/search-field';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
 import { Pagination } from '@/components/ui/pagination';
+import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { CampaignRow, CampaignRowSkeleton } from './CampaignRow';
 import { useCampaignsList, FILTER_DEFINITIONS, SORT_OPTIONS } from './useCampaignsList';
 import { Separator } from '../ui/separator';
+import { formatCurrency } from '@/lib/utils';
 
 /** Campaign list page with search, filters, sort, and pagination. */
 export function CampaignsList() {
   const {
     paginatedRows,
     totalFiltered,
+    metrics,
     loading,
     error,
     hasNoCampaigns,
@@ -50,9 +53,25 @@ export function CampaignsList() {
         </Button>
       </div>
 
-      {/* Dashboard metrics placeholder */}
-      {/* TODO: Replace with CampaignMetricsCard component */}
-      <div className="h-32 rounded-xl border border-border bg-card" />
+      {/* Dashboard metrics */}
+      <Dashboard>
+        <DashboardCell>
+          <DashboardCellTitle>Campaigns</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>{metrics.campaignCount}</DashboardCellBody>
+        </DashboardCell>
+        <DashboardCell>
+          <DashboardCellTitle>Opportunities won</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>{metrics.opportunitiesWon}</DashboardCellBody>
+        </DashboardCell>
+        <DashboardCell>
+          <DashboardCellTitle>Avg. conversion</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>{Math.round(metrics.avgConversion)}%</DashboardCellBody>
+        </DashboardCell>
+        <DashboardCell gradient={!loading && metrics.totalWon > 0 ? 'green' : 'none'}>
+          <DashboardCellTitle>Total earned</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>{formatCurrency(metrics.totalWon)}</DashboardCellBody>
+        </DashboardCell>
+      </Dashboard>
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">

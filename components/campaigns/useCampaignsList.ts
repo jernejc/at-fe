@@ -109,24 +109,41 @@ export function useCampaignsList() {
     }
   }, [fetchData, session, apiParams]);
 
-  // Client-side search filter + enrichment + pagination
-  const { paginatedRows, totalFiltered } = useMemo(() => {
+  // Client-side search filter + enrichment
+  const filteredRows = useMemo(() => {
     const needle = search.toLowerCase().trim();
     const filtered = needle
       ? campaigns.filter((c) => c.name.toLowerCase().includes(needle))
       : campaigns;
 
-    const enriched: CampaignRowData[] = filtered.map((c) => ({
+    return filtered.map<CampaignRowData>((c) => ({
       ...c,
       product_name: products.find((p) => p.id === c.target_product_id)?.name ?? null,
     }));
+  }, [campaigns, products, search]);
 
+  // Pagination
+  const { paginatedRows, totalFiltered } = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return {
-      paginatedRows: enriched.slice(start, start + PAGE_SIZE),
-      totalFiltered: enriched.length,
+      paginatedRows: filteredRows.slice(start, start + PAGE_SIZE),
+      totalFiltered: filteredRows.length,
     };
-  }, [campaigns, products, search, currentPage]);
+  }, [filteredRows, currentPage]);
+
+  // Dashboard metrics aggregated from filtered campaigns
+  const metrics = useMemo(() => {
+    const campaignCount = filteredRows.length;
+    const opportunitiesWon = filteredRows.reduce((sum, c) => sum + (c.completed_won_count ?? 0), 0);
+    const totalWon = filteredRows.reduce((sum, c) => sum + (c.total_won_amount ?? 0), 0);
+
+    const withConversion = filteredRows.filter((c) => c.company_count > 0 && c.completed_won_count != null);
+    const avgConversion = withConversion.length > 0
+      ? withConversion.reduce((sum, c) => sum + ((c.completed_won_count ?? 0) / c.company_count) * 100, 0) / withConversion.length
+      : 0;
+
+    return { campaignCount, opportunitiesWon, avgConversion, totalWon };
+  }, [filteredRows]);
 
   const hasActiveFilters = filters.length > 0 || search.trim().length > 0;
   const hasNoCampaigns = !loading && !error && campaigns.length === 0 && !hasActiveFilters;
@@ -160,6 +177,7 @@ export function useCampaignsList() {
     // Data
     paginatedRows,
     totalFiltered,
+    metrics,
     loading,
     error,
     hasNoCampaigns,
