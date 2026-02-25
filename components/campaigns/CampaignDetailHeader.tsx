@@ -80,8 +80,12 @@ function CampaignDetailHeaderSkeleton() {
     <div className="bg-background">
       <div className="max-w-[1600px] mx-auto px-10 pt-7 pb-4">
         <div className="flex items-center -ml-10 mb-1">
-          {/* Back button placeholder */}
-          <div className="shrink-0 mx-1 size-8 rounded-lg bg-muted animate-pulse" />
+          {/* Back button */}
+          <Link href="/campaigns" className="shrink-0 mx-1">
+            <Button variant="ghost" size="icon-sm" aria-label="Back to campaigns">
+              <ChevronLeft className="size-5" />
+            </Button>
+          </Link>
 
           {/* Icon + status dot placeholder */}
           <div className="flex flex-col items-center justify-center mr-4 gap-1.5 shrink-0 w-16 h-16 rounded-xl bg-muted animate-pulse" />
