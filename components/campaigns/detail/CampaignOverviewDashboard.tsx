@@ -1,0 +1,184 @@
+'use client';
+
+import { useState } from 'react';
+import { Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
+import { StatusIndicator } from '@/components/ui/status-indicator';
+import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
+import { PublishDialog } from './PublishDialog';
+import type { CampaignRead, CampaignOverview } from '@/lib/schemas';
+
+interface CampaignOverviewDashboardProps {
+  campaign: CampaignRead | null;
+  overview: CampaignOverview | null;
+  loading: boolean;
+  isPublishing: boolean;
+  isUnpublishing: boolean;
+  handlePublish: () => Promise<void>;
+  handleUnpublish: () => Promise<void>;
+  /** Future metrics — will be wired when the metrics endpoint exists. */
+  unassignedCount?: number;
+  inactivePartnerCount?: number;
+  partnerCount?: number;
+  targetAmount?: number | null;
+  closedAmount?: number | null;
+  progressPct?: number | null;
+  conversionRate?: number | null;
+}
+
+/** Campaign overview metrics dashboard — 4-column grid matching the design reference. */
+export function CampaignOverviewDashboard({
+  campaign,
+  overview,
+  loading,
+  isPublishing,
+  isUnpublishing,
+  handlePublish,
+  handleUnpublish,
+  unassignedCount,
+  inactivePartnerCount,
+  partnerCount,
+  targetAmount,
+  closedAmount,
+  progressPct,
+  conversionRate,
+}: CampaignOverviewDashboardProps) {
+  const [publishDialogMode, setPublishDialogMode] = useState<'publish' | 'unpublish' | null>(null);
+
+  const status = campaign?.status ?? 'draft';
+  const avgFit = campaign?.avg_fit_score ?? null;
+
+  return (
+    <>
+      <Dashboard>
+        {/* Row 1 — Product & Status */}
+        <DashboardCell size="half" height="auto">
+          <DashboardCellTitle>Product</DashboardCellTitle>
+          <DashboardCellBody size="sm" loading={loading}>
+            {overview?.product_name ?? '--'}
+          </DashboardCellBody>
+        </DashboardCell>
+
+        <DashboardCell size="half" height="auto">
+          <DashboardCellTitle>Status</DashboardCellTitle>
+          <div className="flex items-center justify-between">
+            <DashboardCellBody size="sm" loading={loading} className="flex items-center gap-2">
+              <StatusIndicator status={status} size={10} />
+              <span className='capitalize'>{status}</span>
+            </DashboardCellBody>
+            {status === 'draft' && !loading && (
+              <Button
+                variant="secondary"
+                onClick={() => setPublishDialogMode('publish')}
+              >
+                <Send data-icon="inline-start" />
+                Publish
+              </Button>
+            )}
+          </div>
+        </DashboardCell>
+
+        {/* Row 2 — Companies, Partners, Avg. fit, Target */}
+        <DashboardCell
+          size="quarter"
+          gradient={unassignedCount && unassignedCount > 0 ? 'orange' : undefined}
+        >
+          <div>
+            <DashboardCellTitle>Companies</DashboardCellTitle>
+            {unassignedCount != null && unassignedCount > 0 && (
+              <Badge className="mt-1 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border-transparent">
+                {unassignedCount} unassigned
+              </Badge>
+            )}
+          </div>
+          <DashboardCellBody loading={loading}>
+            {campaign?.company_count ?? 0}
+          </DashboardCellBody>
+        </DashboardCell>
+
+        <DashboardCell
+          size="quarter"
+          gradient={inactivePartnerCount && inactivePartnerCount > 0 ? 'red' : undefined}
+        >
+          <div>
+            <DashboardCellTitle>Partners</DashboardCellTitle>
+            {inactivePartnerCount != null && inactivePartnerCount > 0 && (
+              <Badge className="mt-1 bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 border-transparent">
+                {inactivePartnerCount} inactive
+              </Badge>
+            )}
+          </div>
+          <DashboardCellBody loading={loading}>
+            {partnerCount != null ? partnerCount : '--'}
+          </DashboardCellBody>
+        </DashboardCell>
+
+        <DashboardCell size="quarter">
+          <DashboardCellTitle>Avg. fit</DashboardCellTitle>
+          <DashboardCellBody loading={loading} className="flex items-center gap-3">
+            {avgFit != null ? (
+              <>
+                <FitScoreIndicator score={avgFit} showValue={false} showChange={false} size={32} />
+                <span>{avgFit}%</span>
+              </>
+            ) : (
+              <span>--</span>
+            )}
+          </DashboardCellBody>
+        </DashboardCell>
+
+        <DashboardCell size="quarter">
+          <DashboardCellTitle>Target</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>
+            {targetAmount != null ? formatCompactCurrency(targetAmount) : '--'}
+          </DashboardCellBody>
+        </DashboardCell>
+
+        {/* Row 3 — Progress, Avg. conversion, Closed */}
+        <DashboardCell size="half">
+          <DashboardCellTitle>Progress</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>
+            {progressPct != null ? `${progressPct}%` : '--'}
+          </DashboardCellBody>
+        </DashboardCell>
+
+        <DashboardCell size="quarter">
+          <DashboardCellTitle>Avg. conversion</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>
+            {conversionRate != null ? `${conversionRate}%` : '--'}
+          </DashboardCellBody>
+        </DashboardCell>
+
+        <DashboardCell
+          size="quarter"
+          gradient={closedAmount && closedAmount > 0 ? 'green' : undefined}
+        >
+          <DashboardCellTitle>Closed</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>
+            {closedAmount != null ? formatCompactCurrency(closedAmount) : '--'}
+          </DashboardCellBody>
+        </DashboardCell>
+      </Dashboard>
+
+      <PublishDialog
+        mode={publishDialogMode ?? 'publish'}
+        open={publishDialogMode !== null}
+        onOpenChange={(open) => !open && setPublishDialogMode(null)}
+        onConfirm={publishDialogMode === 'unpublish' ? handleUnpublish : handlePublish}
+        loading={publishDialogMode === 'unpublish' ? isUnpublishing : isPublishing}
+      />
+    </>
+  );
+}
+
+/** Formats a number as compact USD (e.g. 5000000 → "$5m"). */
+function formatCompactCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    notation: 'compact',
+    maximumFractionDigits: 2,
+  }).format(amount);
+}

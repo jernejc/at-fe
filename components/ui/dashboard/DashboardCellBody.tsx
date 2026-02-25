@@ -1,14 +1,30 @@
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-interface DashboardCellBodyProps extends React.ComponentProps<"p"> {
+const bodyVariants = cva("mt-2 font-display font-semibold text-foreground leading-tight", {
+  variants: {
+    size: {
+      default: "text-[40px]",
+      sm: "text-2xl",
+    },
+  },
+  defaultVariants: {
+    size: "default",
+  },
+})
+
+interface DashboardCellBodyProps
+  extends React.ComponentProps<"div">,
+  VariantProps<typeof bodyVariants> {
   /** Show a skeleton pulse instead of children. */
   loading?: boolean
 }
 
-/** Cell body — 40px display font (Exo 2) for large stat values. */
+/** Cell body — display font (Exo 2) for stat values. */
 function DashboardCellBody({
+  size,
   className,
   children,
   loading,
@@ -16,22 +32,19 @@ function DashboardCellBody({
 }: DashboardCellBodyProps) {
   if (loading) {
     return (
-      <div className="h-10 w-24 rounded-md bg-muted animate-pulse" />
+      <div className="mt-2 h-8 w-24 rounded-md bg-muted animate-pulse" />
     )
   }
 
   return (
-    <p
-      className={cn(
-        "text-[40px] font-display font-semibold text-foreground leading-tight",
-        className,
-      )}
+    <div
+      className={cn(bodyVariants({ size }), className)}
       {...props}
     >
       {children}
-    </p>
+    </div>
   )
 }
 
-export { DashboardCellBody }
+export { DashboardCellBody, bodyVariants }
 export type { DashboardCellBodyProps }

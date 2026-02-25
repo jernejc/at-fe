@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { CampaignDetailHeader } from '@/components/campaigns/CampaignDetailHeader';
 import { SecondaryNav } from '@/components/ui/secondary-nav';
+import { CampaignDetailProvider } from '@/components/providers/CampaignDetailProvider';
 import { useCampaignDetailHeader } from '@/hooks/useCampaignDetailHeader';
 import { Separator } from '@/components/ui/separator';
 import { StatusIndicator } from '@/components/ui/status-indicator';
@@ -16,9 +17,18 @@ interface CampaignLayoutProps {
 
 export default function CampaignLayout({ children, params }: CampaignLayoutProps) {
   const { slug } = use(params);
+
+  return (
+    <CampaignDetailProvider slug={slug}>
+      <CampaignLayoutInner slug={slug}>{children}</CampaignLayoutInner>
+    </CampaignDetailProvider>
+  );
+}
+
+function CampaignLayoutInner({ slug, children }: { slug: string; children: React.ReactNode }) {
   const router = useRouter();
   const { campaignName, campaignIcon, campaignStatus, productName, loading, error } =
-    useCampaignDetailHeader(slug);
+    useCampaignDetailHeader();
 
   const navItems = [
     { label: 'Overview', href: `/campaigns/${slug}` },

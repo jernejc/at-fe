@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getCampaign, getCampaignOverview } from '@/lib/api';
+import { useCampaignDetail } from '@/components/providers/CampaignDetailProvider';
+import type { CampaignRead } from '@/lib/schemas';
 
 interface UseCampaignDetailHeaderReturn {
     campaignName: string | null;
@@ -12,42 +12,16 @@ interface UseCampaignDetailHeaderReturn {
     error: string | null;
 }
 
-/** Lightweight hook that fetches only the data needed for the campaign detail header. */
-export function useCampaignDetailHeader(slug: string): UseCampaignDetailHeaderReturn {
-    const [campaignName, setCampaignName] = useState<string | null>(null);
-    const [campaignIcon, setCampaignIcon] = useState<string | null>(null);
-    const [campaignStatus, setCampaignStatus] = useState<string | null>(null);
-    const [productName, setProductName] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+/** Derives header fields from the shared CampaignDetailContext. */
+export function useCampaignDetailHeader(): UseCampaignDetailHeaderReturn {
+    const { campaign, overview, loading, error } = useCampaignDetail();
 
-    useEffect(() => {
-        let cancelled = false;
-
-        async function fetchHeaderData() {
-            try {
-                const [campaign, overview] = await Promise.all([
-                    getCampaign(slug),
-                    getCampaignOverview(slug),
-                ]);
-
-                if (cancelled) return;
-
-                setCampaignName(campaign.name);
-                setCampaignIcon((campaign as any).icon ?? null);
-                setCampaignStatus(campaign.status);
-                setProductName(overview.product_name);
-            } catch (err) {
-                if (cancelled) return;
-                setError(err instanceof Error ? err.message : 'Failed to load campaign');
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        }
-
-        fetchHeaderData();
-        return () => { cancelled = true; };
-    }, [slug]);
-
-    return { campaignName, campaignIcon, campaignStatus, productName, loading, error };
+    return {
+        campaignName: campaign?.name ?? null,
+        campaignIcon: (campaign as CampaignRead & { icon?: string | null })?.icon ?? null,
+        campaignStatus: campaign?.status ?? null,
+        productName: overview?.product_name ?? null,
+        loading,
+        error,
+    };
 }
