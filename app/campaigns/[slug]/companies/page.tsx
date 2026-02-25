@@ -1,9 +1,9 @@
 'use client';
 
-export default function CampaignOverviewPage() {
+export default function CampaignCompaniesPage() {
     return (
         <div className="text-muted-foreground text-sm">
-            Overview — coming soon
+            Companies — coming soon
         </div>
     );
 }

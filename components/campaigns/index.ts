@@ -13,6 +13,7 @@ export { SearchInsightsPanel, SearchInsightsInline } from './SearchInsightsPanel
 
 // Campaign detail
 export { CampaignHeader } from './CampaignHeader';
+export { CampaignDetailHeader } from './CampaignDetailHeader';
 export { OverviewTab, OverviewTabSkeleton, type DrillDownFilter } from './OverviewTab';
 export { CompaniesTab } from './CompaniesTab';
 export { AnalysisTab, AnalysisTabSkeleton } from './AnalysisTab';

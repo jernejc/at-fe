@@ -18,7 +18,7 @@ export function Nav() {
 
   return (
     <nav
-      className="bg-background shrink-0 z-20 sticky top-0 border-b-[0.5px] border-border-d"
+      className="bg-background h-24 shrink-0 z-20 sticky top-0 border-b-[0.5px] border-border-d"
     >
       {/* Row 1: Logo + Actions */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
@@ -65,11 +65,10 @@ export function Nav() {
               <Link
                 key={route.href}
                 href={route.href}
-                className={`pb-2.5 text-[14px] font-medium whitespace-nowrap transition-colors ${
-                  isActive
+                className={`pb-2.5 text-[14px] font-medium whitespace-nowrap transition-colors ${isActive
                     ? "text-foreground border-b-[3px] border-foreground"
                     : "text-[#666666] hover:text-foreground/80 border-b-[3px] border-transparent"
-                }`}
+                  }`}
               >
                 {route.label}
               </Link>

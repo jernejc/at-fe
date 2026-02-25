@@ -40,7 +40,7 @@ export function CampaignsList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-4xl font-display font-semibold tracking-tight text-foreground">
             Campaigns
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
