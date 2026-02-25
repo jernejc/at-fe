@@ -45,7 +45,7 @@ export function CampaignsList() {
           </p>
         </div>
         <Button variant="secondary" onClick={handleNewCampaign} className="gap-2 shrink-0">
-          <Plus className="w-4 h-4" />
+          <Plus data-icon="inline-start" className="w-4 h-4" />
           New campaign
         </Button>
       </div>
