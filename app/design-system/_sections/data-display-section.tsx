@@ -1,9 +1,13 @@
+'use client';
+
+import { useState } from 'react';
 import {
   Avatar,
   AvatarFallback,
   AvatarGroup,
   AvatarGroupCount,
 } from '@/components/ui/avatar';
+import { Pagination } from '@/components/ui/pagination';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,14 +27,16 @@ const tableData = [
   { company: 'Initech', score: 58, signals: 3, status: 'Paused' },
 ];
 
-/** Data display components: table, avatar, progress, skeleton, separator, tabs. */
+/** Data display components: table, avatar, progress, skeleton, separator, tabs, pagination. */
 export function DataDisplaySection() {
+  const [fewPage, setFewPage] = useState(1);
+  const [manyPage, setManyPage] = useState(4);
   return (
     <section id="data-display" className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold text-foreground">Data Display</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Table, avatar, progress, tabs, skeleton, and separator.
+          Table, avatar, progress, tabs, skeleton, separator, and pagination.
         </p>
       </div>
 
@@ -181,6 +187,45 @@ export function DataDisplaySection() {
             <span className="text-sm text-muted-foreground">Left</span>
             <Separator orientation="vertical" />
             <span className="text-sm text-muted-foreground">Right</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Pagination */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Pagination
+        </h3>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Few pages (5 total)</p>
+            <Pagination
+              currentPage={fewPage}
+              totalCount={50}
+              pageSize={10}
+              onPageChange={setFewPage}
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Many pages with ellipsis (20 total)
+            </p>
+            <Pagination
+              currentPage={manyPage}
+              totalCount={200}
+              pageSize={10}
+              onPageChange={setManyPage}
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Disabled state</p>
+            <Pagination
+              currentPage={3}
+              totalCount={100}
+              pageSize={10}
+              onPageChange={() => { }}
+              disabled
+            />
           </div>
         </div>
       </div>
