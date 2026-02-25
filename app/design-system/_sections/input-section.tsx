@@ -1,5 +1,9 @@
+'use client';
+
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SearchField } from '@/components/ui/search-field';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -11,12 +15,14 @@ import {
 
 /** Form input controls showcase. */
 export function InputSection() {
+  const [search, setSearch] = useState('');
+
   return (
     <section id="inputs" className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold text-foreground">Inputs</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Form controls: text input, textarea, select, and labels.
+          Form controls: text input, textarea, select, search field, and labels.
         </p>
       </div>
 
@@ -31,6 +37,18 @@ export function InputSection() {
         <div className="space-y-2">
           <Label htmlFor="demo-disabled">Disabled Input</Label>
           <Input id="demo-disabled" placeholder="Disabled..." disabled />
+        </div>
+
+        {/* Search Field */}
+        <div className="space-y-2">
+          <Label htmlFor="demo-search">Search Field</Label>
+          <SearchField
+            id="demo-search"
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
+          />
         </div>
 
         {/* Textarea */}
