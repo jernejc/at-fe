@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { CampaignProgress } from '@/components/ui/campaign-progress';
+import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { TrendIndicator } from '@/components/ui/trend-indicator';
@@ -208,7 +209,49 @@ export function CustomSection() {
         </div>
       </div>
 
-      
+      <Separator />
+
+      {/* Dashboard */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Dashboard
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Flexible grid dashboard with cell size, height, and gradient variants. Responsive: full on mobile, half on tablet, quarter on desktop.
+        </p>
+        <Dashboard>
+          <DashboardCell gradient="orange">
+            <DashboardCellTitle>Companies</DashboardCellTitle>
+            <DashboardCellBody>32</DashboardCellBody>
+          </DashboardCell>
+          <DashboardCell>
+            <DashboardCellTitle>Avg. fit</DashboardCellTitle>
+            <DashboardCellBody>73%</DashboardCellBody>
+          </DashboardCell>
+          <DashboardCell>
+            <DashboardCellTitle>Statuses</DashboardCellTitle>
+            <DashboardCellBody>5 / 7</DashboardCellBody>
+          </DashboardCell>
+          <DashboardCell>
+            <DashboardCellTitle>Leads engaged</DashboardCellTitle>
+            <DashboardCellBody>12/38</DashboardCellBody>
+          </DashboardCell>
+          <DashboardCell size="half">
+            <DashboardCellTitle>Outreach progress</DashboardCellTitle>
+            <DashboardCellBody>72%</DashboardCellBody>
+          </DashboardCell>
+          <DashboardCell>
+            <DashboardCellTitle>Deadline</DashboardCellTitle>
+            <DashboardCellBody>-</DashboardCellBody>
+          </DashboardCell>
+          <DashboardCell gradient="green">
+            <DashboardCellTitle>Total won</DashboardCellTitle>
+            <DashboardCellBody>$3.42m</DashboardCellBody>
+          </DashboardCell>
+        </Dashboard>
+      </div>
+
+      <Separator />
 
       {/* Fit Score Indicator */}
       <div className="space-y-3">
