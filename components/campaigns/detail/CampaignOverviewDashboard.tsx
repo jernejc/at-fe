@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Send } from 'lucide-react';
+import { SatelliteDish } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
@@ -64,7 +64,7 @@ export function CampaignOverviewDashboard({
         <DashboardCell size="half" height="auto">
           <DashboardCellTitle>Status</DashboardCellTitle>
           <div className="flex items-center justify-between">
-            <DashboardCellBody size="sm" loading={loading} className="flex items-center gap-2">
+            <DashboardCellBody size="sm" loading={loading} className="flex items-center gap-3">
               <StatusIndicator status={status} size={10} />
               <span className='capitalize'>{status}</span>
             </DashboardCellBody>
@@ -73,7 +73,7 @@ export function CampaignOverviewDashboard({
                 variant="secondary"
                 onClick={() => setPublishDialogMode('publish')}
               >
-                <Send data-icon="inline-start" />
+                <SatelliteDish data-icon="inline-start" />
                 Publish
               </Button>
             )}

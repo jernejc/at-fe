@@ -20,7 +20,7 @@ const STATUS_FILTER: FilterDefinition = {
   label: 'Status',
   operators: ['is'],
   options: [
-    { value: 'published', label: 'Active' },
+    { value: 'published', label: 'Published' },
     { value: 'draft', label: 'Draft' },
     { value: 'completed', label: 'Completed' },
     { value: 'archived', label: 'Archived' },
