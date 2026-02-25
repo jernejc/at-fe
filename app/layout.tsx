@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Exo_2 } from "next/font/google";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PartnerProvider } from "@/components/providers/PartnerProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
