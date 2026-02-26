@@ -1,7 +1,6 @@
 'use client';
 
 import { useCampaignDetail } from '@/components/providers/CampaignDetailProvider';
-import type { CampaignRead } from '@/lib/schemas';
 
 interface UseCampaignDetailHeaderReturn {
     campaignName: string | null;
@@ -18,7 +17,7 @@ export function useCampaignDetailHeader(): UseCampaignDetailHeaderReturn {
 
     return {
         campaignName: campaign?.name ?? null,
-        campaignIcon: (campaign as CampaignRead & { icon?: string | null })?.icon ?? null,
+        campaignIcon: campaign?.icon ?? null,
         campaignStatus: campaign?.status ?? null,
         productName: overview?.product_name ?? null,
         loading,

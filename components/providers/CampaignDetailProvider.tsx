@@ -14,6 +14,8 @@ interface CampaignDetailContextValue {
   isUnpublishing: boolean;
   handlePublish: () => Promise<void>;
   handleUnpublish: () => Promise<void>;
+  /** Update campaign state in-place without a full refetch (avoids skeleton flash). */
+  setCampaign: React.Dispatch<React.SetStateAction<CampaignRead | null>>;
   refreshData: () => Promise<void>;
 }
 
@@ -99,6 +101,7 @@ export function CampaignDetailProvider({ slug, children }: CampaignDetailProvide
         isUnpublishing,
         handlePublish,
         handleUnpublish,
+        setCampaign,
         refreshData: fetchData,
       }}
     >

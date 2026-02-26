@@ -19,6 +19,7 @@ export interface CampaignRead {
     name: string;
     slug: string;
     description: string | null;
+    icon: string | null;
     owner: string | null;
     tags: string[];
     target_criteria: Record<string, any> | null;
@@ -45,6 +46,7 @@ export interface CampaignCreate {
 export interface CampaignUpdate {
     name?: string | null;
     description?: string | null;
+    icon?: string | null;
     status?: string | null;
     owner?: string | null;
     tags?: string[] | null;
