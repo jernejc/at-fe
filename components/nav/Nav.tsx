@@ -2,18 +2,23 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useNavRoutes } from "./useNavRoutes";
 import { NavNotifications } from "./NavNotifications";
 import { NavUserMenu } from "./NavUserMenu";
 import { usePartner } from "@/components/providers/PartnerProvider";
+import { NavSkeleton } from "./NavSkeleton";
 
 /** Global navigation bar rendered once in the root layout. */
 export function Nav() {
-  const { data: session } = useSession();
+  const pathname = usePathname();
+  const { data: session, status } = useSession();
   const { routes, activeHref } = useNavRoutes();
   const { partner } = usePartner();
 
+  if (pathname.startsWith("/signin")) return null;
+  if (status === "loading") return <NavSkeleton />;
   if (!session?.user) return null;
 
   return (

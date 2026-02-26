@@ -5,7 +5,9 @@ import { Nav } from "./Nav";
 const mockUseSession = vi.fn();
 const mockUseNavRoutes = vi.fn();
 const mockUsePartner = vi.fn();
+const mockUsePathname = vi.fn();
 
+vi.mock("next/navigation", () => ({ usePathname: () => mockUsePathname() }));
 vi.mock("next-auth/react", () => ({ useSession: () => mockUseSession() }));
 vi.mock("./useNavRoutes", () => ({ useNavRoutes: () => mockUseNavRoutes() }));
 vi.mock("@/components/providers/PartnerProvider", () => ({
@@ -25,6 +27,9 @@ vi.mock("next/link", () => ({
     <a href={href} {...props}>{children}</a>
   ),
 }));
+vi.mock("./NavSkeleton", () => ({
+  NavSkeleton: () => <nav aria-hidden="true" className="h-24" data-testid="nav-skeleton" />,
+}));
 
 const pdmRoutes = [
   { label: "Campaigns", href: "/" },
@@ -33,14 +38,36 @@ const pdmRoutes = [
 ];
 
 beforeEach(() => {
-  mockUseSession.mockReturnValue({ data: { user: { name: "Test" } } });
+  mockUsePathname.mockReturnValue("/");
+  mockUseSession.mockReturnValue({ data: { user: { name: "Test" } }, status: "authenticated" });
   mockUseNavRoutes.mockReturnValue({ routes: pdmRoutes, activeHref: "/" });
   mockUsePartner.mockReturnValue({ partner: null });
 });
 
 describe("Nav", () => {
+  it("renders nothing on the signin page", () => {
+    mockUsePathname.mockReturnValue("/signin");
+
+    const { container } = render(<Nav />);
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("renders nothing on signin sub-routes", () => {
+    mockUsePathname.mockReturnValue("/signin/verify");
+
+    const { container } = render(<Nav />);
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("renders skeleton nav while session is loading", () => {
+    mockUseSession.mockReturnValue({ data: null, status: "loading" });
+
+    render(<Nav />);
+    expect(screen.getByTestId("nav-skeleton")).toBeInTheDocument();
+  });
+
   it("renders nothing when there is no session", () => {
-    mockUseSession.mockReturnValue({ data: null });
+    mockUseSession.mockReturnValue({ data: null, status: "unauthenticated" });
 
     const { container } = render(<Nav />);
     expect(container.innerHTML).toBe("");
