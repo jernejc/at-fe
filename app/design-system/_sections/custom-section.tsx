@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { CampaignProgress } from '@/components/ui/campaign-progress';
+import { CompanyStatus } from '@/components/ui/company-status';
+import type { CompanyStatusValue } from '@/components/ui/company-status';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
@@ -53,6 +55,16 @@ const sampleSortOpts: SortOptionDefinition[] = [
   { value: 'name', label: 'Name' },
   { value: 'company_count', label: 'Companies' },
   { value: 'avg_fit_score', label: 'Fit Score' },
+];
+
+const companyStatusSamples: { label: string; status: CompanyStatusValue; progress?: number }[] = [
+  { label: 'New', status: 'new' },
+  { label: 'Default', status: 'default' },
+  { label: 'In progress (25%)', status: 'in_progress', progress: 25 },
+  { label: 'In progress (60%)', status: 'in_progress', progress: 60 },
+  { label: 'In progress (90%)', status: 'in_progress', progress: 90 },
+  { label: 'Closed Won', status: 'closed_won' },
+  { label: 'Closed Lost', status: 'closed_lost' },
 ];
 
 const campaignProgressSamples = [
@@ -333,6 +345,27 @@ export function CustomSection() {
           </div>
         </div>
       </div>
+      <Separator />
+
+      {/* Company Status */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          CompanyStatus
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Circle indicator for company lifecycle: new (yellow ring), default (grey ring),
+          in_progress (green arc), closed_won (green check), closed_lost (red X).
+        </p>
+        <div className="flex items-center gap-6">
+          {companyStatusSamples.map((s) => (
+            <div key={s.label} className="flex items-center gap-2">
+              <CompanyStatus status={s.status} progress={s.progress} />
+              <span className="text-xs text-muted-foreground">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <Separator />
 
       {/* Campaign Progress */}

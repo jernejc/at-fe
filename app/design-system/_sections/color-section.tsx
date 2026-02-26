@@ -37,6 +37,8 @@ const scoreTokens = [
 const accentGreenTokens = [
   { name: 'accent-green', tw: 'bg-accent-green' },
   { name: 'accent-green-dark', tw: 'bg-accent-green-dark' },
+  { name: 'accent-yellow', tw: 'bg-accent-yellow' },
+  { name: 'accent-dark-red', tw: 'bg-accent-dark-red' },
 ];
 
 function Swatch({ name, tw }: { name: string; tw: string }) {
@@ -99,7 +101,7 @@ export function ColorSection() {
         </div>
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            Accent Green
+            Accent Colors
           </h3>
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
             {accentGreenTokens.map((t) => (
