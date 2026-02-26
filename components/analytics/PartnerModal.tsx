@@ -126,7 +126,7 @@ export function PartnerModal({ partner, open, onClose }: PartnerModalProps) {
                                 <span className="text-lg">{healthIndicators[partner.health].emoji}</span>
                             </div>
                             <div className="flex items-center gap-4 mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                <Badge variant="secondary" className="bg-indigo-100 text-indigo-800">
+                                <Badge variant="purple">
                                     {partner.tier}
                                 </Badge>
                                 <span>{partner.type}</span>
@@ -183,7 +183,7 @@ export function PartnerModal({ partner, open, onClose }: PartnerModalProps) {
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {partner.certifications.map((cert, index) => (
-                                                <Badge key={index} variant="outline" className="text-xs">
+                                                <Badge key={index} variant="grey" className="text-xs">
                                                     ✓ {cert}
                                                 </Badge>
                                             ))}
@@ -200,8 +200,7 @@ export function PartnerModal({ partner, open, onClose }: PartnerModalProps) {
                                             {partner.preferredVerticals.map((vertical, index) => (
                                                 <Badge
                                                     key={index}
-                                                    variant="secondary"
-                                                    className="text-xs bg-slate-100 text-slate-700"
+                                                    variant="grey"
                                                 >
                                                     {vertical}
                                                 </Badge>
@@ -285,12 +284,7 @@ export function PartnerModal({ partner, open, onClose }: PartnerModalProps) {
                                         <TableCell className="text-right">{campaign.pipeline}</TableCell>
                                         <TableCell>
                                             <Badge
-                                                variant="secondary"
-                                                className={
-                                                    campaign.status === "Active"
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-slate-100 text-slate-600"
-                                                }
+                                                variant={campaign.status === "Active" ? "green" : "grey"}
                                             >
                                                 {campaign.status}
                                             </Badge>

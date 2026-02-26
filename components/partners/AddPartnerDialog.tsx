@@ -200,10 +200,7 @@ export function AddPartnerDialog({
                                                     {partner.description}
                                                 </p>
                                                 <div className="flex items-center gap-2">
-                                                    <Badge variant={isSelected ? "default" : "secondary"} className={cn(
-                                                        "capitalize font-normal text-xs",
-                                                        !isSelected && "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
-                                                    )}>
+                                                    <Badge variant={isSelected ? "default" : "grey"} className="capitalize font-normal text-xs">
                                                         {partner.type}
                                                     </Badge>
                                                 </div>

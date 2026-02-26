@@ -82,7 +82,7 @@ export function CompactPartnerRow({
                     </div>
                 )}
                  {!suggestion && partner.type && (partner.description || partner.type !== (partner.description || partner.type)) && (
-                     <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-normal">
+                     <Badge variant="grey" className="text-[10px] h-5 px-1.5 font-normal">
                         {partner.type}
                      </Badge>
                 )}

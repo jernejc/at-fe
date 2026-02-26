@@ -53,12 +53,12 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 flex-wrap">
                                             {contact.role_category && (
-                                                <Badge variant="outline" className="text-slate-500 font-normal border-slate-200">
+                                                <Badge variant="grey" className="font-normal">
                                                     {contact.role_category}
                                                 </Badge>
                                             )}
                                             {contact.priority_rank && contact.priority_rank <= 3 && (
-                                                <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 border-0">
+                                                <Badge variant="orange">
                                                     <Star className="w-3 h-3 mr-1" />
                                                     Priority #{contact.priority_rank}
                                                 </Badge>
@@ -144,7 +144,7 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                             {contact.preferred_channel && (
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-xs font-medium text-muted-foreground uppercase">Preferred:</span>
-                                                    <Badge variant="secondary" className="capitalize">
+                                                    <Badge variant="grey" className="capitalize">
                                                         {contact.preferred_channel}
                                                     </Badge>
                                                 </div>
@@ -154,7 +154,7 @@ export function KeyStakeholderSheet({ open, onOpenChange, contact, isLoading }: 
                                                     <span className="text-xs font-medium text-muted-foreground uppercase mr-2">Sequence:</span>
                                                     {contact.channel_sequence.map((channel, i) => (
                                                         <span key={i} className="flex items-center">
-                                                            <Badge variant="outline" className="capitalize text-xs">
+                                                            <Badge variant="grey" className="capitalize text-xs">
                                                                 {channel}
                                                             </Badge>
                                                             {i < contact.channel_sequence!.length - 1 && (

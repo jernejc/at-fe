@@ -116,7 +116,7 @@ export function PartnerDetailSheet({
                                     <h2 className="text-xl font-bold tracking-tight text-foreground">
                                         {partner.name}
                                     </h2>
-                                    <Badge variant="secondary" className="capitalize text-xs">
+                                    <Badge variant="grey" className="capitalize text-xs">
                                         {partner.type}
                                     </Badge>
                                 </div>

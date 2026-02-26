@@ -62,7 +62,7 @@ export function IntegrationCard({
           {/* Keywords */}
           <div className="flex flex-wrap gap-1.5 mt-3">
             {integration.keywords.map((keyword) => (
-              <Badge key={keyword} variant="default" className="text-xs bg-slate-100 text-slate-700">
+              <Badge key={keyword} variant="grey">
                 {keyword}
               </Badge>
             ))}

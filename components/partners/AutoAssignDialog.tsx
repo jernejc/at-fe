@@ -134,7 +134,7 @@ export function AutoAssignDialog({
                                             </span>
                                             <div className="flex items-center gap-2">
                                                 <ArrowRight className="w-4 h-4 text-slate-400" />
-                                                <Badge variant="secondary" className="font-semibold">
+                                                <Badge variant="grey" className="font-semibold">
                                                     +{count} accounts
                                                 </Badge>
                                             </div>

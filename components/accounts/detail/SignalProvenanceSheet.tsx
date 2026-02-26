@@ -53,15 +53,15 @@ export function SignalProvenanceSheet({ open, onOpenChange, signal, isLoading }:
                                 <div className="space-y-3">
                                     {/* Signal type and confidence badges */}
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <Badge variant="outline" className="capitalize text-xs">
+                                        <Badge variant="grey" className="capitalize text-xs">
                                             {signal.signal_type}
                                         </Badge>
-                                        <Badge variant={signal.confidence > 0.7 ? "default" : "secondary"} className="text-xs">
+                                        <Badge variant={signal.confidence > 0.7 ? "default" : "grey"} className="text-xs">
                                             {Math.round(signal.confidence * 100)}% Confidence
                                         </Badge>
                                         {visibleSourceTypes.length > 0 && (
                                             visibleSourceTypes.slice(0, 3).map((sourceType, i) => (
-                                                <Badge key={i} variant="secondary" className="capitalize text-xs">
+                                                <Badge key={i} variant="grey" className="capitalize text-xs">
                                                     {sourceType.replace(/_/g, ' ')}
                                                 </Badge>
                                             ))
@@ -324,7 +324,7 @@ function ContributorCard({ contributor }: { contributor: SignalContributor }) {
                 )}
             </div>
             {contributor.evidence && (
-                <Badge variant="outline" className="text-[10px] max-w-[120px] truncate" title={contributor.evidence}>
+                <Badge variant="grey" className="text-[10px] max-w-[120px] truncate" title={contributor.evidence}>
                     Has Evidence
                 </Badge>
             )}

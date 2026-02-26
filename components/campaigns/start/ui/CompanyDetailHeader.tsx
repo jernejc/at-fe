@@ -70,13 +70,13 @@ export function CompanyDetailHeader({ company, onClose }: CompanyDetailHeaderPro
                     {/* Badges row */}
                     <div className="flex flex-wrap items-center gap-2 mt-2">
                         {company.industry && (
-                            <Badge variant="secondary" className="text-xs gap-1">
+                            <Badge variant="grey" className="text-xs gap-1">
                                 <Building2 className="w-3 h-3" />
                                 {company.industry}
                             </Badge>
                         )}
                         {company.employee_count && (
-                            <Badge variant="secondary" className="text-xs gap-1">
+                            <Badge variant="grey" className="text-xs gap-1">
                                 <Users className="w-3 h-3" />
                                 {formatCompactNumber(company.employee_count)} employees
                             </Badge>

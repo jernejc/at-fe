@@ -155,14 +155,11 @@ export function PartnerSelection({ selectedPartners, onSelectionChange }: Partne
                                         {partner.description}
                                     </p>
                                     <div className="flex items-center gap-2">
-                                        <Badge variant={isSelected ? "default" : "secondary"} className={cn(
-                                            "capitalize font-normal",
-                                            !isSelected && "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
-                                        )}>
+                                        <Badge variant={isSelected ? "default" : "grey"} className="capitalize font-normal">
                                             {partner.type}
                                         </Badge>
                                         {partner.match_score >= 90 && (
-                                            <Badge variant="outline" className="border-emerald-200 text-emerald-600 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-400 font-bold gap-1">
+                                            <Badge variant="green" className="font-bold gap-1">
                                                 {partner.match_score}% Match
                                             </Badge>
                                         )}

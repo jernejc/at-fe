@@ -3,11 +3,13 @@ import { Circle, Zap } from 'lucide-react';
 
 const variants = [
   'default',
-  'secondary',
-  'destructive',
-  'outline',
-  'ghost',
-  'link',
+  'grey',
+  'green',
+  'orange',
+  'red',
+  'blue',
+  'yellow',
+  'purple',
 ] as const;
 
 /** Badge variants showcase. */
@@ -43,7 +45,7 @@ export function BadgeSection() {
             <Circle data-icon="inline-start" />
             Status
           </Badge>
-          <Badge variant="outline">
+          <Badge variant="blue">
             <Zap data-icon="inline-start" />
             Signal
           </Badge>

@@ -231,7 +231,7 @@ export function CompaniesCard({ companies, totalCount, className, isLoading = fa
                                     Matching Companies
                                 </span>
                             </div>
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="grey" className="text-xs">
                                 {isLoading ? (
                                     <span className="flex items-center gap-1">
                                         <motion.span

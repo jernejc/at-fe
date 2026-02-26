@@ -290,7 +290,7 @@ export function PartnerDashboard() {
                                                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                                                     New Opportunities
                                                 </h2>
-                                                <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                                                <Badge variant="orange">
                                                     {newOpportunities.length} pending
                                                 </Badge>
                                             </div>

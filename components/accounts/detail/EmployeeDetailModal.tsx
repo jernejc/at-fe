@@ -60,18 +60,18 @@ export function EmployeeDetailModal({ employee, open, onClose, isLoading = false
                                 )}
                                 <div className="flex flex-wrap gap-2 mt-3">
                                     {playbookContext?.role_category && (
-                                        <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-200">
+                                        <Badge variant="purple">
                                             {playbookContext.role_category}
                                         </Badge>
                                     )}
                                     {employee.is_decision_maker && (
-                                        <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0">Decision Maker</Badge>
+                                        <Badge className="bg-amber-500 text-white border-amber-500 dark:bg-amber-500 dark:text-white dark:border-amber-500">Decision Maker</Badge>
                                     )}
                                     {employee.department && (
-                                        <Badge variant="secondary" className="bg-slate-100 dark:bg-slate-800">{employee.department}</Badge>
+                                        <Badge variant="grey">{employee.department}</Badge>
                                     )}
                                     {employee.management_level && (
-                                        <Badge variant="outline">{employee.management_level}</Badge>
+                                        <Badge variant="grey">{employee.management_level}</Badge>
                                     )}
                                 </div>
                             </div>
@@ -223,7 +223,7 @@ export function EmployeeDetailModal({ employee, open, onClose, isLoading = false
                         {employee.skills && employee.skills.length > 0 ? (
                             <div className="flex flex-wrap gap-1.5">
                                 {employee.skills.map((skill, i) => (
-                                    <Badge key={i} variant="secondary" className="px-2.5 py-1 bg-violet-50 text-violet-700 hover:bg-violet-100 border-violet-100">
+                                    <Badge key={i} variant="purple" className="px-2.5 py-1">
                                         {skill}
                                     </Badge>
                                 ))}
@@ -261,7 +261,7 @@ export function EmployeeDetailModal({ employee, open, onClose, isLoading = false
                             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Languages</h3>
                             <div className="flex flex-wrap gap-1.5">
                                 {employee.languages.map((lang, i) => (
-                                    <Badge key={i} variant="outline" className="font-normal px-3 py-1">{lang}</Badge>
+                                    <Badge key={i} variant="grey" className="font-normal px-3 py-1">{lang}</Badge>
                                 ))}
                             </div>
                         </section>

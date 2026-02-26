@@ -54,7 +54,7 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                             <SheetHeader className="space-y-4">
                                 <div className="flex items-start justify-between gap-6">
                                     <div className="space-y-2">
-                                        <Badge variant="outline" className="mb-2 w-fit text-slate-500 font-normal border-slate-200">
+                                        <Badge variant="grey" className="mb-2 w-fit font-normal">
                                             {fit.product_name}
                                         </Badge>
                                         <SheetTitle className="text-3xl font-bold flex items-center gap-2">
@@ -101,7 +101,7 @@ export function FitBreakdownSheet({ open, onOpenChange, fit, isLoading }: FitBre
                                         </h3>
                                         <div className="flex flex-wrap gap-2">
                                             {fit.top_drivers.map((driver, i) => (
-                                                <Badge key={i} variant="secondary" className="px-2.5 py-1 text-sm capitalize bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                                <Badge key={i} variant="grey" className="px-2.5 py-1 text-sm capitalize">
                                                     {driver.replace(/_/g, ' ')}
                                                 </Badge>
                                             ))}

@@ -188,7 +188,7 @@ export function AccountCard({
                 <div className="flex flex-wrap items-center gap-1.5 text-xs">
                     {/* Intent Badge */}
                     {hasScore && urgencyScore >= 8 && (
-                        <Badge variant="secondary" className="gap-1 px-2 py-0.5 rounded-full bg-emerald-100/80 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-0 text-[10px] font-medium">
+                        <Badge variant="green" className="gap-1 px-2 py-0.5 text-[10px] font-medium">
                             <span className="relative flex h-1.5 w-1.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
@@ -197,7 +197,7 @@ export function AccountCard({
                         </Badge>
                     )}
                     {hasScore && urgencyScore >= 5 && urgencyScore < 8 && (
-                        <Badge variant="secondary" className="gap-1 px-2 py-0.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-0 text-[10px] font-medium">
+                        <Badge variant="orange" className="gap-1 px-2 py-0.5 text-[10px] font-medium">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             Warming Up
                         </Badge>
@@ -208,8 +208,8 @@ export function AccountCard({
                         account.top_drivers.slice(0, 2).map((driver, i) => (
                             <Badge
                                 key={i}
-                                variant="outline"
-                                className="px-2 py-0.5 rounded-full bg-slate-50/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200/60 dark:border-slate-700/60 text-[10px] font-medium"
+                                variant="grey"
+                                className="px-2 py-0.5 text-[10px] font-medium"
                             >
                                 {driver}
                             </Badge>

@@ -88,7 +88,7 @@ export function CampaignOverviewDashboard({
           <div>
             <DashboardCellTitle>Companies</DashboardCellTitle>
             {unassignedCount != null && unassignedCount > 0 && (
-              <Badge className="mt-1 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border-transparent">
+              <Badge variant="orange" className="mt-1">
                 {unassignedCount} unassigned
               </Badge>
             )}
@@ -105,7 +105,7 @@ export function CampaignOverviewDashboard({
           <div>
             <DashboardCellTitle>Partners</DashboardCellTitle>
             {inactivePartnerCount != null && inactivePartnerCount > 0 && (
-              <Badge className="mt-1 bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 border-transparent">
+              <Badge variant="red" className="mt-1">
                 {inactivePartnerCount} inactive
               </Badge>
             )}

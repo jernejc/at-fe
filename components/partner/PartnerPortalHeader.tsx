@@ -186,7 +186,7 @@ export function PartnerPortalHeader({
                             stats.topIndustries.slice(0, 2).map((industry, i) => (
                                 <Badge
                                     key={i}
-                                    variant="secondary"
+                                    variant="grey"
                                     className="text-xs px-2 py-0.5"
                                 >
                                     {industry}

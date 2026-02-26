@@ -26,12 +26,12 @@ interface CampaignTableProps {
 
 type SortField = keyof CampaignPerformance;
 
-const workloadColors: Record<string, string> = {
-    Gemini: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    GCP: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    Security: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-    Workspace: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-    Looker: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+const workloadVariants: Record<string, 'blue' | 'green' | 'red' | 'purple' | 'orange'> = {
+    Gemini: "blue",
+    GCP: "green",
+    Security: "red",
+    Workspace: "purple",
+    Looker: "orange",
 };
 
 function formatCurrency(value: number): string {
@@ -183,7 +183,7 @@ export function CampaignTable({ data, onCampaignClick }: CampaignTableProps) {
                                 {campaign.name}
                             </TableCell>
                             <TableCell>
-                                <Badge variant="secondary" className={workloadColors[campaign.workload]}>
+                                <Badge variant={workloadVariants[campaign.workload]}>
                                     {campaign.workload}
                                 </Badge>
                             </TableCell>

@@ -26,10 +26,10 @@ interface PartnerTableProps {
 
 type SortField = keyof PartnerPerformance;
 
-const tierColors: Record<string, string> = {
-    Strategic: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-    Disti: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
-    Service: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+const tierVariants: Record<string, 'purple' | 'green' | 'orange'> = {
+    Strategic: "purple",
+    Disti: "green",
+    Service: "orange",
 };
 
 const healthIndicators: Record<string, { emoji: string; label: string; color: string }> = {
@@ -182,7 +182,7 @@ export function PartnerTable({ data, onPartnerClick }: PartnerTableProps) {
                                 {partner.name}
                             </TableCell>
                             <TableCell>
-                                <Badge variant="secondary" className={tierColors[partner.tier]}>
+                                <Badge variant={tierVariants[partner.tier]}>
                                     {partner.tier}
                                 </Badge>
                             </TableCell>

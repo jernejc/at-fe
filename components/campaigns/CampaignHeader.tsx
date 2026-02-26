@@ -156,11 +156,8 @@ export function CampaignHeader({
                                 {campaign.name}
                             </h1>
                             <Badge
-                                variant={campaign.status === 'published' ? 'default' : 'secondary'}
-                                className={`capitalize px-2.5 py-0.5 text-xs font-semibold ${campaign.status === 'published'
-                                    ? 'bg-emerald-500 hover:bg-emerald-500 text-white border-0'
-                                    : ''
-                                }`}
+                                variant={campaign.status === 'published' ? 'green' : 'grey'}
+                                className="capitalize px-2.5 py-0.5 text-xs font-semibold"
                             >
                                 {campaign.status === 'published' ? 'Active' : campaign.status}
                             </Badge>

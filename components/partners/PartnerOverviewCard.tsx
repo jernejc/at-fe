@@ -79,7 +79,7 @@ export function PartnerOverviewCard({ partner, onClick, isSelected }: PartnerOve
                             <h3 className="font-semibold text-base text-slate-900 dark:text-white truncate">
                                 {partner.name}
                             </h3>
-                            <Badge variant="secondary" className="capitalize text-xs">
+                            <Badge variant="grey" className="capitalize text-xs">
                                 {partner.type}
                             </Badge>
                         </div>
@@ -121,12 +121,12 @@ export function PartnerOverviewCard({ partner, onClick, isSelected }: PartnerOve
                         {partner.industries && partner.industries.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mt-3">
                                 {partner.industries.slice(0, 3).map((industry, index) => (
-                                    <Badge key={`${industry}-${index}`} variant="outline" className="text-xs font-normal">
+                                    <Badge key={`${industry}-${index}`} variant="grey" className="text-xs font-normal">
                                         {industry}
                                     </Badge>
                                 ))}
                                 {partner.industries.length > 3 && (
-                                    <Badge variant="outline" className="text-xs font-normal text-slate-400">
+                                    <Badge variant="grey" className="text-xs font-normal">
                                         +{partner.industries.length - 3} more
                                     </Badge>
                                 )}

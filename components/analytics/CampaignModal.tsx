@@ -48,13 +48,12 @@ export function CampaignModal({ campaign, open, onClose }: CampaignModalProps) {
                                     <span>PDM: {campaign.pdmName}</span>
                                 </div>
                                 <Badge
-                                    variant="secondary"
-                                    className={
+                                    variant={
                                         campaign.status === "Active"
-                                            ? "bg-green-100 text-green-800"
+                                            ? "green"
                                             : campaign.status === "Paused"
-                                                ? "bg-amber-100 text-amber-800"
-                                                : "bg-slate-100 text-slate-800"
+                                                ? "orange"
+                                                : "grey"
                                     }
                                 >
                                     {campaign.status}

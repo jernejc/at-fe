@@ -54,7 +54,7 @@ export function NewsTab({ news, total, onLoadMore, loadingMore }: NewsTabProps) 
                                             </span>
                                         )}
                                         {article.event_type && (
-                                            <Badge variant="outline" className="bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 border-violet-100 dark:border-violet-800 font-medium">
+                                            <Badge variant="purple" className="font-medium">
                                                 {article.event_type}
                                             </Badge>
                                         )}

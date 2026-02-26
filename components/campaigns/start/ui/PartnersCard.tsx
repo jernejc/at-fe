@@ -48,7 +48,7 @@ export function PartnersCard({
                         Select Partners
                     </span>
                 </div>
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="grey" className="text-xs">
                     {isLoading ? (
                         <motion.span
                             animate={{ opacity: [0.5, 1, 0.5] }}
@@ -119,7 +119,7 @@ export function PartnersCard({
                                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Recommended Partners
                                     </span>
-                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                                    <Badge variant="grey" className="text-[10px] h-4 px-1.5">
                                         {partnerSuggestions.length}
                                     </Badge>
                                 </div>
@@ -158,7 +158,7 @@ export function PartnersCard({
                                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         All Partners
                                     </span>
-                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                                    <Badge variant="grey" className="text-[10px] h-4 px-1.5">
                                         {otherPartners.length}
                                     </Badge>
                                 </div>
