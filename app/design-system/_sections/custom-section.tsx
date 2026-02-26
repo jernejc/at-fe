@@ -10,12 +10,13 @@ import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { TrendIndicator } from '@/components/ui/trend-indicator';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { CampaignRow } from '@/components/campaigns/CampaignRow';
+import { CompanyRow } from '@/components/campaigns/CompanyRow';
 import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { CAMPAIGN_ICON_NAMES } from '@/lib/config/campaign-icons';
 import { Separator } from '@/components/ui/separator';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
-import type { CampaignRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState } from '@/lib/schemas';
+import type { CampaignRowData, CompanyRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState } from '@/lib/schemas';
 
 const sampleFilterDefs: FilterDefinition[] = [
   {
@@ -81,6 +82,33 @@ const fitScoreSamples = [
   { score: 60, change: -4, label: 'Moderate' },
   { score: 80, label: 'High' },
   { score: 95, change: 5, label: 'Very high' },
+];
+
+const sampleCompanies: CompanyRowData[] = [
+  {
+    id: 1, name: 'Recursion', domain: 'recursion.com',
+    status: 'default', fit_score: 0.9, fit_score_change: -3,
+    hq_country: 'United States', employee_count: 128,
+    revenue: 241400000, partner_name: 'Brio Tech',
+  },
+  {
+    id: 2, name: 'Stripe', domain: 'stripe.com',
+    status: 'in_progress', progress: 60,
+    fit_score: 0.82, fit_score_change: 5,
+    hq_country: 'United States', employee_count: 8000,
+    revenue: 14000000000, partner_name: 'Acme Partners',
+  },
+  {
+    id: 3, name: 'Klarna', domain: 'klarna.com',
+    status: 'closed_won', fit_score: 0.71,
+    hq_country: 'Sweden', employee_count: 5000,
+    revenue: 1900000000,
+  },
+  {
+    id: 4, name: 'Notion', domain: 'notion.so',
+    status: 'new', fit_score: 0.55, fit_score_change: 8,
+    hq_country: 'United States', employee_count: 600,
+  },
 ];
 
 const sampleCampaigns: CampaignRowData[] = [
@@ -215,6 +243,27 @@ export function CustomSection() {
           {sampleCampaigns.map((campaign) => (
             <div key={campaign.id}>
               <CampaignRow campaign={campaign} onClick={() => {}} className='-mx-6' />
+              <Separator />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Company Row */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          CompanyRow
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Table row showing company status, logo, name, domain, fit score with trend, location, employee count, revenue, and assigned partner.
+        </p>
+        <div>
+          <Separator />
+          {sampleCompanies.map((company) => (
+            <div key={company.id}>
+              <CompanyRow company={company} onClick={() => {}} className='-mx-6' />
               <Separator />
             </div>
           ))}

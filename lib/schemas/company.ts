@@ -114,6 +114,32 @@ export interface StatsResponse {
     last_updated: string | null;
 }
 
+/**
+ * Row-level data for the CompanyRow component.
+ * All optional fields degrade gracefully when absent.
+ */
+export interface CompanyRowData {
+    id: number;
+    name: string;
+    domain: string;
+    logo_url?: string | null;
+    logo_base64?: string | null;
+    /** Maps to CompanyStatusValue in the UI ('default' | 'new' | 'in_progress' | 'closed_won' | 'closed_lost') */
+    status: string;
+    /** 0-100 progress for in_progress status ring */
+    progress?: number;
+    /** Fit score in 0-1 range (normalised to 0-100 in component) */
+    fit_score?: number | null;
+    /** Fit score change since last period */
+    fit_score_change?: number | null;
+    hq_country?: string | null;
+    employee_count?: number | null;
+    /** Revenue in dollars (formatted via formatCurrency) */
+    revenue?: number | null;
+    partner_name?: string | null;
+    partner_logo_url?: string | null;
+}
+
 export interface CompanyFilters {
     [key: string]: string | number | boolean | undefined;
     page?: number;

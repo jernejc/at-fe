@@ -19,6 +19,7 @@ export type {
     CompanyDetailResponse,
     CompanyInclude,
     StatsResponse,
+    CompanyRowData,
     CompanyFilters,
     DataDepth,
 } from './company';

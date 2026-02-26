@@ -2,6 +2,7 @@
 export { CampaignsList } from './CampaignsList';
 export { CampaignCardPreview } from './CampaignCardPreview';
 export { CampaignRow, CampaignRowSkeleton } from './CampaignRow';
+export { CompanyRow, CompanyRowSkeleton } from './CompanyRow';
 export { ProductSection } from './ProductSection';
 export { ProductAssignmentDialog } from './ProductAssignmentDialog';
 export { CampaignCreateWizard } from './CampaignCreateWizard';
