@@ -86,28 +86,28 @@ const fitScoreSamples = [
 
 const sampleCompanies: CompanyRowData[] = [
   {
-    id: 1, name: 'Recursion', domain: 'recursion.com',
+    id: 1, name: 'Notion', domain: 'notion.so',
+    status: 'new', fit_score: 0.55, fit_score_change: 8,
+    hq_country: 'United States', employee_count: 600,
+  },
+  {
+    id: 2, name: 'Recursion', domain: 'recursion.com',
     status: 'default', fit_score: 0.9, fit_score_change: -3,
     hq_country: 'United States', employee_count: 128,
     revenue: 241400000, partner_name: 'Brio Tech',
   },
   {
-    id: 2, name: 'Stripe', domain: 'stripe.com',
+    id: 3, name: 'Stripe', domain: 'stripe.com',
     status: 'in_progress', progress: 60,
     fit_score: 0.82, fit_score_change: 5,
     hq_country: 'United States', employee_count: 8000,
     revenue: 14000000000, partner_name: 'Acme Partners',
   },
   {
-    id: 3, name: 'Klarna', domain: 'klarna.com',
+    id: 4, name: 'Klarna', domain: 'klarna.com',
     status: 'closed_won', fit_score: 0.71,
     hq_country: 'Sweden', employee_count: 5000,
     revenue: 1900000000,
-  },
-  {
-    id: 4, name: 'Notion', domain: 'notion.so',
-    status: 'new', fit_score: 0.55, fit_score_change: 8,
-    hq_country: 'United States', employee_count: 600,
   },
 ];
 
@@ -242,7 +242,7 @@ export function CustomSection() {
           <Separator />
           {sampleCampaigns.map((campaign) => (
             <div key={campaign.id}>
-              <CampaignRow campaign={campaign} onClick={() => {}} className='-mx-6' />
+              <CampaignRow campaign={campaign} onClick={() => { }} className='-mx-6' />
               <Separator />
             </div>
           ))}
@@ -263,7 +263,7 @@ export function CustomSection() {
           <Separator />
           {sampleCompanies.map((company) => (
             <div key={company.id}>
-              <CompanyRow company={company} onClick={() => {}} className='-mx-6' />
+              <CompanyRow company={company} onClick={() => { }} className='-mx-6' />
               <Separator />
             </div>
           ))}

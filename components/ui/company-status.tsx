@@ -94,7 +94,7 @@ export function CompanyStatus({
           <circle cx={10} cy={10} r={10} fill="var(--accent-green-dark)" />
           <path
             d="M6.5 10.5 L9 13 L14 7"
-            stroke="white"
+            stroke="var(--background)"
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -108,7 +108,7 @@ export function CompanyStatus({
           <circle cx={10} cy={10} r={10} fill="var(--accent-dark-red)" />
           <path
             d="M7 7 L13 13 M13 7 L7 13"
-            stroke="white"
+            stroke="var(--background)"
             strokeWidth={2}
             strokeLinecap="round"
             fill="none"
