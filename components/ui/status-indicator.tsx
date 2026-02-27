@@ -13,7 +13,7 @@ interface StatusIndicatorProps {
 export function getStatusDotColor(status: string): string {
   const s = status.toLowerCase();
   if (s === 'active' || s === 'published') return 'bg-emerald-500';
-  if (s === 'draft') return 'bg-slate-400';
+  if (s === 'draft') return 'bg-gray-400';
   if (s === 'completed') return 'bg-emerald-700 dark:bg-emerald-600';
   if (s === 'archived') return 'bg-amber-500';
   return 'bg-slate-400';

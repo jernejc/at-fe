@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Nav } from "@/components/nav/Nav";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
@@ -31,6 +32,7 @@ export default function RootLayout({
             <ThemeProvider>
               <TooltipProvider delay={200}>
                 <div className="min-h-screen flex flex-col">
+                  <ScrollToTop />
                   <Nav />
                   {children}
                 </div>
