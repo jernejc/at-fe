@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SatelliteDish } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
@@ -73,7 +73,7 @@ export function CampaignOverviewDashboard({
                 variant="secondary"
                 onClick={() => setPublishDialogMode('publish')}
               >
-                <SatelliteDish data-icon="inline-start" />
+                <Bell data-icon="inline-start" />
                 Publish
               </Button>
             )}

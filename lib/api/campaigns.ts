@@ -92,6 +92,8 @@ export async function getCampaignCompanies(
         page?: number;
         page_size?: number;
         segment?: string;
+        status?: string;
+        partner_id?: string;
         sort_by?: 'priority' | 'fit_score' | 'created_at' | 'name';
         sort_order?: 'asc' | 'desc';
     }

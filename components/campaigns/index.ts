@@ -12,6 +12,10 @@ export { SearchPhaseIndicator, SearchPhaseDotsInline } from './SearchPhaseIndica
 export { InterpretationCard } from './InterpretationCard';
 export { SearchInsightsPanel, SearchInsightsInline } from './SearchInsightsPanel';
 
+// Campaign companies sub-page
+export { CampaignCompaniesView } from './companies/CampaignCompaniesView';
+export { useCampaignCompanies } from './companies/useCampaignCompanies';
+
 // Campaign detail
 export { CampaignHeader } from './CampaignHeader';
 export { CampaignDetailHeader } from './CampaignDetailHeader';
