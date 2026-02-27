@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { CampaignCompaniesView } from './CampaignCompaniesView';
 import type { UseCampaignCompaniesReturn } from './useCampaignCompanies';
@@ -133,5 +134,50 @@ describe('CampaignCompaniesView — empty state', () => {
       searchQuery: 'nonexistent',
     })} />);
     expect(screen.getByText('No matching companies')).toBeInTheDocument();
+  });
+});
+
+describe('CampaignCompaniesView — selection', () => {
+  it('passes onClick to company rows when onCompanyClick is provided', async () => {
+    const user = userEvent.setup();
+    const onCompanyClick = vi.fn();
+    render(
+      <CampaignCompaniesView {...makeDefaultProps()} onCompanyClick={onCompanyClick} />,
+    );
+
+    await user.click(screen.getByText('Acme Corp'));
+    expect(onCompanyClick).toHaveBeenCalledWith(expect.objectContaining({ id: 1, name: 'Acme Corp' }));
+  });
+
+  it('marks the selected company row as active', () => {
+    render(
+      <CampaignCompaniesView
+        {...makeDefaultProps()}
+        onCompanyClick={vi.fn()}
+        selectedCompanyId={2}
+      />,
+    );
+
+    const betaRow = screen.getByText('Beta Inc').closest('.group') as HTMLElement;
+    expect(betaRow.className).toContain('bg-card');
+
+    const acmeRow = screen.getByText('Acme Corp').closest('.group') as HTMLElement;
+    expect(acmeRow.className).not.toMatch(/(?<!\S)bg-card(?!\S)/);
+  });
+
+  it('calls getItemRef for each company', () => {
+    const getItemRef = vi.fn(() => vi.fn());
+    render(
+      <CampaignCompaniesView {...makeDefaultProps()} getItemRef={getItemRef} />,
+    );
+
+    expect(getItemRef).toHaveBeenCalledWith(1);
+    expect(getItemRef).toHaveBeenCalledWith(2);
+  });
+
+  it('works without optional selection props', () => {
+    render(<CampaignCompaniesView {...makeDefaultProps()} />);
+    expect(screen.getByText('Acme Corp')).toBeInTheDocument();
+    expect(screen.getByText('Beta Inc')).toBeInTheDocument();
   });
 });

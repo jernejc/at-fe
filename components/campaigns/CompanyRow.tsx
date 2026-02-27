@@ -12,11 +12,14 @@ interface CompanyRowProps {
   company: CompanyRowData;
   /** Row click handler. */
   onClick?: (company: CompanyRowData) => void;
+  /** Whether this row is currently selected/active. */
+  isActive?: boolean;
   className?: string;
+  ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a company with status, score, and metrics. */
-export function CompanyRow({ company, onClick, className }: CompanyRowProps) {
+export function CompanyRow({ company, onClick, isActive, className, ref }: CompanyRowProps) {
   const fitScore = company.fit_score != null
     ? Math.round(normalizeScoreNullable(company.fit_score))
     : null;
@@ -27,12 +30,21 @@ export function CompanyRow({ company, onClick, className }: CompanyRowProps) {
 
   return (
     <div
+      ref={ref}
       className={cn(
-        'group flex items-center gap-4 px-6 py-4 transition-colors',
+        'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
         onClick && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        isActive && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
         className,
       )}
       onClick={() => onClick?.(company)}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.(company);
+        }
+      } : undefined}
     >
       {/* Status indicator */}
       <CompanyStatus

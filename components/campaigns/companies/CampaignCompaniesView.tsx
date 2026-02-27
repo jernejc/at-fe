@@ -4,9 +4,17 @@ import { Building2 } from 'lucide-react';
 import { CompanyRow, CompanyRowSkeleton } from '@/components/campaigns/CompanyRow';
 import { Separator } from '@/components/ui/separator';
 import { CampaignCompaniesToolbar } from './CampaignCompaniesToolbar';
+import type { CompanyRowData } from '@/lib/schemas';
 import type { UseCampaignCompaniesReturn } from './useCampaignCompanies';
 
-type CampaignCompaniesViewProps = UseCampaignCompaniesReturn;
+interface CampaignCompaniesViewProps extends UseCampaignCompaniesReturn {
+  /** Currently selected company ID, or null. */
+  selectedCompanyId?: number | null;
+  /** Handler when a company row is clicked. */
+  onCompanyClick?: (company: CompanyRowData) => void;
+  /** Ref callback for keyboard navigation focus management. */
+  getItemRef?: (key: string | number) => (el: HTMLElement | null) => void;
+}
 
 /** Renders the campaign companies list with toolbar, rows, and empty state. */
 export function CampaignCompaniesView({
@@ -22,6 +30,9 @@ export function CampaignCompaniesView({
   sortOptions,
   activeSort,
   setActiveSort,
+  selectedCompanyId,
+  onCompanyClick,
+  getItemRef,
 }: CampaignCompaniesViewProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -52,7 +63,13 @@ export function CampaignCompaniesView({
           <Separator />
           {companies.map((company) => (
             <div key={company.id}>
-              <CompanyRow company={company} className="-mx-5" />
+              <CompanyRow
+                company={company}
+                className="-mx-5"
+                onClick={onCompanyClick}
+                isActive={selectedCompanyId === company.id}
+                ref={getItemRef?.(company.id)}
+              />
               <Separator />
             </div>
           ))}

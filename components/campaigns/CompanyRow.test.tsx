@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { CompanyRow, CompanyRowSkeleton } from './CompanyRow';
 import type { CompanyRowData } from '@/lib/schemas';
@@ -108,6 +109,85 @@ describe('CompanyRow', () => {
   it('renders status indicator with correct aria-label', () => {
     renderRow({ company: makeCompany({ status: 'closed_won' }) });
     expect(screen.getByLabelText('Company status: closed won')).toBeInTheDocument();
+  });
+
+  describe('isActive', () => {
+    it('applies active styles when true', () => {
+      const { container } = renderRow({ onClick: vi.fn(), isActive: true });
+      const row = container.firstElementChild as HTMLElement;
+      expect(row.className).toContain('bg-card');
+      expect(row.className).toContain('rounded-xl');
+    });
+
+    it('does not apply active styles when false', () => {
+      const { container } = renderRow({ onClick: vi.fn(), isActive: false });
+      const row = container.firstElementChild as HTMLElement;
+      // hover:bg-card is present but not bg-card as a standalone class
+      expect(row.className).not.toMatch(/(?<!\S)bg-card(?!\S)/);
+    });
+
+    it('does not apply active styles when undefined', () => {
+      const { container } = renderRow({ onClick: vi.fn() });
+      const row = container.firstElementChild as HTMLElement;
+      // bg-card and rounded-xl only appear with hover: prefix, not standalone
+      expect(row.className).not.toMatch(/(?<!\S)bg-card(?!\S)/);
+      expect(row.className).not.toMatch(/(?<!\S)rounded-xl(?!\S)/);
+    });
+  });
+
+  describe('keyboard interaction', () => {
+    it('has tabIndex 0 when onClick is provided', () => {
+      const { container } = renderRow({ onClick: vi.fn() });
+      const row = container.firstElementChild as HTMLElement;
+      expect(row).toHaveAttribute('tabindex', '0');
+    });
+
+    it('has no tabIndex when onClick is absent', () => {
+      const { container } = renderRow();
+      const row = container.firstElementChild as HTMLElement;
+      expect(row).not.toHaveAttribute('tabindex');
+    });
+
+    it('triggers onClick on Enter key', async () => {
+      const user = userEvent.setup();
+      const onClick = vi.fn();
+      const { container } = renderRow({ onClick });
+      const row = container.firstElementChild as HTMLElement;
+
+      row.focus();
+      await user.keyboard('{Enter}');
+      expect(onClick).toHaveBeenCalledOnce();
+    });
+
+    it('triggers onClick on Space key', async () => {
+      const user = userEvent.setup();
+      const onClick = vi.fn();
+      const { container } = renderRow({ onClick });
+      const row = container.firstElementChild as HTMLElement;
+
+      row.focus();
+      await user.keyboard(' ');
+      expect(onClick).toHaveBeenCalledOnce();
+    });
+
+    it('does not trigger onClick on other keys', async () => {
+      const user = userEvent.setup();
+      const onClick = vi.fn();
+      const { container } = renderRow({ onClick });
+      const row = container.firstElementChild as HTMLElement;
+
+      row.focus();
+      await user.keyboard('{ArrowDown}');
+      expect(onClick).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ref', () => {
+    it('attaches the ref to the root element', () => {
+      const ref = vi.fn();
+      renderRow({ ref });
+      expect(ref).toHaveBeenCalledWith(expect.any(HTMLDivElement));
+    });
   });
 });
 
