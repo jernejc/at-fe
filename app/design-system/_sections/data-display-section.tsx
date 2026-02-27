@@ -120,6 +120,10 @@ export function DataDisplaySection() {
             <span className="w-8 text-xs text-muted-foreground tabular-nums">90%</span>
             <Progress value={90} className="h-2" />
           </div>
+          <div className="flex items-center gap-3">
+            <span className="w-8 text-xs text-muted-foreground tabular-nums">90%</span>
+            <Progress value={90} className="h-2" variant='striped' />
+          </div>
         </div>
       </div>
 

@@ -70,7 +70,7 @@ export function CampaignFitCard({ fitBreakdown, fitsSummary, loading }: Campaign
                 <span>Likelihood</span>
                 <span className="text-foreground font-medium">{Math.round(likelihood)}%</span>
               </div>
-              <Progress value={likelihood} className="h-2" />
+              <Progress value={likelihood} className="h-3" />
             </div>
           </>
         )}
