@@ -7,6 +7,7 @@ import { ButtonSection } from './_sections/button-section';
 import { BadgeSection } from './_sections/badge-section';
 import { InputSection } from './_sections/input-section';
 import { CardSection } from './_sections/card-section';
+import { ExpandableCardSection } from './_sections/expandable-card-section';
 import { DataDisplaySection } from './_sections/data-display-section';
 import { OverlaySection } from './_sections/overlay-section';
 import { CustomSection } from './_sections/custom-section';
@@ -18,6 +19,7 @@ const navItems = [
   { id: 'badges', label: 'Badge' },
   { id: 'inputs', label: 'Inputs' },
   { id: 'cards', label: 'Card' },
+  { id: 'expandable-cards', label: 'Expandable Card' },
   { id: 'data-display', label: 'Data Display' },
   { id: 'overlays', label: 'Overlays' },
   { id: 'custom', label: 'Custom' },
@@ -68,6 +70,8 @@ export default function DesignSystemPage() {
           <InputSection />
           <Separator />
           <CardSection />
+          <Separator />
+          <ExpandableCardSection />
           <Separator />
           <DataDisplaySection />
           <Separator />
