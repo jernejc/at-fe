@@ -59,6 +59,7 @@ function toRowData(m: MembershipRead): CompanyRowData {
     fit_score: m.cached_fit_score,
     hq_country: m.hq_country,
     employee_count: m.employee_count,
+    partner_id: m.partner_id ?? undefined,
     partner_name: m.partner_name ?? undefined,
   };
 }
@@ -84,6 +85,10 @@ export interface UseCampaignCompaniesReturn {
   sortOptions: SortOptionDefinition[];
   activeSort: SortState | null;
   setActiveSort: (sort: SortState | null) => void;
+  /** Campaign partner list (for reassignment dropdowns). */
+  partners: PartnerAssignmentSummary[];
+  /** Re-fetch the companies list. */
+  refetch: () => void;
 }
 
 /** Fetches and manages campaign companies with search, sort, and filter. */
@@ -99,6 +104,8 @@ export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompan
   const [activeSort, setActiveSortRaw] = useState<SortState | null>({ field: 'fit_score', direction: 'desc' });
 
   const [partners, setPartners] = useState<PartnerAssignmentSummary[]>([]);
+  const [fetchVersion, setFetchVersion] = useState(0);
+  const refetch = useCallback(() => setFetchVersion((v) => v + 1), []);
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -175,7 +182,7 @@ export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompan
 
     fetchCompanies();
     return () => { cancelled = true; };
-  }, [slug, enabled, page, activeSort, activeFilters]);
+  }, [slug, enabled, page, activeSort, activeFilters, fetchVersion]);
 
   // Client-side search + mapping
   const companies = useMemo(() => {
@@ -208,5 +215,7 @@ export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompan
     sortOptions: SORT_OPTIONS,
     activeSort,
     setActiveSort,
+    partners,
+    refetch,
   };
 }

@@ -446,3 +446,27 @@ describe('useCampaignCompanies — filter definitions', () => {
     expect(values).toEqual(['fit_score', 'name', 'created_at']);
   });
 });
+
+describe('useCampaignCompanies — refetch and partners', () => {
+  it('populates partners from getCampaignPartners response', async () => {
+    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
+    await act(async () => {});
+
+    expect(result.current.partners).toHaveLength(1);
+    expect(result.current.partners[0].partner_name).toBe('Brio Tech');
+  });
+
+  it('refetch() triggers a new fetch of companies', async () => {
+    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
+    await act(async () => {});
+
+    expect(mockGetCampaignCompanies).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      result.current.refetch();
+    });
+    await act(async () => {});
+
+    expect(mockGetCampaignCompanies).toHaveBeenCalledTimes(2);
+  });
+});

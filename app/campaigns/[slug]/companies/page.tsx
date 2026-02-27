@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useCampaignDetail } from '@/components/providers/CampaignDetailProvider';
 import { CampaignCompaniesView } from '@/components/campaigns/companies/CampaignCompaniesView';
 import { useCampaignCompanies } from '@/components/campaigns/companies/useCampaignCompanies';
+import { CampaignCompanyDetail } from '@/components/campaigns/companies/detail/CampaignCompanyDetail';
 import { DetailSidePanel } from '@/components/ui/detail-side-panel/DetailSidePanel';
 import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 import type { CompanyRowData } from '@/lib/schemas';
@@ -24,6 +25,12 @@ export default function CampaignCompaniesPage() {
 
   const handleClose = useCallback(() => setSelectedCompany(null), []);
 
+  const { refetch, partners } = companiesState;
+
+  const handleReassigned = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
   const { getItemRef } = useListKeyboardNav({
     items: companiesState.companies,
     selectedItem: selectedCompany,
@@ -36,7 +43,17 @@ export default function CampaignCompaniesPage() {
     <DetailSidePanel
       open={!!selectedCompany}
       onClose={handleClose}
-      detail={<CompanyDetailPlaceholder company={selectedCompany} />}
+      detail={
+        selectedCompany ? (
+          <CampaignCompanyDetail
+            company={selectedCompany}
+            slug={campaign?.slug ?? ''}
+            targetProductId={campaign?.target_product_id ?? null}
+            partners={partners}
+            onReassigned={handleReassigned}
+          />
+        ) : null
+      }
     >
       <CampaignCompaniesView
         {...companiesState}
@@ -45,16 +62,5 @@ export default function CampaignCompaniesPage() {
         getItemRef={getItemRef}
       />
     </DetailSidePanel>
-  );
-}
-
-/** Placeholder for the right panel content. */
-function CompanyDetailPlaceholder({ company }: { company: CompanyRowData | null }) {
-  if (!company) return null;
-  return (
-    <div className="p-6">
-      <h2 className="text-lg font-semibold text-foreground">{company.name}</h2>
-      <p className="text-sm text-muted-foreground mt-1">{company.domain}</p>
-    </div>
   );
 }

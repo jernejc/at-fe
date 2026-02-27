@@ -73,16 +73,16 @@ function ExpandableCard({
         onKeyDown={
           showHover
             ? (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  toggle();
-                }
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggle();
               }
+            }
             : undefined
         }
         className={cn(
           'bg-card text-card-foreground rounded-xl ring-1 ring-foreground/10 overflow-hidden flex flex-col text-sm',
-          showHover && 'cursor-pointer hover:ring-foreground/20 transition-shadow',
+          showHover && 'cursor-pointer hover:ring-foreground/50 transition-shadow',
           className,
         )}
         onClick={showHover ? toggle : undefined}
@@ -97,7 +97,7 @@ function ExpandableCard({
 
 /** Always-visible header content for an ExpandableCard. */
 function ExpandableCardHeader({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="expandable-card-header" className={cn('px-6 pt-5 pb-4', className)} {...props} />;
+  return <div data-slot="expandable-card-header" className={cn('px-6 pt-5 pb-6', className)} {...props} />;
 }
 
 /** Collapsible content section that expands/collapses with animation. */

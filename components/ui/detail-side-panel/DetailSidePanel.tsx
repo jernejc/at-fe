@@ -68,13 +68,13 @@ export function DetailSidePanel({ open, onClose, detail, children }: DetailSideP
           !open && 'pointer-events-none',
         )}
       >
-        <div className="sticky top-0 z-10 flex justify-end p-3 bg-background max-md:rounded-t-2xl">
+        <div className="sticky top-0 z-10 flex justify-end p-2 max-md:rounded-t-2xl">
           <Button variant="ghost" size="icon-sm" onClick={onClose}>
             <X className="size-4" />
             <span className="sr-only">Close</span>
           </Button>
         </div>
-        <div className="px-4 pb-6">{detail}</div>
+        <div className="px-6 pb-6">{detail}</div>
       </div>
     </>
   );
