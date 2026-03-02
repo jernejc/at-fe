@@ -158,7 +158,10 @@ export interface PartnerAssignmentSummary {
     
     // Stats
     assigned_count: number;
-    
+    in_progress_count: number;
+    completed_count: number;
+    task_completion_pct: number;
+
     // Assignment details
     role_in_campaign: string | null;
     assigned_at: string;

@@ -109,6 +109,7 @@ function generateMockProgress(partnerId: string, domains: string[]): MembershipW
             notes: null,
             priority: idx % 3,
             created_at: new Date(Date.now() - idx * 86400000).toISOString(),
+            assigned_at: new Date(Date.now() - idx * 86400000).toISOString(),
             partner_id: partnerId,
             partner_name: MOCK_PARTNERS.find(p => p.id === partnerId)?.name ?? null,
             // Progress fields

@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { CompanyStatusValue } from '@/components/ui/company-status';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -23,13 +24,39 @@ export function formatCompactNumber(num: number): string {
   return num.toString();
 }
 
+const NEW_THRESHOLD_DAYS = 7;
+
 /**
- * Check if a date is within the last 7 days (used for "new" opportunity badges)
+ * Check if a date is within the last 7 days (used for "new" opportunity badges in partner portal).
  */
 export function isNewOpportunity(company: { assigned_at: string }): boolean {
-  const days = 7;
-  const daysAgo = Date.now() - days * 24 * 60 * 60 * 1000;
-  return new Date(company.assigned_at).getTime() > daysAgo;
+  const cutoff = Date.now() - NEW_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
+  return new Date(company.assigned_at).getTime() > cutoff;
+}
+
+/**
+ * Derive the UI status for a company in a campaign.
+ * - `closed_won` / `closed_lost` when explicitly set
+ * - `in_progress` when there is progress or the status is already in_progress
+ * - `new` when assigned within the last 7 days with no progress
+ * - `default` otherwise
+ */
+export function deriveCompanyStatus(opts: {
+  status?: string | null;
+  progress?: number;
+  assignedAt?: string | null;
+}): CompanyStatusValue {
+  const { status, progress, assignedAt } = opts;
+
+  if (status === 'closed_won' || status === 'closed_lost') return status;
+  if ((progress != null && progress > 0) || status === 'in_progress') return 'in_progress';
+
+  if (assignedAt) {
+    const cutoff = Date.now() - NEW_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
+    if (new Date(assignedAt).getTime() > cutoff) return 'new';
+  }
+
+  return 'default';
 }
 
 /**

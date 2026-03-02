@@ -1,8 +1,8 @@
 'use client';
 
-import { Search, Download, Loader2, Pencil, X, Trash2, ChevronDown, CircleOff } from 'lucide-react';
+import { Download, Loader2, Pencil, X, Trash2, ChevronDown, CircleOff } from 'lucide-react';
 import { Menu } from '@base-ui/react/menu';
-import { Input } from '@/components/ui/input';
+import { SearchField } from '@/components/ui/search-field';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -86,15 +86,12 @@ export function CampaignCompaniesToolbar({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-        <div className="relative w-64">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search companies…"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-8"
-          />
-        </div>
+        <SearchField
+          className="w-64"
+          placeholder="Search companies…"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
 
         <Filter
           definitions={filterDefinitions}

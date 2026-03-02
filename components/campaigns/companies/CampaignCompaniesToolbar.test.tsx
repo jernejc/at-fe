@@ -29,8 +29,16 @@ const defaultProps: React.ComponentProps<typeof CampaignCompaniesToolbar> = {
   sortOptions: defaultSortOptions,
   activeSort: null,
   onSortChange: vi.fn(),
-  totalCount: 42,
-  visibleCount: 42,
+  campaignSlug: 'test-campaign',
+  isEditing: false,
+  selectedCount: 0,
+  onStartEditing: vi.fn(),
+  onCancelEditing: vi.fn(),
+  onRemove: vi.fn(),
+  onReassign: vi.fn(),
+  isRemoving: false,
+  isReassigning: false,
+  partners: [],
 };
 
 function renderToolbar(overrides: Partial<React.ComponentProps<typeof CampaignCompaniesToolbar>> = {}) {
@@ -70,13 +78,26 @@ describe('CampaignCompaniesToolbar', () => {
     expect(screen.getByText('Sort')).toBeInTheDocument();
   });
 
-  it('displays total count when visible equals total', () => {
-    renderToolbar({ totalCount: 25, visibleCount: 25 });
-    expect(screen.getByText('25 companies')).toBeInTheDocument();
+  it('renders Edit button in normal mode', () => {
+    renderToolbar();
+    expect(screen.getByText('Edit')).toBeInTheDocument();
   });
 
-  it('displays filtered count when visible differs from total', () => {
-    renderToolbar({ totalCount: 100, visibleCount: 15 });
-    expect(screen.getByText('15 of 100 companies')).toBeInTheDocument();
+  it('renders Export button in normal mode', () => {
+    renderToolbar();
+    expect(screen.getByText('Export')).toBeInTheDocument();
+  });
+
+  it('shows edit toolbar when isEditing is true', () => {
+    renderToolbar({ isEditing: true, selectedCount: 3 });
+    expect(screen.getByText('3 selected')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByText('Remove')).toBeInTheDocument();
+  });
+
+  it('hides search and filter when in edit mode', () => {
+    renderToolbar({ isEditing: true });
+    expect(screen.queryByPlaceholderText('Search companies…')).not.toBeInTheDocument();
+    expect(screen.queryByText('Filter')).not.toBeInTheDocument();
   });
 });

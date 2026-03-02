@@ -21,12 +21,14 @@ interface CompanyRowProps {
   selected?: boolean;
   /** Called when the selection toggle is clicked. Receives the mouse event for shift-key detection. */
   onSelect?: (e: React.MouseEvent) => void;
+  /** Compact mode: shows only fit score, location, and employee count without fixed widths. */
+  compact?: boolean;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a company with status, score, and metrics. */
-export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, className, ref }: CompanyRowProps) {
+export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, compact, className, ref }: CompanyRowProps) {
   const fitScore = company.fit_score != null
     ? Math.round(normalizeScoreNullable(company.fit_score))
     : null;
@@ -71,7 +73,7 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
       {selectable && (
         <SelectToggle
           checked={!!selected}
-          onChange={() => {/* handled by row click */}}
+          onChange={() => {/* handled by row click */ }}
         />
       )}
 
@@ -100,64 +102,90 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
       </div>
 
       {/* Metrics (hidden on mobile) */}
-      <div className="hidden md:flex items-center gap-7 shrink-0">
-        {/* Fit Score + trend */}
-        {fitScore != null && (
-          <FitScoreIndicator
-            score={fitScore}
-            change={company.fit_score_change ?? undefined}
-            size={16}
-            className='w-18'
-          />
-        )}
+      {compact ? (
+        <div className="hidden md:flex items-center gap-5 shrink-0">
+          {fitScore != null && (
+            <FitScoreIndicator
+              score={fitScore}
+              change={company.fit_score_change ?? undefined}
+              size={16}
+            />
+          )}
 
-        {/* Location */}
-        {company.hq_country && (
-          <span className="flex items-center gap-2 text-sm w-30">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate max-w-[120px]">{company.hq_country}</span>
+          {company.hq_country && (
+            <span className="flex items-center gap-2 text-sm">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate max-w-[100px]">{company.hq_country}</span>
+            </span>
+          )}
+
+          {company.employee_count != null && (
+            <span className="flex items-center gap-2 text-sm">
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span>{formatCompactNumber(company.employee_count)}</span>
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="hidden md:flex items-center gap-7 shrink-0">
+          {/* Fit Score + trend */}
+          {fitScore != null && (
+            <FitScoreIndicator
+              score={fitScore}
+              change={company.fit_score_change ?? undefined}
+              size={16}
+              className='w-18'
+            />
+          )}
+
+          {/* Location */}
+          {company.hq_country && (
+            <span className="flex items-center gap-2 text-sm w-30">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate max-w-[120px]">{company.hq_country}</span>
+            </span>
+          )}
+
+          {/* Employee count */}
+          {company.employee_count != null && (
+            <span className="flex items-center gap-2 text-sm w-16">
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span>{formatCompactNumber(company.employee_count)}</span>
+            </span>
+          )}
+
+          {/* Revenue */}
+          <span className="text-sm tabular-nums w-20">
+            {company.revenue != null ? formatCurrency(company.revenue) : '\u2013'}
           </span>
-        )}
 
-        {/* Employee count */}
-        {company.employee_count != null && (
-          <span className="flex items-center gap-2 text-sm w-16">
-            <Users className="w-3.5 h-3.5 shrink-0" />
-            <span>{formatCompactNumber(company.employee_count)}</span>
-          </span>
-        )}
-
-        {/* Revenue */}
-        <span className="text-sm tabular-nums w-20">
-          {company.revenue != null ? formatCurrency(company.revenue) : '\u2013'}
-        </span>
-
-        {/* Assigned partner */}
-        <div className="flex items-center gap-2 shrink-0 w-30">
-          {company.partner_name && (
-            <>
-              <Avatar className="w-6 h-6">
-                {company.partner_logo_url && (
-                  <AvatarImage src={company.partner_logo_url} alt={company.partner_name} />
-                )}
-                <AvatarFallback className="text-[10px]">
-                  {company.partner_name.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-foreground truncate max-w-[100px]">
-                {company.partner_name}
-              </span>
-            </>
-          ) || (
+          {/* Assigned partner */}
+          <div className="flex items-center gap-2 shrink-0 w-30">
+            {company.partner_name && (
               <>
-                <CircleOff className='size-4 text-gray-500 mx-1' />
+                <Avatar className="w-6 h-6">
+                  {company.partner_logo_url && (
+                    <AvatarImage src={company.partner_logo_url} alt={company.partner_name} />
+                  )}
+                  <AvatarFallback className="text-[10px]">
+                    {company.partner_name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 <span className="text-sm text-foreground truncate max-w-[100px]">
-                  Unassigned
+                  {company.partner_name}
                 </span>
               </>
-            )}
+            ) || (
+                <>
+                  <CircleOff className='size-4 text-muted-foreground mx-1' />
+                  <span className="text-sm text-foreground truncate max-w-[100px]">
+                    Unassigned
+                  </span>
+                </>
+              )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

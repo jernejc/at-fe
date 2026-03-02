@@ -97,6 +97,7 @@ export default function CampaignPage({ params }: CampaignPageProps) {
                 cached_likelihood_score: null,
                 cached_urgency_score: null,
                 created_at: new Date().toISOString(),
+                assigned_at: new Date().toISOString(),
                 status: 'active' as const,
                 is_processed: false,
                 notes: null,

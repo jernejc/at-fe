@@ -16,6 +16,11 @@ vi.mock('@/lib/api/partners', () => ({
   getCampaignPartners: (...args: any[]) => mockGetCampaignPartners(...args),
 }));
 
+/** Date older than 7 days for "default" status. */
+const OLD_DATE = '2025-01-01T00:00:00Z';
+/** Date within the last 7 days for "new" status. */
+const RECENT_DATE = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+
 function makeMembership(overrides: Partial<MembershipRead> = {}): MembershipRead {
   return {
     id: 1,
@@ -34,7 +39,8 @@ function makeMembership(overrides: Partial<MembershipRead> = {}): MembershipRead
     priority: 0,
     logo_base64: null,
     logo_url: null,
-    created_at: '2025-01-01T00:00:00Z',
+    created_at: OLD_DATE,
+    assigned_at: OLD_DATE,
     partner_id: null,
     partner_name: null,
     ...overrides,
@@ -55,6 +61,9 @@ function makePartner(overrides: Partial<PartnerAssignmentSummary> = {}): Partner
     partner_industries: [],
     partner_status: 'active',
     assigned_count: 5,
+    in_progress_count: 0,
+    completed_count: 0,
+    task_completion_pct: 0,
     role_in_campaign: null,
     assigned_at: '2025-01-01T00:00:00Z',
     ...overrides,
@@ -63,7 +72,7 @@ function makePartner(overrides: Partial<PartnerAssignmentSummary> = {}): Partner
 
 const defaultMemberships = [
   makeMembership({ id: 1, domain: 'acme.com', company_name: 'Acme Corp' }),
-  makeMembership({ id: 2, domain: 'beta.io', company_name: 'Beta Inc', is_processed: false }),
+  makeMembership({ id: 2, domain: 'beta.io', company_name: 'Beta Inc', assigned_at: RECENT_DATE }),
   makeMembership({ id: 3, domain: 'gamma.dev', company_name: 'Gamma Ltd', partner_id: '10', partner_name: 'Brio Tech' }),
 ];
 
@@ -143,7 +152,7 @@ describe('useCampaignCompanies — data mapping', () => {
     expect(result.current.companies[0].name).toBe('unknown.com');
   });
 
-  it('derives status "new" for unprocessed memberships', async () => {
+  it('derives status "new" for recently assigned companies', async () => {
     const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
     await act(async () => {});
 
@@ -151,15 +160,7 @@ describe('useCampaignCompanies — data mapping', () => {
     expect(beta?.status).toBe('new');
   });
 
-  it('derives status "in_progress" for processed memberships with partner', async () => {
-    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
-    await act(async () => {});
-
-    const gamma = result.current.companies.find((c) => c.domain === 'gamma.dev');
-    expect(gamma?.status).toBe('in_progress');
-  });
-
-  it('derives status "default" for processed memberships without partner', async () => {
+  it('derives status "default" for companies assigned over 7 days ago', async () => {
     const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
     await act(async () => {});
 
@@ -277,7 +278,7 @@ describe('useCampaignCompanies — filters', () => {
     });
     await act(async () => {});
 
-    // Only beta.io has is_processed=false → status 'new'
+    // Only beta.io has a recent assigned_at → status 'new'
     expect(result.current.companies).toHaveLength(1);
     expect(result.current.companies[0].domain).toBe('beta.io');
   });

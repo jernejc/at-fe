@@ -200,6 +200,7 @@ export function PartnerTab({
                 notes: a.notes,
                 priority: 0,
                 created_at: a.assigned_at,
+                assigned_at: a.assigned_at,
                 partner_id: selectedPartner.id,
                 partner_name: selectedPartner.name,
                 outreach_status: 'not_started',

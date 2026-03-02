@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getCampaignCompanies } from '@/lib/api/campaigns';
 import { getCampaignPartners } from '@/lib/api/partners';
+import { deriveCompanyStatus } from '@/lib/utils';
 import type { CompanyRowData } from '@/lib/schemas/company';
 import type { MembershipRead } from '@/lib/schemas/campaign';
 import type { PartnerAssignmentSummary } from '@/lib/schemas/partner';
@@ -41,12 +42,6 @@ function buildPartnerFilter(partners: PartnerAssignmentSummary[]): FilterDefinit
   };
 }
 
-function deriveStatus(m: MembershipRead): string {
-  if (!m.is_processed) return 'new';
-  if (m.partner_id) return 'in_progress';
-  return 'default';
-}
-
 /** Map a campaign membership to the shape expected by CompanyRow. */
 function toRowData(m: MembershipRead): CompanyRowData {
   return {
@@ -55,10 +50,11 @@ function toRowData(m: MembershipRead): CompanyRowData {
     domain: m.domain,
     logo_url: m.logo_url,
     logo_base64: m.logo_base64,
-    status: deriveStatus(m),
+    status: deriveCompanyStatus({ assignedAt: m.assigned_at }),
     fit_score: m.cached_fit_score,
     hq_country: m.hq_country,
     employee_count: m.employee_count,
+    assigned_at: m.assigned_at,
     partner_id: m.partner_id ?? undefined,
     partner_name: m.partner_name ?? undefined,
   };
@@ -163,7 +159,7 @@ export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompan
         // Client-side fallback filtering until backend supports status/partner_id
         let items = data.items;
         if (statusFilter) {
-          items = items.filter((m) => deriveStatus(m) === statusFilter.value);
+          items = items.filter((m) => deriveCompanyStatus({ assignedAt: m.assigned_at }) === statusFilter.value);
         }
         if (partnerFilter) {
           items = partnerFilter.value === 'unassigned'

@@ -119,7 +119,8 @@ export function OverviewTab({
                         is_processed: true,
                         notes: null,
                         priority: 0,
-                        created_at: c.updated_at
+                        created_at: c.updated_at,
+                        assigned_at: c.updated_at
                     };
 
                     const existing = uniqueCompanies.get(c.domain);

@@ -99,6 +99,7 @@ export interface MembershipRead {
     logo_url?: string | null;
     created_at: string;
     // Partner assignment fields
+    assigned_at: string;
     partner_id?: string | null;
     partner_name?: string | null;
 }

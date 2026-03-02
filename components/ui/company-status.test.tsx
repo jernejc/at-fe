@@ -109,7 +109,7 @@ describe('CompanyStatus', () => {
     expect(circle.getAttribute('r')).toBe('10');
 
     const path = container.querySelector('path')!;
-    expect(path.getAttribute('stroke')).toBe('white');
+    expect(path.getAttribute('stroke')).toBe('var(--background)');
   });
 
   // -- closed_lost state --
@@ -120,7 +120,7 @@ describe('CompanyStatus', () => {
     expect(circle.getAttribute('r')).toBe('10');
 
     const path = container.querySelector('path')!;
-    expect(path.getAttribute('stroke')).toBe('white');
+    expect(path.getAttribute('stroke')).toBe('var(--background)');
   });
 
   // -- common props --

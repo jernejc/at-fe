@@ -136,6 +136,8 @@ export interface CompanyRowData {
     employee_count?: number | null;
     /** Revenue in dollars (formatted via formatCurrency) */
     revenue?: number | null;
+    /** ISO date when the company was assigned (used for 'new' status derivation). */
+    assigned_at?: string | null;
     partner_id?: string | null;
     partner_name?: string | null;
     partner_logo_url?: string | null;

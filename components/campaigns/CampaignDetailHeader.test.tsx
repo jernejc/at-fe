@@ -86,8 +86,8 @@ describe('CampaignDetailHeader — loaded state', () => {
 
   it('renders the status indicator', () => {
     const { container } = renderHeader({ campaignStatus: 'draft' });
-    // StatusIndicator renders a dot (TooltipTrigger) with bg-slate-400 for 'draft'
-    const dot = container.querySelector('.bg-slate-400');
+    // StatusIndicator renders a dot (TooltipTrigger) with bg-gray-400 for 'draft'
+    const dot = container.querySelector('.bg-gray-400');
     expect(dot).toBeInTheDocument();
   });
 });

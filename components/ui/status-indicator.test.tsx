@@ -17,7 +17,7 @@ describe('getStatusDotColor', () => {
   });
 
   it('returns slate-400 for draft status', () => {
-    expect(getStatusDotColor('draft')).toBe('bg-slate-400');
+    expect(getStatusDotColor('draft')).toBe('bg-gray-400');
   });
 
   it('returns emerald-700 for completed status', () => {
@@ -34,7 +34,7 @@ describe('getStatusDotColor', () => {
 
   it('is case-insensitive', () => {
     expect(getStatusDotColor('Active')).toBe('bg-emerald-500');
-    expect(getStatusDotColor('DRAFT')).toBe('bg-slate-400');
+    expect(getStatusDotColor('DRAFT')).toBe('bg-gray-400');
   });
 });
 
@@ -66,6 +66,6 @@ describe('StatusIndicator', () => {
   it('includes the correct color class for the status', () => {
     renderWithTooltip(<StatusIndicator status="draft" />);
     const dot = screen.getByRole('button');
-    expect(dot.className).toContain('bg-slate-400');
+    expect(dot.className).toContain('bg-gray-400');
   });
 });
