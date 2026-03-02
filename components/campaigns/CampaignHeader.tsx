@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import type { CampaignRead } from '@/lib/schemas';
-import { exportCampaignCSV, exportCampaignContactsCSV } from '@/lib/api';
+import { useCampaignExport } from '@/hooks/useCampaignExport';
 import type { CampaignTab } from '@/hooks/useCampaignPage';
 import { cn, getProductBadgeTheme, getProductTextColor } from '@/lib/utils';
 import {
@@ -13,7 +13,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 
 interface CampaignHeaderProps {
     campaign: CampaignRead;
@@ -81,56 +80,8 @@ export function CampaignHeader({
     const avgFitScore = campaign.avg_fit_score ? Math.round(campaign.avg_fit_score * 100) : null;
 
     // Export functionality
-    const [isExporting, setIsExporting] = useState(false);
-    const [isExportingContacts, setIsExportingContacts] = useState(false);
+    const { isExporting, isExportingContacts, handleExport, handleExportContacts } = useCampaignExport({ slug: campaign.slug });
     const [exportOpen, setExportOpen] = useState(false);
-
-    const handleExport = async () => {
-        try {
-            setIsExporting(true);
-            const blob = await exportCampaignCSV(campaign.slug);
-
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `campaign-${campaign.slug}-export.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            toast.success('Campaign exported successfully');
-        } catch (error) {
-            console.error('Export failed:', error);
-            toast.error('Failed to export campaign');
-        } finally {
-            setIsExporting(false);
-        }
-    };
-
-    const handleExportContacts = async () => {
-        try {
-            setIsExportingContacts(true);
-            const blob = await exportCampaignContactsCSV(campaign.slug);
-
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `campaign-${campaign.slug}-contacts.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            toast.success('Contacts exported successfully');
-        } catch (error) {
-            console.error('Export contacts failed:', error);
-            toast.error('Failed to export contacts');
-        } finally {
-            setIsExportingContacts(false);
-        }
-    };
 
     const productTheme = getProductBadgeTheme(productId);
     const productIconColor = getProductTextColor(productId);

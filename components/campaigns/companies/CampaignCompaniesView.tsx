@@ -8,6 +8,8 @@ import type { CompanyRowData } from '@/lib/schemas';
 import type { UseCampaignCompaniesReturn } from './useCampaignCompanies';
 
 interface CampaignCompaniesViewProps extends UseCampaignCompaniesReturn {
+  /** Campaign slug for export functionality. */
+  campaignSlug: string;
   /** Currently selected company ID, or null. */
   selectedCompanyId?: number | null;
   /** Handler when a company row is clicked. */
@@ -19,7 +21,6 @@ interface CampaignCompaniesViewProps extends UseCampaignCompaniesReturn {
 /** Renders the campaign companies list with toolbar, rows, and empty state. */
 export function CampaignCompaniesView({
   companies,
-  totalCount,
   loading,
   error,
   searchQuery,
@@ -30,6 +31,7 @@ export function CampaignCompaniesView({
   sortOptions,
   activeSort,
   setActiveSort,
+  campaignSlug,
   selectedCompanyId,
   onCompanyClick,
   getItemRef,
@@ -45,8 +47,7 @@ export function CampaignCompaniesView({
         sortOptions={sortOptions}
         activeSort={activeSort}
         onSortChange={setActiveSort}
-        totalCount={totalCount}
-        visibleCount={companies.length}
+        campaignSlug={campaignSlug}
       />
 
       {loading ? (
