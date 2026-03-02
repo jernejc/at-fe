@@ -6,6 +6,7 @@ import { CircleOff, MapPin, Users } from 'lucide-react';
 import { CompanyStatus, type CompanyStatusValue } from '@/components/ui/company-status';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { SelectToggle } from '@/components/ui/select-toggle';
 
 interface CompanyRowProps {
   /** Company data for the row. */
@@ -14,12 +15,18 @@ interface CompanyRowProps {
   onClick?: (company: CompanyRowData) => void;
   /** Whether this row is currently selected/active. */
   isActive?: boolean;
+  /** Whether the row shows a selection toggle (edit mode). */
+  selectable?: boolean;
+  /** Whether the row is currently selected in bulk selection. */
+  selected?: boolean;
+  /** Called when the selection toggle is clicked. Receives the mouse event for shift-key detection. */
+  onSelect?: (e: React.MouseEvent) => void;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a company with status, score, and metrics. */
-export function CompanyRow({ company, onClick, isActive, className, ref }: CompanyRowProps) {
+export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, className, ref }: CompanyRowProps) {
   const fitScore = company.fit_score != null
     ? Math.round(normalizeScoreNullable(company.fit_score))
     : null;
@@ -28,24 +35,46 @@ export function CompanyRow({ company, onClick, isActive, className, ref }: Compa
     ? `data:image/png;base64,${company.logo_base64}`
     : company.logo_url ?? undefined;
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (selectable && onSelect) {
+      onSelect(e);
+    } else {
+      onClick?.(company);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (selectable && onSelect) {
+        onSelect(e as unknown as React.MouseEvent);
+      } else {
+        onClick?.(company);
+      }
+    }
+  };
+
   return (
     <div
       ref={ref}
       className={cn(
         'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
-        onClick && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
-        isActive && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
+        (onClick || selectable) && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        (isActive || selected) && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
         className,
       )}
-      onClick={() => onClick?.(company)}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick?.(company);
-        }
-      } : undefined}
+      onClick={handleClick}
+      tabIndex={(onClick || selectable) ? 0 : undefined}
+      onKeyDown={(onClick || selectable) ? handleKeyDown : undefined}
     >
+      {/* Selection toggle (edit mode) */}
+      {selectable && (
+        <SelectToggle
+          checked={!!selected}
+          onChange={() => {/* handled by row click */}}
+        />
+      )}
+
       {/* Status indicator */}
       <CompanyStatus
         status={company.status as CompanyStatusValue}

@@ -3,8 +3,10 @@
 import { Building2 } from 'lucide-react';
 import { CompanyRow, CompanyRowSkeleton } from '@/components/campaigns/CompanyRow';
 import { Separator } from '@/components/ui/separator';
+import { SelectToggle } from '@/components/ui/select-toggle';
 import { CampaignCompaniesToolbar } from './CampaignCompaniesToolbar';
 import type { CompanyRowData } from '@/lib/schemas';
+import type { PartnerAssignmentSummary } from '@/lib/schemas';
 import type { UseCampaignCompaniesReturn } from './useCampaignCompanies';
 
 interface CampaignCompaniesViewProps extends UseCampaignCompaniesReturn {
@@ -16,6 +18,34 @@ interface CampaignCompaniesViewProps extends UseCampaignCompaniesReturn {
   onCompanyClick?: (company: CompanyRowData) => void;
   /** Ref callback for keyboard navigation focus management. */
   getItemRef?: (key: string | number) => (el: HTMLElement | null) => void;
+  /** Whether bulk-edit mode is active. */
+  isEditing: boolean;
+  /** Set of selected company IDs in edit mode. */
+  selectedIds: Set<number>;
+  /** Number of selected companies. */
+  selectedCount: number;
+  /** Toggle selection for a company (pass shiftKey for range). */
+  onToggleSelect: (id: number, shiftKey: boolean, companies: CompanyRowData[]) => void;
+  /** Toggle all visible companies. */
+  onToggleSelectAll: (companies: CompanyRowData[]) => void;
+  /** Whether all visible companies are selected. */
+  isAllSelected: boolean;
+  /** Whether some but not all visible companies are selected. */
+  isPartiallySelected: boolean;
+  /** Enter edit mode. */
+  onStartEditing: () => void;
+  /** Cancel edit mode. */
+  onCancelEditing: () => void;
+  /** Remove selected companies. */
+  onRemove: () => void;
+  /** Reassign selected companies to a partner. */
+  onReassign: (partnerId: number) => void;
+  /** Whether a remove operation is in progress. */
+  isRemoving: boolean;
+  /** Whether a reassign operation is in progress. */
+  isReassigning: boolean;
+  /** Campaign partners for the reassign dropdown. */
+  editPartners: PartnerAssignmentSummary[];
 }
 
 /** Renders the campaign companies list with toolbar, rows, and empty state. */
@@ -35,6 +65,20 @@ export function CampaignCompaniesView({
   selectedCompanyId,
   onCompanyClick,
   getItemRef,
+  isEditing,
+  selectedIds,
+  selectedCount,
+  onToggleSelect,
+  onToggleSelectAll,
+  isAllSelected,
+  isPartiallySelected,
+  onStartEditing,
+  onCancelEditing,
+  onRemove,
+  onReassign,
+  isRemoving,
+  isReassigning,
+  editPartners,
 }: CampaignCompaniesViewProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -48,6 +92,15 @@ export function CampaignCompaniesView({
         activeSort={activeSort}
         onSortChange={setActiveSort}
         campaignSlug={campaignSlug}
+        isEditing={isEditing}
+        selectedCount={selectedCount}
+        onStartEditing={onStartEditing}
+        onCancelEditing={onCancelEditing}
+        onRemove={onRemove}
+        onReassign={onReassign}
+        isRemoving={isRemoving}
+        isReassigning={isReassigning}
+        partners={editPartners}
       />
 
       {loading ? (
@@ -60,15 +113,23 @@ export function CampaignCompaniesView({
         <CompaniesEmptyState hasFilters={activeFilters.length > 0 || searchQuery.length > 0} />
       ) : (
         <div className="flex flex-col">
-          <TableHeader />
+          <TableHeader
+            isEditing={isEditing}
+            isAllSelected={isAllSelected}
+            isPartiallySelected={isPartiallySelected}
+            onToggleSelectAll={() => onToggleSelectAll(companies)}
+          />
           <Separator />
           {companies.map((company) => (
             <div key={company.id}>
               <CompanyRow
                 company={company}
                 className="-mx-5"
-                onClick={onCompanyClick}
-                isActive={selectedCompanyId === company.id}
+                onClick={isEditing ? undefined : onCompanyClick}
+                isActive={!isEditing && selectedCompanyId === company.id}
+                selectable={isEditing}
+                selected={selectedIds.has(company.id)}
+                onSelect={(e) => onToggleSelect(company.id, e.shiftKey, companies)}
                 ref={getItemRef?.(company.id)}
               />
               <Separator />
@@ -80,10 +141,25 @@ export function CampaignCompaniesView({
   );
 }
 
+interface TableHeaderProps {
+  isEditing: boolean;
+  isAllSelected: boolean;
+  isPartiallySelected: boolean;
+  onToggleSelectAll: () => void;
+}
+
 /** Column headers matching the CompanyRow right-side metrics layout. */
-function TableHeader() {
+function TableHeader({ isEditing, isAllSelected, isPartiallySelected, onToggleSelectAll }: TableHeaderProps) {
   return (
     <div className="flex items-center -mx-5 gap-4 px-6 py-2 text-xs font-medium text-muted-foreground">
+      {/* Select-all toggle (edit mode) */}
+      {isEditing && (
+        <SelectToggle
+          checked={isAllSelected}
+          indeterminate={isPartiallySelected}
+          onChange={onToggleSelectAll}
+        />
+      )}
       {/* Spacer for status indicator */}
       <div className="w-5 shrink-0" />
       {/* Spacer for avatar */}
@@ -105,7 +181,7 @@ function TableHeader() {
 function CompaniesListSkeleton() {
   return (
     <div className="flex flex-col">
-      <TableHeader />
+      <TableHeader isEditing={false} isAllSelected={false} isPartiallySelected={false} onToggleSelectAll={() => {}} />
       <Separator />
       {Array.from({ length: 8 }, (_, i) => (
         <div key={i}>

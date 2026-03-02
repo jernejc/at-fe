@@ -102,7 +102,6 @@ export function CampaignOverviewDashboard({
             {!loading && (
               <Button
                 variant="outline"
-                size="sm"
                 onClick={handleExport}
                 disabled={isExporting}
               >
