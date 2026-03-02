@@ -189,6 +189,57 @@ describe('CompanyRow', () => {
       expect(ref).toHaveBeenCalledWith(expect.any(HTMLDivElement));
     });
   });
+
+  describe('selectable mode', () => {
+    it('renders a select toggle when selectable is true', () => {
+      renderRow({ selectable: true, selected: false, onSelect: vi.fn() });
+      expect(screen.getByRole('checkbox')).toBeInTheDocument();
+    });
+
+    it('does not render a select toggle when selectable is false', () => {
+      renderRow({ selectable: false });
+      expect(screen.queryByRole('checkbox')).not.toBeNull === undefined;
+      // More precise: no checkbox role
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    });
+
+    it('does not render a select toggle by default', () => {
+      renderRow();
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    });
+
+    it('shows checked state when selected is true', () => {
+      renderRow({ selectable: true, selected: true, onSelect: vi.fn() });
+      expect(screen.getByRole('checkbox')).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('shows unchecked state when selected is false', () => {
+      renderRow({ selectable: true, selected: false, onSelect: vi.fn() });
+      expect(screen.getByRole('checkbox')).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('calls onSelect instead of onClick when selectable', () => {
+      const onClick = vi.fn();
+      const onSelect = vi.fn();
+      renderRow({ selectable: true, selected: false, onSelect, onClick });
+
+      fireEvent.click(screen.getByText('Acme Corp'));
+      expect(onSelect).toHaveBeenCalledOnce();
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('applies active styles when selected in selectable mode', () => {
+      const { container } = renderRow({ selectable: true, selected: true, onSelect: vi.fn() });
+      const row = container.firstElementChild as HTMLElement;
+      expect(row.className).toContain('bg-card');
+    });
+
+    it('has tabIndex 0 when selectable', () => {
+      const { container } = renderRow({ selectable: true, onSelect: vi.fn() });
+      const row = container.firstElementChild as HTMLElement;
+      expect(row).toHaveAttribute('tabindex', '0');
+    });
+  });
 });
 
 describe('CompanyRowSkeleton', () => {
