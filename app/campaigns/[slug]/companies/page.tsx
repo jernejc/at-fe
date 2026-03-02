@@ -35,46 +35,61 @@ export default function CampaignCompaniesPage() {
   }, [refetch]);
 
   // Bulk edit mode
-  const bulk = useBulkSelection();
-  const bulkActions = useBulkActions();
+  const {
+    isEditing,
+    selectedIds,
+    selectedCount,
+    toggleSelect,
+    toggleSelectAll,
+    isAllSelected,
+    isPartiallySelected,
+    startEditing,
+    cancelEditing,
+  } = useBulkSelection();
+  const {
+    handleRemove: bulkRemove,
+    handleReassign: bulkReassign,
+    isRemoving,
+    isReassigning,
+  } = useBulkActions();
 
   const handleStartEditing = useCallback(() => {
     setSelectedCompany(null);
-    bulk.startEditing();
-  }, [bulk.startEditing]);
+    startEditing();
+  }, [startEditing]);
 
   const handleRemove = useCallback(() => {
-    bulkActions.handleRemove(
+    bulkRemove(
       slug,
-      bulk.selectedIds,
+      selectedIds,
       companiesState.companies,
       refetch,
-      bulk.cancelEditing,
+      cancelEditing,
     );
-  }, [slug, bulk.selectedIds, companiesState.companies, refetch, bulk.cancelEditing, bulkActions.handleRemove]);
+  }, [slug, selectedIds, companiesState.companies, refetch, cancelEditing, bulkRemove]);
 
   const handleReassign = useCallback((partnerId: number) => {
-    bulkActions.handleReassign(
+    bulkReassign(
       slug,
       partnerId,
-      bulk.selectedIds,
+      selectedIds,
       companiesState.companies,
       refetch,
-      bulk.cancelEditing,
+      cancelEditing,
     );
-  }, [slug, bulk.selectedIds, companiesState.companies, refetch, bulk.cancelEditing, bulkActions.handleReassign]);
+  }, [slug, selectedIds, companiesState.companies, refetch, cancelEditing, bulkReassign]);
 
   const { getItemRef } = useListKeyboardNav({
     items: companiesState.companies,
     selectedItem: selectedCompany,
     getKey: (c) => c.id,
     onSelect: setSelectedCompany,
-    enabled: !!selectedCompany && !bulk.isEditing,
+    enabled: !!selectedCompany && !isEditing,
   });
 
   return (
     <DetailSidePanel
-      open={!!selectedCompany && !bulk.isEditing}
+      open={!!selectedCompany && !isEditing}
       onClose={handleClose}
       detail={
         selectedCompany ? (
@@ -94,19 +109,19 @@ export default function CampaignCompaniesPage() {
         selectedCompanyId={selectedCompany?.id ?? null}
         onCompanyClick={handleCompanyClick}
         getItemRef={getItemRef}
-        isEditing={bulk.isEditing}
-        selectedIds={bulk.selectedIds}
-        selectedCount={bulk.selectedCount}
-        onToggleSelect={bulk.toggleSelect}
-        onToggleSelectAll={bulk.toggleSelectAll}
-        isAllSelected={bulk.isAllSelected(companiesState.companies)}
-        isPartiallySelected={bulk.isPartiallySelected(companiesState.companies)}
+        isEditing={isEditing}
+        selectedIds={selectedIds}
+        selectedCount={selectedCount}
+        onToggleSelect={toggleSelect}
+        onToggleSelectAll={toggleSelectAll}
+        isAllSelected={isAllSelected(companiesState.companies)}
+        isPartiallySelected={isPartiallySelected(companiesState.companies)}
         onStartEditing={handleStartEditing}
-        onCancelEditing={bulk.cancelEditing}
+        onCancelEditing={cancelEditing}
         onRemove={handleRemove}
         onReassign={handleReassign}
-        isRemoving={bulkActions.isRemoving}
-        isReassigning={bulkActions.isReassigning}
+        isRemoving={isRemoving}
+        isReassigning={isReassigning}
         editPartners={partners}
       />
     </DetailSidePanel>
