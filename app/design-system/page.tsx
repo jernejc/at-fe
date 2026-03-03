@@ -11,6 +11,7 @@ import { ExpandableCardSection } from './_sections/expandable-card-section';
 import { DataDisplaySection } from './_sections/data-display-section';
 import { OverlaySection } from './_sections/overlay-section';
 import { CustomSection } from './_sections/custom-section';
+import { CampaignInputSection } from './_sections/campaign-input-section';
 
 const navItems = [
   { id: 'typography', label: 'Typography' },
@@ -23,6 +24,7 @@ const navItems = [
   { id: 'data-display', label: 'Data Display' },
   { id: 'overlays', label: 'Overlays' },
   { id: 'custom', label: 'Custom' },
+  { id: 'campaign-input', label: 'Campaign Input' },
 ];
 
 /** Internal design system showcase page. */
@@ -78,6 +80,8 @@ export default function DesignSystemPage() {
           <OverlaySection />
           <Separator />
           <CustomSection />
+          <Separator />
+          <CampaignInputSection />
         </div>
       </main>
     </div>
