@@ -253,3 +253,34 @@
     background: var(--foreground);
     border-radius: 2px 2px 0 0;
 }
+
+/* Range filter dual-thumb slider */
+.range-thumb::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    background: var(--background);
+    border: 2px solid var(--muted-foreground);
+    pointer-events: auto;
+    cursor: grab;
+}
+
+.range-thumb::-moz-range-thumb {
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    background: var(--background);
+    border: 2px solid var(--muted-foreground);
+    pointer-events: auto;
+    cursor: grab;
+}
+
+.range-thumb::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    background: transparent;
+}
+
+.range-thumb::-moz-range-track {
+    background: transparent;
+}
