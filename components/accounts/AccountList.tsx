@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ interface AccountListProps {
 
 export function AccountList(props: AccountListProps) {
     const { onAccountClick } = props;
+    const router = useRouter();
     const [products, setProducts] = useState<ProductSummary[]>([]);
     const [accounts, setAccounts] = useState<AccountItem[]>([]);
     const [selectedProductId, setSelectedProductId] = useState<string>("all");
@@ -371,7 +373,7 @@ export function AccountList(props: AccountListProps) {
     const handleNewCampaign = () => {
         // Navigate to the create wizard with product preselection if available
         const productParam = selectedProductId !== "all" ? `?product=${selectedProductId}` : '';
-        window.location.href = `/campaigns/new${productParam}`;
+        router.push(`/campaigns/start${productParam}`);
     };
 
     const selectedProduct = products.find((p) => p.id.toString() === selectedProductId);
