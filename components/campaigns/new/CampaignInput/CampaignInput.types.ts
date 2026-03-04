@@ -29,6 +29,8 @@ export interface CampaignInputProps {
   agenticState?: AgenticSearchState;
   /** Optional className for the root container. */
   className?: string;
+  /** Mutable ref populated with a function to programmatically submit a query. */
+  externalSubmitRef?: React.MutableRefObject<((query: string) => void) | null>;
 }
 
 /** Return type of the useCampaignInput hook. */
@@ -53,4 +55,5 @@ export interface UseCampaignInputReturn {
   handleReopen: () => void;
   toggleProductGrid: () => void;
   handleContainerBlur: (e: React.FocusEvent) => void;
+  submitExternal: (query: string) => void;
 }

@@ -16,6 +16,7 @@ export interface PartnerSummary {
 export interface PartnerRead extends PartnerSummary {
     industries: string[];
     capacity: number | null;
+    partner_type?: string | null;
 }
 
 export interface PartnerWithRelations extends PartnerRead {

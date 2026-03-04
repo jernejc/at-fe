@@ -166,7 +166,7 @@ export function useCampaignsList() {
   };
 
   const handleNewCampaign = () => {
-    router.push('/campaigns/start');
+    router.push('/campaigns/new');
   };
 
   const handleRowClick = (campaign: CampaignRowData) => {

@@ -6,7 +6,7 @@ import type {
   CampaignInputState,
   CampaignInputMessage,
   UseCampaignInputReturn,
-} from '@/components/campaigns/start/ui/CampaignInput/CampaignInput.types';
+} from '@/components/campaigns/new/CampaignInput/CampaignInput.types';
 
 interface UseCampaignInputOptions {
   selectedProduct: ProductSummary | null;
@@ -87,9 +87,32 @@ export function useCampaignInput({
 
       if (componentState === 'initial') {
         setComponentState('ready');
+      } else if (messages.length > 0) {
+        // A search was already done — transition to active so it auto-closes when search completes
+        setComponentState('active');
       }
     },
-    [onProductSelect, componentState]
+    [onProductSelect, componentState, messages.length]
+  );
+
+  /** Programmatically submit a query (e.g. from suggested queries). */
+  const submitExternal = useCallback(
+    (query: string) => {
+      if (!selectedProduct) return;
+
+      const message: CampaignInputMessage = {
+        id: `msg-${Date.now()}`,
+        text: query,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, message]);
+      setInputValue('');
+      setComponentState('active');
+      setIsProductGridOpen(false);
+      onSubmit(query);
+    },
+    [selectedProduct, onSubmit],
   );
 
   const handleReopen = useCallback(() => {
@@ -151,5 +174,6 @@ export function useCampaignInput({
     handleReopen,
     toggleProductGrid,
     handleContainerBlur,
+    submitExternal,
   };
 }

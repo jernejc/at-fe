@@ -28,6 +28,7 @@ export function CampaignInput({
   searchPhase,
   isSearching,
   className,
+  externalSubmitRef,
 }: CampaignInputProps) {
   const {
     componentState,
@@ -47,12 +48,20 @@ export function CampaignInput({
     toggleProductGrid,
     containerRef,
     handleContainerBlur,
+    submitExternal,
   } = useCampaignInput({
     selectedProduct,
     onProductSelect,
     onSubmit,
     isSearching,
   });
+
+  // Populate external submit ref so parent can trigger submissions programmatically
+  useEffect(() => {
+    if (externalSubmitRef) {
+      externalSubmitRef.current = submitExternal;
+    }
+  }, [externalSubmitRef, submitExternal]);
 
   // Track completed phases for the terminal
   const [completedPhases, setCompletedPhases] = useState<WSSearchPhase[]>([]);

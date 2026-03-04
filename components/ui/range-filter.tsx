@@ -17,6 +17,8 @@ export interface RangeFilterProps {
   maxBars?: number;
   /** Fires when the user changes the selected range. */
   onChange?: (range: [number, number]) => void;
+  /** Custom formatter for the displayed average value. @default String(avg) */
+  formatAvg?: (avg: number) => string;
   className?: string;
 }
 
@@ -99,7 +101,7 @@ function weightedAvg(hist: Map<number, number>): number {
  * Histogram bar chart with a dual-thumb range slider for filtering numeric values.
  * Bars inside the selected range are dark; bars outside are muted.
  */
-export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars = 50, onChange, className }: RangeFilterProps) {
+export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars = 50, onChange, formatAvg, className }: RangeFilterProps) {
   const hist = React.useMemo(() => buildHistogram(values), [values]);
   const buckets = React.useMemo(() => buildBuckets(hist, propMin, propMax, maxBars), [hist, propMin, propMax, maxBars]);
   const avg = React.useMemo(() => weightedAvg(hist), [hist]);
@@ -141,12 +143,12 @@ export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars
   return (
     <div
       data-slot="range-filter"
-      className={cn('rounded-xl border border-border p-6', className)}
+      className={cn('rounded-xl p-6', className)}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <span className="text-sm text-muted-foreground">{title}</span>
-        <span className="text-4xl font-display font-medium text-foreground">{avg}</span>
+        <span className="text-4xl font-display font-medium text-foreground">{formatAvg ? formatAvg(avg) : avg}</span>
       </div>
 
       {/* Bar chart */}

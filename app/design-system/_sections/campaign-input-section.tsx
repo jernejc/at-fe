@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { CampaignInput } from '@/components/campaigns/start/ui/CampaignInput';
+import { CampaignInput } from '@/components/campaigns/new/CampaignInput';
 import type { ProductSummary, WSSearchPhase } from '@/lib/schemas';
 
 const MOCK_PRODUCTS: ProductSummary[] = [

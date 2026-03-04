@@ -373,7 +373,7 @@ export function AccountList(props: AccountListProps) {
     const handleNewCampaign = () => {
         // Navigate to the create wizard with product preselection if available
         const productParam = selectedProductId !== "all" ? `?product=${selectedProductId}` : '';
-        router.push(`/campaigns/start${productParam}`);
+        router.push(`/campaigns/new${productParam}`);
     };
 
     const selectedProduct = products.find((p) => p.id.toString() === selectedProductId);

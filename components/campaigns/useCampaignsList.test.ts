@@ -340,7 +340,7 @@ describe('useCampaignsList — pagination', () => {
 });
 
 describe('useCampaignsList — navigation', () => {
-  it('navigates to /campaigns/start on handleNewCampaign', async () => {
+  it('navigates to /campaigns/new on handleNewCampaign', async () => {
     const { result } = renderHook(() => useCampaignsList());
     await act(async () => {});
 
@@ -348,7 +348,7 @@ describe('useCampaignsList — navigation', () => {
       result.current.handleNewCampaign();
     });
 
-    expect(mockPush).toHaveBeenCalledWith('/campaigns/start');
+    expect(mockPush).toHaveBeenCalledWith('/campaigns/new');
   });
 
   it('navigates to campaign detail on handleRowClick', async () => {
