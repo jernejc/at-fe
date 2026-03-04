@@ -17,7 +17,7 @@ export function CampaignInputProductGrid({
   onSelect,
 }: CampaignInputProductGridProps) {
   return (
-    <div className="grid grid-cols-2 gap-2 p-4">
+    <div className="grid grid-cols-2 p-2">
       {products.map((product) => {
         const isSelected = selectedProduct?.id === product.id;
 

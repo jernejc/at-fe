@@ -56,7 +56,7 @@ export function CampaignInputTerminal({
   completedPhases,
 }: CampaignInputTerminalProps) {
   return (
-    <div className="bg-slate-900 dark:bg-slate-950 max-h-32 overflow-y-auto">
+    <div className="bg-black max-h-32 overflow-y-auto">
       <div className="flex flex-col-reverse">
         <div className="p-4 space-y-2 font-mono text-xs">
           {TERMINAL_STEPS.map((step, index) => {
@@ -82,8 +82,8 @@ export function CampaignInputTerminal({
 
                 <span
                   className={cn(
-                    state === 'active' && 'text-slate-200',
-                    state === 'completed' && 'text-slate-500'
+                    state === 'active' && 'text-gray-200',
+                    state === 'completed' && 'text-gray-500'
                   )}
                 >
                   {step.label}

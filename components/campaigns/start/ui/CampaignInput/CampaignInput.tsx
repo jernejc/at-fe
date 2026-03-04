@@ -96,8 +96,8 @@ export function CampaignInput({
       onKeyDown={isClosed ? handleContainerKeyDown : undefined}
       onBlur={handleContainerBlur}
       className={cn(
-        'rounded-2xl border border-border bg-card overflow-hidden transition-shadow',
-        isClosed && 'cursor-pointer hover:shadow-md',
+        'rounded-2xl border border-border bg-card overflow-hidden transition-colors',
+        isClosed && 'cursor-pointer hover:border-border-d',
         className
       )}
     >
@@ -170,7 +170,6 @@ export function CampaignInput({
             transition={springTransition}
             className="overflow-hidden"
           >
-            <Separator />
             <CampaignInputTerminal
               phase={searchPhase}
               completedPhases={completedPhases}

@@ -69,7 +69,7 @@ export function CampaignInputField({
 
       <Button
         size="icon"
-        variant={iconKey === 'loader' ? 'default' : 'ghost'}
+        variant="secondary"
         onClick={onSend}
         disabled={isDisabled}
         className={cn(
