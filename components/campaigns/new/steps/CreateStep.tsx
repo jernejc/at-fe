@@ -2,14 +2,15 @@
 
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { CampaignIconName } from '@/lib/config/campaign-icons';
 import { CampaignIconPicker } from '../create/CampaignIconPicker';
 import { CampaignNameInput } from '../create/CampaignNameInput';
 
 interface CreateStepProps {
   campaignName: string;
   onNameChange: (name: string) => void;
-  campaignIcon: string;
-  onIconChange: (icon: string) => void;
+  campaignIcon: CampaignIconName;
+  onIconChange: (icon: CampaignIconName) => void;
   isCreating: boolean;
   createError: string | null;
   onCreate: () => void;

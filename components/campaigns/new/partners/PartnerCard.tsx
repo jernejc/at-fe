@@ -46,14 +46,14 @@ export function PartnerCard({ partner, isSelected, onToggle }: PartnerCardProps)
 
         <div className="flex-1" />
 
-        {'capacity' in partner && partner.capacity != null && (
+        {partner.capacity != null && (
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Building2 className="size-3" />
             <span>{partner.capacity}</span>
           </div>
         )}
 
-        {'partner_type' in partner && partner.partner_type && (
+        {partner.partner_type && (
           <Badge variant="grey" className="text-xs">
             {partner.partner_type}
           </Badge>
@@ -64,7 +64,7 @@ export function PartnerCard({ partner, isSelected, onToggle }: PartnerCardProps)
       <div className="mt-3 text-lg font-semibold text-foreground">{partner.name}</div>
 
       {/* Industries */}
-      {'industries' in partner && partner.industries.length > 0 && (
+      {partner.industries.length > 0 && (
         <div className="text-sm text-muted-foreground mt-1 line-clamp-1">
           {partner.industries.join(', ')}
         </div>

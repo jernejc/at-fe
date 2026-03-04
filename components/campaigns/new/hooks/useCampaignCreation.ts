@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createCampaign, updateCampaign, addCompaniesBulk } from '@/lib/api/campaigns';
 import { bulkAssignPartners, bulkAssignCompaniesToPartner } from '@/lib/api/partners';
 import type { WSCompanyResult, WSPartnerSuggestion, PartnerSummary } from '@/lib/schemas';
-import { CAMPAIGN_ICON_NAMES } from '@/lib/config/campaign-icons';
+import { CAMPAIGN_ICON_NAMES, type CampaignIconName } from '@/lib/config/campaign-icons';
 
 interface CreateParams {
   productId: number;
@@ -18,8 +18,8 @@ interface CreateParams {
 interface UseCampaignCreationReturn {
   campaignName: string;
   setCampaignName: (name: string) => void;
-  campaignIcon: string;
-  setCampaignIcon: (icon: string) => void;
+  campaignIcon: CampaignIconName;
+  setCampaignIcon: (icon: CampaignIconName) => void;
   isCreating: boolean;
   createError: string | null;
   create: (params: CreateParams) => Promise<void>;

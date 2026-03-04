@@ -2,9 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { getPartners } from '@/lib/api/partners';
-import type { PartnerSummary, WSPartnerSuggestion } from '@/lib/schemas';
+import type { PartnerRead, WSPartnerSuggestion } from '@/lib/schemas';
 
-export type PartnerListItem = PartnerSummary;
+export type PartnerListItem = PartnerRead;
 
 interface UsePartnerSelectionReturn {
   partners: PartnerListItem[];
@@ -34,7 +34,7 @@ export function usePartnerSelection(
       setLoading(true);
       try {
         const { items } = await getPartners({ page_size: 50 });
-        setPartners(items);
+        setPartners(items as PartnerListItem[]);
       } catch (err) {
         console.error('Failed to load partners:', err);
       } finally {

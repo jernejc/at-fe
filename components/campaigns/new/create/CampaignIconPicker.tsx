@@ -2,12 +2,12 @@
 
 import { useState, useCallback } from 'react';
 import { Popover } from '@base-ui/react/popover';
-import { CampaignIcon, CAMPAIGN_ICON_NAMES } from '@/lib/config/campaign-icons';
+import { CampaignIcon, CAMPAIGN_ICON_NAMES, type CampaignIconName } from '@/lib/config/campaign-icons';
 import { cn } from '@/lib/utils';
 
 interface CampaignIconPickerProps {
-  icon: string;
-  onSelect: (icon: string) => void;
+  icon: CampaignIconName;
+  onSelect: (icon: CampaignIconName) => void;
 }
 
 /** Large icon button with popover grid for selecting a campaign icon. */
@@ -15,7 +15,7 @@ export function CampaignIconPicker({ icon, onSelect }: CampaignIconPickerProps) 
   const [open, setOpen] = useState(false);
 
   const handleSelect = useCallback(
-    (name: string) => {
+    (name: CampaignIconName) => {
       setOpen(false);
       onSelect(name);
     },
