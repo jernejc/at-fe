@@ -27,7 +27,7 @@ function CompanyRowSkeleton() {
 
 /** Scrollable column listing search result companies. */
 export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearching }: CompanyListColumnProps) {
-  if (isSearching && companies.length === 0) {
+  if (isSearching) {
     return (
       <div>
         {Array.from({ length: 8 }).map((_, i) => (

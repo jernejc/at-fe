@@ -74,6 +74,8 @@ export interface WSCompanyResult {
     key_employees: string[];
     logo_base64?: string | null;
     employee_count?: number | null;
+    hq_city?: string | null;
+    hq_country?: string | null;
 }
 
 // Partner result from WebSocket search

@@ -284,3 +284,43 @@
 .range-thumb::-moz-range-track {
     background: transparent;
 }
+
+/* Leaflet company map cluster markers */
+.company-cluster {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--accent-yellow);
+    color: var(--foreground);
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: 0 0 8px 2px oklch(0.85 0.12 85 / 40%);
+}
+
+.company-cluster-large {
+    background: oklch(0.78 0.14 60);
+    box-shadow: 0 0 16px 6px oklch(0.78 0.14 60 / 50%);
+}
+
+.dark .company-cluster-large {
+    background: oklch(0.6 0.14 60);
+    box-shadow: 0 0 16px 6px oklch(0.6 0.14 60 / 40%);
+}
+
+/* Override default leaflet.markercluster backgrounds */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+    background: transparent !important;
+}
+
+.marker-cluster div {
+    background: transparent !important;
+}
+
+.leaflet-container {
+    background: transparent;
+}

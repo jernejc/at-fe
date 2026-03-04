@@ -5,7 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RangeFilter } from '@/components/ui/range-filter';
 import { IndustryFilterCard } from './IndustryFilterCard';
-import type { WSSearchInsights } from '@/lib/schemas';
+import { CompanyMapWrapper } from './CompanyMapWrapper';
+import { useCompanyMapData } from '../hooks/useCompanyMapData';
+import { useTheme } from '@/components/providers/ThemeProvider';
+import type { WSCompanyResult, WSSearchInsights } from '@/lib/schemas';
 import type { useResultsFilters } from '../hooks/useResultsFilters';
 
 interface FiltersColumnProps {
@@ -16,6 +19,7 @@ interface FiltersColumnProps {
   suggestedQueries: string[];
   onSuggestedQueryClick: (query: string) => void;
   isSearching: boolean;
+  companies: WSCompanyResult[];
 }
 
 /** Skeleton placeholder matching the filters layout. */
@@ -36,13 +40,15 @@ function FiltersColumnSkeleton() {
         ))}
       </div>
 
+      <Skeleton className="h-[220px] w-full rounded-xl mb-6" />
+
       <Skeleton className="h-4 w-3/4 mb-2" />
       <Skeleton className="h-4 w-1/2 mb-4" />
     </div>
   );
 }
 
-/** Left column showing insights, suggested queries, range filters, and industry filter. */
+/** Left column showing insights, suggested queries, map, range filters, and industry filter. */
 export function FiltersColumn({
   totalCompanies,
   filteredCount,
@@ -51,8 +57,17 @@ export function FiltersColumn({
   suggestedQueries,
   onSuggestedQueryClick,
   isSearching,
+  companies,
 }: FiltersColumnProps) {
-  if (isSearching && filteredCount === 0) {
+  const markers = useCompanyMapData(companies);
+  const { theme } = useTheme();
+  const isDark =
+    theme === 'dark' ||
+    (theme === 'system' &&
+      typeof window !== 'undefined' &&
+      document.documentElement.classList.contains('dark'));
+
+  if (isSearching) {
     return <FiltersColumnSkeleton />;
   }
 
@@ -119,9 +134,16 @@ export function FiltersColumn({
         />
       </div>
 
+      {/* Company location map */}
+      {markers.length > 0 && (
+        <div className="rounded-xl bg-background overflow-hidden mt-6 h-[220px]">
+          <CompanyMapWrapper markers={markers} isDark={isDark} />
+        </div>
+      )}
+
       {/* Insights */}
       {insights && (insights.observation || insights.insight) && (
-        <div className="mt-4 text-sm text-muted-foreground">
+        <div className="mt-6 text-sm text-muted-foreground">
           <h2 className="text-sm font-semibold text-foreground mb-4">Insights</h2>
           {insights.observation && <p>{insights.observation}</p>}
           {insights.insight && <p className="mt-1">{insights.insight}</p>}

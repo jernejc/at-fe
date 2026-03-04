@@ -72,6 +72,7 @@ export function ResultsCard({
               suggestedQueries={suggestedQueries}
               onSuggestedQueryClick={onSuggestedQueryClick}
               isSearching={isSearching}
+              companies={companies}
             />
           )}
         </div>
