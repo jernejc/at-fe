@@ -9,6 +9,12 @@ export interface RangeFilterProps {
   title: string;
   /** Raw values array (rounded & counted) OR a pre-computed { value: count } map. */
   values: number[] | Record<number, number>;
+  /** Override the chart/slider minimum (extends range beyond data if needed). */
+  min?: number;
+  /** Override the chart/slider maximum (extends range beyond data if needed). */
+  max?: number;
+  /** Maximum number of bar columns. Values are grouped into buckets when the range exceeds this. @default 50 */
+  maxBars?: number;
   /** Fires when the user changes the selected range. */
   onChange?: (range: [number, number]) => void;
   className?: string;
@@ -32,36 +38,57 @@ function buildHistogram(values: number[] | Record<number, number>): Map<number, 
   return hist;
 }
 
-/**
- * Fill gaps between min and max with zero-count entries, return sorted.
- * Only fills integer gaps if the range is reasonable (<=200); otherwise
- * returns just the existing keys sorted.
- */
-function fillAndSort(hist: Map<number, number>): [number, number][] {
-  const keys = [...hist.keys()].sort((a, b) => a - b);
-  if (keys.length === 0) return [];
-
-  const min = keys[0];
-  const max = keys[keys.length - 1];
-
-  // Only fill integer gaps when range is small enough for a clean bar chart
-  if (max - min <= 200) {
-    const entries: [number, number][] = [];
-    for (let i = min; i <= max; i++) {
-      entries.push([i, hist.get(i) ?? 0]);
-    }
-    return entries;
-  }
-
-  // Sparse data: return existing keys as-is
-  return keys.map((k) => [k, hist.get(k) ?? 0]);
+interface Bucket {
+  start: number;
+  end: number;
+  count: number;
 }
 
-/** Compute a weighted average from histogram entries. */
-function weightedAvg(entries: [number, number][]): number {
+/** Group histogram into at most `maxBars` buckets, filling all gaps. */
+function buildBuckets(
+  hist: Map<number, number>,
+  overrideMin?: number,
+  overrideMax?: number,
+  maxBars = 50,
+): Bucket[] {
+  const keys = [...hist.keys()].sort((a, b) => a - b);
+  if (keys.length === 0 && overrideMin == null) return [];
+
+  const min = overrideMin ?? keys[0];
+  const max = overrideMax ?? keys[keys.length - 1];
+  const span = max - min;
+
+  // When range fits in maxBars, each integer gets its own bar
+  if (span < maxBars) {
+    return Array.from({ length: span + 1 }, (_, i) => ({
+      start: min + i,
+      end: min + i,
+      count: hist.get(min + i) ?? 0,
+    }));
+  }
+
+  // Otherwise group into evenly-sized buckets
+  const bucketWidth = (span + 1) / maxBars;
+  const buckets: Bucket[] = [];
+
+  for (let i = 0; i < maxBars; i++) {
+    const start = Math.round(min + i * bucketWidth);
+    const end = Math.round(min + (i + 1) * bucketWidth) - 1;
+    let count = 0;
+    for (const [k, c] of hist) {
+      if (k >= start && k <= end) count += c;
+    }
+    buckets.push({ start, end, count });
+  }
+
+  return buckets;
+}
+
+/** Compute a weighted average directly from the raw histogram. */
+function weightedAvg(hist: Map<number, number>): number {
   let total = 0;
   let count = 0;
-  for (const [value, c] of entries) {
+  for (const [value, c] of hist) {
     total += value * c;
     count += c;
   }
@@ -72,14 +99,14 @@ function weightedAvg(entries: [number, number][]): number {
  * Histogram bar chart with a dual-thumb range slider for filtering numeric values.
  * Bars inside the selected range are dark; bars outside are muted.
  */
-export function RangeFilter({ title, values, onChange, className }: RangeFilterProps) {
+export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars = 50, onChange, className }: RangeFilterProps) {
   const hist = React.useMemo(() => buildHistogram(values), [values]);
-  const entries = React.useMemo(() => fillAndSort(hist), [hist]);
-  const avg = React.useMemo(() => weightedAvg(entries), [entries]);
+  const buckets = React.useMemo(() => buildBuckets(hist, propMin, propMax, maxBars), [hist, propMin, propMax, maxBars]);
+  const avg = React.useMemo(() => weightedAvg(hist), [hist]);
 
-  const dataMin = entries.length > 0 ? entries[0][0] : 0;
-  const dataMax = entries.length > 0 ? entries[entries.length - 1][0] : 0;
-  const maxCount = Math.max(...entries.map(([, c]) => c), 1);
+  const dataMin = buckets.length > 0 ? buckets[0].start : 0;
+  const dataMax = buckets.length > 0 ? buckets[buckets.length - 1].end : 0;
+  const maxCount = Math.max(...buckets.map((b) => b.count), 1);
 
   const [rangeMin, setRangeMin] = React.useState(dataMin);
   const [rangeMax, setRangeMax] = React.useState(dataMax);
@@ -109,7 +136,7 @@ export function RangeFilter({ title, values, onChange, className }: RangeFilterP
   const leftPct = ((rangeMin - dataMin) / range) * 100;
   const rightPct = ((dataMax - rangeMax) / range) * 100;
 
-  if (entries.length === 0) return null;
+  if (buckets.length === 0) return null;
 
   return (
     <div
@@ -124,12 +151,12 @@ export function RangeFilter({ title, values, onChange, className }: RangeFilterP
 
       {/* Bar chart */}
       <div className="flex items-end gap-0.5 px-2" style={{ height: 64 }}>
-        {entries.map(([value, count]) => {
-          const inRange = value >= rangeMin && value <= rangeMax;
-          const heightPct = (count / maxCount) * 100;
+        {buckets.map((bucket) => {
+          const inRange = bucket.end >= rangeMin && bucket.start <= rangeMax;
+          const heightPct = (bucket.count / maxCount) * 100;
           return (
             <div
-              key={value}
+              key={bucket.start}
               className={cn(
                 'flex-1 rounded-t-xs transition-colors',
                 inRange ? 'bg-foreground' : 'bg-muted-foreground/20'
@@ -141,7 +168,7 @@ export function RangeFilter({ title, values, onChange, className }: RangeFilterP
       </div>
 
       {/* Range slider */}
-      <div className="relative h-5 -mt-2">
+      <div className="relative h-5 -mt-2 mb-2">
         {/* Track background */}
         <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-0.5 bg-muted-foreground/20 rounded-full" />
         {/* Active track */}

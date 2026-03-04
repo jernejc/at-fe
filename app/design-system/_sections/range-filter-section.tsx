@@ -26,14 +26,16 @@ export function RangeFilterSection() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Array input variant */}
+        {/* Array input with explicit 0-100 range */}
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            From Array (fit scores)
+            From Array (fit scores, 0–100 range)
           </h3>
           <RangeFilter
             title="Avg. fit"
             values={sampleFitScores}
+            min={0}
+            max={100}
             onChange={(range) => console.log('fit range:', range)}
           />
         </div>
