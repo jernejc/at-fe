@@ -8,6 +8,9 @@ import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { SelectToggle } from '@/components/ui/select-toggle';
 
+/** Metric column keys for the CompanyRow right-side metrics. */
+export type CompanyRowMetric = 'fit' | 'location' | 'size' | 'revenue' | 'partner';
+
 interface CompanyRowProps {
   /** Company data for the row. */
   company: CompanyRowData;
@@ -21,14 +24,18 @@ interface CompanyRowProps {
   selected?: boolean;
   /** Called when the selection toggle is clicked. Receives the mouse event for shift-key detection. */
   onSelect?: (e: React.MouseEvent) => void;
-  /** Compact mode: shows only fit score, location, and employee count without fixed widths. */
+  /** Hide the status indicator ring. Default: false. */
+  hideStatus?: boolean;
+  /** Which metric columns to show. When provided, only listed metrics render with fixed widths. */
+  visibleMetrics?: CompanyRowMetric[];
+  /** @deprecated Use hideStatus + visibleMetrics instead. */
   compact?: boolean;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a company with status, score, and metrics. */
-export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, compact, className, ref }: CompanyRowProps) {
+export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, hideStatus, visibleMetrics, compact, className, ref }: CompanyRowProps) {
   const fitScore = company.fit_score != null
     ? Math.round(normalizeScoreNullable(company.fit_score))
     : null;
@@ -44,6 +51,9 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
       onClick?.(company);
     }
   };
+
+  const showMetric = (metric: CompanyRowMetric) =>
+    !visibleMetrics || visibleMetrics.includes(metric);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -78,10 +88,12 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
       )}
 
       {/* Status indicator */}
-      <CompanyStatus
-        status={company.status as CompanyStatusValue}
-        progress={company.progress}
-      />
+      {!hideStatus && (
+        <CompanyStatus
+          status={company.status as CompanyStatusValue}
+          progress={company.progress}
+        />
+      )}
 
       {/* Company logo */}
       <Avatar size="sm" className="rounded-lg after:rounded-lg">
@@ -129,7 +141,7 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
       ) : (
         <div className="hidden md:flex items-center gap-7 shrink-0">
           {/* Fit Score + trend */}
-          {fitScore != null && (
+          {showMetric('fit') && fitScore != null && (
             <FitScoreIndicator
               score={fitScore}
               change={company.fit_score_change ?? undefined}
@@ -139,7 +151,7 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
           )}
 
           {/* Location */}
-          {company.hq_country && (
+          {showMetric('location') && company.hq_country && (
             <span className="flex items-center gap-2 text-sm w-30">
               <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate max-w-[120px]">{company.hq_country}</span>
@@ -147,7 +159,7 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
           )}
 
           {/* Employee count */}
-          {company.employee_count != null && (
+          {showMetric('size') && company.employee_count != null && (
             <span className="flex items-center gap-2 text-sm w-16">
               <Users className="w-3.5 h-3.5 shrink-0" />
               <span>{formatCompactNumber(company.employee_count)}</span>
@@ -155,27 +167,30 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
           )}
 
           {/* Revenue */}
-          <span className="text-sm tabular-nums w-20">
-            {company.revenue != null ? formatCurrency(company.revenue) : '\u2013'}
-          </span>
+          {showMetric('revenue') && (
+            <span className="text-sm tabular-nums w-20">
+              {company.revenue != null ? formatCurrency(company.revenue) : '\u2013'}
+            </span>
+          )}
 
           {/* Assigned partner */}
-          <div className="flex items-center gap-2 shrink-0 w-30">
-            {company.partner_name && (
-              <>
-                <Avatar className="w-6 h-6">
-                  {company.partner_logo_url && (
-                    <AvatarImage src={company.partner_logo_url} alt={company.partner_name} />
-                  )}
-                  <AvatarFallback className="text-[10px]">
-                    {company.partner_name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-foreground truncate max-w-[100px]">
-                  {company.partner_name}
-                </span>
-              </>
-            ) || (
+          {showMetric('partner') && (
+            <div className="flex items-center gap-2 shrink-0 w-30">
+              {company.partner_name ? (
+                <>
+                  <Avatar className="w-6 h-6">
+                    {company.partner_logo_url && (
+                      <AvatarImage src={company.partner_logo_url} alt={company.partner_name} />
+                    )}
+                    <AvatarFallback className="text-[10px]">
+                      {company.partner_name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-foreground truncate max-w-[100px]">
+                    {company.partner_name}
+                  </span>
+                </>
+              ) : (
                 <>
                   <CircleOff className='size-4 text-muted-foreground mx-1' />
                   <span className="text-sm text-foreground truncate max-w-[100px]">
@@ -183,29 +198,40 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
                   </span>
                 </>
               )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
+interface CompanyRowSkeletonProps {
+  /** Hide the status indicator skeleton. */
+  hideStatus?: boolean;
+  /** Which metric columns to show skeletons for. */
+  visibleMetrics?: CompanyRowMetric[];
+}
+
 /** Loading skeleton for CompanyRow. */
-export function CompanyRowSkeleton() {
+export function CompanyRowSkeleton({ hideStatus, visibleMetrics }: CompanyRowSkeletonProps = {}) {
+  const show = (metric: CompanyRowMetric) =>
+    !visibleMetrics || visibleMetrics.includes(metric);
+
   return (
     <div className="flex items-center gap-4 px-6 py-4">
-      <div className="w-5 h-5 rounded-full bg-muted animate-pulse" />
+      {!hideStatus && <div className="w-5 h-5 rounded-full bg-muted animate-pulse" />}
       <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" />
       <div className="flex-1 space-y-1.5">
         <div className="w-36 h-4 bg-muted rounded animate-pulse" />
         <div className="w-24 h-3 bg-muted rounded animate-pulse" />
       </div>
       <div className="hidden md:flex items-center gap-7 shrink-0">
-        <div className="w-18 h-4 bg-muted rounded animate-pulse" />
-        <div className="w-30 h-4 bg-muted rounded animate-pulse" />
-        <div className="w-16 h-4 bg-muted rounded animate-pulse" />
-        <div className="w-20 h-4 bg-muted rounded animate-pulse" />
-        <div className="w-30 h-4 bg-muted rounded animate-pulse" />
+        {show('fit') && <div className="w-18 h-4 bg-muted rounded animate-pulse" />}
+        {show('location') && <div className="w-30 h-4 bg-muted rounded animate-pulse" />}
+        {show('size') && <div className="w-16 h-4 bg-muted rounded animate-pulse" />}
+        {show('revenue') && <div className="w-20 h-4 bg-muted rounded animate-pulse" />}
+        {show('partner') && <div className="w-30 h-4 bg-muted rounded animate-pulse" />}
       </div>
     </div>
   );
