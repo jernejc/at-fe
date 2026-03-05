@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getCompanies } from '@/lib/api/companies';
 import { getProducts, getProductCandidates } from '@/lib/api/products';
 import { searchCompanies } from '@/lib/api/search';
@@ -90,17 +91,31 @@ export interface UseDiscoveryCompaniesReturn {
   refetch: () => void;
 }
 
+const VALID_SORT_FIELDS = new Set(SORT_OPTIONS.map((o) => o.value));
+const VALID_SCORE_VALUES = new Set(SCORE_FILTER.options.map((o) => o.value));
+
+/** Parse a SortState from URL search params. */
+function parseSortFromParams(params: URLSearchParams): SortState | null {
+  const field = params.get('sort');
+  const dir = params.get('dir');
+  if (!field || !VALID_SORT_FIELDS.has(field)) return null;
+  return { field, direction: dir === 'asc' ? 'asc' : 'desc' };
+}
+
 /** Fetches and manages discovery companies with search, sort, and filter. */
 export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [rawCompanies, setRawCompanies] = useState<CompanyRowData[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [page, setPageRaw] = useState(1);
+  const [page, setPageRaw] = useState(() => Number(searchParams.get('page')) || 1);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFiltersRaw] = useState<ActiveFilter[]>([]);
-  const [activeSort, setActiveSortRaw] = useState<SortState | null>({ field: 'updated_at', direction: 'desc' });
+  const [activeSort, setActiveSortRaw] = useState<SortState | null>(() => parseSortFromParams(searchParams));
 
   const [products, setProducts] = useState<ProductSummary[]>([]);
   const [fetchVersion, setFetchVersion] = useState(0);
@@ -116,11 +131,16 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
     return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
   }, [searchQuery]);
 
-  // Reset page on filter/sort/search change
+  // Reset page on filter/sort/search change; clear fit sort when product filter is removed
   const setActiveFilters = useCallback((filters: ActiveFilter[]) => {
+    const hadProduct = activeFilters.some((f) => f.key === 'product');
+    const hasProduct = filters.some((f) => f.key === 'product');
+    if (hadProduct && !hasProduct && activeSort?.field === 'fit_score') {
+      setActiveSortRaw(null);
+    }
     setActiveFiltersRaw(filters);
     setPageRaw(1);
-  }, []);
+  }, [activeFilters, activeSort]);
 
   const setActiveSort = useCallback((sort: SortState | null) => {
     setActiveSortRaw(sort);
@@ -133,6 +153,55 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
   useEffect(() => {
     getProducts(1, 100).then((res) => setProducts(res.items)).catch(() => setProducts([]));
   }, []);
+
+  // Reconstruct filters from URL once products are loaded
+  const filtersInitialized = useRef(false);
+  useEffect(() => {
+    if (products.length === 0 || filtersInitialized.current) return;
+    filtersInitialized.current = true;
+
+    const filters: ActiveFilter[] = [];
+    const urlProduct = searchParams.get('product');
+    if (urlProduct) {
+      const product = products.find((p) => String(p.id) === urlProduct);
+      if (product) {
+        filters.push({ key: 'product', operator: 'is', value: urlProduct, fieldLabel: 'Product', valueLabel: product.name });
+      }
+    }
+    const urlScore = searchParams.get('score');
+    if (urlScore && VALID_SCORE_VALUES.has(urlScore)) {
+      const scoreOption = SCORE_FILTER.options.find((o) => o.value === urlScore);
+      if (scoreOption) {
+        filters.push({ key: 'score', operator: 'is', value: urlScore, fieldLabel: 'Score', valueLabel: scoreOption.label });
+      }
+    }
+    if (filters.length > 0) setActiveFiltersRaw(filters);
+  }, [products, searchParams]);
+
+  // Sync state → URL (skip during initial filter reconstruction)
+  const isFirstSync = useRef(true);
+  useEffect(() => {
+    if (!filtersInitialized.current && products.length === 0) {
+      // Products haven't loaded yet; skip to avoid clearing URL filter params
+      return;
+    }
+    if (isFirstSync.current) {
+      isFirstSync.current = false;
+      return;
+    }
+    const params = new URLSearchParams();
+    if (page > 1) params.set('page', String(page));
+    const pf = activeFilters.find((f) => f.key === 'product');
+    if (pf) params.set('product', pf.value);
+    const sf = activeFilters.find((f) => f.key === 'score');
+    if (sf) params.set('score', sf.value);
+    if (activeSort) {
+      params.set('sort', activeSort.field);
+      params.set('dir', activeSort.direction);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `/discovery?${qs}` : '/discovery', { scroll: false });
+  }, [page, activeFilters, activeSort, products, router]);
 
   // Derived filter values
   const productFilter = activeFilters.find((f) => f.key === 'product');
@@ -212,6 +281,12 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
     [products],
   );
 
+  // Only show fit score sort when a product filter is active
+  const sortOptions = useMemo<SortOptionDefinition[]>(
+    () => (productId ? SORT_OPTIONS : SORT_OPTIONS.filter((o) => o.value !== 'fit_score')),
+    [productId],
+  );
+
   return {
     companies,
     totalCount,
@@ -225,7 +300,7 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
     filterDefinitions,
     activeFilters,
     setActiveFilters,
-    sortOptions: SORT_OPTIONS,
+    sortOptions,
     activeSort,
     setActiveSort,
     refetch,
