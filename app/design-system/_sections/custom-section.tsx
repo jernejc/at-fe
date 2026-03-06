@@ -7,18 +7,20 @@ import type { CompanyStatusValue } from '@/components/ui/company-status';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
+import { SignalStrengthIndicator } from '@/components/ui/signal-strength-indicator';
 import { TrendIndicator } from '@/components/ui/trend-indicator';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { CampaignRow } from '@/components/campaigns/CampaignRow';
 import { CompanyRow } from '@/components/campaigns/CompanyRow';
 import { PersonRow } from '@/components/ui/person-row';
 import { JobRow } from '@/components/ui/job-row';
+import { SignalRow } from '@/components/signals/SignalRow';
 import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { CAMPAIGN_ICON_NAMES } from '@/lib/config/campaign-icons';
 import { Separator } from '@/components/ui/separator';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
-import type { CampaignRowData, CompanyRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState, EmployeeSummary, JobPostingSummary } from '@/lib/schemas';
+import type { CampaignRowData, CompanyRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState, EmployeeSummary, JobPostingSummary, SignalInterest } from '@/lib/schemas';
 
 const sampleFilterDefs: FilterDefinition[] = [
   {
@@ -185,6 +187,33 @@ const sampleCampaigns: CampaignRowData[] = [
     created_at: '2025-06-15T12:00:00Z', updated_at: '2025-09-01T09:00:00Z',
     icon: 'skull',
     main_location: 'Singapore',
+  },
+];
+
+const sampleSignals: SignalInterest[] = [
+  {
+    id: 1, category: 'cloud_security', display_name: 'Cloud Security Interest',
+    strength: 8, confidence: 0.9, evidence_summary: 'Multiple employees engaging with cloud security content and attending AWS re:Invent sessions',
+    source_type: 'employee', source_types: ['employee', 'post', 'technographics'],
+    source_ids: [1, 2, 3], source_ids_by_type: { employee: [1], post: [2], technographics: [3] },
+    component_signal_ids: [10, 11, 12], component_count: 3, components: [],
+    contributor_count: 5, weight_sum: 12.4,
+  },
+  {
+    id: 2, category: 'hiring_growth', display_name: 'Hiring Surge',
+    strength: 5, confidence: 0.7, evidence_summary: '12 new engineering roles posted in the last 30 days across multiple departments',
+    source_type: 'job', source_types: ['job', 'news'],
+    source_ids: [4, 5], source_ids_by_type: { job: [4], news: [5] },
+    component_signal_ids: [20, 21], component_count: 2, components: [],
+    contributor_count: 2, weight_sum: 6.1,
+  },
+  {
+    id: 3, category: 'data_analytics', display_name: 'Data Analytics Adoption',
+    strength: 3, confidence: 0.5, evidence_summary: 'CTO mentioned evaluating data platforms in a recent blog post',
+    source_type: 'post', source_types: ['post'],
+    source_ids: [6], source_ids_by_type: { post: [6] },
+    component_signal_ids: [30], component_count: 1, components: [],
+    contributor_count: 1, weight_sum: 3.0,
   },
 ];
 
@@ -356,6 +385,27 @@ export function CustomSection() {
 
       <Separator />
 
+      {/* Signal Row */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          SignalRow
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Row showing signal strength triangle, type icon, name, evidence summary, source type badges, contributor and component counts.
+        </p>
+        <div>
+          <Separator />
+          {sampleSignals.map((signal) => (
+            <div key={signal.id}>
+              <SignalRow signal={signal} onClick={() => { }} className='-mx-6' />
+              <Separator />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
       {/* Dashboard */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -419,6 +469,38 @@ export function CustomSection() {
             Large (32px)
           </span>
           <FitScoreIndicator score={75} change={3} size={32} />
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Signal Strength Indicator */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          SignalStrengthIndicator
+        </h3>
+        <div className="space-y-4">
+          {[
+            { value: 0, label: 'None' },
+            { value: 3, label: 'Low' },
+            { value: 5, label: 'Medium' },
+            { value: 7, label: 'High' },
+            { value: 10, label: 'Max' },
+          ].map((s) => (
+            <div key={s.value} className="flex items-center gap-4">
+              <span className="w-20 text-xs text-muted-foreground">
+                {s.label}
+              </span>
+              <SignalStrengthIndicator value={s.value} />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-4 pt-2">
+          <span className="w-20 text-xs text-muted-foreground">
+            Large (32px)
+          </span>
+          <SignalStrengthIndicator value={7} size={32} />
         </div>
       </div>
 

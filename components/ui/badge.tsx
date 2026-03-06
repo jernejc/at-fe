@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center w-fit whitespace-nowrap shrink-0 h-6 gap-1 rounded-full border px-3 text-xs font-medium transition-colors overflow-hidden group/badge [&>svg]:pointer-events-none [&>svg]:size-3! has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center w-fit whitespace-nowrap shrink-0 gap-1 rounded-full border font-medium transition-colors overflow-hidden group/badge [&>svg]:pointer-events-none [&>svg]:size-3! has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
@@ -23,9 +23,14 @@ const badgeVariants = cva(
         purple:
           "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800",
       },
+      size: {
+        default: "h-6 px-3 text-xs",
+        sm: "h-5 px-2 text-[10px]",
+      },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
     },
   }
 )
@@ -33,6 +38,7 @@ const badgeVariants = cva(
 function Badge({
   className,
   variant = "default",
+  size = "default",
   render,
   ...props
 }: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
@@ -40,7 +46,7 @@ function Badge({
     defaultTagName: "span",
     props: mergeProps<"span">(
       {
-        className: cn(badgeVariants({ className, variant })),
+        className: cn(badgeVariants({ className, variant, size })),
       },
       props
     ),
