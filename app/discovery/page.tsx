@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useDiscoveryCompanies } from '@/components/discovery/useDiscoveryCompanies';
@@ -9,6 +10,14 @@ import { useBulkSelection } from '@/hooks/useBulkSelection';
 import type { CompanyRowData } from '@/lib/schemas';
 
 export default function DiscoveryPage() {
+  return (
+    <Suspense>
+      <DiscoveryPageContent />
+    </Suspense>
+  );
+}
+
+function DiscoveryPageContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const discovery = useDiscoveryCompanies();
