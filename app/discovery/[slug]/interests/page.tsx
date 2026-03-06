@@ -1,25 +1,25 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useDiscoveryEvents } from './useDiscoveryEvents';
+import { useDiscoveryInterests } from './useDiscoveryInterests';
 import { DiscoverySignalsList } from '@/components/discovery/DiscoverySignalsList';
 import { DetailSidePanel } from '@/components/ui/detail-side-panel/DetailSidePanel';
 import { SignalProvenanceDetail } from '@/components/signals/SignalProvenanceDetail';
 import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 
-export default function DiscoveryEventsPage() {
+export default function DiscoveryInterestsPage() {
   const {
-    events, narrative, loading, error,
+    interests, narrative, loading, error,
     selectedSignalId, provenance, provenanceLoading, selectSignal, clearSelection,
-  } = useDiscoveryEvents();
+  } = useDiscoveryInterests();
 
   const selectedSignal = useMemo(
-    () => events.find((s) => s.id === selectedSignalId) ?? null,
-    [events, selectedSignalId],
+    () => interests.find((s) => s.id === selectedSignalId) ?? null,
+    [interests, selectedSignalId],
   );
 
   const { getItemRef } = useListKeyboardNav({
-    items: events,
+    items: interests,
     selectedItem: selectedSignal,
     getKey: (s) => s.id,
     onSelect: (s) => selectSignal(s.id),
@@ -33,8 +33,8 @@ export default function DiscoveryEventsPage() {
       detail={<SignalProvenanceDetail signal={provenance} isLoading={provenanceLoading} />}
     >
       <DiscoverySignalsList
-        signalType="event"
-        signals={events}
+        signalType="interest"
+        signals={interests}
         narrative={narrative}
         loading={loading}
         error={error}

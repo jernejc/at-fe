@@ -29,11 +29,14 @@ interface SignalRowProps {
   signal: SignalInterest | SignalEvent;
   /** Row click handler. */
   onClick?: () => void;
+  /** Whether this row is currently selected/active. */
+  isActive?: boolean;
   className?: string;
+  ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a signal with strength indicator, source badges, and metrics. */
-export function SignalRow({ signal, onClick, className }: SignalRowProps) {
+export function SignalRow({ signal, onClick, isActive, className, ref }: SignalRowProps) {
   const visibleSourceTypes = (signal.source_types ?? []).filter((st) => {
     const n = st.toLowerCase();
     return n !== 'apollo_industry' && n !== 'apollo_growth' && n !== 'apollo_revenue';
@@ -41,16 +44,17 @@ export function SignalRow({ signal, onClick, className }: SignalRowProps) {
 
   return (
     <div
+      ref={ref}
       onClick={onClick}
       className={cn(
         'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
-        onClick && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        (onClick) && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        isActive && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
         className,
       )}
     >
       {/* Signal strength triangle */}
       <SignalStrengthIndicator value={signal.strength} className='flex-col text-xs' />
-
 
       {/* Name + evidence */}
       <div className="flex-1 min-w-0 flex flex-col">
@@ -58,7 +62,7 @@ export function SignalRow({ signal, onClick, className }: SignalRowProps) {
           {signal.display_name || signal.category}
         </span>
         {signal.evidence_summary && (
-          <span className="text-xs text-muted-foreground truncate mt-0.5">
+          <span className="text-xs text-muted-foreground line-clamp-2 max-w-xl mt-0.5">
             {signal.evidence_summary}
           </span>
         )}
@@ -103,8 +107,7 @@ export function SignalRow({ signal, onClick, className }: SignalRowProps) {
 /** Loading skeleton for SignalRow. */
 export function SignalRowSkeleton() {
   return (
-    <div className="flex items-center gap-4 px-6 py-4">
-      <div className="w-4 h-4 bg-muted rounded animate-pulse" />
+    <div className="flex items-center gap-4 px-6 py-4 -mx-5">
       <div className="w-4 h-4 bg-muted rounded animate-pulse" />
       <div className="flex-1 space-y-1.5">
         <div className="w-36 h-4 bg-muted rounded animate-pulse" />

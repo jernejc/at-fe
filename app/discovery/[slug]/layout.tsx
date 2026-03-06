@@ -31,7 +31,7 @@ function DiscoveryDetailLayoutInner({ slug, children }: { slug: string; children
   const navItems = [
     { label: 'Overview', href: `/discovery/${slug}` },
     { label: 'Products', href: `/discovery/${slug}/products` },
-    { label: 'Signals', href: `/discovery/${slug}/signals` },
+    { label: 'Interests', href: `/discovery/${slug}/interests` },
     { label: 'Events', href: `/discovery/${slug}/events` },
     { label: 'Playbooks', href: `/discovery/${slug}/playbooks` },
     { label: 'People', href: `/discovery/${slug}/people` },
