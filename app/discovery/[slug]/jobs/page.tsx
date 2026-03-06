@@ -1,11 +1,9 @@
 'use client';
 
+import { useDiscoveryJobs } from './useDiscoveryJobs';
+import { DiscoveryJobsList } from '@/components/discovery/DiscoveryJobsList';
+
 export default function DiscoveryJobsPage() {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <p className="text-sm text-muted-foreground">
-        Jobs content coming soon.
-      </p>
-    </div>
-  );
+  const jobsData = useDiscoveryJobs();
+  return <DiscoveryJobsList {...jobsData} />;
 }

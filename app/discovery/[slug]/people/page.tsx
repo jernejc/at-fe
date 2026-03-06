@@ -1,11 +1,9 @@
 'use client';
 
+import { useDiscoveryPeople } from './useDiscoveryPeople';
+import { DiscoveryPeopleList } from '@/components/discovery/DiscoveryPeopleList';
+
 export default function DiscoveryPeoplePage() {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <p className="text-sm text-muted-foreground">
-        People content coming soon.
-      </p>
-    </div>
-  );
+  const peopleData = useDiscoveryPeople();
+  return <DiscoveryPeopleList {...peopleData} />;
 }
