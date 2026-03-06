@@ -165,11 +165,13 @@ function CompaniesListSkeleton({ showFit }: { showFit: boolean }) {
   const metrics = showFit ? METRICS_WITH_FIT : METRICS_WITHOUT_FIT;
   return (
     <div className="flex flex-col">
-      <TableHeader isEditing={false} isAllSelected={false} isPartiallySelected={false} onToggleSelectAll={() => {}} showFit={showFit} />
+      <TableHeader isEditing={false} isAllSelected={false} isPartiallySelected={false} onToggleSelectAll={() => { }} showFit={showFit} />
       <Separator />
       {Array.from({ length: 8 }, (_, i) => (
         <div key={i}>
-          <CompanyRowSkeleton hideStatus visibleMetrics={metrics} />
+          <div className='-mx-5'>
+            <CompanyRowSkeleton hideStatus visibleMetrics={metrics} />
+          </div>
           <Separator />
         </div>
       ))}

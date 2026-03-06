@@ -66,7 +66,7 @@ function DiscoveryDetailLayoutInner({ slug, children }: { slug: string; children
             loading={loading}
           />
         </div>
-        <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-center z-1 bg-background -mt-6">
+        <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-1 bg-background -mt-6">
           <Avatar className="size-4 rounded">
             {logoSrc && <AvatarImage src={logoSrc} alt={company?.name} className="rounded" />}
             <AvatarFallback className="rounded text-[8px]">
