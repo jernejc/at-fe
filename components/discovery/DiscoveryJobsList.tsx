@@ -51,8 +51,12 @@ export function DiscoveryJobsList({
               <span className="text-muted-foreground font-normal">({grouped[dept].length})</span>
             </h3>
             {grouped[dept].map(job => (
-              <JobRow key={job.id} job={job} />
+              <div key={job.id}>
+                <Separator />
+                <JobRow job={job} className='-mx-6' />
+              </div>
             ))}
+            <Separator />
           </section>
         ))
       ) : (
@@ -61,14 +65,17 @@ export function DiscoveryJobsList({
             Open Positions <span className="text-muted-foreground font-normal">({total})</span>
           </h3>
           {jobs.map(job => (
-            <JobRow key={job.id} job={job} />
+            <div key={job.id}>
+              <Separator />
+              <JobRow job={job} className='-mx-6' />
+            </div>
           ))}
+          <Separator />
         </section>
       )}
 
       {hasMore && (
         <div className="space-y-4">
-          <Separator />
           <div className="flex justify-center">
             <Button variant="ghost" onClick={loadMore} disabled={loadingMore}>
               {loadingMore ? 'Loading...' : 'Load more'}
@@ -85,8 +92,12 @@ function JobsListSkeleton() {
     <div>
       <div className="h-5 w-40 bg-muted rounded animate-pulse mb-3" />
       {Array.from({ length: 6 }).map((_, i) => (
-        <JobRowSkeleton key={i} />
+        <div key={i}>
+          <Separator />
+          <JobRowSkeleton className='-mx-6' />
+        </div>
       ))}
+      <Separator />
     </div>
   );
 }

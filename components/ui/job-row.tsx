@@ -82,9 +82,9 @@ export function JobRow({ job, onClick, isActive, className, ref }: JobRowProps) 
 }
 
 /** Loading skeleton for JobRow. */
-export function JobRowSkeleton() {
+export function JobRowSkeleton({ className }: { className?: string }) {
   return (
-    <div className="flex items-center gap-4 px-6 py-4">
+    <div className={cn("flex items-center gap-4 px-6 py-4", className)}>
       <div className="w-12 h-12 rounded-lg bg-muted animate-pulse" />
       <div className="flex-1 space-y-1.5">
         <div className="w-40 h-4 bg-muted rounded animate-pulse" />

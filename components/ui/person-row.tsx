@@ -65,7 +65,7 @@ export function PersonRow({ person, onClick, isActive, selectable, selected, onS
       {selectable && (
         <SelectToggle
           checked={!!selected}
-          onChange={() => {/* handled by row click */}}
+          onChange={() => {/* handled by row click */ }}
         />
       )}
 
@@ -133,9 +133,9 @@ export function PersonRow({ person, onClick, isActive, selectable, selected, onS
 }
 
 /** Loading skeleton for PersonRow. */
-export function PersonRowSkeleton() {
+export function PersonRowSkeleton({ className }: { className?: string }) {
   return (
-    <div className="flex items-center gap-4 px-6 py-4">
+    <div className={cn("flex items-center gap-4 px-6 py-4", className)}>
       <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
       <div className="flex-1 space-y-1.5">
         <div className="w-32 h-4 bg-muted rounded animate-pulse" />

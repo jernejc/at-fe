@@ -71,17 +71,13 @@ export function DiscoverySignalsList({
       {/* Narrative */}
       {narrative && (
         <section>
-          <h3 className="text-sm font-semibold text-foreground mb-1">{config.narrativeTitle}</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{narrative}</p>
+          <h3 className="text-lg font-semibold text-foreground mb-1">{config.narrativeTitle}</h3>
+          <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap max-w-4xl">{narrative}</p>
         </section>
       )}
 
       {/* Signal rows */}
       <section>
-        <h3 className="text-base font-medium text-foreground mb-3">
-          {config.title}{' '}
-          <span className="text-muted-foreground font-normal">({signals.length})</span>
-        </h3>
         <SignalTableHeader />
         <Separator />
         {signals.map((signal) => (

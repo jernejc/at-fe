@@ -47,8 +47,12 @@ export function DiscoveryPeopleList({
             Key Contacts <span className="text-muted-foreground font-normal">({keyContacts.length})</span>
           </h3>
           {keyContacts.map(person => (
-            <PersonRow key={person.id} person={person} keyContact />
+            <div key={person.id}>
+              <Separator />
+              <PersonRow person={person} className='-mx-6' keyContact />
+            </div>
           ))}
+          <Separator />
         </section>
       )}
 
@@ -58,12 +62,15 @@ export function DiscoveryPeopleList({
             Team <span className="text-muted-foreground font-normal">({teamTotal})</span>
           </h3>
           {team.map(person => (
-            <PersonRow key={person.id} person={person} />
+            <div key={person.id}>
+              <Separator />
+              <PersonRow person={person} className='-mx-6' />
+            </div>
           ))}
+          <Separator />
 
           {hasMore && (
             <div className="space-y-4 mt-4">
-              <Separator />
               <div className="flex justify-center">
                 <Button variant="ghost" onClick={loadMore} disabled={loadingMore}>
                   {loadingMore ? 'Loading...' : 'Load more'}
@@ -83,14 +90,22 @@ function PeopleListSkeleton() {
       <div>
         <div className="h-5 w-32 bg-muted rounded animate-pulse mb-3" />
         {Array.from({ length: 3 }).map((_, i) => (
-          <PersonRowSkeleton key={i} />
+          <div key={i}>
+            <Separator />
+            <PersonRowSkeleton className='-mx-6' />
+          </div>
         ))}
+        <Separator />
       </div>
       <div>
         <div className="h-5 w-20 bg-muted rounded animate-pulse mb-3" />
         {Array.from({ length: 5 }).map((_, i) => (
-          <PersonRowSkeleton key={i} />
+          <div key={i}>
+            <Separator />
+            <PersonRowSkeleton className='-mx-6' />
+          </div>
         ))}
+        <Separator />
       </div>
     </div>
   );
