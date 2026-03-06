@@ -11,12 +11,14 @@ import { TrendIndicator } from '@/components/ui/trend-indicator';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { CampaignRow } from '@/components/campaigns/CampaignRow';
 import { CompanyRow } from '@/components/campaigns/CompanyRow';
+import { PersonRow } from '@/components/ui/person-row';
+import { JobRow } from '@/components/ui/job-row';
 import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { CAMPAIGN_ICON_NAMES } from '@/lib/config/campaign-icons';
 import { Separator } from '@/components/ui/separator';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
-import type { CampaignRowData, CompanyRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState } from '@/lib/schemas';
+import type { CampaignRowData, CompanyRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState, EmployeeSummary, JobPostingSummary } from '@/lib/schemas';
 
 const sampleFilterDefs: FilterDefinition[] = [
   {
@@ -109,6 +111,40 @@ const sampleCompanies: CompanyRowData[] = [
     hq_country: 'Sweden', employee_count: 5000,
     revenue: 1900000000,
   },
+];
+
+const samplePeople: EmployeeSummary[] = [
+  {
+    id: 1, full_name: 'Sarah Chen', headline: null, current_title: 'VP of Engineering',
+    department: 'Engineering', company_id: 1, city: 'San Francisco', country: 'US',
+    profile_url: 'https://linkedin.com/in/sarahchen', avatar_url: null,
+    is_decision_maker: true, is_currently_employed: true,
+  },
+  {
+    id: 2, full_name: 'Marcus Johnson', headline: null, current_title: 'Senior Account Executive',
+    department: 'Sales', company_id: 1, city: 'New York', country: 'US',
+    profile_url: 'https://linkedin.com/in/marcusjohnson', avatar_url: null,
+    is_decision_maker: false, is_currently_employed: true,
+  },
+  {
+    id: 3, full_name: 'Elena Petrov', headline: null, current_title: 'Product Manager',
+    department: null, company_id: 2, city: 'London', country: 'UK',
+    profile_url: null, avatar_url: null,
+    is_decision_maker: false, is_currently_employed: true,
+  },
+  {
+    id: 4, full_name: 'James O\'Brien', headline: null, current_title: 'CTO',
+    department: 'Engineering', company_id: 3, city: null, country: 'Germany',
+    profile_url: 'https://linkedin.com/in/jamesobrien', avatar_url: null,
+    is_decision_maker: true, is_currently_employed: true,
+  },
+];
+
+const sampleJobs: JobPostingSummary[] = [
+  { id: 1, title: 'Senior Frontend Engineer', location: 'San Francisco, CA', department: 'Engineering', employment_type: 'Full-time', posted_at: new Date(Date.now() - 2 * 86400000).toISOString(), is_remote: true },
+  { id: 2, title: 'Account Executive - Enterprise', location: 'New York, NY', department: 'Sales', employment_type: 'Full-time', posted_at: new Date(Date.now() - 14 * 86400000).toISOString(), is_remote: false },
+  { id: 3, title: 'Product Design Intern', location: null, department: 'Design', employment_type: 'Internship', posted_at: new Date(Date.now() - 45 * 86400000).toISOString(), is_remote: true },
+  { id: 4, title: 'DevOps Engineer', location: 'London, UK', department: 'Engineering', employment_type: null, posted_at: null, is_remote: null },
 ];
 
 const sampleCampaigns: CampaignRowData[] = [
@@ -264,6 +300,54 @@ export function CustomSection() {
           {sampleCompanies.map((company) => (
             <div key={company.id}>
               <CompanyRow company={company} onClick={() => { }} className='-mx-6' />
+              <Separator />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Person Row */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          PersonRow
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Row showing person avatar, name, title, department, location, and LinkedIn link.
+          Key contacts display a yellow key icon.
+        </p>
+        <div>
+          <Separator />
+          {samplePeople.map((person) => (
+            <div key={person.id}>
+              <PersonRow
+                person={person}
+                keyContact={person.is_decision_maker}
+                onClick={() => { }}
+                className='-mx-6'
+              />
+              <Separator />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Job Row */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          JobRow
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Row showing job posting date badge, title, location, remote status, and employment type.
+        </p>
+        <div>
+          <Separator />
+          {sampleJobs.map((job) => (
+            <div key={job.id}>
+              <JobRow job={job} onClick={() => { }} className='-mx-6' />
               <Separator />
             </div>
           ))}
