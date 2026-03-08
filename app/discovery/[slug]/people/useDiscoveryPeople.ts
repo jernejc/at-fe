@@ -3,11 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
 import { getCompanyEmployees } from '@/lib/api/companies';
+import { useEmployeeSelection } from '@/hooks/useEmployeeSelection';
 import type { EmployeeSummary } from '@/lib/schemas';
 
 /** Fetches and manages paginated people for the current discovery company. */
 export function useDiscoveryPeople() {
   const { domain } = useDiscoveryDetail();
+  const employeeSelection = useEmployeeSelection();
 
   const [keyContacts, setKeyContacts] = useState<EmployeeSummary[]>([]);
   const [team, setTeam] = useState<EmployeeSummary[]>([]);
@@ -58,5 +60,5 @@ export function useDiscoveryPeople() {
     }
   }, [domain, teamPage, loadingMore]);
 
-  return { keyContacts, team, teamTotal, loading, error, loadingMore, loadMore };
+  return { keyContacts, team, teamTotal, loading, error, loadingMore, loadMore, ...employeeSelection };
 }

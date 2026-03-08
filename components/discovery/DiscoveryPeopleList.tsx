@@ -13,11 +13,18 @@ interface DiscoveryPeopleListProps {
   error: string | null;
   loadingMore: boolean;
   loadMore: () => Promise<void>;
+  /** ID of the currently selected employee (for active state). */
+  selectedEmployeeId?: number | null;
+  /** Called when a person row is clicked. */
+  onPersonClick?: (person: EmployeeSummary) => void;
+  /** Ref callback for keyboard navigation. */
+  getItemRef?: (key: string | number) => (el: HTMLElement | null) => void;
 }
 
 /** Renders the people list for a discovery company detail page. */
 export function DiscoveryPeopleList({
   keyContacts, team, teamTotal, loading, error, loadingMore, loadMore,
+  selectedEmployeeId, onPersonClick, getItemRef,
 }: DiscoveryPeopleListProps) {
   if (loading) return <PeopleListSkeleton />;
 
@@ -47,9 +54,15 @@ export function DiscoveryPeopleList({
             Key Contacts <span className="text-muted-foreground font-normal">({keyContacts.length})</span>
           </h3>
           {keyContacts.map(person => (
-            <div key={person.id}>
+            <div key={person.id} ref={getItemRef?.(person.id)}>
               <Separator />
-              <PersonRow person={person} className='-mx-6' keyContact />
+              <PersonRow
+                person={person}
+                className='-mx-6'
+                keyContact
+                onClick={onPersonClick}
+                isActive={person.id === selectedEmployeeId}
+              />
             </div>
           ))}
           <Separator />
@@ -62,9 +75,14 @@ export function DiscoveryPeopleList({
             Team <span className="text-muted-foreground font-normal">({teamTotal})</span>
           </h3>
           {team.map(person => (
-            <div key={person.id}>
+            <div key={person.id} ref={getItemRef?.(person.id)}>
               <Separator />
-              <PersonRow person={person} className='-mx-6' />
+              <PersonRow
+                person={person}
+                className='-mx-6'
+                onClick={onPersonClick}
+                isActive={person.id === selectedEmployeeId}
+              />
             </div>
           ))}
           <Separator />
