@@ -1,4 +1,4 @@
-import type { SignalInterest, SignalEvent } from '@/lib/schemas';
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Activity, Users } from 'lucide-react';
 import { SignalStrengthIndicator } from '@/components/ui/signal-strength-indicator';
@@ -24,19 +24,35 @@ function formatSourceType(sourceType: string) {
   return sourceType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/**
+ * Minimal signal shape that SignalRow can display.
+ * Satisfied by SignalInterest, SignalEvent, and SignalContribution.
+ */
+export type SignalRowData = {
+  category: string;
+  display_name?: string | null;
+  strength: number;
+  evidence_summary?: string | null;
+  source_types?: string[];
+  contributor_count?: number;
+  component_count?: number;
+};
+
 interface SignalRowProps {
-  /** Signal data (interest or event). */
-  signal: SignalInterest | SignalEvent;
+  /** Signal data (interest, event, or contribution). */
+  signal: SignalRowData;
   /** Row click handler. */
   onClick?: () => void;
   /** Whether this row is currently selected/active. */
   isActive?: boolean;
+  /** Custom right-side metrics. When provided, replaces the default metrics block. */
+  metrics?: ReactNode;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a signal with strength indicator, source badges, and metrics. */
-export function SignalRow({ signal, onClick, isActive, className, ref }: SignalRowProps) {
+export function SignalRow({ signal, onClick, isActive, metrics, className, ref }: SignalRowProps) {
   const visibleSourceTypes = (signal.source_types ?? []).filter((st) => {
     const n = st.toLowerCase();
     return n !== 'apollo_industry' && n !== 'apollo_growth' && n !== 'apollo_revenue';
@@ -70,34 +86,40 @@ export function SignalRow({ signal, onClick, isActive, className, ref }: SignalR
 
       {/* Metrics (hidden on mobile) */}
       <div className="hidden md:flex items-center gap-7 shrink-0">
-        {/* Source type badges */}
-        {visibleSourceTypes.length > 0 && (
-          <div className="flex items-center justify-end gap-1">
-            {visibleSourceTypes.slice(0, 3).map((st, i) => (
-              <Badge key={i} variant={getBadgeVariant(st)} size="sm">
-                {formatSourceType(st)}
-              </Badge>
-            ))}
-            {visibleSourceTypes.length > 3 && (
-              <span className="text-[10px] text-muted-foreground px-1">
-                +{visibleSourceTypes.length - 3}
+        {metrics ?? (
+          <>
+            {/* Source type badges */}
+            {visibleSourceTypes.length > 0 && (
+              <div className="flex items-center justify-end gap-1">
+                {visibleSourceTypes.slice(0, 3).map((st, i) => (
+                  <Badge key={i} variant={getBadgeVariant(st)} size="sm">
+                    {formatSourceType(st)}
+                  </Badge>
+                ))}
+                {visibleSourceTypes.length > 3 && (
+                  <span className="text-[10px] text-muted-foreground px-1">
+                    +{visibleSourceTypes.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Contributor count */}
+            {signal.contributor_count != null && (
+              <span className="flex items-center gap-2 text-sm w-12">
+                <Users className="w-3.5 h-3.5 shrink-0" />
+                <span>{signal.contributor_count}</span>
               </span>
             )}
-          </div>
-        )}
 
-        {/* Contributor count */}
-        <span className="flex items-center gap-2 text-sm w-12">
-          <Users className="w-3.5 h-3.5 shrink-0" />
-          <span>{signal.contributor_count}</span>
-        </span>
-
-        {/* Component count */}
-        {signal.component_count > 0 && (
-          <span className="flex items-center gap-2 text-sm w-12">
-            <Activity className="w-3.5 h-3.5 shrink-0" />
-            <span>{signal.component_count}</span>
-          </span>
+            {/* Component count */}
+            {signal.component_count != null && signal.component_count > 0 && (
+              <span className="flex items-center gap-2 text-sm w-12">
+                <Activity className="w-3.5 h-3.5 shrink-0" />
+                <span>{signal.component_count}</span>
+              </span>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -99,6 +99,9 @@ export interface Freshness {
     stale_sources: number;
 }
 
+/** Row-level data for the ProductRow component. Alias for FitSummaryFit. */
+export type ProductRowData = FitSummaryFit;
+
 export interface CompanyExplainabilityResponse {
     company_id: number;
     company_domain: string;

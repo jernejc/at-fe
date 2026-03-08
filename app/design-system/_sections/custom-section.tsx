@@ -14,13 +14,14 @@ import { CampaignRow } from '@/components/campaigns/CampaignRow';
 import { CompanyRow } from '@/components/campaigns/CompanyRow';
 import { PersonRow } from '@/components/ui/person-row';
 import { JobRow } from '@/components/ui/job-row';
+import { ProductRow } from '@/components/ui/product-row';
 import { SignalRow } from '@/components/signals/SignalRow';
 import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { CAMPAIGN_ICON_NAMES } from '@/lib/config/campaign-icons';
 import { Separator } from '@/components/ui/separator';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
-import type { CampaignRowData, CompanyRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState, EmployeeSummary, JobPostingSummary, SignalInterest } from '@/lib/schemas';
+import type { CampaignRowData, CompanyRowData, ProductRowData, FilterDefinition, ActiveFilter, SortOptionDefinition, SortState, EmployeeSummary, JobPostingSummary, SignalInterest } from '@/lib/schemas';
 
 const sampleFilterDefs: FilterDefinition[] = [
   {
@@ -112,6 +113,30 @@ const sampleCompanies: CompanyRowData[] = [
     status: 'closed_won', fit_score: 0.71,
     hq_country: 'Sweden', employee_count: 5000,
     revenue: 1900000000,
+  },
+];
+
+const sampleProducts: ProductRowData[] = [
+  {
+    company_id: 1, company_domain: 'notion.so', company_name: 'Notion',
+    product_id: 1, product_name: 'Google Workspace (GWS)',
+    likelihood_score: 0.87, urgency_score: 0.62, combined_score: 0.92,
+    top_drivers: ['Cloud adoption', 'Collaboration tools', 'Enterprise readiness', 'Security posture', 'API integration'],
+    calculated_at: '2026-03-01T10:00:00Z',
+  },
+  {
+    company_id: 1, company_domain: 'notion.so', company_name: 'Notion',
+    product_id: 2, product_name: 'AI Platform Pro',
+    likelihood_score: 0.54, urgency_score: 0.30, combined_score: 0.61,
+    top_drivers: ['ML experimentation', 'Data pipeline interest'],
+    calculated_at: '2026-03-01T10:00:00Z',
+  },
+  {
+    company_id: 1, company_domain: 'notion.so', company_name: 'Notion',
+    product_id: 3, product_name: 'Partner Connect',
+    likelihood_score: 0.22, urgency_score: 0.10, combined_score: 0.28,
+    top_drivers: [],
+    calculated_at: '2026-03-01T10:00:00Z',
   },
 ];
 
@@ -329,6 +354,27 @@ export function CustomSection() {
           {sampleCompanies.map((company) => (
             <div key={company.id}>
               <CompanyRow company={company} onClick={() => { }} className='-mx-6' />
+              <Separator />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Product Row */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          ProductRow
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Row showing product fit score disc, product name, top driver tags, and likelihood metric with progress bar.
+        </p>
+        <div>
+          <Separator />
+          {sampleProducts.map((product) => (
+            <div key={product.product_id}>
+              <ProductRow product={product} onClick={() => { }} className='-mx-6' />
               <Separator />
             </div>
           ))}

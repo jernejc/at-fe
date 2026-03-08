@@ -211,6 +211,7 @@ export type {
     SignalEvent,
     SignalComponent,
     FitSummaryFit,
+    ProductRowData,
     DataCoverage,
     Freshness,
 } from './explainability';
