@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { SettingsSection } from './SettingsSection';
 
@@ -27,7 +27,7 @@ export function NameSection({ name, isSaving, onSave }: NameSectionProps) {
     await onSave(trimmed);
   }, [value, name, onSave]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       e.currentTarget.blur();
     }
@@ -36,13 +36,14 @@ export function NameSection({ name, isSaving, onSave }: NameSectionProps) {
   return (
     <SettingsSection title="Name" description="Give your campaign a unique name">
       <div className="relative">
-        <Input
+        <Textarea
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={save}
           onKeyDown={handleKeyDown}
           disabled={isSaving}
-          className="w-60"
+          rows={1}
+          className="w-full md:w-100 min-h-0 resize-none"
         />
         {isSaving && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
