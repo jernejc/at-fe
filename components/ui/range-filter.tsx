@@ -210,8 +210,8 @@ export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars
 
       {/* Footer */}
       <div className="flex justify-between mt-0.5">
-        <span className="text-sm text-muted-foreground">min {rangeMin}</span>
-        <span className="text-sm text-muted-foreground">{rangeMax} max</span>
+        <span className="text-sm text-muted-foreground">min {rangeMin.toLocaleString()}</span>
+        <span className="text-sm text-muted-foreground">{rangeMax.toLocaleString()} max</span>
       </div>
     </div>
   );
