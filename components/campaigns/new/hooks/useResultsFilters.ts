@@ -7,6 +7,7 @@ interface UseResultsFiltersReturn {
   filteredCompanies: WSCompanyResult[];
   fitRange: [number, number];
   employeeRange: [number, number];
+  revenueRange: [number, number];
   selectedIndustries: Set<string>;
   fitValues: number[];
   employeeValues: number[];
@@ -14,6 +15,7 @@ interface UseResultsFiltersReturn {
   allIndustries: string[];
   onFitRangeChange: (range: [number, number]) => void;
   onEmployeeRangeChange: (range: [number, number]) => void;
+  onRevenueRangeChange: (range: [number, number]) => void;
   onIndustryToggle: (industry: string) => void;
   resetFilters: () => void;
 }
@@ -22,6 +24,7 @@ interface UseResultsFiltersReturn {
 export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFiltersReturn {
   const [fitRange, setFitRange] = useState<[number, number]>([0, 100]);
   const [employeeRange, setEmployeeRange] = useState<[number, number]>([0, 0]);
+  const [revenueRange, setRevenueRange] = useState<[number, number]>([0, 0]);
   const [selectedIndustries, setSelectedIndustries] = useState<Set<string>>(new Set());
   const prevCompaniesRef = useRef(companies);
 
@@ -36,8 +39,10 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
     [companies],
   );
 
-  // Revenue is not available on WSCompanyResult yet — empty for now
-  const revenueValues = useMemo(() => [] as number[], []);
+  const revenueValues = useMemo(
+    () => companies.filter((c) => c.revenue_amount).map((c) => c.revenue_amount!),
+    [companies],
+  );
 
   const allIndustries = useMemo(
     () => [...new Set(companies.map((c) => c.industry).filter(Boolean) as string[])].sort(),
@@ -53,9 +58,16 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
       const empMin = empNums.length > 0 ? Math.min(...empNums) : 0;
       const empMax = empNums.length > 0 ? Math.max(...empNums) : 0;
 
+      const revNums = companies
+        .map((c) => c.revenue_amount)
+        .filter((n): n is number => n != null);
+      const revMin = revNums.length > 0 ? Math.min(...revNums) : 0;
+      const revMax = revNums.length > 0 ? Math.max(...revNums) : 0;
+
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFitRange([0, 100]);
       setEmployeeRange([empMin, empMax]);
+      setRevenueRange([revMin, revMax]);
       setSelectedIndustries(
         new Set(companies.map((c) => c.industry).filter(Boolean) as string[]),
       );
@@ -74,17 +86,27 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
         }
       }
 
+      if (c.revenue_amount != null) {
+        if (c.revenue_amount < revenueRange[0] || c.revenue_amount > revenueRange[1]) {
+          return false;
+        }
+      }
+
       if (selectedIndustries.size > 0 && c.industry) {
         if (!selectedIndustries.has(c.industry)) return false;
       }
 
       return true;
     });
-  }, [companies, fitRange, employeeRange, selectedIndustries]);
+  }, [companies, fitRange, employeeRange, revenueRange, selectedIndustries]);
 
   const onFitRangeChange = useCallback((range: [number, number]) => setFitRange(range), []);
   const onEmployeeRangeChange = useCallback(
     (range: [number, number]) => setEmployeeRange(range),
+    [],
+  );
+  const onRevenueRangeChange = useCallback(
+    (range: [number, number]) => setRevenueRange(range),
     [],
   );
 
@@ -106,6 +128,13 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
       empNums.length > 0 ? Math.min(...empNums) : 0,
       empNums.length > 0 ? Math.max(...empNums) : 0,
     ]);
+    const revNums = companies
+      .map((c) => c.revenue_amount)
+      .filter((n): n is number => n != null);
+    setRevenueRange([
+      revNums.length > 0 ? Math.min(...revNums) : 0,
+      revNums.length > 0 ? Math.max(...revNums) : 0,
+    ]);
     setSelectedIndustries(
       new Set(companies.map((c) => c.industry).filter(Boolean) as string[]),
     );
@@ -115,6 +144,7 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
     filteredCompanies,
     fitRange,
     employeeRange,
+    revenueRange,
     selectedIndustries,
     fitValues,
     employeeValues,
@@ -122,6 +152,7 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
     allIndustries,
     onFitRangeChange,
     onEmployeeRangeChange,
+    onRevenueRangeChange,
     onIndustryToggle,
     resetFilters,
   };

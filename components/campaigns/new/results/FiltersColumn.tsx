@@ -11,6 +11,14 @@ import { useTheme } from '@/components/providers/ThemeProvider';
 import type { WSCompanyResult, WSSearchInsights } from '@/lib/schemas';
 import type { useResultsFilters } from '../hooks/useResultsFilters';
 
+/** Formats a raw revenue number into a compact dollar string (e.g. 13500000 → "$13.5M"). */
+function formatRevenue(value: number): string {
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+  return `$${value}`;
+}
+
 interface FiltersColumnProps {
   totalCompanies: number;
   filteredCount: number;
@@ -115,8 +123,9 @@ export function FiltersColumn({
 
         <RangeFilter
           title="Avg. revenue"
-          values={filters.revenueValues.length > 0 ? filters.revenueValues : [0]}
-          onChange={() => { }}
+          values={filters.revenueValues}
+          onChange={filters.onRevenueRangeChange}
+          formatAvg={formatRevenue}
           className="bg-background"
         />
 
