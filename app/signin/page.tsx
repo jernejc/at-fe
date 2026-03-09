@@ -1,15 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { LiquidMetal } from "@paper-design/shaders-react";
 import { Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSignIn } from "./useSignIn";
-
-/** Resolves the current effective background color for the shader. */
-function getShaderBackgroundColor(): string {
-  if (typeof document === "undefined") return "#FAFAFA";
-  return document.documentElement.classList.contains("dark") ? "#0a0a0a" : "#FAFAFA";
-}
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function SignInPage() {
   const {
@@ -23,15 +19,25 @@ export default function SignInPage() {
     resetEmailState,
   } = useSignIn();
 
+  const { theme } = useTheme();
+  const [shaderBg, setShaderBg] = useState("#FAFAFA");
+
+  useEffect(() => {
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" && matchMedia("(prefers-color-scheme:dark)").matches);
+    setShaderBg(isDark ? "#0a0a0a" : "#FAFAFA");
+  }, [theme]);
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4 pb-12">
       {/* Shader animation */}
-      <div className="w-full max-w-md h-[280px] sm:h-80 mb-6 -mt-20 overflow-hidden">
+      <div className="w-full max-w-md h-[280px] sm:h-80 mb-6 -mt-20 overflow-hidden bg-background">
         <LiquidMetal
           width="100%"
           height="100%"
           image="/images/logo.svg"
-          colorBack={getShaderBackgroundColor()}
+          colorBack={shaderBg}
           colorTint="#ffffff"
           shape="diamond"
           repetition={2}
