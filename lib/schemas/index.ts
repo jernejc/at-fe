@@ -184,6 +184,8 @@ export type {
     PartnerRead,
     PartnerWithRelations,
     CampaignAssignmentSummary,
+    PartnerProductSummary,
+    PartnerInterestWeight,
     PartnerCreate,
     PartnerUpdate,
     CampaignPartnerRead,

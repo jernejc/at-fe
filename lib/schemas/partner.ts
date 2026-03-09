@@ -9,18 +9,44 @@ export interface PartnerSummary {
     description: string | null;
     status: string;
     logo_url: string | null;
+    industries: string[];
+    type: string | null;
+    capacity: number | null;
     created_at: string;
     updated_at: string;
 }
 
+/** Full partner detail returned by GET /api/v1/partners/{id_or_slug}. */
 export interface PartnerRead extends PartnerSummary {
-    industries: string[];
-    capacity: number | null;
-    partner_type?: string | null;
+    website: string | null;
+    contact_name: string | null;
+    contact_email: string | null;
+    contact_phone: string | null;
+    contact_role: string | null;
+    notes: string | null;
+    campaign_count: number;
+    campaigns: CampaignAssignmentSummary[];
+    products: PartnerProductSummary[];
+    interest_weights: PartnerInterestWeight[];
+}
+
+export interface PartnerProductSummary {
+    id: number;
+    name: string;
+    category: string;
+}
+
+export interface PartnerInterestWeight {
+    interest: string;
+    weight: number;
+    reasoning: string;
+    certifications: string[];
+    id: number;
+    partner_id: number;
 }
 
 export interface PartnerWithRelations extends PartnerRead {
-    // Extended partner with campaign assignments
+    // Extended partner with campaign assignments (alias for backwards compat)
     campaign_assignments?: CampaignAssignmentSummary[];
 }
 
@@ -174,6 +200,7 @@ export interface PartnerFilters {
     page?: number;
     page_size?: number;
     status?: string;
+    product_id?: number;
     sort_by?: 'name' | 'created_at' | 'updated_at';
     sort_order?: 'asc' | 'desc';
 }

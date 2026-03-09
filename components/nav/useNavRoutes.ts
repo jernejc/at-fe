@@ -10,7 +10,7 @@ export interface NavRoute {
 
 const pdmRoutes: NavRoute[] = [
   { label: "Campaigns", href: "/" },
-  { label: "Partners", href: "/partner-portal" },
+  { label: "Partners", href: "/partners" },
   { label: "Discovery", href: "/discovery" },
 ];
 
@@ -31,8 +31,8 @@ export function useNavRoutes(): { routes: NavRoute[]; activeHref: string } {
     activeHref = "/partner";
   } else if (pathname === "/" || pathname.startsWith("/campaigns")) {
     activeHref = "/";
-  } else if (pathname.startsWith("/partner-portal")) {
-    activeHref = "/partner-portal";
+  } else if (pathname.startsWith("/partners")) {
+    activeHref = "/partners";
   } else if (pathname.startsWith("/discovery")) {
     activeHref = "/discovery";
   }

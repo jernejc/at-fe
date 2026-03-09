@@ -2,6 +2,7 @@
 
 import { cn, formatCompactNumber } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { CampaignProgress } from '@/components/ui/campaign-progress';
 import { Users } from 'lucide-react';
 import type { PartnerAssignmentSummary } from '@/lib/schemas';
@@ -51,12 +52,14 @@ interface PartnerRowProps {
   onClick?: (partner: PartnerRowData) => void;
   /** Whether this row is currently selected/active. */
   isActive?: boolean;
+  /** Optional content to render on the right side, replacing the default metrics. */
+  rightContent?: React.ReactNode;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a campaign partner. */
-export function PartnerRow({ partner, onClick, isActive, className, ref }: PartnerRowProps) {
+export function PartnerRow({ partner, onClick, isActive, rightContent, className, ref }: PartnerRowProps) {
   const handleClick = () => onClick?.(partner);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -87,46 +90,57 @@ export function PartnerRow({ partner, onClick, isActive, className, ref }: Partn
         </AvatarFallback>
       </Avatar>
 
-      {/* Name + industries */}
+      {/* Name + industries + description */}
       <div className="flex-1 min-w-0 flex flex-col">
         <span className="text-base font-medium text-foreground truncate leading-tight">
           {partner.name}
         </span>
         {partner.industries.length > 0 && (
-          <span className="text-xs text-muted-foreground truncate mt-0.5">
-            {partner.industries.join(', ')}
-          </span>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {partner.industries.map((industry) => (
+              <Badge key={industry} variant="grey" className="text-[11px] px-1.5 py-0 h-5 font-normal">
+                {industry}
+              </Badge>
+            ))}
+          </div>
+        )}
+        {partner.description && (
+          <p className="text-xs text-muted-foreground mt-1 max-w-xl line-clamp-2 leading-relaxed">
+            {partner.description}
+          </p>
         )}
       </div>
 
-      {/* Metrics (hidden on mobile) */}
-      <div className="hidden md:flex items-center gap-7 shrink-0">
-        {/* Campaign progress */}
-        <div className="w-24">
-          <CampaignProgress
-            total={partner.assignedCount}
-            inProgress={partner.inProgressCount}
-            completed={partner.completedCount}
-            taskCompletion={partner.taskCompletionPct}
-            height={10}
-            showTooltip
-          />
-        </div>
+      {/* Right content slot — falls back to default campaign metrics */}
+      {rightContent ?? (
+        <div className="hidden md:flex items-center gap-7 shrink-0">
+          {/* Campaign progress */}
+          <div className="w-24">
+            <CampaignProgress
+              total={partner.assignedCount}
+              inProgress={partner.inProgressCount}
+              completed={partner.completedCount}
+              taskCompletion={partner.taskCompletionPct}
+              height={10}
+              showTooltip
+            />
+          </div>
 
-        {/* Capacity */}
-        <span className="flex items-center gap-2 text-sm w-22">
-          <Users className="w-3.5 h-3.5 shrink-0" />
-          <span className="tabular-nums">
-            {formatCompactNumber(partner.assignedCount)}
-            {partner.capacity != null ? ` / ${formatCompactNumber(partner.capacity)}` : ''}
+          {/* Capacity */}
+          <span className="flex items-center gap-2 text-sm w-22">
+            <Users className="w-3.5 h-3.5 shrink-0" />
+            <span className="tabular-nums">
+              {formatCompactNumber(partner.assignedCount)}
+              {partner.capacity != null ? ` / ${formatCompactNumber(partner.capacity)}` : ''}
+            </span>
           </span>
-        </span>
 
-        {/* Type badge */}
-        <span className='w-24 truncate text-sm capitalize'>
-          {partner.type}
-        </span>
-      </div>
+          {/* Type badge */}
+          <span className='w-24 truncate text-sm capitalize'>
+            {partner.type}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

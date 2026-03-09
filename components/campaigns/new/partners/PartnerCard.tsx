@@ -53,9 +53,9 @@ export function PartnerCard({ partner, isSelected, onToggle }: PartnerCardProps)
           </div>
         )}
 
-        {partner.partner_type && (
+        {partner.type && (
           <Badge variant="grey" className="text-xs">
-            {partner.partner_type}
+            {partner.type}
           </Badge>
         )}
       </div>
