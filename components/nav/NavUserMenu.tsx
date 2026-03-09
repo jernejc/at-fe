@@ -49,7 +49,7 @@ export function NavUserMenu() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-48 py-1 bg-background rounded-xl shadow-xl border border-border z-50 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-48 bg-background rounded-xl shadow-xl border border-border z-50 overflow-hidden">
             <div className="px-3 py-2.5 border-b border-border bg-muted/50">
               <p className="text-sm font-medium truncate text-foreground">
                 {session?.user?.name || "User"}
