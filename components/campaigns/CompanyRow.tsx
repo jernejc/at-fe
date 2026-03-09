@@ -141,30 +141,36 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
       ) : (
         <div className="hidden md:flex items-center gap-7 shrink-0">
           {/* Fit Score + trend */}
-          {showMetric('fit') && fitScore != null && (
+          {showMetric('fit') && (fitScore != null ? (
             <FitScoreIndicator
               score={fitScore}
               change={company.fit_score_change ?? undefined}
               size={16}
               className='w-18'
             />
-          )}
+          ) : (
+            <span className="w-18 text-sm text-muted-foreground">{'\u2013'}</span>
+          ))}
 
           {/* Location */}
-          {showMetric('location') && company.hq_country && (
+          {showMetric('location') && (company.hq_country ? (
             <span className="flex items-center gap-2 text-sm w-30">
               <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate max-w-[120px]">{company.hq_country}</span>
             </span>
-          )}
+          ) : (
+            <span className="w-30 text-sm text-muted-foreground">{'\u2013'}</span>
+          ))}
 
           {/* Employee count */}
-          {showMetric('size') && company.employee_count != null && (
+          {showMetric('size') && (company.employee_count != null ? (
             <span className="flex items-center gap-2 text-sm w-16">
               <Users className="w-3.5 h-3.5 shrink-0" />
               <span>{formatCompactNumber(company.employee_count)}</span>
             </span>
-          )}
+          ) : (
+            <span className="w-16 text-sm text-muted-foreground">{'\u2013'}</span>
+          ))}
 
           {/* Revenue */}
           {showMetric('revenue') && (
