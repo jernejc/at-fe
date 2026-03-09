@@ -5,14 +5,17 @@ import type { WSCompanyResult } from '@/lib/schemas';
 
 interface UseResultsFiltersReturn {
   filteredCompanies: WSCompanyResult[];
+  matchRange: [number, number];
   fitRange: [number, number];
   employeeRange: [number, number];
   revenueRange: [number, number];
   selectedIndustries: Set<string>;
+  matchValues: number[];
   fitValues: number[];
   employeeValues: number[];
   revenueValues: number[];
   allIndustries: { name: string; count: number }[];
+  onMatchRangeChange: (range: [number, number]) => void;
   onFitRangeChange: (range: [number, number]) => void;
   onEmployeeRangeChange: (range: [number, number]) => void;
   onRevenueRangeChange: (range: [number, number]) => void;
@@ -22,6 +25,7 @@ interface UseResultsFiltersReturn {
 
 /** Manages local filter state for search results — no re-search, purely client-side. */
 export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFiltersReturn {
+  const [matchRange, setMatchRange] = useState<[number, number]>([0, 100]);
   const [fitRange, setFitRange] = useState<[number, number]>([0, 100]);
   const [employeeRange, setEmployeeRange] = useState<[number, number]>([0, 0]);
   const [revenueRange, setRevenueRange] = useState<[number, number]>([0, 0]);
@@ -29,6 +33,11 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
   const prevCompaniesRef = useRef(companies);
 
   // Derive histogram values from raw results
+  const matchValues = useMemo(
+    () => companies.map((c) => Math.round(c.match_score * 100)),
+    [companies],
+  );
+
   const fitValues = useMemo(
     () => companies.map((c) => Math.round(c.product_fit_score * 100)),
     [companies],
@@ -70,6 +79,7 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
       const revMax = revNums.length > 0 ? Math.max(...revNums) : 0;
 
       // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMatchRange([0, 100]);
       setFitRange([0, 100]);
       setEmployeeRange([empMin, empMax]);
       setRevenueRange([revMin, revMax]);
@@ -82,6 +92,9 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
 
   const filteredCompanies = useMemo(() => {
     return companies.filter((c) => {
+      const matchScoreVal = Math.round(c.match_score * 100);
+      if (matchScoreVal < matchRange[0] || matchScoreVal > matchRange[1]) return false;
+
       const fitScore = Math.round(c.product_fit_score * 100);
       if (fitScore < fitRange[0] || fitScore > fitRange[1]) return false;
 
@@ -103,8 +116,9 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
 
       return true;
     });
-  }, [companies, fitRange, employeeRange, revenueRange, selectedIndustries]);
+  }, [companies, matchRange, fitRange, employeeRange, revenueRange, selectedIndustries]);
 
+  const onMatchRangeChange = useCallback((range: [number, number]) => setMatchRange(range), []);
   const onFitRangeChange = useCallback((range: [number, number]) => setFitRange(range), []);
   const onEmployeeRangeChange = useCallback(
     (range: [number, number]) => setEmployeeRange(range),
@@ -125,6 +139,7 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
   }, []);
 
   const resetFilters = useCallback(() => {
+    setMatchRange([0, 100]);
     setFitRange([0, 100]);
     const empNums = companies
       .map((c) => c.employee_count)
@@ -147,14 +162,17 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
 
   return {
     filteredCompanies,
+    matchRange,
     fitRange,
     employeeRange,
     revenueRange,
     selectedIndustries,
+    matchValues,
     fitValues,
     employeeValues,
     revenueValues,
     allIndustries,
+    onMatchRangeChange,
     onFitRangeChange,
     onEmployeeRangeChange,
     onRevenueRangeChange,

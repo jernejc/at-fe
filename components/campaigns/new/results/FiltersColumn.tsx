@@ -113,6 +113,16 @@ export function FiltersColumn({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <RangeFilter
+          title="Avg. match"
+          values={filters.matchValues}
+          min={0}
+          max={100}
+          range={filters.matchRange}
+          onChange={filters.onMatchRangeChange}
+          className="bg-background"
+        />
+
+        <RangeFilter
           title="Avg. product fit"
           values={filters.fitValues}
           min={0}
@@ -143,6 +153,7 @@ export function FiltersColumn({
           industries={filters.allIndustries}
           selected={filters.selectedIndustries}
           onToggle={filters.onIndustryToggle}
+          className="sm:col-span-2"
         />
       </div>
 
