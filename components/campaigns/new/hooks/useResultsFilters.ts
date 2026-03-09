@@ -12,7 +12,7 @@ interface UseResultsFiltersReturn {
   fitValues: number[];
   employeeValues: number[];
   revenueValues: number[];
-  allIndustries: string[];
+  allIndustries: { name: string; count: number }[];
   onFitRangeChange: (range: [number, number]) => void;
   onEmployeeRangeChange: (range: [number, number]) => void;
   onRevenueRangeChange: (range: [number, number]) => void;
@@ -44,10 +44,15 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
     [companies],
   );
 
-  const allIndustries = useMemo(
-    () => [...new Set(companies.map((c) => c.industry).filter(Boolean) as string[])].sort(),
-    [companies],
-  );
+  const allIndustries = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const c of companies) {
+      if (c.industry) counts.set(c.industry, (counts.get(c.industry) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count }));
+  }, [companies]);
 
   // Reset filters when companies change (new search)
   useEffect(() => {

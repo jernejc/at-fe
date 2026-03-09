@@ -15,6 +15,8 @@ export interface RangeFilterProps {
   max?: number;
   /** Maximum number of bar columns. Values are grouped into buckets when the range exceeds this. @default 50 */
   maxBars?: number;
+  /** Controlled selected range — keeps slider in sync with external state. */
+  range?: [number, number];
   /** Fires when the user changes the selected range. */
   onChange?: (range: [number, number]) => void;
   /** Custom formatter for the displayed average value. @default String(avg) */
@@ -101,7 +103,7 @@ function weightedAvg(hist: Map<number, number>): number {
  * Histogram bar chart with a dual-thumb range slider for filtering numeric values.
  * Bars inside the selected range are dark; bars outside are muted.
  */
-export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars = 50, onChange, formatAvg, className }: RangeFilterProps) {
+export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars = 50, range: propRange, onChange, formatAvg, className }: RangeFilterProps) {
   const hist = React.useMemo(() => buildHistogram(values), [values]);
   const buckets = React.useMemo(() => buildBuckets(hist, propMin, propMax, maxBars), [hist, propMin, propMax, maxBars]);
   const avg = React.useMemo(() => weightedAvg(hist), [hist]);
@@ -110,14 +112,19 @@ export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars
   const dataMax = buckets.length > 0 ? buckets[buckets.length - 1].end : 0;
   const maxCount = Math.max(...buckets.map((b) => b.count), 1);
 
-  const [rangeMin, setRangeMin] = React.useState(dataMin);
-  const [rangeMax, setRangeMax] = React.useState(dataMax);
+  const [rangeMin, setRangeMin] = React.useState(propRange ? propRange[0] : dataMin);
+  const [rangeMax, setRangeMax] = React.useState(propRange ? propRange[1] : dataMax);
 
-  // Reset range when data changes
+  // Sync range from controlled prop or reset to full range when data changes
   React.useEffect(() => {
-    setRangeMin(dataMin);
-    setRangeMax(dataMax);
-  }, [dataMin, dataMax]);
+    if (propRange) {
+      setRangeMin(propRange[0]);
+      setRangeMax(propRange[1]);
+    } else {
+      setRangeMin(dataMin);
+      setRangeMax(dataMax);
+    }
+  }, [propRange, dataMin, dataMax]);
 
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);

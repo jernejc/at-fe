@@ -117,6 +117,7 @@ export function FiltersColumn({
           values={filters.fitValues}
           min={0}
           max={100}
+          range={filters.fitRange}
           onChange={filters.onFitRangeChange}
           className="bg-background"
         />
@@ -124,6 +125,7 @@ export function FiltersColumn({
         <RangeFilter
           title="Avg. revenue"
           values={filters.revenueValues}
+          range={filters.revenueRange}
           onChange={filters.onRevenueRangeChange}
           formatAvg={formatRevenue}
           className="bg-background"
@@ -132,6 +134,7 @@ export function FiltersColumn({
         <RangeFilter
           title="Avg. employee count"
           values={filters.employeeValues}
+          range={filters.employeeRange}
           onChange={filters.onEmployeeRangeChange}
           className="bg-background"
         />
