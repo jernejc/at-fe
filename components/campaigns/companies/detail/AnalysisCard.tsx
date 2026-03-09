@@ -7,7 +7,7 @@ import {
   ExpandableCardDetails,
   useExpandableCard,
 } from '@/components/ui/expandable-card';
-import { SignalCard } from '@/components/signals/SignalCard';
+import { SignalRow } from '@/components/signals/SignalRow';
 import type { SignalInterest, SignalEvent } from '@/lib/schemas';
 import type { LucideIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -69,9 +69,9 @@ export function AnalysisCard({
                 <p className="text-sm text-muted-foreground">
                   Related Interests
                 </p>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="flex flex-col -mx-6">
                   {interests.slice(0, 6).map((signal) => (
-                    <SignalCard key={signal.id} signal={signal} type="interest" />
+                    <SignalRow key={signal.id} signal={signal} />
                   ))}
                 </div>
               </div>
@@ -85,9 +85,9 @@ export function AnalysisCard({
                 <p className="text-sm text-muted-foreground">
                   Related Events
                 </p>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="flex flex-col -mx-6">
                   {events.slice(0, 6).map((signal) => (
-                    <SignalCard key={signal.id} signal={signal} type="event" />
+                    <SignalRow key={signal.id} signal={signal} />
                   ))}
                 </div>
               </div>

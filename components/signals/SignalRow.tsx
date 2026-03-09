@@ -72,11 +72,25 @@ export function SignalRow({ signal, onClick, isActive, metrics, className, ref }
       {/* Signal strength triangle */}
       <SignalStrengthIndicator value={signal.strength} className='flex-col text-xs' />
 
-      {/* Name + evidence */}
+      {/* Name + source badges + evidence */}
       <div className="flex-1 min-w-0 flex flex-col">
         <span className="text-base font-medium text-foreground truncate leading-tight">
           {signal.display_name || signal.category}
         </span>
+        {visibleSourceTypes.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {visibleSourceTypes.slice(0, 3).map((st, i) => (
+              <Badge key={i} variant={getBadgeVariant(st)} size="sm">
+                {formatSourceType(st)}
+              </Badge>
+            ))}
+            {visibleSourceTypes.length > 3 && (
+              <span className="text-[10px] text-muted-foreground px-1">
+                +{visibleSourceTypes.length - 3}
+              </span>
+            )}
+          </div>
+        )}
         {signal.evidence_summary && (
           <span className="text-xs text-muted-foreground line-clamp-2 max-w-xl mt-0.5">
             {signal.evidence_summary}
@@ -88,37 +102,25 @@ export function SignalRow({ signal, onClick, isActive, metrics, className, ref }
       <div className="hidden md:flex items-center gap-7 shrink-0">
         {metrics ?? (
           <>
-            {/* Source type badges */}
-            {visibleSourceTypes.length > 0 && (
-              <div className="flex items-center justify-end gap-1">
-                {visibleSourceTypes.slice(0, 3).map((st, i) => (
-                  <Badge key={i} variant={getBadgeVariant(st)} size="sm">
-                    {formatSourceType(st)}
-                  </Badge>
-                ))}
-                {visibleSourceTypes.length > 3 && (
-                  <span className="text-[10px] text-muted-foreground px-1">
-                    +{visibleSourceTypes.length - 3}
-                  </span>
-                )}
-              </div>
-            )}
-
             {/* Contributor count */}
-            {signal.contributor_count != null && (
-              <span className="flex items-center gap-2 text-sm w-12">
-                <Users className="w-3.5 h-3.5 shrink-0" />
-                <span>{signal.contributor_count}</span>
-              </span>
-            )}
+            <span className="flex items-center gap-2 text-sm w-12">
+              {signal.contributor_count != null && (
+                <>
+                  <Users className="w-3.5 h-3.5 shrink-0" />
+                  <span>{signal.contributor_count}</span>
+                </>
+              )}
+            </span>
 
             {/* Component count */}
-            {signal.component_count != null && signal.component_count > 0 && (
-              <span className="flex items-center gap-2 text-sm w-12">
-                <Activity className="w-3.5 h-3.5 shrink-0" />
-                <span>{signal.component_count}</span>
-              </span>
-            )}
+            <span className="flex items-center gap-2 text-sm w-12">
+              {signal.component_count != null && signal.component_count > 0 && (
+                <>
+                  <Activity className="w-3.5 h-3.5 shrink-0" />
+                  <span>{signal.component_count}</span>
+                </>
+              )}
+            </span>
           </>
         )}
       </div>
