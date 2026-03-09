@@ -23,7 +23,7 @@ describe("useNavRoutes", () => {
 
     expect(result.current.routes).toEqual([
       { label: "Campaigns", href: "/" },
-      { label: "Partners", href: "/partner-portal" },
+      { label: "Partners", href: "/partners" },
       { label: "Discovery", href: "/discovery" },
     ]);
   });
@@ -56,12 +56,12 @@ describe("useNavRoutes", () => {
     expect(result.current.activeHref).toBe("/");
   });
 
-  it("marks Partners active on /partner-portal paths", () => {
+  it("marks Partners active on /partners paths", () => {
     mockUseSession.mockReturnValue({ data: { user: { role: "pdm" } } });
-    mockUsePathname.mockReturnValue("/partner-portal/123");
+    mockUsePathname.mockReturnValue("/partners");
 
     const { result } = renderHook(() => useNavRoutes());
-    expect(result.current.activeHref).toBe("/partner-portal");
+    expect(result.current.activeHref).toBe("/partners");
   });
 
   it("marks Discovery active on /discovery paths", () => {

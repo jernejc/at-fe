@@ -218,12 +218,6 @@ export type {
     Freshness,
 } from './explainability';
 
-// A2A types
-export type {
-    AgentCard,
-    Invocation,
-} from './a2a';
-
 // Filter & Sort types
 export type {
     FilterOperator,

@@ -66,9 +66,6 @@ export {
     generatePlaybooksBulk,
 } from './playbooks';
 
-// Stats
-export { getStats } from './stats';
-
 // Search
 export { searchCompanies, search } from './search';
 
@@ -81,15 +78,6 @@ export {
     PRODUCT_GROUPS,
 } from './helpers';
 export type { ProductGroupId } from './helpers';
-
-// A2A
-export {
-    getA2ADiagram,
-    getAgents,
-    getAgentCard,
-    getAgentInvocations,
-    getA2AHealth,
-} from './a2a';
 
 // Processing
 export type { ProcessingOptions } from './processing';

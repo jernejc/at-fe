@@ -33,7 +33,7 @@ vi.mock("./NavSkeleton", () => ({
 
 const pdmRoutes = [
   { label: "Campaigns", href: "/" },
-  { label: "Partners", href: "/partner-portal" },
+  { label: "Partners", href: "/partners" },
   { label: "Discovery", href: "/discovery" },
 ];
 
@@ -133,7 +133,7 @@ describe("Nav", () => {
   });
 
   it("applies active styling to the current route tab", () => {
-    mockUseNavRoutes.mockReturnValue({ routes: pdmRoutes, activeHref: "/partner-portal" });
+    mockUseNavRoutes.mockReturnValue({ routes: pdmRoutes, activeHref: "/partners" });
 
     render(<Nav />);
 
