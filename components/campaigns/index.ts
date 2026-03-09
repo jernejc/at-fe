@@ -4,27 +4,14 @@ export { CampaignCardPreview } from './CampaignCardPreview';
 export { CampaignRow, CampaignRowSkeleton } from './CampaignRow';
 export { CompanyRow, CompanyRowSkeleton } from './CompanyRow';
 export { ProductSection } from './ProductSection';
-export { ProductAssignmentDialog } from './ProductAssignmentDialog';
-
-// Agentic search components
-export { SearchPhaseIndicator, SearchPhaseDotsInline } from './SearchPhaseIndicator';
-export { InterpretationCard } from './InterpretationCard';
-export { SearchInsightsPanel, SearchInsightsInline } from './SearchInsightsPanel';
 
 // Campaign companies sub-page
 export { CampaignCompaniesView } from './companies/CampaignCompaniesView';
 export { useCampaignCompanies } from './companies/useCampaignCompanies';
 
 // Campaign detail
-export { CampaignHeader } from './CampaignHeader';
 export { CampaignDetailHeader } from './CampaignDetailHeader';
-export { OverviewTab, OverviewTabSkeleton, type DrillDownFilter } from './OverviewTab';
-export { CompaniesTab } from './CompaniesTab';
-export { AnalysisTab, AnalysisTabSkeleton } from './AnalysisTab';
-export { PerformanceTab, PerformanceTabSkeleton } from './PerformanceTab';
 export { CompanyRowCompact, CompanyRowCompactSkeleton, type OutreachStatus } from './CompanyRowCompact';
-export { FunnelVisualization } from './FunnelVisualization';
-export { AddCompanyButton } from './AddCompanyButton';
 
 // Re-export partner components for backward compatibility
 export {
