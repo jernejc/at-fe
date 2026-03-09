@@ -1,4 +1,4 @@
-import type { ProductSummary, WSSearchPhase } from '@/lib/schemas';
+import type { ProductSummary, WSSearchPhase, WSSearchInterpretation } from '@/lib/schemas';
 import type { AgenticSearchState } from '@/hooks/useAgenticSearch';
 
 /** States for the CampaignInput state machine. */
@@ -25,6 +25,8 @@ export interface CampaignInputProps {
   searchPhase: WSSearchPhase;
   /** Whether a search is currently in progress. */
   isSearching: boolean;
+  /** Interpretation data from the agentic search, displayed in the terminal. */
+  interpretation?: WSSearchInterpretation | null;
   /** Full agentic search state for terminal details. */
   agenticState?: AgenticSearchState;
   /** Optional className for the root container. */

@@ -43,6 +43,8 @@ export interface TopBarProps {
   onSubmit: (query: string) => void;
   searchPhase: import('@/lib/schemas').WSSearchPhase;
   isSearching: boolean;
+  /** Interpretation data from the agentic search for terminal display. */
+  interpretation: import('@/lib/schemas').WSSearchInterpretation | null;
   inputResetKey: number;
   externalSubmitRef: React.MutableRefObject<((query: string) => void) | null>;
   onClose: () => void;

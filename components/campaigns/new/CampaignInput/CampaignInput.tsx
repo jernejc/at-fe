@@ -27,6 +27,7 @@ export function CampaignInput({
   onSubmit,
   searchPhase,
   isSearching,
+  interpretation,
   className,
   externalSubmitRef,
 }: CampaignInputProps) {
@@ -182,6 +183,7 @@ export function CampaignInput({
             <CampaignInputTerminal
               phase={searchPhase}
               completedPhases={completedPhases}
+              interpretation={interpretation ?? null}
             />
           </motion.div>
         )}

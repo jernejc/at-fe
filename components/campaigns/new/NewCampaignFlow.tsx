@@ -23,6 +23,7 @@ export function NewCampaignFlow({ products, preselectedProductId }: NewCampaignF
         onSubmit={flow.handleSubmit}
         searchPhase={flow.agenticState.phase}
         isSearching={flow.isSearching}
+        interpretation={flow.agenticState.interpretation}
         inputResetKey={flow.inputResetKey}
         externalSubmitRef={flow.externalSubmitRef}
         onClose={flow.handleClose}

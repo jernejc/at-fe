@@ -48,6 +48,12 @@ export interface WSSearchInterpretation {
     filters: Record<string, unknown>;
     suggested_queries: string[];
     feedback: Record<string, unknown>;
+    signal_keywords?: string[];
+    content_keywords?: string[];
+    technology_keywords?: string[];
+    embedding_types?: string[];
+    search_modes?: string[];
+    confidence?: number;
 }
 
 // Top interest for a company

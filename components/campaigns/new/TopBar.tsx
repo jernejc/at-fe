@@ -15,6 +15,7 @@ export function TopBar({
   onSubmit,
   searchPhase,
   isSearching,
+  interpretation,
   inputResetKey,
   externalSubmitRef,
   onClose,
@@ -53,6 +54,7 @@ export function TopBar({
             onSubmit={onSubmit}
             searchPhase={searchPhase}
             isSearching={isSearching}
+            interpretation={interpretation}
             externalSubmitRef={externalSubmitRef}
             className={cn(
               'sm:absolute sm:rounded-t-none sm:border-t-0 top-0 left-0 right-0',
