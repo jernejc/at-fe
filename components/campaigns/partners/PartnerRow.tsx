@@ -4,8 +4,9 @@ import { cn, formatCompactNumber } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { CampaignProgress } from '@/components/ui/campaign-progress';
+import { SelectToggle } from '@/components/ui/select-toggle';
 import { Users } from 'lucide-react';
-import type { PartnerAssignmentSummary } from '@/lib/schemas';
+import type { PartnerAssignmentSummary, PartnerSummary } from '@/lib/schemas';
 
 /** UI-friendly shape for partner rows. */
 export interface PartnerRowData {
@@ -45,6 +46,26 @@ export function toPartnerRowData(p: PartnerAssignmentSummary): PartnerRowData {
   };
 }
 
+/** Maps a PartnerSummary (or PartnerRead) to a PartnerRowData for the UI. */
+export function toPartnerRowDataFromSummary(p: PartnerSummary): PartnerRowData {
+  return {
+    id: p.id,
+    partnerId: p.id,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    logoUrl: p.logo_url,
+    type: p.type ?? '',
+    industries: p.industries,
+    capacity: p.capacity,
+    status: p.status,
+    assignedCount: 0,
+    inProgressCount: 0,
+    completedCount: 0,
+    taskCompletionPct: 0,
+  };
+}
+
 interface PartnerRowProps {
   /** Partner data for the row. */
   partner: PartnerRowData;
@@ -52,6 +73,12 @@ interface PartnerRowProps {
   onClick?: (partner: PartnerRowData) => void;
   /** Whether this row is currently selected/active. */
   isActive?: boolean;
+  /** Whether the row shows a selection toggle (edit mode). */
+  selectable?: boolean;
+  /** Whether the row is currently selected in bulk selection. */
+  selected?: boolean;
+  /** Called when the selection toggle is clicked. Receives the mouse event for shift-key detection. */
+  onSelect?: (e: React.MouseEvent) => void;
   /** Optional content to render on the right side, replacing the default metrics. */
   rightContent?: React.ReactNode;
   className?: string;
@@ -59,13 +86,23 @@ interface PartnerRowProps {
 }
 
 /** Horizontal row representation of a campaign partner. */
-export function PartnerRow({ partner, onClick, isActive, rightContent, className, ref }: PartnerRowProps) {
-  const handleClick = () => onClick?.(partner);
+export function PartnerRow({ partner, onClick, isActive, selectable, selected, onSelect, rightContent, className, ref }: PartnerRowProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    if (selectable && onSelect) {
+      onSelect(e);
+    } else {
+      onClick?.(partner);
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      onClick?.(partner);
+      if (selectable && onSelect) {
+        onSelect(e as unknown as React.MouseEvent);
+      } else {
+        onClick?.(partner);
+      }
     }
   };
 
@@ -74,14 +111,22 @@ export function PartnerRow({ partner, onClick, isActive, rightContent, className
       ref={ref}
       className={cn(
         'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
-        onClick && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
-        isActive && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
+        (onClick || selectable) && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        (isActive || selected) && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
         className,
       )}
       onClick={handleClick}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? handleKeyDown : undefined}
+      tabIndex={(onClick || selectable) ? 0 : undefined}
+      onKeyDown={(onClick || selectable) ? handleKeyDown : undefined}
     >
+      {/* Selection toggle (edit mode) */}
+      {selectable && (
+        <SelectToggle
+          checked={!!selected}
+          onChange={() => {/* handled by row click */}}
+        />
+      )}
+
       {/* Partner logo */}
       <Avatar size="sm" className="rounded-lg after:rounded-lg">
         {partner.logoUrl && <AvatarImage src={partner.logoUrl} alt={partner.name} className="rounded-lg" />}
