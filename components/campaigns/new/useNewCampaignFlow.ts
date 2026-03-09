@@ -101,6 +101,9 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
 
   const handleProductSelect = useCallback(
     (product: ProductSummary) => {
+      // Same product already selected — skip re-search
+      if (selectedProduct?.id === product.id) return;
+
       setSelectedProduct(product);
 
       // Re-trigger search with the new product if we have a previous query
@@ -115,7 +118,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
         });
       }
     },
-    [search, resetSearch, searchHistory, buildCombinedQuery],
+    [search, resetSearch, searchHistory, buildCombinedQuery, selectedProduct],
   );
 
   const handleClose = useCallback(() => {

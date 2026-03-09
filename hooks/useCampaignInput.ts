@@ -82,6 +82,12 @@ export function useCampaignInput({
 
   const handleProductSelect = useCallback(
     (product: ProductSummary) => {
+      // Same product already selected — just close the grid
+      if (product.id === selectedProduct?.id) {
+        setIsProductGridOpen(false);
+        return;
+      }
+
       onProductSelect(product);
       setIsProductGridOpen(false);
 
@@ -92,7 +98,7 @@ export function useCampaignInput({
         setComponentState('active');
       }
     },
-    [onProductSelect, componentState, messages.length]
+    [onProductSelect, componentState, messages.length, selectedProduct]
   );
 
   /** Programmatically submit a query (e.g. from suggested queries). */

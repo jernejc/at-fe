@@ -1,6 +1,7 @@
 'use client';
 
 import { X, RotateCcw, ArrowLeft, ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CampaignInput } from './CampaignInput';
 import type { TopBarProps } from './useNewCampaignFlow.types';
@@ -44,19 +45,20 @@ export function TopBar({
 
         {/* Center section — CampaignInput with absolute dropdown */}
         <div className="flex-1 max-w-2xl w-full relative z-10 h-22">
-          {showInput && (
-            <CampaignInput
-              key={inputResetKey}
-              products={products}
-              selectedProduct={selectedProduct}
-              onProductSelect={onProductSelect}
-              onSubmit={onSubmit}
-              searchPhase={searchPhase}
-              isSearching={isSearching}
-              externalSubmitRef={externalSubmitRef}
-              className="sm:absolute sm:rounded-t-none sm:border-t-0 top-0 left-0 right-0"
-            />
-          )}
+          <CampaignInput
+            key={inputResetKey}
+            products={products}
+            selectedProduct={selectedProduct}
+            onProductSelect={onProductSelect}
+            onSubmit={onSubmit}
+            searchPhase={searchPhase}
+            isSearching={isSearching}
+            externalSubmitRef={externalSubmitRef}
+            className={cn(
+              'sm:absolute sm:rounded-t-none sm:border-t-0 top-0 left-0 right-0',
+              !showInput && 'hidden'
+            )}
+          />
         </div>
 
         {/* Right section — step-dependent actions */}
