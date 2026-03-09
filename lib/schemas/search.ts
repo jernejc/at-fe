@@ -73,6 +73,7 @@ export interface WSCompanyResult {
     description: string | null;
     industry?: string | null;
     match_score: number;
+    product_fit_score: number;
     vector_score: number;
     keyword_score: number;
     match_reasons: string[];

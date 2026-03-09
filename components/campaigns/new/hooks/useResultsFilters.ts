@@ -30,7 +30,7 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
 
   // Derive histogram values from raw results
   const fitValues = useMemo(
-    () => companies.map((c) => Math.round(c.match_score * 100)),
+    () => companies.map((c) => Math.round(c.product_fit_score * 100)),
     [companies],
   );
 
@@ -82,7 +82,7 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
 
   const filteredCompanies = useMemo(() => {
     return companies.filter((c) => {
-      const fitScore = Math.round(c.match_score * 100);
+      const fitScore = Math.round(c.product_fit_score * 100);
       if (fitScore < fitRange[0] || fitScore > fitRange[1]) return false;
 
       if (c.employee_count != null) {

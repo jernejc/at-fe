@@ -113,7 +113,7 @@ export function FiltersColumn({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <RangeFilter
-          title="Avg. fit"
+          title="Avg. product fit"
           values={filters.fitValues}
           min={0}
           max={100}

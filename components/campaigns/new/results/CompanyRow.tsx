@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
+import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import type { WSCompanyResult } from '@/lib/schemas';
 
@@ -11,9 +12,12 @@ interface CompanyRowProps {
   onSelect: (domain: string) => void;
 }
 
-/** Single row in the company results list showing fit score, logo, name, and domain. */
+/** Single row in the company results list showing product fit score, logo, name, domain, and match badge. */
 export function CompanyRow({ company, isSelected, onSelect }: CompanyRowProps) {
-  const score = Math.round(company.match_score * 100);
+  const fitScore = Math.round(company.product_fit_score * 100);
+  const matchScore = Math.round(company.match_score * 100);
+  const matchVariant = matchScore > 75 ? 'green' : matchScore >= 50 ? 'blue' : 'orange';
+  const matchLabel = matchScore > 75 ? 'Strong match' : matchScore >= 50 ? 'Good match' : 'Weak match';
   const logoSrc = company.logo_base64
     ? `data:image/png;base64,${company.logo_base64}`
     : undefined;
@@ -28,7 +32,7 @@ export function CompanyRow({ company, isSelected, onSelect }: CompanyRowProps) {
         isSelected && 'bg-primary/5',
       )}
     >
-      <FitScoreIndicator score={score} size={14} showChange={false} showValue />
+      <FitScoreIndicator score={fitScore} size={14} showChange={false} showValue />
 
       <Avatar className="size-8 rounded-md shrink-0">
         {logoSrc && <AvatarImage src={logoSrc} alt={company.name} />}
@@ -41,6 +45,10 @@ export function CompanyRow({ company, isSelected, onSelect }: CompanyRowProps) {
         <div className="text-sm font-medium text-foreground truncate">{company.name}</div>
         <div className="text-xs text-muted-foreground truncate">{company.domain}</div>
       </div>
+
+      <Badge variant={matchVariant} size="sm" className="shrink-0">
+        {matchLabel}
+      </Badge>
     </button>
   );
 }

@@ -12,7 +12,7 @@ interface IndustryFilterCardProps {
 /** Filter card displaying industry badges with company counts, sorted by popularity. */
 export function IndustryFilterCard({ industries, selected, onToggle }: IndustryFilterCardProps) {
   return (
-    <div className="rounded-xl bg-background p-6 max-h-51 overflow-y-auto">
+    <div className="rounded-xl bg-background p-6 overflow-y-auto">
       <span className="text-sm text-muted-foreground">Industries</span>
       <div className="flex flex-wrap gap-2 mt-3">
         {industries.map((ind) => (
