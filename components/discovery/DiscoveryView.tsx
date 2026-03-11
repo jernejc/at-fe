@@ -1,10 +1,11 @@
 'use client';
 
-import { Building2 } from 'lucide-react';
+import { Building2, Download, Loader2 } from 'lucide-react';
 import { CompanyRow, CompanyRowSkeleton } from '@/components/campaigns/CompanyRow';
 import type { CompanyRowMetric } from '@/components/campaigns/CompanyRow';
 import { Separator } from '@/components/ui/separator';
 import { SelectToggle } from '@/components/ui/select-toggle';
+import { Button } from '@/components/ui/button';
 import { DiscoveryToolbar } from './DiscoveryToolbar';
 import type { CompanyRowData } from '@/lib/schemas';
 import type { UseDiscoveryCompaniesReturn } from './useDiscoveryCompanies';
@@ -44,6 +45,7 @@ interface DiscoveryViewProps extends UseDiscoveryCompaniesReturn {
 /** Renders the discovery companies list with toolbar, rows, and empty state. */
 export function DiscoveryView({
   companies,
+  totalCount,
   loading,
   error,
   searchQuery,
@@ -54,6 +56,8 @@ export function DiscoveryView({
   sortOptions,
   activeSort,
   setActiveSort,
+  isExporting,
+  handleExport,
   onCompanyClick,
   isEditing,
   selectedIds,
@@ -72,6 +76,22 @@ export function DiscoveryView({
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-foreground">
+          {!loading && totalCount > 0
+            ? `${totalCount.toLocaleString()} companies`
+            : 'Companies'}
+        </h1>
+        {hasProductFilter && (
+          <Button variant="outline" onClick={handleExport} disabled={isExporting}>
+            {isExporting
+              ? <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
+              : <Download className="w-4 h-4" data-icon="inline-start" />}
+            Export
+          </Button>
+        )}
+      </div>
+
       <DiscoveryToolbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
