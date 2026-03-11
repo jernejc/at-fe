@@ -1,100 +1,100 @@
 import { fetchAPI, buildQueryString, API_BASE, getAuthHeaders } from './core';
 import type {
-    PaginatedResponse,
-    ProductSummary,
-    ProductRead,
-    ProductCreate,
-    ProductUpdate,
-    ProductFitResponse,
-    ProductCandidatesResponse,
-    CompanyFitComparisonResponse,
+  PaginatedResponse,
+  ProductSummary,
+  ProductRead,
+  ProductCreate,
+  ProductUpdate,
+  ProductFitResponse,
+  ProductCandidatesResponse,
+  CompanyFitComparisonResponse,
 } from '../schemas';
 
 export async function getProducts(page = 1, pageSize = 20, category?: string): Promise<PaginatedResponse<ProductSummary>> {
-    const query = buildQueryString({ page, page_size: pageSize, category });
-    return fetchAPI<PaginatedResponse<ProductSummary>>(`/api/v1/products${query}`);
+  const query = buildQueryString({ page, page_size: pageSize, category });
+  return fetchAPI<PaginatedResponse<ProductSummary>>(`/api/v1/products${query}`);
 }
 
 export async function getProduct(productId: number): Promise<ProductRead> {
-    return fetchAPI<ProductRead>(`/api/v1/products/${productId}`);
+  return fetchAPI<ProductRead>(`/api/v1/products/${productId}`);
 }
 
 export async function getProductByName(name: string): Promise<ProductRead> {
-    return fetchAPI<ProductRead>(`/api/v1/products/by-name/${encodeURIComponent(name)}`);
+  return fetchAPI<ProductRead>(`/api/v1/products/by-name/${encodeURIComponent(name)}`);
 }
 
 export async function createProduct(product: ProductCreate): Promise<ProductRead> {
-    return fetchAPI<ProductRead>('/api/v1/products', {
-        method: 'POST',
-        body: JSON.stringify(product),
-    });
+  return fetchAPI<ProductRead>('/api/v1/products', {
+    method: 'POST',
+    body: JSON.stringify(product),
+  });
 }
 
 export async function updateProduct(productId: number, product: ProductUpdate): Promise<ProductRead> {
-    return fetchAPI<ProductRead>(`/api/v1/products/${productId}`, {
-        method: 'PUT',
-        body: JSON.stringify(product),
-    });
+  return fetchAPI<ProductRead>(`/api/v1/products/${productId}`, {
+    method: 'PUT',
+    body: JSON.stringify(product),
+  });
 }
 
 export async function deleteProduct(productId: number): Promise<void> {
-    await fetchAPI<void>(`/api/v1/products/${productId}`, {
-        method: 'DELETE',
-    });
+  await fetchAPI<void>(`/api/v1/products/${productId}`, {
+    method: 'DELETE',
+  });
 }
 
 export async function calculateProductFit(productId: number, domain: string): Promise<ProductFitResponse> {
-    return fetchAPI<ProductFitResponse>(`/api/v1/products/${productId}/fit/${encodeURIComponent(domain)}`);
+  return fetchAPI<ProductFitResponse>(`/api/v1/products/${productId}/fit/${encodeURIComponent(domain)}`);
 }
 
 export async function getProductCandidates(
-    productId: number,
-    options?: {
-        page?: number;
-        page_size?: number;
-        min_fit_score?: number;
-        min_urgency_score?: number;
-        industry?: string;
-        country?: string;
-    },
-    requestOptions?: RequestInit
+  productId: number,
+  options?: {
+    page?: number;
+    page_size?: number;
+    min_fit_score?: number;
+    min_urgency_score?: number;
+    industry?: string;
+    country?: string;
+  },
+  requestOptions?: RequestInit
 ): Promise<ProductCandidatesResponse> {
-    const query = buildQueryString(options || {});
-    return fetchAPI<ProductCandidatesResponse>(
-        `/api/v1/products/${productId}/candidates${query}`,
-        requestOptions
-    );
+  const query = buildQueryString(options || {});
+  return fetchAPI<ProductCandidatesResponse>(
+    `/api/v1/products/${productId}/candidates${query}`,
+    requestOptions
+  );
 }
 
 export async function calculateProductCandidates(
-    productId: number,
-    options?: { force?: boolean; company_ids?: number[] }
+  productId: number,
+  options?: { force?: boolean; company_ids?: number[] }
 ): Promise<{ product_id: number; companies_calculated: number; companies_skipped: number; duration_seconds: number; status: string }> {
-    const query = buildQueryString({ force: options?.force, company_ids: options?.company_ids?.join(',') });
-    return fetchAPI(`/api/v1/products/${productId}/candidates/calculate${query}`, {
-        method: 'POST',
-    });
+  const query = buildQueryString({ force: options?.force, company_ids: options?.company_ids?.join(',') });
+  return fetchAPI(`/api/v1/products/${productId}/candidates/calculate${query}`, {
+    method: 'POST',
+  });
 }
 
 export async function compareCompanyFits(domain: string, productIds?: number[]): Promise<CompanyFitComparisonResponse> {
-    const query = buildQueryString({ product_ids: productIds?.join(',') });
-    return fetchAPI<CompanyFitComparisonResponse>(`/api/v1/products/compare/${encodeURIComponent(domain)}${query}`);
+  const query = buildQueryString({ product_ids: productIds?.join(',') });
+  return fetchAPI<CompanyFitComparisonResponse>(`/api/v1/products/compare/${encodeURIComponent(domain)}${query}`);
 }
 
 /** Export product candidates as an XLSX file (max 2500 rows). */
 export async function exportProductXlsx(productId: number): Promise<Blob> {
-    const url = `${API_BASE}/api/v1/products/${productId}/export/xlsx?limit=2500`;
-    const authHeaders = await getAuthHeaders();
-    const response = await fetch(url, { headers: authHeaders });
+  const url = `${API_BASE}/api/v1/products/${productId}/export/xlsx?limit=2500&playbooks_only=false`;
+  const authHeaders = await getAuthHeaders();
+  const response = await fetch(url, { headers: authHeaders });
 
-    if (!response.ok) {
-        if (response.status === 401) {
-            const freshHeaders = await getAuthHeaders(true);
-            const retryResponse = await fetch(url, { headers: freshHeaders });
-            if (!retryResponse.ok) throw new Error(`Export failed: ${retryResponse.status}`);
-            return retryResponse.blob();
-        }
-        throw new Error(`Export failed: ${response.status}`);
+  if (!response.ok) {
+    if (response.status === 401) {
+      const freshHeaders = await getAuthHeaders(true);
+      const retryResponse = await fetch(url, { headers: freshHeaders });
+      if (!retryResponse.ok) throw new Error(`Export failed: ${retryResponse.status}`);
+      return retryResponse.blob();
     }
-    return response.blob();
+    throw new Error(`Export failed: ${response.status}`);
+  }
+  return response.blob();
 }
