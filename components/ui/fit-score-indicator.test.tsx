@@ -39,40 +39,45 @@ describe('FitScoreIndicator', () => {
     expect(screen.queryByTestId('trend-indicator')).not.toBeInTheDocument();
   });
 
-  it('sets disc opacity to 0.2 for scores at or below 50', () => {
+  it('sets foreground opacity to 0.2 for scores at or below 50', () => {
     const { container } = render(<FitScoreIndicator score={30} />);
-    const disc = container.querySelector('.rounded-full') as HTMLElement;
-    expect(disc.style.opacity).toBe('0.2');
+    const layers = container.querySelectorAll('.absolute.rounded-full');
+    const foreground = layers[1] as HTMLElement;
+    expect(foreground.style.opacity).toBe('0.2');
   });
 
-  it('sets disc opacity to 1 for scores at or above 90', () => {
+  it('sets foreground opacity to 1 for scores at or above 90', () => {
     const { container } = render(<FitScoreIndicator score={95} />);
-    const disc = container.querySelector('.rounded-full') as HTMLElement;
-    expect(disc.style.opacity).toBe('1');
+    const layers = container.querySelectorAll('.absolute.rounded-full');
+    const foreground = layers[1] as HTMLElement;
+    expect(foreground.style.opacity).toBe('1');
   });
 
-  it('interpolates disc opacity between scores 50 and 90', () => {
+  it('interpolates foreground opacity between scores 50 and 90', () => {
     const { container } = render(<FitScoreIndicator score={70} />);
-    const disc = container.querySelector('.rounded-full') as HTMLElement;
+    const layers = container.querySelectorAll('.absolute.rounded-full');
+    const foreground = layers[1] as HTMLElement;
     // score 70 → 0.2 + ((70-50)/40) * 0.8 = 0.2 + 0.4 = 0.6
-    expect(Number(disc.style.opacity)).toBeCloseTo(0.6);
+    expect(Number(foreground.style.opacity)).toBeCloseTo(0.6);
   });
 
-  it('uses solid background color when score is 0', () => {
+  it('renders only the background layer when score is 0', () => {
     const { container } = render(<FitScoreIndicator score={0} />);
-    const disc = container.querySelector('.rounded-full') as HTMLElement;
-    expect(disc.style.background).toBe('var(--border)');
+    const layers = container.querySelectorAll('.absolute.rounded-full');
+    expect(layers).toHaveLength(1);
+    expect((layers[0] as HTMLElement).style.background).toBe('var(--border)');
   });
 
-  it('uses conic-gradient background when score is above 0', () => {
+  it('renders foreground with conic-gradient when score is above 0', () => {
     const { container } = render(<FitScoreIndicator score={50} />);
-    const disc = container.querySelector('.rounded-full') as HTMLElement;
-    expect(disc.style.background).toContain('conic-gradient');
+    const layers = container.querySelectorAll('.absolute.rounded-full');
+    expect(layers).toHaveLength(2);
+    expect((layers[1] as HTMLElement).style.background).toContain('conic-gradient');
   });
 
   it('applies custom size to the disc', () => {
     const { container } = render(<FitScoreIndicator score={50} size={32} />);
-    const disc = container.querySelector('.rounded-full') as HTMLElement;
+    const disc = container.querySelector('.relative.rounded-full') as HTMLElement;
     expect(disc.style.width).toBe('32px');
     expect(disc.style.height).toBe('32px');
   });

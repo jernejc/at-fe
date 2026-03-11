@@ -35,22 +35,29 @@ export function FitScoreIndicator({
   const discOpacity = getDiscOpacity(score);
 
   const emptyColor = 'var(--border)';
-  const background =
-    score === 0
-      ? emptyColor
-      : `conic-gradient(var(--foreground) ${angle}deg, ${emptyColor} ${angle}deg)`;
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <div
-        className="shrink-0 rounded-full"
-        style={{
-          width: size,
-          height: size,
-          background,
-          opacity: discOpacity,
-        }}
-      />
+        className="relative shrink-0 rounded-full"
+        style={{ width: size, height: size }}
+      >
+        {/* Background layer — always full opacity */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ background: emptyColor }}
+        />
+        {/* Foreground layer — opacity scales with score */}
+        {score > 0 && (
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `conic-gradient(var(--foreground) ${angle}deg, transparent ${angle}deg)`,
+              opacity: discOpacity,
+            }}
+          />
+        )}
+      </div>
 
       {showValue && (
         <span className="text-sm leading-none font-medium text-foreground">
