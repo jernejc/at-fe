@@ -20,6 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CircularProgress } from '@/components/ui/circular-progress';
 
 const tableData = [
   { company: 'Acme Corp', score: 92, signals: 8, status: 'Active' },
@@ -124,6 +125,33 @@ export function DataDisplaySection() {
             <span className="w-8 text-xs text-muted-foreground tabular-nums">90%</span>
             <Progress value={90} className="h-2" variant='striped' />
           </div>
+        </div>
+      </div>
+
+      {/* Circular Progress */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Circular Progress
+        </h3>
+        <div className="flex items-center gap-6">
+          {[0, 25, 50, 75, 100].map((v) => (
+            <div key={v} className="flex flex-col items-center gap-1.5">
+              <CircularProgress value={v} />
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {v}%
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-6 mt-4">
+          {[25, 75].map((v) => (
+            <div key={v} className="flex flex-col items-center gap-1.5">
+              <CircularProgress value={v} size={40} />
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {v}% (40px)
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
