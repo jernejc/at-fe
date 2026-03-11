@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { Link2Off } from 'lucide-react';
 import { useCRMConnection } from '@/hooks/useCRMConnection';
 import { cn } from '@/lib/utils';
@@ -11,7 +10,6 @@ interface CRMAnalyticsWrapperProps {
 }
 
 export function CRMAnalyticsWrapper({ children, className }: CRMAnalyticsWrapperProps) {
-    const router = useRouter();
     const { isConnected } = useCRMConnection();
 
     if (isConnected) {
@@ -20,8 +18,7 @@ export function CRMAnalyticsWrapper({ children, className }: CRMAnalyticsWrapper
 
     return (
         <div
-            className={cn("relative cursor-pointer group", className)}
-            onClick={() => router.push('/partner/integrations')}
+            className={cn("relative group", className)}
         >
             {/* Grayed out content */}
             <div className="grayscale opacity-50 pointer-events-none select-none space-y-4">

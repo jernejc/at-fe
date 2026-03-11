@@ -213,6 +213,10 @@ export interface CampaignRowData extends CampaignSummary {
     total_won_amount?: number | null;
     /** Fit score change since last period */
     avg_fit_score_change?: number | null;
+    /** Number of leads the partner has engaged with. Partner view only. */
+    engaged_count?: number;
+    /** Total leads assigned to the partner for this campaign. Partner view only. */
+    assigned_count?: number;
 }
 
 // Filters for campaign list

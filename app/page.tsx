@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   return (
     <main className="flex flex-1 overflow-y-auto">
-      <div className="max-w-[1600px] mx-auto px-10 py-10 flex flex-1">
+      <div className="max-w-[1600px] w-full mx-auto px-10 py-10 flex flex-1 min-w-0">
         <CampaignsList />
       </div>
     </main>

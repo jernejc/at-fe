@@ -1,19 +1,20 @@
 'use client';
 
-import { Plus, Coffee, SearchX } from 'lucide-react';
+import { Coffee, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SearchField } from '@/components/ui/search-field';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
 import { Pagination } from '@/components/ui/pagination';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
-import { CampaignRow, CampaignRowSkeleton } from './CampaignRow';
-import { useCampaignsList, FILTER_DEFINITIONS, SORT_OPTIONS } from './useCampaignsList';
-import { Separator } from '../ui/separator';
+import { CampaignRow, CampaignRowSkeleton } from '@/components/campaigns/CampaignRow';
+import { Separator } from '@/components/ui/separator';
 import { formatCurrency } from '@/lib/utils';
+import { usePartnerCampaignsList, FILTER_DEFINITIONS, SORT_OPTIONS } from './usePartnerCampaignsList';
+import { NewOpportunitiesCell } from './NewOpportunitiesCell';
 
-/** Campaign list page with search, filters, sort, and pagination. */
-export function CampaignsList() {
+/** Partner campaigns list page with search, filters, sort, dashboard, and pagination. */
+export function PartnerCampaignsList() {
   const {
     paginatedRows,
     totalFiltered,
@@ -27,34 +28,35 @@ export function CampaignsList() {
     sort,
     currentPage,
     pageSize,
+    newOpportunities,
+    newOpportunitiesLoading,
     handleSearchChange,
     handleFiltersChange,
     handleSortChange,
-    handleNewCampaign,
     handleRowClick,
     handlePageChange,
-  } = useCampaignsList();
+  } = usePartnerCampaignsList();
 
   return (
     <div className="flex flex-col flex-1 min-w-0 gap-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-display font-semibold tracking-tight text-foreground">
-            Campaigns
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your outreach campaigns and track performance
-          </p>
-        </div>
-        <Button variant="secondary" onClick={handleNewCampaign} className="gap-2 shrink-0">
-          <Plus data-icon="inline-start" className="w-4 h-4" />
-          New campaign
-        </Button>
+      <div>
+        <h1 className="text-4xl font-display font-semibold tracking-tight text-foreground">
+          Campaigns
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Track your campaign assignments and engagement
+        </p>
       </div>
 
       {/* Dashboard metrics */}
-      <Dashboard>
+      <Dashboard className="grid-rows-2">
+        {/* Left half: New Opportunities (spans 2 cols + 2 rows) */}
+        <DashboardCell size="half" height="auto" rowSpan={2}>
+          <NewOpportunitiesCell items={newOpportunities} loading={newOpportunitiesLoading} />
+        </DashboardCell>
+
+        {/* Right half, top row */}
         <DashboardCell>
           <DashboardCellTitle>Campaigns</DashboardCellTitle>
           <DashboardCellBody loading={loading}>{metrics.campaignCount}</DashboardCellBody>
@@ -63,6 +65,8 @@ export function CampaignsList() {
           <DashboardCellTitle>Opportunities won</DashboardCellTitle>
           <DashboardCellBody loading={loading}>{metrics.opportunitiesWon}</DashboardCellBody>
         </DashboardCell>
+
+        {/* Right half, bottom row */}
         <DashboardCell>
           <DashboardCellTitle>Avg. conversion</DashboardCellTitle>
           <DashboardCellBody loading={loading}>{Math.round(metrics.avgConversion)}%</DashboardCellBody>
@@ -97,7 +101,7 @@ export function CampaignsList() {
       {/* Content */}
       {loading ? (
         <div className="flex flex-col">
-          <TableHeader />
+          <PartnerTableHeader />
           {Array.from({ length: 5 }, (_, i) => (
             <CampaignRowSkeleton key={i} />
           ))}
@@ -113,14 +117,11 @@ export function CampaignsList() {
         <div className="flex flex-1 flex-col items-center justify-center p-12 text-center">
           <Coffee size={48} strokeWidth={1.5} className="mb-5 text-muted-foreground/40" />
           <h2 className="text-lg font-semibold text-foreground mb-2">
-            No campaigns found
+            No campaigns yet
           </h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Get started by creating your first campaign
+          <p className="text-sm text-muted-foreground">
+            You haven&apos;t been assigned to any campaigns yet
           </p>
-          <Button onClick={handleNewCampaign} variant="secondary" size="lg">
-            Create Campaign
-          </Button>
         </div>
       ) : hasNoResults ? (
         <div className="flex flex-1 flex-col items-center justify-center p-12 text-center">
@@ -134,14 +135,14 @@ export function CampaignsList() {
         </div>
       ) : (
         <div className="flex flex-col">
-          <TableHeader />
+          <PartnerTableHeader />
           <Separator />
           {paginatedRows.map((row) => (
             <div key={row.id}>
               <CampaignRow
                 campaign={row}
                 onClick={handleRowClick}
-                className='-mx-5'
+                className="-mx-5"
               />
               <Separator />
             </div>
@@ -158,18 +159,15 @@ export function CampaignsList() {
   );
 }
 
-/** Column headers matching the CampaignRow right-side metrics layout. */
-function TableHeader() {
+/** Column headers with "Engaged" column after Progress. */
+function PartnerTableHeader() {
   return (
     <div className="flex items-center -mx-5 gap-4 px-6 py-2 text-xs font-medium text-muted-foreground">
-      {/* Spacer for icon column */}
       <div className="w-8 shrink-0" />
-      {/* Campaign name column */}
       <div className="flex-1 min-w-0">Campaign</div>
-      {/* Right-side metric columns (hidden on mobile, matching CampaignRow) */}
       <div className="hidden md:flex items-center gap-7 shrink-0">
-        <span>Avg. fit</span>
         <span className="w-28">Progress</span>
+        <span className="w-20">Engaged</span>
         <span className="w-14">Conversion</span>
         <span className="w-14">Total won</span>
       </div>

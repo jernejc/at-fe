@@ -44,7 +44,7 @@ export function Nav() {
                 <line x1="0" y1="0" x2="8" y2="20" stroke="currentColor" strokeWidth="1" />
               </svg>
               <div
-                className="flex items-center justify-center overflow-hidden shrink-0 bg-muted"
+                className="flex items-center justify-center overflow-hidden shrink-0"
                 style={{ width: 20, height: 20, borderRadius: 5 }}
               >
                 {partner.logo_url ? (
@@ -71,8 +71,8 @@ export function Nav() {
                 key={route.href}
                 href={route.href}
                 className={`pb-2.5 text-[14px] font-medium whitespace-nowrap transition-colors ${isActive
-                    ? "text-foreground border-b-[3px] border-foreground"
-                    : "text-[#666666] hover:text-foreground/80 border-b-[3px] border-transparent"
+                  ? "text-foreground border-b-[3px] border-foreground"
+                  : "text-muted-foreground hover:text-foreground/80 border-b-[3px] border-transparent"
                   }`}
               >
                 {route.label}

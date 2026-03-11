@@ -14,10 +14,15 @@ const cellVariants = cva("p-4 shadow-[1px_1px_0_0_var(--border)]", {
       auto: "",
       default: "h-55",
     },
+    rowSpan: {
+      1: "",
+      2: "row-span-2",
+    },
   },
   defaultVariants: {
     size: "quarter",
     height: "default",
+    rowSpan: 1,
   },
 })
 
@@ -49,13 +54,14 @@ type DashboardCellProps = React.ComponentProps<"div"> &
 function DashboardCell({
   size,
   height,
+  rowSpan,
   gradient,
   className,
   children,
   ...props
 }: DashboardCellProps) {
   return (
-    <div className={cn(cellVariants({ size, height }), className)} {...props}>
+    <div className={cn(cellVariants({ size, height, rowSpan }), className)} {...props}>
       <div className={cn(innerVariants({ gradient }))}>
         {children}
       </div>

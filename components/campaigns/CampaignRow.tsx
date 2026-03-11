@@ -7,6 +7,7 @@ import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { CampaignProgress } from '@/components/ui/campaign-progress';
 import { StatusIndicator } from '@/components/ui/status-indicator';
+import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 
 interface CampaignRowProps {
   /** Campaign data (extended summary with optional enrichment fields) */
@@ -35,7 +36,7 @@ export function CampaignRow({ campaign, onClick, className }: CampaignRowProps) 
   return (
     <div
       className={cn(
-        'group flex items-center gap-4 px-6 py-4 transition-colors',
+        'group flex items-center gap-4 px-6 py-4 transition-colors overflow-hidden',
         onClick && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
         className,
       )}
@@ -108,6 +109,17 @@ export function CampaignRow({ campaign, onClick, className }: CampaignRowProps) 
             {progressPct}%
           </span>
         </div>
+
+        {/* Engagement — shown only when data is present (partner view) */}
+        {campaign.engaged_count != null && campaign.assigned_count != null && (
+          <div className="w-20">
+            <EngagementIndicator
+              engaged={campaign.engaged_count}
+              total={campaign.assigned_count}
+              size={20}
+            />
+          </div>
+        )}
 
         {/* Conversion */}
         <span className="text-sm tabular-nums w-14">
