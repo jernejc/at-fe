@@ -11,6 +11,9 @@ vi.mock("./useSignIn", () => ({
 vi.mock("@paper-design/shaders-react", () => ({
   LiquidMetal: (props: any) => <div data-testid="liquid-metal" {...props} />,
 }));
+vi.mock("@/components/providers/ThemeProvider", () => ({
+  useTheme: () => ({ theme: "light" }),
+}));
 
 const defaultHookValues = {
   isGoogleLoading: false,

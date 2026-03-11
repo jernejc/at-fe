@@ -36,7 +36,8 @@ describe('PartnerRow', () => {
 
   it('renders partner industries', () => {
     renderRow({ partner: makePartner({ industries: ['Cloud', 'AI'] }) });
-    expect(screen.getByText('Cloud, AI')).toBeInTheDocument();
+    expect(screen.getByText('Cloud')).toBeInTheDocument();
+    expect(screen.getByText('AI')).toBeInTheDocument();
   });
 
   it('does not render industries when list is empty', () => {

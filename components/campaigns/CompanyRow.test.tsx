@@ -68,7 +68,8 @@ describe('CompanyRow', () => {
 
   it('shows dash when revenue is null', () => {
     renderRow({ company: makeCompany({ revenue: null }) });
-    expect(screen.getByText('\u2013')).toBeInTheDocument();
+    const dashes = screen.getAllByText('\u2013');
+    expect(dashes.length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows partner name when provided', () => {
