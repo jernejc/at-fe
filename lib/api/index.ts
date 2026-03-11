@@ -52,6 +52,7 @@ export {
     getProductCandidates,
     calculateProductCandidates,
     compareCompanyFits,
+    exportProductXlsx,
 } from './products';
 
 // Playbooks

@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getCompanies } from '@/lib/api/companies';
-import { getProducts, getProductCandidates } from '@/lib/api/products';
+import { getProducts, getProductCandidates, exportProductXlsx } from '@/lib/api/products';
 import { searchCompanies } from '@/lib/api/search';
+import { toast } from 'sonner';
 import type { CompanyRowData } from '@/lib/schemas/company';
 import type { CompanySummary, CompanySummaryWithFit } from '@/lib/schemas/company';
 import type { ProductSummary } from '@/lib/schemas/product';
@@ -89,6 +90,8 @@ export interface UseDiscoveryCompaniesReturn {
   activeSort: SortState | null;
   setActiveSort: (sort: SortState | null) => void;
   refetch: () => void;
+  isExporting: boolean;
+  handleExport: () => Promise<void>;
 }
 
 const VALID_SORT_FIELDS = new Set(SORT_OPTIONS.map((o) => o.value));
@@ -120,6 +123,7 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
   const [products, setProducts] = useState<ProductSummary[]>([]);
   const [fetchVersion, setFetchVersion] = useState(0);
   const refetch = useCallback(() => setFetchVersion((v) => v + 1), []);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -287,6 +291,29 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
     [productId],
   );
 
+  const handleExport = useCallback(async () => {
+    if (!productId) return;
+    try {
+      setIsExporting(true);
+      const blob = await exportProductXlsx(productId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const productName = productFilter?.valueLabel?.toLowerCase().replace(/\s+/g, '_') ?? String(productId);
+      a.download = `${productName}_export.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Export downloaded successfully');
+    } catch (err) {
+      console.error('Product export failed:', err);
+      toast.error('Failed to export companies');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [productId, productFilter?.valueLabel]);
+
   return {
     companies,
     totalCount,
@@ -304,5 +331,7 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
     activeSort,
     setActiveSort,
     refetch,
+    isExporting,
+    handleExport,
   };
 }

@@ -1,4 +1,4 @@
-import { fetchAPI, buildQueryString } from './core';
+import { fetchAPI, buildQueryString, API_BASE, getAuthHeaders } from './core';
 import type {
     PaginatedResponse,
     ProductSummary,
@@ -79,4 +79,22 @@ export async function calculateProductCandidates(
 export async function compareCompanyFits(domain: string, productIds?: number[]): Promise<CompanyFitComparisonResponse> {
     const query = buildQueryString({ product_ids: productIds?.join(',') });
     return fetchAPI<CompanyFitComparisonResponse>(`/api/v1/products/compare/${encodeURIComponent(domain)}${query}`);
+}
+
+/** Export product candidates as an XLSX file (max 2500 rows). */
+export async function exportProductXlsx(productId: number): Promise<Blob> {
+    const url = `${API_BASE}/api/v1/products/${productId}/export/xlsx?limit=2500`;
+    const authHeaders = await getAuthHeaders();
+    const response = await fetch(url, { headers: authHeaders });
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            const freshHeaders = await getAuthHeaders(true);
+            const retryResponse = await fetch(url, { headers: freshHeaders });
+            if (!retryResponse.ok) throw new Error(`Export failed: ${retryResponse.status}`);
+            return retryResponse.blob();
+        }
+        throw new Error(`Export failed: ${response.status}`);
+    }
+    return response.blob();
 }
