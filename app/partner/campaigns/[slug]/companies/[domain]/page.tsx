@@ -34,7 +34,6 @@ import { ProductFitCard } from '@/components/partner/ProductFitCard';
 import { PartnerPlaybookTab } from '@/components/partner/PartnerPlaybookTab';
 import { PartnerStakeholdersTab } from '@/components/partner/PartnerStakeholdersTab';
 import { PartnerSignalsTab } from '@/components/partner/PartnerSignalsTab';
-// import { CompanyCRMStatus } from '@/components/partner/analytics';
 import { OverviewTab } from '@/components/accounts/detail/OverviewTab';
 import { KeyStakeholderSheet } from '@/components/accounts/detail/KeyStakeholderSheet';
 import { FitBreakdownSheet } from '@/components/accounts/detail/FitBreakdownSheet';
@@ -184,28 +183,24 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
 
     if (loading) {
         return (
-            <main className="flex-1 overflow-y-auto">
-                <div className="flex items-center justify-center h-full">
-                    <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-                </div>
-            </main>
+            <div className="flex items-center justify-center py-24">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
         );
     }
 
     if (!company || !campaign) {
         return (
-            <main className="flex-1 overflow-y-auto">
-                <div className="max-w-[1600px] mx-auto px-6 py-6">
-                    <button
-                        onClick={() => router.push(`/partner/campaigns/${slug}`)}
-                        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 mb-6 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Campaign
-                    </button>
-                    <p className="text-slate-500 dark:text-slate-400">Company not found</p>
-                </div>
-            </main>
+            <div>
+                <button
+                    onClick={() => router.push(`/partner/campaigns/${slug}/companies`)}
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Companies
+                </button>
+                <p className="text-muted-foreground">Company not found</p>
+            </div>
         );
     }
 
@@ -214,108 +209,101 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
         : company.logo_url;
 
     return (
-        <main className="flex-1 overflow-y-auto">
-            <div className="max-w-[1600px] mx-auto px-6 py-6">
-                {/* Back Button */}
-                <button
-                    onClick={() => router.push(`/partner/campaigns/${slug}`)}
-                    className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 mb-6 transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Campaign
-                </button>
+        <>
+            {/* Back Button */}
+            <button
+                onClick={() => router.push(`/partner/campaigns/${slug}/companies`)}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Companies
+            </button>
 
-                {/* Company Header */}
-                <div className="flex items-center gap-4 mb-6">
-                    {logoUrl && (
-                        <img
-                            src={logoUrl}
-                            alt={company.name}
-                            className="w-12 h-12 rounded-lg object-contain bg-white border border-slate-200 dark:border-slate-700"
+            {/* Company Header */}
+            <div className="flex items-center gap-4 mb-6">
+                {logoUrl && (
+                    <img
+                        src={logoUrl}
+                        alt={company.name}
+                        className="w-12 h-12 rounded-lg object-contain bg-card border border-border"
+                    />
+                )}
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground">
+                        {company.name}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        {company.domain}
+                    </p>
+                </div>
+            </div>
+
+            {/* Product Fit Card - Above Tabs */}
+            {productFit && (
+                <div className="mb-8">
+                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                        Product Fit
+                    </h3>
+                    <ProductFitCard fit={productFit} onClick={handleSelectFit} />
+                </div>
+            )}
+
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-0">
+                <TabsList variant="line" className="gap-5">
+                    <TabsTrigger value="overview" className="gap-1.5">
+                        <Info className="w-4 h-4" />
+                        Overview
+                    </TabsTrigger>
+                    <TabsTrigger value="playbook" className="gap-1.5">
+                        <BookOpen className="w-4 h-4" />
+                        Playbook
+                    </TabsTrigger>
+                    <TabsTrigger value="stakeholders" className="gap-1.5">
+                        <Users className="w-4 h-4" />
+                        Stakeholders
+                    </TabsTrigger>
+                    <TabsTrigger value="signals" className="gap-1.5">
+                        <Zap className="w-4 h-4" />
+                        Signals
+                    </TabsTrigger>
+                </TabsList>
+
+                <Separator className="mb-8"></Separator>
+
+                <TabsContent value="playbook">
+                    {campaign.target_product_id && (
+                        <PartnerPlaybookTab
+                            domain={decodedDomain}
+                            productId={campaign.target_product_id}
+                            playbooks={playbooks}
+                            playbookDetail={playbookDetail}
+                            productName={productName || undefined}
+                            onPlaybookGenerated={handlePlaybookGenerated}
                         />
                     )}
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {company.name}
-                        </h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {company.domain}
-                        </p>
-                    </div>
-                </div>
+                </TabsContent>
 
-                {/* Product Fit Card - Above Tabs */}
-                {productFit && (
-                    <div className="mb-8">
-                        <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                            Product Fit
-                        </h3>
-                        <ProductFitCard fit={productFit} onClick={handleSelectFit} />
-                    </div>
-                )}
+                <TabsContent value="stakeholders">
+                    <PartnerStakeholdersTab
+                        contacts={stakeholders}
+                        onSelectStakeholder={handleSelectStakeholder}
+                    />
+                </TabsContent>
 
-                {/* CRM Deal Progress */}
-                {/* <div className="mb-8">
-                    <CompanyCRMStatus />
-                </div> */}
-
-                {/* Tabs */}
-                <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-0">
-                    <TabsList variant="line" className="gap-5">
-                        <TabsTrigger value="overview" className="gap-1.5">
-                            <Info className="w-4 h-4" />
-                            Overview
-                        </TabsTrigger>
-                        <TabsTrigger value="playbook" className="gap-1.5">
-                            <BookOpen className="w-4 h-4" />
-                            Playbook
-                        </TabsTrigger>
-                        <TabsTrigger value="stakeholders" className="gap-1.5">
-                            <Users className="w-4 h-4" />
-                            Stakeholders
-                        </TabsTrigger>
-                        <TabsTrigger value="signals" className="gap-1.5">
-                            <Zap className="w-4 h-4" />
-                            Signals
-                        </TabsTrigger>
-                    </TabsList>
-
-                    <Separator className="mb-8"></Separator>
-
-                    <TabsContent value="playbook">
-                        {campaign.target_product_id && (
-                            <PartnerPlaybookTab
-                                domain={decodedDomain}
-                                productId={campaign.target_product_id}
-                                playbooks={playbooks}
-                                playbookDetail={playbookDetail}
-                                productName={productName || undefined}
-                                onPlaybookGenerated={handlePlaybookGenerated}
-                            />
-                        )}
-                    </TabsContent>
-
-                    <TabsContent value="stakeholders">
-                        <PartnerStakeholdersTab
-                            contacts={stakeholders}
-                            onSelectStakeholder={handleSelectStakeholder}
+                <TabsContent value="signals">
+                    {explainability && (
+                        <PartnerSignalsTab
+                            explainability={explainability}
+                            onSelectSignal={handleSelectSignal}
                         />
-                    </TabsContent>
+                    )}
+                </TabsContent>
 
-                    <TabsContent value="signals">
-                        {explainability && (
-                            <PartnerSignalsTab
-                                explainability={explainability}
-                                onSelectSignal={handleSelectSignal}
-                            />
-                        )}
-                    </TabsContent>
-
-                    <TabsContent value="overview">
-                        <OverviewTab company={company} />
-                    </TabsContent>
-                </Tabs>
-            </div>
+                <TabsContent value="overview">
+                    <OverviewTab company={company} />
+                </TabsContent>
+            </Tabs>
 
             {/* Sheets */}
             <KeyStakeholderSheet
@@ -337,7 +325,7 @@ function CompanyDetailPageContent({ slug, domain }: { slug: string; domain: stri
                 signal={selectedSignal}
                 isLoading={signalLoading}
             />
-        </main>
+        </>
     );
 }
 
@@ -346,11 +334,9 @@ export default function CompanyDetailPage({ params }: CompanyDetailPageProps) {
 
     return (
         <Suspense fallback={
-            <main className="flex-1 overflow-y-auto">
-                <div className="flex items-center justify-center h-full">
-                    <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-                </div>
-            </main>
+            <div className="flex items-center justify-center py-24">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
         }>
             <CompanyDetailPageContent slug={slug} domain={domain} />
         </Suspense>

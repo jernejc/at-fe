@@ -64,6 +64,8 @@ interface UseCampaignCompaniesOptions {
   enabled?: boolean;
   /** Pre-loaded partners from the provider (avoids duplicate fetch). */
   partners?: PartnerAssignmentSummary[];
+  /** Initial sort state. Defaults to fit_score descending. Pass null for no default sort. */
+  defaultSort?: SortState | null;
 }
 
 export interface UseCampaignCompaniesReturn {
@@ -89,7 +91,7 @@ export interface UseCampaignCompaniesReturn {
 }
 
 /** Fetches and manages campaign companies with search, sort, and filter. */
-export function useCampaignCompanies({ slug, enabled = true, partners: externalPartners }: UseCampaignCompaniesOptions): UseCampaignCompaniesReturn {
+export function useCampaignCompanies({ slug, enabled = true, partners: externalPartners, defaultSort = { field: 'fit_score', direction: 'desc' } }: UseCampaignCompaniesOptions): UseCampaignCompaniesReturn {
   const [rawCompanies, setRawCompanies] = useState<MembershipRead[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -98,7 +100,7 @@ export function useCampaignCompanies({ slug, enabled = true, partners: externalP
   const [page, setPageRaw] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFiltersRaw] = useState<ActiveFilter[]>([]);
-  const [activeSort, setActiveSortRaw] = useState<SortState | null>({ field: 'fit_score', direction: 'desc' });
+  const [activeSort, setActiveSortRaw] = useState<SortState | null>(defaultSort);
 
   const partners = externalPartners ?? [];
   const [fetchVersion, setFetchVersion] = useState(0);

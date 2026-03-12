@@ -25,10 +25,12 @@ const CampaignDetailContext = createContext<CampaignDetailContextValue | null>(n
 interface CampaignDetailProviderProps {
   slug: string;
   children: ReactNode;
+  /** Skip fetching campaign partners (not needed for partner-facing views). */
+  skipPartners?: boolean;
 }
 
 /** Fetches campaign + overview once and shares with all child pages via context. */
-export function CampaignDetailProvider({ slug, children }: CampaignDetailProviderProps) {
+export function CampaignDetailProvider({ slug, children, skipPartners }: CampaignDetailProviderProps) {
   const [campaign, setCampaign] = useState<CampaignRead | null>(null);
   const [overview, setOverview] = useState<CampaignOverview | null>(null);
   const [partners, setPartners] = useState<PartnerAssignmentSummary[]>([]);
@@ -44,7 +46,9 @@ export function CampaignDetailProvider({ slug, children }: CampaignDetailProvide
       const [campaignData, overviewData, partnersData] = await Promise.all([
         getCampaign(slug),
         getCampaignOverview(slug),
-        getCampaignPartners(slug).catch(() => [] as PartnerAssignmentSummary[]),
+        skipPartners
+          ? ([] as PartnerAssignmentSummary[])
+          : getCampaignPartners(slug).catch(() => [] as PartnerAssignmentSummary[]),
       ]);
       setCampaign(campaignData);
       setOverview(overviewData);
@@ -54,7 +58,7 @@ export function CampaignDetailProvider({ slug, children }: CampaignDetailProvide
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [slug, skipPartners]);
 
   useEffect(() => {
     fetchData();

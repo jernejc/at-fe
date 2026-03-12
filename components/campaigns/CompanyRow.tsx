@@ -28,6 +28,8 @@ interface CompanyRowProps {
   hideStatus?: boolean;
   /** Which metric columns to show. When provided, only listed metrics render with fixed widths. */
   visibleMetrics?: CompanyRowMetric[];
+  /** Custom render function for the right-side metrics area. When provided, replaces the default metrics. */
+  renderMetrics?: (company: CompanyRowData) => React.ReactNode;
   /** @deprecated Use hideStatus + visibleMetrics instead. */
   compact?: boolean;
   className?: string;
@@ -35,7 +37,7 @@ interface CompanyRowProps {
 }
 
 /** Horizontal row representation of a company with status, score, and metrics. */
-export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, hideStatus, visibleMetrics, compact, className, ref }: CompanyRowProps) {
+export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, hideStatus, visibleMetrics, renderMetrics, compact, className, ref }: CompanyRowProps) {
   const fitScore = company.fit_score != null
     ? Math.round(normalizeScoreNullable(company.fit_score))
     : null;
@@ -114,7 +116,11 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
       </div>
 
       {/* Metrics (hidden on mobile) */}
-      {compact ? (
+      {renderMetrics ? (
+        <div className="hidden md:flex items-center gap-7 shrink-0">
+          {renderMetrics(company)}
+        </div>
+      ) : compact ? (
         <div className="hidden md:flex items-center gap-5 shrink-0">
           {fitScore != null && (
             <FitScoreIndicator
@@ -217,28 +223,37 @@ interface CompanyRowSkeletonProps {
   hideStatus?: boolean;
   /** Which metric columns to show skeletons for. */
   visibleMetrics?: CompanyRowMetric[];
+  /** Custom skeleton for the metrics area (used when renderMetrics is provided on CompanyRow). */
+  renderMetricsSkeleton?: React.ReactNode;
+  className?: string;
 }
 
 /** Loading skeleton for CompanyRow. */
-export function CompanyRowSkeleton({ hideStatus, visibleMetrics }: CompanyRowSkeletonProps = {}) {
+export function CompanyRowSkeleton({ hideStatus, visibleMetrics, renderMetricsSkeleton, className }: CompanyRowSkeletonProps = {}) {
   const show = (metric: CompanyRowMetric) =>
     !visibleMetrics || visibleMetrics.includes(metric);
 
   return (
-    <div className="flex items-center gap-4 px-6 py-4">
+    <div className={cn("flex items-center gap-4 px-6 py-4", className)}>
       {!hideStatus && <div className="w-5 h-5 rounded-full bg-muted animate-pulse" />}
       <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" />
       <div className="flex-1 space-y-1.5">
         <div className="w-36 h-4 bg-muted rounded animate-pulse" />
         <div className="w-24 h-3 bg-muted rounded animate-pulse" />
       </div>
-      <div className="hidden md:flex items-center gap-7 shrink-0">
-        {show('fit') && <div className="w-18 h-4 bg-muted rounded animate-pulse" />}
-        {show('location') && <div className="w-30 h-4 bg-muted rounded animate-pulse" />}
-        {show('size') && <div className="w-16 h-4 bg-muted rounded animate-pulse" />}
-        {show('revenue') && <div className="w-20 h-4 bg-muted rounded animate-pulse" />}
-        {show('partner') && <div className="w-30 h-4 bg-muted rounded animate-pulse" />}
-      </div>
+      {renderMetricsSkeleton ? (
+        <div className="hidden md:flex items-center gap-7 shrink-0">
+          {renderMetricsSkeleton}
+        </div>
+      ) : (
+        <div className="hidden md:flex items-center gap-7 shrink-0">
+          {show('fit') && <div className="w-18 h-4 bg-muted rounded animate-pulse" />}
+          {show('location') && <div className="w-30 h-4 bg-muted rounded animate-pulse" />}
+          {show('size') && <div className="w-16 h-4 bg-muted rounded animate-pulse" />}
+          {show('revenue') && <div className="w-20 h-4 bg-muted rounded animate-pulse" />}
+          {show('partner') && <div className="w-30 h-4 bg-muted rounded animate-pulse" />}
+        </div>
+      )}
     </div>
   );
 }
