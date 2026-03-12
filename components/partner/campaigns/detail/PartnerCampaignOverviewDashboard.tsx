@@ -4,6 +4,7 @@ import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from 
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { Badge } from '@/components/ui/badge';
+import { EngagementIndicator } from '@/components/ui/engagement-indicator';
 import { normalizeScoreNullable } from '@/lib/utils';
 import type { CampaignRead, CampaignOverview } from '@/lib/schemas';
 
@@ -89,7 +90,19 @@ export function PartnerCampaignOverviewDashboard({
 
       <DashboardCell size="quarter">
         <DashboardCellTitle>Leads Engaged</DashboardCellTitle>
-        <DashboardCellBody loading={loading}>--</DashboardCellBody>
+        <DashboardCellBody loading={loading} className="flex justify-center relative">
+          <EngagementIndicator
+            engaged={0}
+            total={0}
+            hideCount
+            size={200}
+            className="w-full max-w-50 [&_svg]:w-full [&_svg]:h-auto"
+          />
+          <p className="absolute left-0 right-0 bottom-0 text-center">
+            <span>-</span>
+            <span className="text-xl">/-</span>
+          </p>
+        </DashboardCellBody>
       </DashboardCell>
 
       {/* Row 3 — Progress, Avg. conversion, Closed */}
