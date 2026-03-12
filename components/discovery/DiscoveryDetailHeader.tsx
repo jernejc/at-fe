@@ -59,7 +59,7 @@ export function DiscoveryDetailHeader({
             </div>
 
             {/* Company name */}
-            <h1 className="text-4xl font-display leading-12 font-semibold tracking-tight text-foreground truncate">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-display font-semibold tracking-tight text-foreground">
               {companyName ?? domain ?? 'Unknown Company'}
             </h1>
           </div>

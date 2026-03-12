@@ -81,7 +81,7 @@ function ProductTableHeader() {
     <div className="flex items-center gap-4 px-6 py-2 -mx-5 text-xs font-medium text-muted-foreground">
       <div className="w-12 shrink-0">Score</div>
       <div className="flex-1 min-w-0">Product</div>
-      <div className="hidden md:flex items-center shrink-0 w-24">Likelihood</div>
+      <div className="hidden md:flex items-center shrink-0 w-16">Likelihood</div>
     </div>
   );
 }

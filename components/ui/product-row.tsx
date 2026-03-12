@@ -1,6 +1,7 @@
 import { cn, normalizeScore } from '@/lib/utils';
 import type { ProductRowData } from '@/lib/schemas';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
+import { CircularProgress } from '@/components/ui/circular-progress';
 import { Badge } from '@/components/ui/badge';
 
 interface ProductRowProps {
@@ -66,14 +67,9 @@ export function ProductRow({ product, onClick, isActive, className, ref }: Produ
       </div>
 
       {/* Likelihood metric (hidden on mobile) */}
-      <div className="hidden md:flex items-center gap-2 shrink-0 w-24">
-        <div className="h-1 w-12 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-foreground/60 rounded-full"
-            style={{ width: `${likelihood}%` }}
-          />
-        </div>
-        <span className="w-7 text-right font-mono text-[11px] text-foreground">
+      <div className="hidden md:flex items-center gap-2 shrink-0 w-16">
+        <CircularProgress value={likelihood} />
+        <span className="text-sm">
           {likelihood}%
         </span>
       </div>

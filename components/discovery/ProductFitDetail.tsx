@@ -6,8 +6,9 @@ import {
   ExpandableCardHeader,
   ExpandableCardDetails,
 } from '@/components/ui/expandable-card';
+import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
-import { Progress } from '@/components/ui/progress';
+import { CircularProgress } from '@/components/ui/circular-progress';
 import { SignalRow } from '@/components/signals/SignalRow';
 import { Separator } from '@/components/ui/separator';
 import { normalizeScore } from '@/lib/utils';
@@ -33,7 +34,6 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
 
   const score = Math.round(normalizeScore(breakdown.combined_score));
   const likelihood = Math.round(normalizeScore(breakdown.likelihood_score));
-  const urgency = Math.round(normalizeScore(breakdown.urgency_score));
   const interests = breakdown.interest_matches ?? [];
   const events = breakdown.event_matches ?? [];
   const missing = breakdown.missing_signals ?? [];
@@ -44,28 +44,26 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
       {/* Card 1: Product Overview */}
       <ExpandableCard>
         <ExpandableCardHeader className="space-y-4">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold text-foreground leading-tight">
-              {breakdown.product_name}
-            </h2>
-            <FitScoreIndicator score={score} size={20} showChange={false} className="shrink-0" />
-          </div>
+          <h2 className="text-lg font-semibold text-foreground leading-tight">
+            {breakdown.product_name}
+          </h2>
 
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Likelihood</span>
-              <span className="text-foreground font-medium">{likelihood}%</span>
-            </div>
-            <Progress value={likelihood} className="h-2" />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Urgency</span>
-              <span className="text-foreground font-medium">{urgency}%</span>
-            </div>
-            <Progress value={urgency} className="h-2" />
-          </div>
+          <Dashboard className="grid-cols-2">
+            <DashboardCell size="half" className="lg:col-span-1" height="auto" gradient={score > 75 ? 'green' : undefined}>
+              <DashboardCellTitle>Fit score</DashboardCellTitle>
+              <DashboardCellBody className="flex items-end justify-between">
+                <span>{score}%</span>
+                <FitScoreIndicator score={score} size={80} showChange={false} showValue={false} />
+              </DashboardCellBody>
+            </DashboardCell>
+            <DashboardCell size="half" className="lg:col-span-1 text-right" height="auto" gradient={likelihood > 75 ? 'green' : undefined}>
+              <DashboardCellTitle>Likelihood</DashboardCellTitle>
+              <DashboardCellBody className="flex items-end justify-between">
+                <CircularProgress value={likelihood} size={80} />
+                <span>{likelihood}%</span>
+              </DashboardCellBody>
+            </DashboardCell>
+          </Dashboard>
         </ExpandableCardHeader>
 
         <ExpandableCardDetails className="space-y-3">
@@ -217,17 +215,10 @@ function ProductFitDetailSkeleton() {
   return (
     <div className="space-y-4">
       <div className="bg-card rounded-xl ring-1 ring-foreground/10 px-6 py-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="h-5 w-48 bg-muted rounded animate-pulse" />
-          <div className="h-5 w-12 bg-muted rounded animate-pulse" />
-        </div>
-        <div className="space-y-2">
-          <div className="h-3 w-full bg-muted rounded animate-pulse" />
-          <div className="h-2 w-full bg-muted rounded-full animate-pulse" />
-        </div>
-        <div className="space-y-2">
-          <div className="h-3 w-full bg-muted rounded animate-pulse" />
-          <div className="h-2 w-full bg-muted rounded-full animate-pulse" />
+        <div className="h-5 w-48 bg-muted rounded animate-pulse" />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="h-24 bg-muted rounded-xl animate-pulse" />
+          <div className="h-24 bg-muted rounded-xl animate-pulse" />
         </div>
       </div>
       <div className="bg-card rounded-xl ring-1 ring-foreground/10 px-6 py-5 space-y-3">
