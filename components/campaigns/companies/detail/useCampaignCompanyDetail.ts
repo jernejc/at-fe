@@ -10,8 +10,8 @@ import type { CompanyRead, CompanyExplainabilityResponse, FitScore } from '@/lib
 interface UseCampaignCompanyDetailOptions {
   domain: string;
   companyId: number;
-  /** Current partner_id from the membership (string from backend). */
-  partnerId: string | null;
+  /** Current partner_id from the membership. */
+  partnerId: number | null;
   slug: string;
   /** Campaign's target product, used for fit breakdown. */
   targetProductId: number | null;
@@ -105,7 +105,7 @@ export function useCampaignCompanyDetail({
     setReassigning(true);
     try {
       if (partnerId) {
-        await unassignCompanyFromPartner(slug, Number(partnerId), companyId);
+        await unassignCompanyFromPartner(slug, partnerId, companyId);
       }
       await assignCompanyToPartner(slug, newPartnerId, { company_id: companyId });
       toast.success('Company reassigned successfully');

@@ -264,7 +264,7 @@ describe('useCampaignCompanyDetail — reassignment', () => {
 
   it('unassigns current partner before assigning new one when partnerId exists', async () => {
     const { result } = renderHook(() =>
-      useCampaignCompanyDetail({ ...defaultOptions, partnerId: '5' }),
+      useCampaignCompanyDetail({ ...defaultOptions, partnerId: 5 }),
     );
     await act(async () => {});
 

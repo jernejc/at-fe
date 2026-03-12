@@ -91,7 +91,7 @@ export function PartnerTab({
                     match_score: 90,
                     capacity: p.partner_capacity ?? undefined,
                     // Use the count from the API directly
-                    assigned_count: p.assigned_count ?? 0,
+                    assigned_count: p.assigned_company_count ?? 0,
                     industries: p.partner_industries ?? [],
                 }));
 
@@ -107,15 +107,15 @@ export function PartnerTab({
                     partnerAssignments.map(async (p) => {
                         try {
                             const assignments = await getPartnerAssignedCompanies(campaignSlug, p.partner_id);
-                            return { partnerId: String(p.partner_id), assignments };
+                            return { partnerId: p.partner_id, assignments };
                         } catch {
-                            return { partnerId: String(p.partner_id), assignments: [] };
+                            return { partnerId: p.partner_id, assignments: [] };
                         }
                     })
                 );
 
                 // Step 3: Build lookup map: company_id -> partner_id
-                const companyToPartnerMap = new Map<number, string>();
+                const companyToPartnerMap = new Map<number, number>();
                 for (const { partnerId, assignments } of partnerCompanyAssignments) {
                     for (const assignment of assignments) {
                         companyToPartnerMap.set(assignment.company_id, partnerId);
@@ -126,14 +126,14 @@ export function PartnerTab({
                 // Note: assignment.company_id matches company.company_id (NOT company.id which is membership ID)
                 const companiesWithPartners = baseCompanies.map(company => ({
                     ...company,
-                    partner_id: companyToPartnerMap.get(company.company_id) ?? company.partner_id ?? null,
+                    assigned_partner_id: companyToPartnerMap.get(company.company_id) ?? company.assigned_partner_id ?? null,
                 }));
 
                 // Debug logging
                 console.log('[PartnerTab] Partner assignments:', partnerCompanyAssignments);
                 console.log('[PartnerTab] companyToPartnerMap size:', companyToPartnerMap.size);
                 console.log('[PartnerTab] Sample companies:', baseCompanies.slice(0, 3).map(c => ({ id: c.id, company_id: c.company_id, domain: c.domain })));
-                console.log('[PartnerTab] Assigned count:', companiesWithPartners.filter(c => c.partner_id).length);
+                console.log('[PartnerTab] Assigned count:', companiesWithPartners.filter(c => c.assigned_partner_id).length);
 
                 setCompanies(companiesWithPartners);
             } catch (error) {
@@ -211,7 +211,7 @@ export function PartnerTab({
         }
 
         // Fallback: filter from local companies data
-        const assignedCompanies = companies.filter(c => c.partner_id === selectedPartner.id);
+        const assignedCompanies = companies.filter(c => String(c.assigned_partner_id) === selectedPartner.id);
         return assignedCompanies.map((c, idx) => ({
             ...c,
             outreach_status: 'not_started',
@@ -230,16 +230,16 @@ export function PartnerTab({
         return partners.map(partner => {
             // First try to use the assigned_count from the API
             const apiData = partnerAssignmentData.find(p => p.partner_id === Number(partner.id));
-            if (apiData && apiData.assigned_count !== undefined) {
+            if (apiData && apiData.assigned_company_count !== undefined) {
                 return {
                     ...partner,
-                    assigned_count: apiData.assigned_count,
+                    assigned_count: apiData.assigned_company_count,
                 };
             }
             // Fallback to counting from local companies data
             return {
                 ...partner,
-                assigned_count: companies.filter(c => c.partner_id === partner.id).length,
+                assigned_count: companies.filter(c => String(c.assigned_partner_id) === partner.id).length,
             };
         });
     }, [partners, partnerAssignmentData, companies]);
@@ -258,12 +258,12 @@ export function PartnerTab({
                 return;
             }
 
-            const currentPartnerId = company.partner_id;
+            const currentPartnerId = company.assigned_partner_id;
 
-            if (currentPartnerId && currentPartnerId !== partnerId) {
+            if (currentPartnerId && String(currentPartnerId) !== partnerId) {
                 await unassignCompanyFromPartner(
                     campaignSlug,
-                    Number(currentPartnerId),
+                    currentPartnerId,
                     companyId
                 );
             }
@@ -376,7 +376,7 @@ export function PartnerTab({
                 status: p.partner_status === 'active' ? 'active' : 'inactive',
                 match_score: 90,
                 capacity: p.partner_capacity ?? undefined,
-                assigned_count: p.assigned_count ?? 0,
+                assigned_count: p.assigned_company_count ?? 0,
                 industries: p.partner_industries ?? [],
             }));
             setPartners(mappedPartners);
@@ -387,7 +387,7 @@ export function PartnerTab({
         }
     };
 
-    const unassignedCount = companies.filter(c => !c.partner_id).length;
+    const unassignedCount = companies.filter(c => !c.assigned_partner_id).length;
     const existingPartnerIds = partnerAssignmentData.map(p => p.partner_id);
 
     if (loading) {

@@ -26,7 +26,7 @@ function makeCompany(overrides: Partial<CompanyRowData> = {}): CompanyRowData {
 
 const companies = [
   makeCompany({ id: 1, domain: 'acme.com' }),
-  makeCompany({ id: 2, domain: 'beta.io', partner_id: '10', partner_name: 'Brio' }),
+  makeCompany({ id: 2, domain: 'beta.io', partner_id: 10, partner_name: 'Brio' }),
   makeCompany({ id: 3, domain: 'gamma.dev' }),
 ];
 

@@ -6,14 +6,9 @@ import type { PartnerAssignmentSummary } from '@/lib/schemas/partner';
 import type { ActiveFilter } from '@/lib/schemas/filter';
 
 const mockGetCampaignCompanies = vi.fn();
-const mockGetCampaignPartners = vi.fn();
 
 vi.mock('@/lib/api/campaigns', () => ({
   getCampaignCompanies: (...args: any[]) => mockGetCampaignCompanies(...args),
-}));
-
-vi.mock('@/lib/api/partners', () => ({
-  getCampaignPartners: (...args: any[]) => mockGetCampaignPartners(...args),
 }));
 
 /** Date older than 7 days for "default" status. */
@@ -41,8 +36,8 @@ function makeMembership(overrides: Partial<MembershipRead> = {}): MembershipRead
     logo_url: null,
     created_at: OLD_DATE,
     assigned_at: OLD_DATE,
-    partner_id: null,
-    partner_name: null,
+    assigned_partner_id: null,
+    assigned_partner_name: null,
     ...overrides,
   };
 }
@@ -60,7 +55,7 @@ function makePartner(overrides: Partial<PartnerAssignmentSummary> = {}): Partner
     partner_capacity: null,
     partner_industries: [],
     partner_status: 'active',
-    assigned_count: 5,
+    assigned_company_count: 5,
     in_progress_count: 0,
     completed_count: 0,
     task_completion_pct: 0,
@@ -73,12 +68,12 @@ function makePartner(overrides: Partial<PartnerAssignmentSummary> = {}): Partner
 const defaultMemberships = [
   makeMembership({ id: 1, domain: 'acme.com', company_name: 'Acme Corp' }),
   makeMembership({ id: 2, domain: 'beta.io', company_name: 'Beta Inc', assigned_at: RECENT_DATE }),
-  makeMembership({ id: 3, domain: 'gamma.dev', company_name: 'Gamma Ltd', partner_id: '10', partner_name: 'Brio Tech' }),
+  makeMembership({ id: 3, domain: 'gamma.dev', company_name: 'Gamma Ltd', assigned_partner_id: 10, assigned_partner_name: 'Brio Tech' }),
 ];
 
 const defaultPartners = [makePartner()];
 
-function mockSuccessfulFetch(memberships = defaultMemberships, partners = defaultPartners) {
+function mockSuccessfulFetch(memberships = defaultMemberships) {
   mockGetCampaignCompanies.mockResolvedValue({
     items: memberships,
     total: memberships.length,
@@ -88,7 +83,6 @@ function mockSuccessfulFetch(memberships = defaultMemberships, partners = defaul
     has_next: false,
     has_previous: false,
   });
-  mockGetCampaignPartners.mockResolvedValue(partners);
 }
 
 beforeEach(() => {
@@ -102,12 +96,11 @@ describe('useCampaignCompanies — initialization', () => {
     expect(result.current.loading).toBe(true);
   });
 
-  it('fetches companies and partners on mount', async () => {
-    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
+  it('fetches companies on mount', async () => {
+    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test', partners: defaultPartners }));
     await act(async () => {});
 
     expect(mockGetCampaignCompanies).toHaveBeenCalledOnce();
-    expect(mockGetCampaignPartners).toHaveBeenCalledOnce();
     expect(result.current.loading).toBe(false);
     expect(result.current.companies).toHaveLength(3);
   });
@@ -117,7 +110,6 @@ describe('useCampaignCompanies — initialization', () => {
     await act(async () => {});
 
     expect(mockGetCampaignCompanies).not.toHaveBeenCalled();
-    expect(mockGetCampaignPartners).not.toHaveBeenCalled();
   });
 
   it('does not fetch when slug is empty', async () => {
@@ -189,9 +181,7 @@ describe('useCampaignCompanies — error handling', () => {
     expect(result.current.error).toBe('Failed to load companies');
   });
 
-  it('gracefully handles partner fetch failure', async () => {
-    mockGetCampaignPartners.mockRejectedValue(new Error('fail'));
-
+  it('shows only "Unassigned" when no partners are provided', async () => {
     const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
     await act(async () => {});
 
@@ -284,7 +274,7 @@ describe('useCampaignCompanies — filters', () => {
   });
 
   it('applies client-side partner filter for "unassigned"', async () => {
-    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
+    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test', partners: defaultPartners }));
     await act(async () => {});
 
     const partnerFilter: ActiveFilter = {
@@ -306,7 +296,7 @@ describe('useCampaignCompanies — filters', () => {
   });
 
   it('applies client-side partner filter for specific partner', async () => {
-    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
+    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test', partners: defaultPartners }));
     await act(async () => {});
 
     const partnerFilter: ActiveFilter = {
@@ -431,8 +421,8 @@ describe('useCampaignCompanies — filter definitions', () => {
     expect(values).toEqual(['new', 'in_progress', 'closed_won', 'closed_lost', 'default']);
   });
 
-  it('partner filter includes "Unassigned" plus fetched partners', async () => {
-    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
+  it('partner filter includes "Unassigned" plus provided partners', async () => {
+    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test', partners: defaultPartners }));
     await act(async () => {});
 
     const partnerDef = result.current.filterDefinitions.find((d) => d.key === 'partner');
@@ -449,8 +439,8 @@ describe('useCampaignCompanies — filter definitions', () => {
 });
 
 describe('useCampaignCompanies — refetch and partners', () => {
-  it('populates partners from getCampaignPartners response', async () => {
-    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test' }));
+  it('exposes partners passed via options', async () => {
+    const { result } = renderHook(() => useCampaignCompanies({ slug: 'test', partners: defaultPartners }));
     await act(async () => {});
 
     expect(result.current.partners).toHaveLength(1);

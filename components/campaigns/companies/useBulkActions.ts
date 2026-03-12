@@ -87,7 +87,7 @@ export function useBulkActions(): UseBulkActionsReturn {
         const withPartner = selected.filter((c) => c.partner_id != null);
         const results = await Promise.allSettled(
           withPartner.map((c) =>
-            unassignCompanyFromPartner(slug, Number(c.partner_id), c.id),
+            unassignCompanyFromPartner(slug, c.partner_id!, c.id),
           ),
         );
         const succeeded = results.filter((r) => r.status === 'fulfilled').length;

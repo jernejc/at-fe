@@ -25,7 +25,7 @@ export function enrichCompaniesWithMockPartners(
     if (source.length === 0) return [];
 
     // Check if data already has partners
-    const hasPartnerData = source.some(c => c.partner_id);
+    const hasPartnerData = source.some(c => c.assigned_partner_id);
     if (hasPartnerData) return source;
 
     // Assign partners deterministically based on index (~60% get partners)
@@ -36,8 +36,8 @@ export function enrichCompaniesWithMockPartners(
             const partnerIdx = idx % MOCK_PARTNER_NAMES.length;
             return {
                 ...company,
-                partner_id: `partner-${partnerIdx + 1}`,
-                partner_name: MOCK_PARTNER_NAMES[partnerIdx],
+                assigned_partner_id: partnerIdx + 1,
+                assigned_partner_name: MOCK_PARTNER_NAMES[partnerIdx],
             };
         }
         return company;

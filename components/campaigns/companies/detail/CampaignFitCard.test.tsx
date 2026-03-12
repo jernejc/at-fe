@@ -84,7 +84,7 @@ describe('CampaignFitCard', () => {
       <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
     );
     // combined_score 0.8 → normalizeScore → 80
-    expect(screen.getByText('80')).toBeInTheDocument();
+    expect(screen.getByText('80%')).toBeInTheDocument();
   });
 
   it('falls back to matching fitsSummary when fitBreakdown is null', () => {
@@ -92,7 +92,7 @@ describe('CampaignFitCard', () => {
       <CampaignFitCard fitBreakdown={null} fitsSummary={[makeFitSummary()]} targetProductId={10} loading={false} />,
     );
     // combined_score 0.7 → normalizeScore → 70
-    expect(screen.getByText('70')).toBeInTheDocument();
+    expect(screen.getByText('70%')).toBeInTheDocument();
   });
 
   it('does not fall back to wrong product in fitsSummary', () => {
@@ -114,7 +114,7 @@ describe('CampaignFitCard', () => {
     );
     // likelihood_score 0.75 → 75%
     expect(screen.getByText('75%')).toBeInTheDocument();
-    expect(container.querySelector('[role="progressbar"]')).toBeInTheDocument();
+    expect(container.querySelector('[aria-label="Progress: 75%"]')).toBeInTheDocument();
   });
 
   it('renders explanation from top_drivers', () => {

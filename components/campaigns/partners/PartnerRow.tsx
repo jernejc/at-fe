@@ -39,7 +39,7 @@ export function toPartnerRowData(p: PartnerAssignmentSummary): PartnerRowData {
     industries: p.partner_industries,
     capacity: p.partner_capacity,
     status: p.partner_status,
-    assignedCount: p.assigned_count ?? 0,
+    assignedCount: p.assigned_company_count ?? 0,
     inProgressCount: p.in_progress_count ?? 0,
     completedCount: p.completed_count ?? 0,
     taskCompletionPct: p.task_completion_pct ?? 0,

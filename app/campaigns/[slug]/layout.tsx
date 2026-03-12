@@ -64,13 +64,13 @@ function CampaignLayoutInner({ slug, children }: { slug: string; children: React
             loading={loading}
           />
         </div>
-        <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-1 bg-background -mt-6">
+        <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-1 bg-background -mt-6 min-w-0">
           <StatusIndicator
             status={campaignStatus ?? 'draft'}
             size={8}
             className='mb-1'
           />
-          {campaignName}
+          <span className='truncate'>{campaignName}</span>
         </div>
         <div className="sticky top-30 z-10 bg-background">
           <SecondaryNav items={navItems} className='px-4' />

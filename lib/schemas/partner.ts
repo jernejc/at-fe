@@ -184,7 +184,7 @@ export interface PartnerAssignmentSummary {
     partner_status: string;
     
     // Stats
-    assigned_count: number;
+    assigned_company_count: number;
     in_progress_count: number;
     completed_count: number;
     task_completion_pct: number;

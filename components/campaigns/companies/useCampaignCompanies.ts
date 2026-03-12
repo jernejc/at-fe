@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getCampaignCompanies } from '@/lib/api/campaigns';
-import { getCampaignPartners } from '@/lib/api/partners';
 import { deriveCompanyStatus } from '@/lib/utils';
 import type { CompanyRowData } from '@/lib/schemas/company';
 import type { MembershipRead } from '@/lib/schemas/campaign';
@@ -55,14 +54,16 @@ function toRowData(m: MembershipRead): CompanyRowData {
     hq_country: m.hq_country,
     employee_count: m.employee_count,
     assigned_at: m.assigned_at,
-    partner_id: m.partner_id ?? undefined,
-    partner_name: m.partner_name ?? undefined,
+    partner_id: m.assigned_partner_id ?? undefined,
+    partner_name: m.assigned_partner_name ?? undefined,
   };
 }
 
 interface UseCampaignCompaniesOptions {
   slug: string;
   enabled?: boolean;
+  /** Pre-loaded partners from the provider (avoids duplicate fetch). */
+  partners?: PartnerAssignmentSummary[];
 }
 
 export interface UseCampaignCompaniesReturn {
@@ -88,7 +89,7 @@ export interface UseCampaignCompaniesReturn {
 }
 
 /** Fetches and manages campaign companies with search, sort, and filter. */
-export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompaniesOptions): UseCampaignCompaniesReturn {
+export function useCampaignCompanies({ slug, enabled = true, partners: externalPartners }: UseCampaignCompaniesOptions): UseCampaignCompaniesReturn {
   const [rawCompanies, setRawCompanies] = useState<MembershipRead[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -99,7 +100,7 @@ export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompan
   const [activeFilters, setActiveFiltersRaw] = useState<ActiveFilter[]>([]);
   const [activeSort, setActiveSortRaw] = useState<SortState | null>({ field: 'fit_score', direction: 'desc' });
 
-  const [partners, setPartners] = useState<PartnerAssignmentSummary[]>([]);
+  const partners = externalPartners ?? [];
   const [fetchVersion, setFetchVersion] = useState(0);
   const refetch = useCallback(() => setFetchVersion((v) => v + 1), []);
 
@@ -126,11 +127,6 @@ export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompan
 
   const setPage = useCallback((p: number) => setPageRaw(p), []);
 
-  // Fetch partners once for filter options
-  useEffect(() => {
-    if (!enabled || !slug) return;
-    getCampaignPartners(slug).then(setPartners).catch(() => setPartners([]));
-  }, [slug, enabled]);
 
   // Fetch companies
   useEffect(() => {
@@ -163,8 +159,8 @@ export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompan
         }
         if (partnerFilter) {
           items = partnerFilter.value === 'unassigned'
-            ? items.filter((m) => !m.partner_id)
-            : items.filter((m) => String(m.partner_id) === partnerFilter.value);
+            ? items.filter((m) => !m.assigned_partner_id)
+            : items.filter((m) => String(m.assigned_partner_id) === partnerFilter.value);
         }
 
         setRawCompanies(items);
@@ -180,15 +176,24 @@ export function useCampaignCompanies({ slug, enabled = true }: UseCampaignCompan
     return () => { cancelled = true; };
   }, [slug, enabled, page, activeSort, activeFilters, fetchVersion]);
 
-  // Client-side search + mapping
+  // Client-side search + mapping (enrich with partner logos from loaded partners)
   const companies = useMemo(() => {
-    const mapped = rawCompanies.map(toRowData);
+    const logoByPartnerId = new Map(
+      partners.map((p) => [String(p.partner_id), p.partner_logo_url]),
+    );
+    const mapped = rawCompanies.map((m) => {
+      const row = toRowData(m);
+      if (row.partner_id) {
+        row.partner_logo_url = logoByPartnerId.get(String(row.partner_id)) ?? undefined;
+      }
+      return row;
+    });
     if (!debouncedSearch) return mapped;
     const q = debouncedSearch.toLowerCase();
     return mapped.filter(
       (c) => c.name.toLowerCase().includes(q) || c.domain.toLowerCase().includes(q),
     );
-  }, [rawCompanies, debouncedSearch]);
+  }, [rawCompanies, debouncedSearch, partners]);
 
   const filterDefinitions = useMemo<FilterDefinition[]>(
     () => [STATUS_FILTER, buildPartnerFilter(partners)],

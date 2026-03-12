@@ -44,6 +44,8 @@ function comparePartners(a: PartnerRowData, b: PartnerRowData, sort: SortState):
 interface UseCampaignPartnersOptions {
   slug: string;
   enabled?: boolean;
+  /** Pre-loaded partners from the provider (used as initial data, avoids duplicate fetch). */
+  initialPartners?: PartnerAssignmentSummary[];
 }
 
 export interface UseCampaignPartnersReturn {
@@ -63,9 +65,10 @@ export interface UseCampaignPartnersReturn {
 }
 
 /** Fetches and manages campaign partners with client-side search and sort. */
-export function useCampaignPartners({ slug, enabled = true }: UseCampaignPartnersOptions): UseCampaignPartnersReturn {
-  const [rawPartners, setRawPartners] = useState<PartnerAssignmentSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useCampaignPartners({ slug, enabled = true, initialPartners }: UseCampaignPartnersOptions): UseCampaignPartnersReturn {
+  const hasInitial = initialPartners && initialPartners.length > 0;
+  const [rawPartners, setRawPartners] = useState<PartnerAssignmentSummary[]>(initialPartners ?? []);
+  const [loading, setLoading] = useState(!hasInitial);
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,9 +86,18 @@ export function useCampaignPartners({ slug, enabled = true }: UseCampaignPartner
     return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
   }, [searchQuery]);
 
-  // Fetch partners
+  // Sync provider data when it arrives (initial load only)
+  useEffect(() => {
+    if (initialPartners && initialPartners.length > 0 && fetchVersion === 0) {
+      setRawPartners(initialPartners);
+      setLoading(false);
+    }
+  }, [initialPartners, fetchVersion]);
+
+  // Fetch partners (skip initial when provider data is available)
   useEffect(() => {
     if (!enabled || !slug) return;
+    if (fetchVersion === 0 && hasInitial) return;
 
     let cancelled = false;
     const fetchPartners = async () => {
@@ -103,7 +115,7 @@ export function useCampaignPartners({ slug, enabled = true }: UseCampaignPartner
 
     fetchPartners();
     return () => { cancelled = true; };
-  }, [slug, enabled, fetchVersion]);
+  }, [slug, enabled, fetchVersion, hasInitial]);
 
   // Client-side search, sort, and mapping
   const partners = useMemo(() => {

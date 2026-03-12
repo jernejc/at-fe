@@ -1,13 +1,14 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { getCampaign, getCampaignOverview, publishCampaign, unpublishCampaign } from '@/lib/api';
-import type { CampaignRead, CampaignOverview } from '@/lib/schemas';
+import { getCampaign, getCampaignOverview, publishCampaign, unpublishCampaign, getCampaignPartners } from '@/lib/api';
+import type { CampaignRead, CampaignOverview, PartnerAssignmentSummary } from '@/lib/schemas';
 import { toast } from 'sonner';
 
 interface CampaignDetailContextValue {
   campaign: CampaignRead | null;
   overview: CampaignOverview | null;
+  partners: PartnerAssignmentSummary[];
   loading: boolean;
   error: string | null;
   isPublishing: boolean;
@@ -30,6 +31,7 @@ interface CampaignDetailProviderProps {
 export function CampaignDetailProvider({ slug, children }: CampaignDetailProviderProps) {
   const [campaign, setCampaign] = useState<CampaignRead | null>(null);
   const [overview, setOverview] = useState<CampaignOverview | null>(null);
+  const [partners, setPartners] = useState<PartnerAssignmentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -39,12 +41,14 @@ export function CampaignDetailProvider({ slug, children }: CampaignDetailProvide
     setLoading(true);
     setError(null);
     try {
-      const [campaignData, overviewData] = await Promise.all([
+      const [campaignData, overviewData, partnersData] = await Promise.all([
         getCampaign(slug),
         getCampaignOverview(slug),
+        getCampaignPartners(slug).catch(() => [] as PartnerAssignmentSummary[]),
       ]);
       setCampaign(campaignData);
       setOverview(overviewData);
+      setPartners(partnersData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load campaign');
     } finally {
@@ -95,6 +99,7 @@ export function CampaignDetailProvider({ slug, children }: CampaignDetailProvide
       value={{
         campaign,
         overview,
+        partners,
         loading,
         error,
         isPublishing,

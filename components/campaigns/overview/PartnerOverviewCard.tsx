@@ -34,8 +34,8 @@ export function PartnerOverviewCard({
         if (!companies) return counts;
         
         companies.forEach(company => {
-            if (company.partner_id) {
-                const pId = String(company.partner_id);
+            if (company.assigned_partner_id) {
+                const pId = String(company.assigned_partner_id);
                 counts.set(pId, (counts.get(pId) || 0) + 1);
             }
         });
@@ -74,7 +74,7 @@ export function PartnerOverviewCard({
             // Prefer counts from companies (accurate local state)
             // Fallback to API assigned_count if companies not available
             const localCount = partnerCounts.get(String(p.partner_id)) || 0;
-            const apiCount = p.assigned_count ?? 0;
+            const apiCount = p.assigned_company_count ?? 0;
             const count = localCount > 0 ? localCount : apiCount;
 
             return {

@@ -26,7 +26,7 @@ export function AutoAssignDialog({
 
     // Calculate round-robin assignments for unassigned companies
     const proposedAssignments = useMemo(() => {
-        const unassigned = companies.filter(c => !c.partner_id);
+        const unassigned = companies.filter(c => !c.assigned_partner_id);
         const assignments: Record<string, string> = {};
 
         if (unassigned.length === 0 || partners.length === 0) return assignments;
@@ -56,7 +56,7 @@ export function AutoAssignDialog({
         return stats;
     }, [proposedAssignments, partners]);
 
-    const unassignedCount = companies.filter(c => !c.partner_id).length;
+    const unassignedCount = companies.filter(c => !c.assigned_partner_id).length;
 
     const handleConfirm = async () => {
         setIsAssigning(true);

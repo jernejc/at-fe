@@ -22,7 +22,7 @@ function makePartner(overrides: Partial<PartnerAssignmentSummary> = {}): Partner
     partner_capacity: 20,
     partner_industries: ['SaaS', 'FinTech'],
     partner_status: 'active',
-    assigned_count: 5,
+    assigned_company_count: 5,
     in_progress_count: 2,
     completed_count: 1,
     task_completion_pct: 40,
@@ -34,8 +34,8 @@ function makePartner(overrides: Partial<PartnerAssignmentSummary> = {}): Partner
 
 const defaultPartners = [
   makePartner({ id: 1, partner_id: 10, partner_name: 'Brio Tech' }),
-  makePartner({ id: 2, partner_id: 20, partner_name: 'Acme Partners', partner_type: 'consulting', partner_capacity: 10, assigned_count: 8, completed_count: 4 }),
-  makePartner({ id: 3, partner_id: 30, partner_name: 'Zeta Agency', partner_type: 'agency', partner_capacity: 30, assigned_count: 10, completed_count: 0 }),
+  makePartner({ id: 2, partner_id: 20, partner_name: 'Acme Partners', partner_type: 'consulting', partner_capacity: 10, assigned_company_count: 8, completed_count: 4 }),
+  makePartner({ id: 3, partner_id: 30, partner_name: 'Zeta Agency', partner_type: 'agency', partner_capacity: 30, assigned_company_count: 10, completed_count: 0 }),
 ];
 
 beforeEach(() => {

@@ -64,7 +64,7 @@ export function CampaignDetailHeader({
             </div>
 
             {/* Campaign name */}
-            <h1 className="text-4xl font-display leading-12 font-semibold tracking-tight text-foreground">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-semibold tracking-tight text-foreground">
               {campaignName ?? 'Untitled Campaign'}
             </h1>
           </div>

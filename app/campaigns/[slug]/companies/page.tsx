@@ -12,12 +12,13 @@ import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 import type { CompanyRowData } from '@/lib/schemas';
 
 export default function CampaignCompaniesPage() {
-  const { campaign, loading: campaignLoading } = useCampaignDetail();
+  const { campaign, partners: providerPartners, loading: campaignLoading } = useCampaignDetail();
   const slug = campaign?.slug ?? '';
 
   const companiesState = useCampaignCompanies({
     slug,
     enabled: !campaignLoading && !!campaign,
+    partners: providerPartners,
   });
 
   const [selectedCompany, setSelectedCompany] = useState<CompanyRowData | null>(null);

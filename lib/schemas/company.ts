@@ -138,7 +138,7 @@ export interface CompanyRowData {
     revenue?: number | null;
     /** ISO date when the company was assigned (used for 'new' status derivation). */
     assigned_at?: string | null;
-    partner_id?: string | null;
+    partner_id?: number | null;
     partner_name?: string | null;
     partner_logo_url?: string | null;
 }

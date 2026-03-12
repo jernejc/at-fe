@@ -6,12 +6,14 @@ import type { ReactNode } from 'react';
 
 const mockGetCampaign = vi.fn();
 const mockGetCampaignOverview = vi.fn();
+const mockGetCampaignPartners = vi.fn();
 const mockPublishCampaign = vi.fn();
 const mockUnpublishCampaign = vi.fn();
 
 vi.mock('@/lib/api', () => ({
   getCampaign: (...args: any[]) => mockGetCampaign(...args),
   getCampaignOverview: (...args: any[]) => mockGetCampaignOverview(...args),
+  getCampaignPartners: (...args: any[]) => mockGetCampaignPartners(...args),
   publishCampaign: (...args: any[]) => mockPublishCampaign(...args),
   unpublishCampaign: (...args: any[]) => mockUnpublishCampaign(...args),
 }));
@@ -62,6 +64,7 @@ function makeOverview(overrides: Partial<CampaignOverview> = {}): CampaignOvervi
 function mockSuccessfulFetch(campaign = makeCampaign(), overview = makeOverview()) {
   mockGetCampaign.mockResolvedValue(campaign);
   mockGetCampaignOverview.mockResolvedValue(overview);
+  mockGetCampaignPartners.mockResolvedValue([]);
 }
 
 function makeWrapper(slug: string) {
@@ -85,6 +88,7 @@ describe('CampaignDetailProvider — data fetching', () => {
     expect(result.current.loading).toBe(true);
     expect(result.current.campaign).toBeNull();
     expect(result.current.overview).toBeNull();
+    expect(result.current.partners).toEqual([]);
     expect(result.current.error).toBeNull();
   });
 

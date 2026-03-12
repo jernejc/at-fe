@@ -10,12 +10,13 @@ import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 import type { PartnerRowData } from '@/components/campaigns/partners/PartnerRow';
 
 export default function CampaignPartnersPage() {
-  const { campaign, loading: campaignLoading } = useCampaignDetail();
+  const { campaign, partners: providerPartners, loading: campaignLoading } = useCampaignDetail();
   const slug = campaign?.slug ?? '';
 
   const partnersState = useCampaignPartners({
     slug,
     enabled: !campaignLoading && !!campaign,
+    initialPartners: providerPartners,
   });
 
   const [selectedPartner, setSelectedPartner] = useState<PartnerRowData | null>(null);

@@ -100,8 +100,8 @@ export interface MembershipRead {
     created_at: string;
     // Partner assignment fields
     assigned_at: string;
-    partner_id?: string | null;
-    partner_name?: string | null;
+    assigned_partner_id?: number | null;
+    assigned_partner_name?: string | null;
 }
 
 export interface MembershipCreate {

@@ -97,7 +97,7 @@ export function TopCompaniesCard({
                             hqCountry={company.hq_country}
                             fitScore={company.cached_fit_score}
                             logoBase64={company.logo_base64}
-                            partnerName={company.partner_name}
+                            partnerName={company.assigned_partner_name}
                             onClick={() => onCompanyClick(company.domain)}
                             className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                         />
