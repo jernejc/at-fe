@@ -2,6 +2,7 @@
 
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { StatusIndicator } from '@/components/ui/status-indicator';
+import { StatusesChart } from '@/components/ui/statuses-chart';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { Badge } from '@/components/ui/badge';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
@@ -17,6 +18,14 @@ interface PartnerCampaignOverviewDashboardProps {
   closedAmount?: number | null;
   progressPct?: number | null;
   conversionRate?: number | null;
+  /** Status distribution counts for the Statuses chart cell. */
+  statusNew?: number;
+  statusBacklog?: number;
+  statusInProgress?: number;
+  statusWon?: number;
+  statusLost?: number;
+  /** 0-100 task completion % shown as striped overlay on in-progress bar. */
+  statusInProgressCompletion?: number;
 }
 
 /** Partner campaign overview metrics dashboard — 4-column grid. */
@@ -28,6 +37,12 @@ export function PartnerCampaignOverviewDashboard({
   closedAmount,
   progressPct,
   conversionRate,
+  statusNew,
+  statusBacklog,
+  statusInProgress,
+  statusWon,
+  statusLost,
+  statusInProgressCompletion,
 }: PartnerCampaignOverviewDashboardProps) {
   const status = campaign?.status ?? 'draft';
   const rawFit = campaign?.avg_fit_score ?? null;
@@ -85,7 +100,16 @@ export function PartnerCampaignOverviewDashboard({
 
       <DashboardCell size="quarter">
         <DashboardCellTitle>Statuses</DashboardCellTitle>
-        <DashboardCellBody loading={loading}>--</DashboardCellBody>
+        <DashboardCellBody loading={loading} className="flex items-end">
+          <StatusesChart
+            newCount={statusNew ?? 0}
+            backlogCount={statusBacklog ?? 0}
+            inProgressCount={statusInProgress ?? 0}
+            wonCount={statusWon ?? 0}
+            lostCount={statusLost ?? 0}
+            inProgressCompletion={statusInProgressCompletion ?? 0}
+          />
+        </DashboardCellBody>
       </DashboardCell>
 
       <DashboardCell size="quarter">

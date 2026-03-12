@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CampaignProgress } from '@/components/ui/campaign-progress';
 import { CompanyStatus } from '@/components/ui/company-status';
+import { StatusesChart } from '@/components/ui/statuses-chart';
 import type { CompanyStatusValue } from '@/components/ui/company-status';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
@@ -471,7 +472,16 @@ export function CustomSection() {
           </DashboardCell>
           <DashboardCell>
             <DashboardCellTitle>Statuses</DashboardCellTitle>
-            <DashboardCellBody>5 / 7</DashboardCellBody>
+            <DashboardCellBody className="flex items-end">
+              <StatusesChart
+                newCount={5}
+                backlogCount={5}
+                inProgressCount={7}
+                wonCount={5}
+                lostCount={10}
+                inProgressCompletion={45}
+              />
+            </DashboardCellBody>
           </DashboardCell>
           <DashboardCell>
             <DashboardCellTitle>Leads engaged</DashboardCellTitle>
