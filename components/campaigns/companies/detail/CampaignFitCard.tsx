@@ -6,11 +6,11 @@ import {
   ExpandableCardHeader,
   ExpandableCardDetails,
 } from '@/components/ui/expandable-card';
+import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
-import { Progress } from '@/components/ui/progress';
+import { CircularProgress } from '@/components/ui/circular-progress';
 import { normalizeScore } from '@/lib/utils';
 import type { FitScore, SignalContribution, FitSummaryFit } from '@/lib/schemas';
-import { Separator } from '@/components/ui/separator';
 
 interface CampaignFitCardProps {
   fitBreakdown: FitScore | null;
@@ -47,32 +47,33 @@ export function CampaignFitCard({ fitBreakdown, fitsSummary, loading }: Campaign
   return (
     <ExpandableCard>
       <ExpandableCardHeader className="space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-2 flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-foreground">Campaign fit</h3>
-            {explanation && (
-              <p className="leading-relaxed">{explanation}</p>
-            )}
-          </div>
-          {score !== null && (
-            <div className='flex items-center gap-3 px-3 py-6'>
-              <FitScoreIndicator score={Math.round(score)} size={28} showChange={false} showValue={false} />
-              <div className='font-display font-bold text-4xl leading-1 -mt-1'>{Math.round(score)}</div>
-            </div>
-          )}
-        </div>
+        <h3 className="text-lg font-semibold text-foreground">Campaign fit</h3>
 
-        {likelihood !== null && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Likelihood</span>
-                <span className="text-foreground font-medium">{Math.round(likelihood)}%</span>
-              </div>
-              <Progress value={likelihood} className="h-3" />
-            </div>
-          </>
+        {(score !== null || likelihood !== null) && (
+          <Dashboard className="grid-cols-2">
+            {score !== null && (
+              <DashboardCell size="half" className='lg:col-span-1' height="auto" gradient={score > 75 ? 'green' : undefined}>
+                <DashboardCellTitle>Fit score</DashboardCellTitle>
+                <DashboardCellBody className='flex items-end justify-between'>
+                  <span>{Math.round(score)}%</span>
+                  <FitScoreIndicator score={Math.round(score)} size={80} showChange={false} showValue={false} />
+                </DashboardCellBody>
+              </DashboardCell>
+            )}
+            {likelihood !== null && (
+              <DashboardCell size="half" className='lg:col-span-1 text-right' height="auto" gradient={likelihood > 75 ? 'green' : undefined}>
+                <DashboardCellTitle>Likelihood</DashboardCellTitle>
+                <DashboardCellBody className='flex items-end justify-between'>
+                  <CircularProgress value={likelihood} size={80} />
+                  <span>{Math.round(likelihood)}%</span>
+                </DashboardCellBody>
+              </DashboardCell>
+            )}
+          </Dashboard>
+        )}
+
+        {explanation && (
+          <p className="leading-relaxed">{explanation}</p>
         )}
       </ExpandableCardHeader>
 

@@ -60,6 +60,7 @@ export function CircularProgress({
           strokeLinecap="round"
           opacity={getForegroundOpacity(clamped)}
           transform={`rotate(-90 ${center} ${center})`}
+          style={{ transition: 'stroke-dashoffset 0.6s ease, opacity 0.6s ease' }}
         />
       )}
     </svg>
