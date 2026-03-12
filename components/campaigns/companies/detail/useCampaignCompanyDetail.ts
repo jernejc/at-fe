@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useAccountDetail } from '@/hooks/useAccountDetail';
+import { getCompany, getCompanyExplainability } from '@/lib/api/companies';
 import { getFitBreakdown } from '@/lib/api/fit-scores';
 import { assignCompanyToPartner, unassignCompanyFromPartner } from '@/lib/api/partners';
 import type { CompanyRead, CompanyExplainabilityResponse, FitScore } from '@/lib/schemas';
@@ -15,7 +15,6 @@ interface UseCampaignCompanyDetailOptions {
   slug: string;
   /** Campaign's target product, used for fit breakdown. */
   targetProductId: number | null;
-  isOpen: boolean;
   /** Called after a successful partner reassignment. */
   onReassigned?: () => void;
 }
@@ -37,26 +36,58 @@ export function useCampaignCompanyDetail({
   partnerId,
   slug,
   targetProductId,
-  isOpen,
   onReassigned,
 }: UseCampaignCompanyDetailOptions): UseCampaignCompanyDetailReturn {
-  const account = useAccountDetail(domain, isOpen);
+  const [company, setCompany] = useState<CompanyRead | null>(null);
+  const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [fitBreakdown, setFitBreakdown] = useState<FitScore | null>(null);
   const [fitLoading, setFitLoading] = useState(false);
   const [reassigning, setReassigning] = useState(false);
 
-  // Determine product ID: campaign target or first available product
-  const productId = targetProductId ?? account.allProducts[0]?.id ?? null;
-
-  // Fetch fit breakdown once we have a product ID and the account has loaded
+  // Fetch company data and explainability only (lightweight: 2 API calls)
   useEffect(() => {
-    if (!isOpen || !domain || !productId || account.loading) return;
+    if (!domain) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setCompany(null);
+    setExplainability(null);
+
+    Promise.all([
+      getCompany(domain),
+      getCompanyExplainability(domain),
+    ])
+      .then(([companyRes, explainabilityRes]) => {
+        if (cancelled) return;
+        setCompany(companyRes.company);
+        setExplainability(explainabilityRes);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Failed to load campaign company detail', err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [domain]);
+
+  // Fetch fit breakdown independently when we have a target product
+  useEffect(() => {
+    if (!domain || !targetProductId) {
+      setFitBreakdown(null);
+      setFitLoading(false);
+      return;
+    }
 
     let cancelled = false;
     setFitLoading(true);
+    setFitBreakdown(null);
 
-    getFitBreakdown(domain, productId)
+    getFitBreakdown(domain, targetProductId)
       .then((result) => {
         if (!cancelled) setFitBreakdown(result);
       })
@@ -68,21 +99,14 @@ export function useCampaignCompanyDetail({
       });
 
     return () => { cancelled = true; };
-  }, [isOpen, domain, productId, account.loading]);
-
-  // Reset fit breakdown when domain changes
-  useEffect(() => {
-    setFitBreakdown(null);
-  }, [domain]);
+  }, [domain, targetProductId]);
 
   const reassignToPartner = useCallback(async (newPartnerId: number) => {
     setReassigning(true);
     try {
-      // Unassign from current partner if one exists
       if (partnerId) {
         await unassignCompanyFromPartner(slug, Number(partnerId), companyId);
       }
-      // Assign to the new partner
       await assignCompanyToPartner(slug, newPartnerId, { company_id: companyId });
       toast.success('Company reassigned successfully');
       onReassigned?.();
@@ -96,10 +120,10 @@ export function useCampaignCompanyDetail({
   }, [slug, companyId, partnerId, onReassigned]);
 
   return {
-    company: account.data?.company ?? null,
-    explainability: account.explainability,
+    company,
+    explainability,
     fitBreakdown,
-    loading: account.loading,
+    loading,
     fitLoading,
     reassigning,
     reassignToPartner,

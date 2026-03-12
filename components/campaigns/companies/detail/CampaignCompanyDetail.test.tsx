@@ -186,7 +186,6 @@ describe('CampaignCompanyDetail', () => {
         partnerId: '5',
         slug: 'my-campaign',
         targetProductId: 99,
-        isOpen: true,
       }),
     );
   });

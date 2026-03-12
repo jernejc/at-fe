@@ -39,7 +39,6 @@ export function CampaignCompanyDetail({
     partnerId: company.partner_id ?? null,
     slug,
     targetProductId,
-    isOpen: true,
     onReassigned,
   });
 
@@ -66,6 +65,7 @@ export function CampaignCompanyDetail({
           <CampaignFitCard
             fitBreakdown={fitBreakdown}
             fitsSummary={explainability?.fits_summary ?? []}
+            targetProductId={targetProductId}
             loading={fitLoading}
           />
 

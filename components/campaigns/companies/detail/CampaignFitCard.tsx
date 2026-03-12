@@ -15,25 +15,31 @@ import type { FitScore, SignalContribution, FitSummaryFit } from '@/lib/schemas'
 interface CampaignFitCardProps {
   fitBreakdown: FitScore | null;
   fitsSummary: FitSummaryFit[];
+  targetProductId: number | null;
   loading: boolean;
 }
 
 /** Displays fit score, likelihood, and expandable signal contributions. */
-export function CampaignFitCard({ fitBreakdown, fitsSummary, loading }: CampaignFitCardProps) {
-  // Use breakdown if available, otherwise fall back to summary
+export function CampaignFitCard({ fitBreakdown, fitsSummary, targetProductId, loading }: CampaignFitCardProps) {
+  // Find the matching product's summary (not just the first entry)
+  const matchingSummary = targetProductId
+    ? fitsSummary.find((f) => f.product_id === targetProductId) ?? null
+    : null;
+
+  // Use breakdown if available, otherwise fall back to matching summary
   const score = fitBreakdown
     ? normalizeScore(fitBreakdown.combined_score)
-    : fitsSummary[0]
-      ? normalizeScore(fitsSummary[0].combined_score)
+    : matchingSummary
+      ? normalizeScore(matchingSummary.combined_score)
       : null;
 
   const likelihood = fitBreakdown
     ? normalizeScore(fitBreakdown.likelihood_score)
-    : fitsSummary[0]
-      ? normalizeScore(fitsSummary[0].likelihood_score)
+    : matchingSummary
+      ? normalizeScore(matchingSummary.likelihood_score)
       : null;
 
-  const topDrivers = fitBreakdown?.top_drivers ?? fitsSummary[0]?.top_drivers ?? [];
+  const topDrivers = fitBreakdown?.top_drivers ?? matchingSummary?.top_drivers ?? [];
   const explanation = topDrivers.length > 0
     ? topDrivers.map((d) => d.replace(/_/g, ' ')).join(', ')
     : null;

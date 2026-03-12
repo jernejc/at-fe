@@ -3,15 +3,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useCampaignCompanyDetail } from './useCampaignCompanyDetail';
 import type { CompanyRead, CompanyExplainabilityResponse, FitScore } from '@/lib/schemas';
 
-const mockUseAccountDetail = vi.fn();
+const mockGetCompany = vi.fn();
+const mockGetCompanyExplainability = vi.fn();
 const mockGetFitBreakdown = vi.fn();
 const mockAssignCompanyToPartner = vi.fn();
 const mockUnassignCompanyFromPartner = vi.fn();
 const mockToastSuccess = vi.fn();
 const mockToastError = vi.fn();
 
-vi.mock('@/hooks/useAccountDetail', () => ({
-  useAccountDetail: (...args: any[]) => mockUseAccountDetail(...args),
+vi.mock('@/lib/api/companies', () => ({
+  getCompany: (...args: any[]) => mockGetCompany(...args),
+  getCompanyExplainability: (...args: any[]) => mockGetCompanyExplainability(...args),
 }));
 
 vi.mock('@/lib/api/fit-scores', () => ({
@@ -135,91 +137,72 @@ function makeExplainability(overrides: Partial<CompanyExplainabilityResponse> = 
   };
 }
 
-function makeAccountReturn(overrides: Record<string, any> = {}) {
-  return {
-    data: { company: makeCompanyRead(), counts: {} },
-    playbooks: [],
-    explainability: makeExplainability(),
-    decisionMakers: [],
-    employees: [],
-    employeesTotal: 0,
-    jobs: [],
-    jobsTotal: 0,
-    news: [],
-    newsTotal: 0,
-    loading: false,
-    loadMoreJobs: vi.fn(),
-    loadMoreNews: vi.fn(),
-    loadMoreEmployees: vi.fn(),
-    loadingMoreJobs: false,
-    loadingMoreNews: false,
-    loadingMoreEmployees: false,
-    refetch: vi.fn(),
-    refetchExplainability: vi.fn(),
-    refetchPlaybooks: vi.fn(),
-    allProducts: [{ id: 10, name: 'Product A' }],
-    ...overrides,
-  };
-}
-
 const defaultOptions = {
   domain: 'acme.com',
   companyId: 1,
   partnerId: null as string | null,
   slug: 'test-campaign',
   targetProductId: 10 as number | null,
-  isOpen: true,
   onReassigned: vi.fn(),
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockUseAccountDetail.mockReturnValue(makeAccountReturn());
+  mockGetCompany.mockResolvedValue({ company: makeCompanyRead(), counts: {} });
+  mockGetCompanyExplainability.mockResolvedValue(makeExplainability());
   mockGetFitBreakdown.mockResolvedValue(makeFitScore());
   mockAssignCompanyToPartner.mockResolvedValue({});
   mockUnassignCompanyFromPartner.mockResolvedValue(undefined);
 });
 
-describe('useCampaignCompanyDetail — data passthrough', () => {
-  it('passes loading state through from useAccountDetail', () => {
-    mockUseAccountDetail.mockReturnValue(makeAccountReturn({ loading: true }));
-
+describe('useCampaignCompanyDetail — data fetching', () => {
+  it('starts in loading state', () => {
     const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
     expect(result.current.loading).toBe(true);
   });
 
-  it('returns company data from useAccountDetail', async () => {
+  it('returns company data after loading', async () => {
     const company = makeCompanyRead({ name: 'Test Co' });
-    mockUseAccountDetail.mockReturnValue(makeAccountReturn({ data: { company, counts: {} } }));
+    mockGetCompany.mockResolvedValue({ company, counts: {} });
 
     const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
     await act(async () => {});
 
     expect(result.current.company?.name).toBe('Test Co');
+    expect(result.current.loading).toBe(false);
   });
 
-  it('returns null company when account data is null', async () => {
-    mockUseAccountDetail.mockReturnValue(makeAccountReturn({ data: null }));
+  it('returns null company on fetch error', async () => {
+    mockGetCompany.mockRejectedValue(new Error('Not found'));
 
     const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
     await act(async () => {});
 
     expect(result.current.company).toBeNull();
+    expect(result.current.loading).toBe(false);
   });
 
-  it('returns explainability from useAccountDetail', async () => {
+  it('returns explainability after loading', async () => {
     const explainability = makeExplainability({ signal_narrative: 'Strong signals detected' });
-    mockUseAccountDetail.mockReturnValue(makeAccountReturn({ explainability }));
+    mockGetCompanyExplainability.mockResolvedValue(explainability);
 
     const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
     await act(async () => {});
 
     expect(result.current.explainability?.signal_narrative).toBe('Strong signals detected');
   });
+
+  it('fetches company and explainability in parallel', async () => {
+    renderHook(() => useCampaignCompanyDetail(defaultOptions));
+    await act(async () => {});
+
+    expect(mockGetCompany).toHaveBeenCalledWith('acme.com');
+    expect(mockGetCompanyExplainability).toHaveBeenCalledWith('acme.com');
+  });
 });
 
 describe('useCampaignCompanyDetail — fit breakdown', () => {
-  it('fetches fit breakdown when domain and productId are available', async () => {
+  it('fetches fit breakdown when domain and targetProductId are available', async () => {
     const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
     await act(async () => {});
 
@@ -227,24 +210,14 @@ describe('useCampaignCompanyDetail — fit breakdown', () => {
     expect(result.current.fitBreakdown).toMatchObject({ combined_score: 0.8 });
   });
 
-  it('falls back to first product ID when no targetProductId', async () => {
-    mockUseAccountDetail.mockReturnValue(
-      makeAccountReturn({ allProducts: [{ id: 42, name: 'Fallback Product' }] }),
+  it('does not fetch fit breakdown when targetProductId is null', async () => {
+    const { result } = renderHook(() =>
+      useCampaignCompanyDetail({ ...defaultOptions, targetProductId: null }),
     );
-
-    renderHook(() => useCampaignCompanyDetail({ ...defaultOptions, targetProductId: null }));
-    await act(async () => {});
-
-    expect(mockGetFitBreakdown).toHaveBeenCalledWith('acme.com', 42);
-  });
-
-  it('does not fetch fit breakdown when account is still loading', async () => {
-    mockUseAccountDetail.mockReturnValue(makeAccountReturn({ loading: true }));
-
-    renderHook(() => useCampaignCompanyDetail(defaultOptions));
     await act(async () => {});
 
     expect(mockGetFitBreakdown).not.toHaveBeenCalled();
+    expect(result.current.fitBreakdown).toBeNull();
   });
 
   it('resets fitBreakdown to null when domain changes', async () => {
@@ -256,7 +229,7 @@ describe('useCampaignCompanyDetail — fit breakdown', () => {
     expect(result.current.fitBreakdown).not.toBeNull();
 
     rerender({ ...defaultOptions, domain: 'other.com' });
-    // fitBreakdown reset happens synchronously on domain change
+    // fitBreakdown resets in the effect before new fetch resolves
     expect(result.current.fitBreakdown).toBeNull();
   });
 

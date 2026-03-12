@@ -39,6 +39,7 @@ export function CompanyDetailColumn({ domain, productId, onBack }: CompanyDetail
           <CampaignFitCard
             fitBreakdown={fitBreakdown}
             fitsSummary={explainability?.fits_summary ?? []}
+            targetProductId={productId}
             loading={false}
           />
 

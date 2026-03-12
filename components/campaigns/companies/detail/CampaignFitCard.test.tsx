@@ -74,30 +74,43 @@ function makeFitSummary(overrides: Partial<FitSummaryFit> = {}): FitSummaryFit {
 describe('CampaignFitCard', () => {
   it('returns null when no score and not loading', () => {
     const { container } = render(
-      <CampaignFitCard fitBreakdown={null} fitsSummary={[]} loading={false} />,
+      <CampaignFitCard fitBreakdown={null} fitsSummary={[]} targetProductId={10} loading={false} />,
     );
     expect(container.innerHTML).toBe('');
   });
 
   it('renders fit score value from fitBreakdown', () => {
     render(
-      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} loading={false} />,
+      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
     );
     // combined_score 0.8 → normalizeScore → 80
     expect(screen.getByText('80')).toBeInTheDocument();
   });
 
-  it('falls back to fitsSummary when fitBreakdown is null', () => {
+  it('falls back to matching fitsSummary when fitBreakdown is null', () => {
     render(
-      <CampaignFitCard fitBreakdown={null} fitsSummary={[makeFitSummary()]} loading={false} />,
+      <CampaignFitCard fitBreakdown={null} fitsSummary={[makeFitSummary()]} targetProductId={10} loading={false} />,
     );
     // combined_score 0.7 → normalizeScore → 70
     expect(screen.getByText('70')).toBeInTheDocument();
   });
 
+  it('does not fall back to wrong product in fitsSummary', () => {
+    const { container } = render(
+      <CampaignFitCard
+        fitBreakdown={null}
+        fitsSummary={[makeFitSummary({ product_id: 99, combined_score: 0.5 })]}
+        targetProductId={10}
+        loading={false}
+      />,
+    );
+    // product_id 99 does not match targetProductId 10, so should render nothing
+    expect(container.innerHTML).toBe('');
+  });
+
   it('renders likelihood progress bar', () => {
     const { container } = render(
-      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} loading={false} />,
+      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
     );
     // likelihood_score 0.75 → 75%
     expect(screen.getByText('75%')).toBeInTheDocument();
@@ -106,14 +119,14 @@ describe('CampaignFitCard', () => {
 
   it('renders explanation from top_drivers', () => {
     render(
-      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} loading={false} />,
+      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
     );
     expect(screen.getByText('hiring growth, tech adoption')).toBeInTheDocument();
   });
 
   it('renders "Campaign fit" heading', () => {
     render(
-      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} loading={false} />,
+      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
     );
     expect(screen.getByText('Campaign fit')).toBeInTheDocument();
   });
@@ -126,6 +139,7 @@ describe('CampaignFitCard', () => {
           interest_matches: [makeContribution({ display_name: 'AI Adoption' })],
         })}
         fitsSummary={[]}
+        targetProductId={10}
         loading={false}
       />,
     );
@@ -145,6 +159,7 @@ describe('CampaignFitCard', () => {
           event_matches: [makeContribution({ display_name: 'Product Launch', signal_type: 'event' })],
         })}
         fitsSummary={[]}
+        targetProductId={10}
         loading={false}
       />,
     );
@@ -164,6 +179,7 @@ describe('CampaignFitCard', () => {
           interest_matches: [makeContribution({ contribution: 0.42 })],
         })}
         fitsSummary={[]}
+        targetProductId={10}
         loading={false}
       />,
     );
