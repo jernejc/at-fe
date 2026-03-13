@@ -59,6 +59,19 @@ export function deriveCompanyStatus(opts: {
   return 'default';
 }
 
+const STATUS_LABELS: Record<CompanyStatusValue, string> = {
+  default: 'Backlog',
+  new: 'New',
+  in_progress: 'In Progress',
+  closed_won: 'Closed Won',
+  closed_lost: 'Closed Lost',
+};
+
+/** Return a human-readable label for a company lifecycle status. */
+export function getCompanyStatusLabel(status: CompanyStatusValue): string {
+  return STATUS_LABELS[status] ?? status;
+}
+
 /**
  * Format a date string as a relative time (e.g., "2d ago", "3w ago")
  */

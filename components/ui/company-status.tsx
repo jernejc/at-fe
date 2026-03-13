@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn, getCompanyStatusLabel } from '@/lib/utils';
 
 /** Valid lifecycle statuses for a company within a campaign. */
 export type CompanyStatusValue =
@@ -39,7 +39,7 @@ export function CompanyStatus({
       viewBox="0 0 20 20"
       fill="none"
       className={cn('shrink-0', className)}
-      aria-label={`Company status: ${status.replace(/_/g, ' ')}`}
+      aria-label={`Company status: ${getCompanyStatusLabel(status)}`}
     >
       {status === 'default' && (
         <circle

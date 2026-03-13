@@ -104,6 +104,45 @@ export interface MembershipRead {
     assigned_partner_name?: string | null;
 }
 
+/** Detailed membership returned by GET /api/v1/campaigns/{slug}/companies/{domain}. */
+export interface CampaignCompanyRead {
+    id: number;
+    company_id: number;
+    domain: string;
+    company_name: string | null;
+    is_unresolved: boolean;
+    logo_base64: string | null;
+    industry: string | null;
+    employee_count: number | null;
+    hq_country: string | null;
+    segment: string | null;
+    cached_fit_score: number | null;
+    cached_likelihood_score: number | null;
+    cached_urgency_score: number | null;
+    processing_status: string | null;
+    is_processed: boolean;
+    processing_error: string | null;
+    processing_started_at: string | null;
+    processing_completed_at: string | null;
+    target_data_depth: string | null;
+    target_signal_status: string | null;
+    target_fit_status: string | null;
+    target_playbook_status: string | null;
+    include_employees: boolean;
+    include_posts: boolean;
+    include_jobs: boolean;
+    achieved_data_depth: string | null;
+    achieved_signal_status: string | null;
+    achieved_fit_status: string | null;
+    achieved_playbook_status: string | null;
+    assigned_partner_id: number | null;
+    assigned_partner_name: string | null;
+    assigned_at: string;
+    notes: string | null;
+    priority: number;
+    created_at: string;
+}
+
 export interface MembershipCreate {
     domain: string;
     notes?: string | null;
@@ -290,4 +329,42 @@ export interface MembershipWithProgress extends MembershipRead {
     outreach_sent_at?: string;
     decision_makers_count: number;
     last_activity?: string;
+}
+
+// Company progress tracking (per-company within a campaign)
+export interface CompanyProgressStep {
+    step_number: number;
+    day_offset: number;
+    channel: string;
+    objective: string;
+    contacts: string[];
+    status: string;
+    completion_type: string;
+    planned_date: string;
+    completed_at: string | null;
+    partner_notes: string | null;
+}
+
+export interface CompanyProgressRead {
+    id: number;
+    assignment_id: number;
+    campaign_id: number;
+    company_id: number;
+    company_domain: string;
+    company_name: string;
+    assigned_at: string;
+    partner_id: number;
+    partner_name: string;
+    playbook_id: number;
+    status: string;
+    execution_started_at: string | null;
+    status_changed_at: string | null;
+    earned_revenue: string | null;
+    closed_at: string | null;
+    close_reason: string | null;
+    partner_notes: string | null;
+    progress_percentage: number;
+    steps: CompanyProgressStep[];
+    created_at: string;
+    updated_at: string;
 }

@@ -108,6 +108,8 @@ export {
     refreshCampaignStats,
     processCampaign,
     getCampaignFunnel,
+    getCampaignCompany,
+    getCompanyProgress,
 } from './campaigns';
 
 // Partners

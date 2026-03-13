@@ -176,6 +176,9 @@ export type {
     CampaignFilterUI,
     Partner,
     PartnerType,
+    CampaignCompanyRead,
+    CompanyProgressStep,
+    CompanyProgressRead,
 } from './campaign';
 
 // Partner types

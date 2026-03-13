@@ -17,6 +17,8 @@ import type {
     CampaignImport,
     CampaignFilters,
     CampaignFunnel,
+    CampaignCompanyRead,
+    CompanyProgressRead,
 } from '../schemas';
 
 export async function getCampaigns(filters: CampaignFilters = {}): Promise<PaginatedResponse<CampaignSummary>> {
@@ -208,4 +210,24 @@ export async function getCampaignFunnel(
 ): Promise<CampaignFunnel> {
     const query = buildQueryString({ product_id: productId });
     return fetchAPI<CampaignFunnel>(`/api/v1/campaigns/${encodeURIComponent(slug)}/funnel${query}`);
+}
+
+/** Fetch a single company's membership detail within a campaign. */
+export async function getCampaignCompany(
+    slug: string,
+    domain: string
+): Promise<CampaignCompanyRead> {
+    return fetchAPI<CampaignCompanyRead>(
+        `/api/v1/campaigns/${encodeURIComponent(slug)}/companies/${encodeURIComponent(domain)}`
+    );
+}
+
+/** Fetch progress records for a specific company within a campaign. */
+export async function getCompanyProgress(
+    slug: string,
+    domain: string
+): Promise<CompanyProgressRead[]> {
+    return fetchAPI<CompanyProgressRead[]>(
+        `/api/v1/campaigns/${encodeURIComponent(slug)}/companies/${encodeURIComponent(domain)}/progress`
+    );
 }

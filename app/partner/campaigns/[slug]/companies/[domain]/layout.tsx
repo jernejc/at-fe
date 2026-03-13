@@ -5,7 +5,10 @@ import { CompanyDetailHeader } from '@/components/campaigns/CompanyDetailHeader'
 import { SecondaryNav } from '@/components/ui/secondary-nav';
 import { Separator } from '@/components/ui/separator';
 import { useCampaignDetailHeader } from '@/hooks/useCampaignDetailHeader';
-import { useCompanyDetailHeader } from '@/hooks/useCompanyDetailHeader';
+import {
+  CampaignCompanyDetailProvider,
+  useCampaignCompanyDetail,
+} from '@/components/providers/CampaignCompanyDetailProvider';
 
 interface CompanyDetailLayoutProps {
   children: React.ReactNode;
@@ -18,9 +21,11 @@ export default function CompanyDetailLayout({ children, params }: CompanyDetailL
   const decodedDomain = decodeURIComponent(domain);
 
   return (
-    <CompanyDetailLayoutInner slug={slug} domain={decodedDomain} encodedDomain={domain}>
-      {children}
-    </CompanyDetailLayoutInner>
+    <CampaignCompanyDetailProvider slug={slug} domain={decodedDomain}>
+      <CompanyDetailLayoutInner slug={slug} domain={decodedDomain} encodedDomain={domain}>
+        {children}
+      </CompanyDetailLayoutInner>
+    </CampaignCompanyDetailProvider>
   );
 }
 
@@ -36,7 +41,14 @@ function CompanyDetailLayoutInner({
   children: React.ReactNode;
 }) {
   const { campaignIcon } = useCampaignDetailHeader();
-  const { companyName, companyLogoUrl, loading } = useCompanyDetailHeader(domain);
+  const { company, loading } = useCampaignCompanyDetail();
+
+  const companyName = company?.name ?? null;
+  const companyLogoUrl = company?.logo_base64
+    ? company.logo_base64.startsWith('data:')
+      ? company.logo_base64
+      : `data:image/png;base64,${company.logo_base64}`
+    : company?.logo_url ?? null;
 
   const basePath = `/partner/campaigns/${slug}/companies/${encodedDomain}`;
   const navItems = [

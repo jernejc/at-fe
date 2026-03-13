@@ -1,17 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { useCampaignDetail } from '@/components/providers/CampaignDetailProvider';
+import { useCampaignCompanyDetail } from '@/components/providers/CampaignCompanyDetailProvider';
 import { useSignalSelection } from '@/hooks/useSignalSelection';
-import { getFitBreakdown } from '@/lib/api/fit-scores';
-import { getCompanyExplainability } from '@/lib/api/companies';
-import type {
-  FitScore,
-  SignalInterest,
-  SignalEvent,
-  CompanyExplainabilityResponse,
-} from '@/lib/schemas';
 
 /**
  * Filters explainability signals to only those whose category appears
@@ -25,60 +17,25 @@ function filterMatchedSignals<T extends { category: string }>(
   return signals.filter((s) => matchedCategories.has(s.category));
 }
 
-/** Fetches product fit breakdown and signal data for the campaign's target product. */
+/** Reads product fit data from the shared CampaignCompanyDetailProvider (lazy-loaded on first visit). */
 export function useProductFit() {
   const { domain: rawDomain } = useParams<{ domain: string }>();
   const domain = decodeURIComponent(rawDomain);
-  const { campaign, loading: campaignLoading } = useCampaignDetail();
 
-  const [breakdown, setBreakdown] = useState<FitScore | null>(null);
-  const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    breakdown,
+    explainability,
+    productFitLoading: loading,
+    productFitError: error,
+    ensureProductFit,
+  } = useCampaignCompanyDetail();
 
   const signalSelection = useSignalSelection(domain);
-  const productId = campaign?.target_product_id;
 
+  // Trigger lazy fetch on first visit to the product-fit tab
   useEffect(() => {
-    if (campaignLoading) return;
-
-    if (!productId) {
-      setLoading(false);
-      setError('No target product configured for this campaign.');
-      return;
-    }
-
-    let cancelled = false;
-
-    async function fetch() {
-      setLoading(true);
-      setError(null);
-
-      const [breakdownResult, explainabilityResult] = await Promise.allSettled([
-        getFitBreakdown(domain, productId!),
-        getCompanyExplainability(domain),
-      ]);
-
-      if (cancelled) return;
-
-      if (breakdownResult.status === 'fulfilled') {
-        setBreakdown(breakdownResult.value);
-      }
-
-      if (explainabilityResult.status === 'fulfilled') {
-        setExplainability(explainabilityResult.value);
-      }
-
-      if (breakdownResult.status === 'rejected' && explainabilityResult.status === 'rejected') {
-        setError('Failed to load product fit data.');
-      }
-
-      setLoading(false);
-    }
-
-    fetch();
-    return () => { cancelled = true; };
-  }, [domain, productId, campaignLoading]);
+    ensureProductFit();
+  }, [ensureProductFit]);
 
   // Filter explainability signals to only those that matched in the breakdown
   const matchedInterestCategories = useMemo(
