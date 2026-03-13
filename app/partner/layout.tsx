@@ -5,9 +5,5 @@ export default function PartnerLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <main className="flex flex-1 overflow-y-auto">
-      {children}
-    </main>
-  );
+  return <>{children}</>;
 }

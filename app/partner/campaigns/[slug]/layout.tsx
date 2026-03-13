@@ -1,7 +1,7 @@
 'use client';
 
 import { use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { CampaignDetailHeader } from '@/components/campaigns/CampaignDetailHeader';
 import { SecondaryNav } from '@/components/ui/secondary-nav';
@@ -27,8 +27,13 @@ export default function PartnerCampaignLayout({ children, params }: PartnerCampa
 
 function PartnerCampaignLayoutInner({ slug, children }: { slug: string; children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { campaignName, campaignIcon, campaignStatus, productName, loading, error } =
     useCampaignDetailHeader();
+
+  // Company detail routes have their own layout with header and nav
+  const companiesBase = `/partner/campaigns/${slug}/companies/`;
+  const isCompanyDetail = pathname.startsWith(companiesBase) && pathname.length > companiesBase.length;
 
   const navItems = [
     { label: 'Overview', href: `/partner/campaigns/${slug}` },
@@ -47,6 +52,14 @@ function PartnerCampaignLayoutInner({ slug, children }: { slug: string; children
         >
           Go Back
         </Button>
+      </div>
+    );
+  }
+
+  if (isCompanyDetail) {
+    return (
+      <div className="flex-1 flex flex-col bg-background">
+        <div className="flex-1">{children}</div>
       </div>
     );
   }
