@@ -84,7 +84,7 @@ function PartnerMetrics({ company }: { company: CompanyRowData }) {
   return (
     <>
       {/* Outreach Progress */}
-      <div className="flex items-center gap-2 w-32">
+      <div className="flex items-center gap-2 w-24">
         <Progress variant="striped" value={0} className="h-2 flex-1" />
         <span className="text-xs text-muted-foreground tabular-nums">0%</span>
       </div>
@@ -114,12 +114,12 @@ function TableHeader() {
   return (
     <div className="flex items-center -mx-5 gap-4 px-6 py-2 text-xs font-medium text-muted-foreground">
       {/* Spacer for avatar */}
-      <div className="w-8 shrink-0" />
+      <div className="w-5 shrink-0" />
       {/* Company name column */}
       <div className="flex-1 min-w-0">Company</div>
       {/* Right-side metric columns (hidden on mobile) */}
       <div className="hidden md:flex items-center gap-7 shrink-0">
-        <span className="w-32">Outreach</span>
+        <span className="w-24">Outreach</span>
         <span className="w-20">Engaged</span>
         <span className="w-18">Fit</span>
       </div>
@@ -130,7 +130,7 @@ function TableHeader() {
 /** Skeleton for the metrics area. */
 const metricsSkeleton = (
   <>
-    <div className="w-32 h-2 bg-muted rounded-full animate-pulse" />
+    <div className="w-24 h-2 bg-muted rounded-full animate-pulse" />
     <div className="w-20 h-4 bg-muted rounded animate-pulse" />
     <div className="w-18 h-4 bg-muted rounded animate-pulse" />
   </>
