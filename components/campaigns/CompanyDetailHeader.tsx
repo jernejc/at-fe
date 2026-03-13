@@ -27,15 +27,15 @@ export function CompanyDetailHeader({
   loading = false,
 }: CompanyDetailHeaderProps) {
   if (loading) {
-    return <CompanyDetailHeaderSkeleton slug={slug} />;
+    return <CompanyDetailHeaderSkeleton />;
   }
 
   return (
     <div className="bg-background">
       <div className="max-w-[1600px] mx-auto px-10 pt-7 pb-4">
         <div className="flex items-center -ml-10">
-          {/* Back to campaign */}
-          <Link href={`/partner/campaigns/${slug}`} className="shrink-0 mx-1">
+          {/* Back to campaigns */}
+          <Link href={`/partner/campaigns`} className="shrink-0 mx-1">
             <Button variant="ghost" size="icon-sm" aria-label="Back to campaign">
               <ChevronLeft className="size-5" />
             </Button>
@@ -43,7 +43,7 @@ export function CompanyDetailHeader({
 
           {/* Campaign icon breadcrumb */}
           <Link
-            href={`/partner/campaigns/${slug}`}
+            href={`/partner/campaigns/${slug}/companies`}
             className="flex items-center justify-center shrink-0 w-16 h-16 rounded-xl bg-card hover:bg-muted transition-colors"
             aria-label="Go to campaign"
           >
@@ -84,12 +84,12 @@ export function CompanyDetailHeader({
 }
 
 /** Skeleton placeholder while company data loads. */
-function CompanyDetailHeaderSkeleton({ slug }: { slug: string }) {
+function CompanyDetailHeaderSkeleton() {
   return (
     <div className="bg-background">
       <div className="max-w-[1600px] mx-auto px-10 pt-7 pb-4">
         <div className="flex items-center -ml-10">
-          <Link href={`/partner/campaigns/${slug}`} className="shrink-0 mx-1">
+          <Link href={`/partner/campaigns`} className="shrink-0 mx-1">
             <Button variant="ghost" size="icon-sm" aria-label="Back to campaign">
               <ChevronLeft className="size-5" />
             </Button>

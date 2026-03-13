@@ -6,8 +6,9 @@ import {
   ExpandableCardHeader,
   ExpandableCardDetails,
 } from '@/components/ui/expandable-card';
+import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { SignalStrengthIndicator } from '@/components/ui/signal-strength-indicator';
-import { Progress } from '@/components/ui/progress';
+import { CircularProgress } from '@/components/ui/circular-progress';
 import { PersonRow } from '@/components/ui/person-row';
 import { Separator } from '@/components/ui/separator';
 import type { SourceDetail, SignalProvenanceResponse, SignalContributor } from '@/lib/schemas/provenance';
@@ -102,17 +103,28 @@ export function SignalProvenanceDetail({ signal, isLoading }: SignalProvenanceDe
     <div className="space-y-4">
       {/* Card 1: Signal Overview */}
       <ExpandableCard>
-        <ExpandableCardHeader className="space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold text-foreground leading-tight">
-              {displayName}
-            </h2>
-            <SignalStrengthIndicator
-              value={signal.strength}
-              size={20}
-              className="shrink-0"
-            />
-          </div>
+        <ExpandableCardHeader className="space-y-4">
+          <h2 className="text-lg font-semibold text-foreground leading-tight">
+            {displayName}
+          </h2>
+
+          <Dashboard className="grid-cols-2">
+            <DashboardCell size="half" className="lg:col-span-1" height="auto" gradient={signal.strength > 7 ? 'green' : undefined}>
+              <DashboardCellTitle>Strength</DashboardCellTitle>
+              <DashboardCellBody className="flex items-end justify-between">
+                <span>{signal.strength} / 10</span>
+                <SignalStrengthIndicator value={signal.strength} size={56} showValue={false} />
+              </DashboardCellBody>
+            </DashboardCell>
+            <DashboardCell size="half" className="lg:col-span-1 text-right" height="auto" gradient={Math.round(signal.confidence * 100) > 75 ? 'green' : undefined}>
+              <DashboardCellTitle>Confidence</DashboardCellTitle>
+              <DashboardCellBody className="flex items-end justify-between">
+                <CircularProgress value={Math.round(signal.confidence * 100)} size={56} />
+                <span>{Math.round(signal.confidence * 100)}%</span>
+              </DashboardCellBody>
+            </DashboardCell>
+          </Dashboard>
+
           {signal.evidence_summary && (
             <p className="text-sm leading-relaxed text-muted-foreground">
               {signal.evidence_summary}
@@ -133,17 +145,6 @@ export function SignalProvenanceDetail({ signal, isLoading }: SignalProvenanceDe
                 {sourceType.replace(/_/g, ' ')}
               </Badge>
             ))}
-          </div>
-
-          {/* Confidence progress bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Confidence</span>
-              <span className="text-foreground font-medium">
-                {Math.round(signal.confidence * 100)}%
-              </span>
-            </div>
-            <Progress value={signal.confidence * 100} className="h-2" />
           </div>
 
           <Separator />
@@ -262,6 +263,12 @@ function getSourceTypeConfig(sourceType: string) {
   }
   if (type.includes('post') || type === 'linkedin_post') {
     return { icon: <FileText className="h-3 w-3" />, label: 'Post', variant: 'purple' as const, isPost: true };
+  }
+  if (type.includes('technographics')) {
+    return { icon: <Database className="h-3 w-3" />, label: 'Technographics', variant: 'green' as const, isPost: false };
+  }
+  if (type.includes('news')) {
+    return { icon: <FileText className="h-3 w-3" />, label: 'News', variant: 'red' as const, isPost: false };
   }
   return { icon: <Database className="h-3 w-3" />, label: sourceType.replace(/_/g, ' '), variant: 'grey' as const, isPost: false };
 }
