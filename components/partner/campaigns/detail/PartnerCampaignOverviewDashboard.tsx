@@ -6,6 +6,7 @@ import { StatusesChart } from '@/components/ui/statuses-chart';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { Badge } from '@/components/ui/badge';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
+import { CampaignExportMenu } from '@/components/campaigns/CampaignExportMenu';
 import { normalizeScoreNullable } from '@/lib/utils';
 import type { CampaignRead, CampaignOverview } from '@/lib/schemas';
 
@@ -79,9 +80,14 @@ export function PartnerCampaignOverviewDashboard({
             </Badge>
           )}
         </div>
-        <DashboardCellBody loading={loading}>
-          {campaign?.company_count ?? 0}
-        </DashboardCellBody>
+        <div className="flex items-end justify-between">
+          <DashboardCellBody loading={loading}>
+            {campaign?.company_count ?? 0}
+          </DashboardCellBody>
+          {!loading && (
+            <CampaignExportMenu slug={campaign?.slug ?? ''} />
+          )}
+        </div>
       </DashboardCell>
 
       <DashboardCell size="quarter">
