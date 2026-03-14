@@ -9,6 +9,7 @@ import { StatusIndicator } from '@/components/ui/status-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { PublishDialog } from './PublishDialog';
 import { useCampaignExport } from '@/hooks/useCampaignExport';
+import { normalizeScoreNullable } from '@/lib/utils';
 import type { CampaignRead, CampaignOverview } from '@/lib/schemas';
 
 interface CampaignOverviewDashboardProps {
@@ -50,7 +51,8 @@ export function CampaignOverviewDashboard({
   const { isExporting, handleExport } = useCampaignExport({ slug: campaign?.slug ?? '' });
 
   const status = campaign?.status ?? 'draft';
-  const avgFit = campaign?.avg_fit_score ?? null;
+  const rawFit = campaign?.avg_fit_score ?? null;
+  const avgFit = rawFit != null ? Math.round(normalizeScoreNullable(rawFit)) : null;
 
   return (
     <>
