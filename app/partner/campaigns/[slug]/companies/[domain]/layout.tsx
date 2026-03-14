@@ -9,6 +9,7 @@ import {
   CampaignCompanyDetailProvider,
   useCampaignCompanyDetail,
 } from '@/components/providers/CampaignCompanyDetailProvider';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface CompanyDetailLayoutProps {
   children: React.ReactNode;
@@ -68,7 +69,13 @@ function CompanyDetailLayoutInner({
           loading={loading}
         />
       </div>
-      <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-1 bg-background -mt-6 min-w-0">
+      <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-1 bg-background -mt-6">
+        <Avatar className="size-4 rounded">
+          {companyLogoUrl && <AvatarImage src={companyLogoUrl} alt={company?.name} className="rounded" />}
+          <AvatarFallback className="rounded text-[8px]">
+            {company?.name?.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
         <span className="truncate">{companyName ?? domain}</span>
       </div>
       <div className="sticky top-30 z-10 bg-background">

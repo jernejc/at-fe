@@ -109,7 +109,7 @@ describe('CompanyRow', () => {
 
   it('renders status indicator with correct aria-label', () => {
     renderRow({ company: makeCompany({ status: 'closed_won' }) });
-    expect(screen.getByLabelText('Company status: closed won')).toBeInTheDocument();
+    expect(screen.getByLabelText('Company status: Closed Won')).toBeInTheDocument();
   });
 
   describe('isActive', () => {

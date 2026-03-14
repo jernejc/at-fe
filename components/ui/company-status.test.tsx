@@ -151,12 +151,12 @@ describe('CompanyStatus', () => {
   it('includes an aria-label with the status', () => {
     const { container } = render(<CompanyStatus status="in_progress" />);
     const svg = container.querySelector('svg')!;
-    expect(svg.getAttribute('aria-label')).toBe('Company status: in progress');
+    expect(svg.getAttribute('aria-label')).toBe('Company status: In Progress');
   });
 
   it('formats aria-label without underscores', () => {
     const { container } = render(<CompanyStatus status="closed_won" />);
     const svg = container.querySelector('svg')!;
-    expect(svg.getAttribute('aria-label')).toBe('Company status: closed won');
+    expect(svg.getAttribute('aria-label')).toBe('Company status: Closed Won');
   });
 });
