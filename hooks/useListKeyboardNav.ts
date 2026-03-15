@@ -77,7 +77,6 @@ export function useListKeyboardNav<T>({
         const nextKey = getKeyRef.current(nextItem);
         const el = itemRefs.current.get(nextKey);
         el?.focus();
-        el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     };
 
@@ -85,12 +84,12 @@ export function useListKeyboardNav<T>({
     return () => document.removeEventListener('keydown', handler);
   }, [enabled, selectedItem]);
 
-  // Focus the selected item when selection changes
+  // Focus and scroll to the selected item when selection changes
   useEffect(() => {
     if (!selectedItem) return;
     const key = getKey(selectedItem);
     const el = itemRefs.current.get(key);
-    el?.focus();
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [selectedItem, getKey]);
 
   return { getItemRef };

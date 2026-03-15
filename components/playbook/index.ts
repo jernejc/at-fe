@@ -5,3 +5,5 @@ export { ContactRow } from './ContactRow';
 export { StepRow } from './StepRow';
 export { QuestionRow } from './QuestionRow';
 export { ObjectionRow } from './ObjectionRow';
+export { usePlaybookDetail } from './usePlaybookDetail';
+export type { PlaybookDetailSelection } from './usePlaybookDetail';

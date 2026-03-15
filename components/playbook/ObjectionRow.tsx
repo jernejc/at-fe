@@ -4,13 +4,36 @@ import { OctagonX } from 'lucide-react';
 interface ObjectionRowProps {
   objection: string;
   response?: string;
+  /** Row click handler. */
+  onClick?: () => void;
+  /** Whether this row is currently selected/active. */
+  isActive?: boolean;
   className?: string;
+  ref?: React.Ref<HTMLDivElement>;
 }
 
-/** Static row displaying an objection title with an icon and truncated response. */
-export function ObjectionRow({ objection, response, className }: ObjectionRowProps) {
+/** Row displaying an objection title with an icon and truncated response. */
+export function ObjectionRow({ objection, response, onClick, isActive, className, ref }: ObjectionRowProps) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
-    <div className={cn('flex items-center gap-4 px-6 py-4', className)}>
+    <div
+      ref={ref}
+      className={cn(
+        'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
+        onClick && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        isActive && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
+        className,
+      )}
+      onClick={onClick}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? handleKeyDown : undefined}
+    >
       <div className="shrink-0 w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
         <OctagonX className="w-4 h-4" />
       </div>

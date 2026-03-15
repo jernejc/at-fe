@@ -1,27 +1,51 @@
 import { cn } from '@/lib/utils';
 import type { CadenceStep } from '@/lib/schemas';
-import { Mail, Linkedin, Phone, Video, MessageSquare, StickyNote, Reply } from 'lucide-react';
+import { Mail, Phone, Video, MessageSquare, StickyNote, Reply } from 'lucide-react';
+import { LinkedinIcon } from '@/components/ui/icons/linkedin-icon';
 
 interface StepRowProps {
   step: CadenceStep;
+  /** Row click handler. */
+  onClick?: () => void;
+  /** Whether this row is currently selected/active. */
+  isActive?: boolean;
   className?: string;
+  ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Returns the matching icon for a channel name. */
 function ChannelIcon({ channel }: { channel: string }) {
   switch (channel) {
     case 'email': return <Mail className="w-4 h-4 shrink-0" />;
-    case 'linkedin': return <Linkedin className="w-4 h-4 shrink-0" />;
+    case 'linkedin': return <LinkedinIcon className="w-4 h-4 shrink-0" />;
     case 'phone': return <Phone className="w-4 h-4 shrink-0" />;
     case 'virtual_workshop': return <Video className="w-4 h-4 shrink-0" />;
     default: return <MessageSquare className="w-4 h-4 shrink-0" />;
   }
 }
 
-/** Static row displaying an outreach cadence step with day offset, channel, contacts, objective, and indicator icons. */
-export function StepRow({ step, className }: StepRowProps) {
+/** Row displaying an outreach cadence step with day offset, channel, contacts, objective, and indicator icons. */
+export function StepRow({ step, onClick, isActive, className, ref }: StepRowProps) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
-    <div className={cn('flex items-center gap-4 px-6 py-4', className)}>
+    <div
+      ref={ref}
+      className={cn(
+        'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
+        onClick && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        isActive && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
+        className,
+      )}
+      onClick={onClick}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? handleKeyDown : undefined}
+    >
       {/* Day offset badge */}
       <div className="shrink-0 w-10 h-10 rounded-lg bg-muted flex flex-col items-center justify-center">
         <span className="text-[10px] text-muted-foreground uppercase leading-none">Day</span>

@@ -1,7 +1,10 @@
 'use client';
 
+import { Suspense, useMemo } from 'react';
 import type { PlaybookRead } from '@/lib/schemas';
 import { Separator } from '@/components/ui/separator';
+import { DetailSidePanel } from '@/components/ui/detail-side-panel/DetailSidePanel';
+import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 import {
   Dashboard,
   DashboardCell,
@@ -12,6 +15,8 @@ import { ContactRow } from './ContactRow';
 import { StepRow } from './StepRow';
 import { QuestionRow } from './QuestionRow';
 import { ObjectionRow } from './ObjectionRow';
+import { usePlaybookDetail } from './usePlaybookDetail';
+import { PlaybookDetailContent } from './detail';
 
 interface PlaybookContentProps {
   playbook: PlaybookRead;
@@ -19,11 +24,66 @@ interface PlaybookContentProps {
 
 /** Renders all playbook sections with row-based lists, table headers, and separators. */
 export function PlaybookContent({ playbook }: PlaybookContentProps) {
+  return (
+    <Suspense>
+      <PlaybookContentInner playbook={playbook} />
+    </Suspense>
+  );
+}
+
+/** Inner component that uses useSearchParams (requires Suspense boundary). */
+function PlaybookContentInner({ playbook }: PlaybookContentProps) {
+  const {
+    selected, handleContactClick, handleStepClick, handleObjectionClick,
+    navigateToContact, navigateToStep, navigateToObjection,
+    handleClose, isContactActive, isStepActive, isObjectionActive,
+  } = usePlaybookDetail(playbook);
+
+  const steps = useMemo(() => playbook.outreach_cadence?.sequence ?? [], [playbook.outreach_cadence]);
+  const contacts = playbook.contacts ?? [];
+  const objections = useMemo(() => playbook.objection_handling ?? [], [playbook.objection_handling]);
+
+  // Keyboard navigation — one per section, enabled only when that type is selected
+  const { getItemRef: getContactRef } = useListKeyboardNav({
+    items: contacts,
+    selectedItem: selected?.type === 'contact' ? selected.data : null,
+    getKey: (c) => c.id,
+    onSelect: navigateToContact,
+    enabled: selected?.type === 'contact',
+  });
+
+  const { getItemRef: getStepRef } = useListKeyboardNav({
+    items: steps,
+    selectedItem: selected?.type === 'step' ? selected.data : null,
+    getKey: (s) => steps.indexOf(s),
+    onSelect: (s) => navigateToStep(s, steps.indexOf(s)),
+    enabled: selected?.type === 'step',
+  });
+
+  const { getItemRef: getObjectionRef } = useListKeyboardNav({
+    items: objections,
+    selectedItem: selected?.type === 'objection' ? selected.data : null,
+    getKey: (o) => objections.indexOf(o),
+    onSelect: (o) => navigateToObjection(o, objections.indexOf(o)),
+    enabled: selected?.type === 'objection',
+  });
+
   const channelCount = playbook.recommended_channels?.length ?? 0;
-  const stepCount = playbook.outreach_cadence?.sequence?.length ?? 0;
-  const contactCount = playbook.contacts?.length ?? 0;
+  const stepCount = steps.length;
+  const contactCount = contacts.length;
 
   return (
+    <DetailSidePanel
+      open={!!selected}
+      onClose={handleClose}
+      detail={selected ? (
+        <PlaybookDetailContent
+          selection={selected}
+          contacts={contacts}
+          onContactClick={handleContactClick}
+        />
+      ) : null}
+    >
     <div className="space-y-10">
       {/* Dashboard Summary */}
       <Dashboard>
@@ -86,7 +146,13 @@ export function PlaybookContent({ playbook }: PlaybookContentProps) {
             <Separator />
             {playbook.outreach_cadence.sequence.map((step, i) => (
               <div key={i}>
-                <StepRow step={step} className='-mx-6' />
+                <StepRow
+                  ref={getStepRef(i)}
+                  step={step}
+                  onClick={() => handleStepClick(step, i)}
+                  isActive={isStepActive(i)}
+                  className='-mx-6'
+                />
                 <Separator />
               </div>
             ))}
@@ -103,7 +169,13 @@ export function PlaybookContent({ playbook }: PlaybookContentProps) {
             <Separator />
             {playbook.contacts.map((contact) => (
               <div key={contact.id}>
-                <ContactRow contact={contact} className='-mx-6' />
+                <ContactRow
+                  ref={getContactRef(contact.id)}
+                  contact={contact}
+                  onClick={handleContactClick}
+                  isActive={isContactActive(contact.id)}
+                  className='-mx-6'
+                />
                 <Separator />
               </div>
             ))}
@@ -120,7 +192,14 @@ export function PlaybookContent({ playbook }: PlaybookContentProps) {
             <Separator />
             {playbook.objection_handling.map((entry, i) => (
               <div key={i}>
-                <ObjectionRow objection={entry.objection} response={entry.response} className='-mx-6' />
+                <ObjectionRow
+                  ref={getObjectionRef(i)}
+                  objection={entry.objection}
+                  response={entry.response}
+                  onClick={() => handleObjectionClick(entry, i)}
+                  isActive={isObjectionActive(i)}
+                  className='-mx-6'
+                />
                 <Separator />
               </div>
             ))}
@@ -145,6 +224,7 @@ export function PlaybookContent({ playbook }: PlaybookContentProps) {
         </section>
       )}
     </div>
+    </DetailSidePanel>
   );
 }
 

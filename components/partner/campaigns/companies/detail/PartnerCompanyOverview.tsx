@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { AlertCircle, Globe, Mail, Phone } from 'lucide-react';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- lucide-react has no non-deprecated LinkedIn export
-import { Linkedin } from 'lucide-react';
+import { LinkedinIcon } from '@/components/ui/icons/linkedin-icon';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -130,7 +129,7 @@ export function PartnerCompanyOverview() {
                 )}
                 {linkedinUrl && (
                   <a href={linkedinUrl} target="_blank" rel="noopener" className="flex items-center gap-1.5 text-sm text-primary hover:underline">
-                    <Linkedin className="size-3.5 shrink-0" />
+                    <LinkedinIcon className="size-3.5 shrink-0" />
                     LinkedIn
                   </a>
                 )}

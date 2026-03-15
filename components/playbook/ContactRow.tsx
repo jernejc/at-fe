@@ -5,13 +5,38 @@ import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 
 interface ContactRowProps {
   contact: PlaybookContactResponse;
+  /** Row click handler. */
+  onClick?: (contact: PlaybookContactResponse) => void;
+  /** Whether this row is currently selected/active. */
+  isActive?: boolean;
+  /** Hide the right-side metrics (role, fit score, LinkedIn). */
+  hideMetrics?: boolean;
   className?: string;
+  ref?: React.Ref<HTMLDivElement>;
 }
 
-/** Static row displaying a playbook contact with avatar, name, title, role, fit score, and LinkedIn link. */
-export function ContactRow({ contact, className }: ContactRowProps) {
+/** Row displaying a playbook contact with avatar, name, title, role, fit score, and LinkedIn link. */
+export function ContactRow({ contact, onClick, isActive, hideMetrics, className, ref }: ContactRowProps) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick(contact);
+    }
+  };
+
   return (
-    <div className={cn('flex items-center gap-4 px-6 py-4', className)}>
+    <div
+      ref={ref}
+      className={cn(
+        'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
+        onClick && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        isActive && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
+        className,
+      )}
+      onClick={onClick ? () => onClick(contact) : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? handleKeyDown : undefined}
+    >
       {/* Avatar */}
       <Avatar size="sm">
         <AvatarFallback className="text-xs">
@@ -32,7 +57,7 @@ export function ContactRow({ contact, className }: ContactRowProps) {
       </div>
 
       {/* Metrics */}
-      <div className="hidden md:flex items-center gap-7 shrink-0">
+      {!hideMetrics && <div className="hidden md:flex items-center gap-7 shrink-0">
         {/* Role category */}
         <span className="text-sm truncate w-34">
           {contact.role_category ?? '\u2013'}
@@ -61,7 +86,7 @@ export function ContactRow({ contact, className }: ContactRowProps) {
         ) : (
           <div className="w-4 h-4" />
         )}
-      </div>
+      </div>}
     </div>
   );
 }
