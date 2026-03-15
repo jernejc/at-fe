@@ -1,14 +1,26 @@
 'use client';
 
-import { BookOpen } from 'lucide-react';
+import { usePlaybook, PlaybookEmptyState, PlaybookContent, PlaybookContentSkeleton } from '@/components/playbook';
 
-/** Playbook page — placeholder until feature is built out. */
+/** Playbook page — loads and displays the playbook for the campaign's target product. */
 export default function CompanyPlaybookPage() {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
-      <BookOpen className="size-10 text-muted-foreground/50" />
-      <p className="text-sm font-medium text-foreground">Playbook</p>
-      <p className="text-sm text-muted-foreground">Coming soon</p>
-    </div>
-  );
+  const { playbook, loading, isGenerating, generationError, productName, generatePlaybook } =
+    usePlaybook();
+
+  if (loading) {
+    return <PlaybookContentSkeleton />;
+  }
+
+  if (!playbook) {
+    return (
+      <PlaybookEmptyState
+        productName={productName}
+        isGenerating={isGenerating}
+        generationError={generationError}
+        onGenerate={generatePlaybook}
+      />
+    );
+  }
+
+  return <PlaybookContent playbook={playbook} />;
 }

@@ -24,10 +24,16 @@ export interface PlaybookContext {
 
 export interface OutreachTemplateResponse {
     id: number;
+    playbook_id: number;
+    contact_id: number;
     recipient: string | null;
     draft_message: string | null;
     linkedin_connection_note: string | null;
     follow_up_email: string | null;
+    phone_script: string | null;
+    phone_talking_points: string[] | null;
+    voicemail_script: string | null;
+    messages: unknown[];
 }
 
 export interface PlaybookContact {
@@ -42,6 +48,12 @@ export interface PlaybookContact {
     fit_reasoning: string | null;
 }
 
+export interface ContactFitAssessment {
+    score: number | null;
+    urgency: number | null;
+    reasoning: string | null;
+}
+
 export interface PlaybookContactResponse extends PlaybookContact {
     // Contact info
     linkedin_url: string | null;
@@ -54,6 +66,13 @@ export interface PlaybookContactResponse extends PlaybookContact {
     preferred_channel: string | null;
     channel_sequence: string[] | null;
     approach_notes: string | null;
+    // Persona
+    persona_type: string | null;
+    persona_types: string[] | null;
+    persona_confidence: number | null;
+    committee_role: string | null;
+    // Fit assessment
+    fit_assessment: ContactFitAssessment | null;
     // Outreach
     outreach_templates: OutreachTemplateResponse[];
 }
@@ -69,6 +88,9 @@ export interface CadenceStep {
     objective: string | null;
     follow_up: string | null;
     notes: string | null;
+    framework_technique: string | null;
+    purpose: string | null;
+    message_angle: string | null;
 }
 
 /**
@@ -76,9 +98,12 @@ export interface CadenceStep {
  */
 export interface OutreachCadence {
     sequence: CadenceStep[];
-    total_days: number | null;
-    contacts_involved: string[] | null;
+    total_touches: number | null;
+    duration_days: number | null;
     summary: string | null;
+    escalation_plan: string | null;
+    multi_thread_strategy: string | null;
+    breakup_strategy: string | null;
 }
 
 export interface SignalBasisEvent {
@@ -106,6 +131,11 @@ export interface GenerationMetadata {
     [key: string]: unknown;
 }
 
+export interface ObjectionHandlingEntry {
+    objection: string;
+    response: string;
+}
+
 export interface PlaybookRead {
     id: number;
     company_id: number;
@@ -117,7 +147,7 @@ export interface PlaybookRead {
     value_proposition: string | null;
     elevator_pitch: string | null;
     discovery_questions: string[] | null;
-    objection_handling: Record<string, string> | null;
+    objection_handling: ObjectionHandlingEntry[] | null;
     recommended_channels: string[] | null;
     contacts: PlaybookContactResponse[];
     outreach_cadence: OutreachCadence | null;

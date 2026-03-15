@@ -9,11 +9,11 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import { getCompany, getCampaignCompany } from '@/lib/api';
+import { getCompany, getCampaignCompany, getCompanyPlaybooks, getCompanyPlaybook } from '@/lib/api';
 import { getFitBreakdown } from '@/lib/api/fit-scores';
 import { getCompanyExplainability } from '@/lib/api/companies';
 import { useCampaignDetail } from './CampaignDetailProvider';
-import type { CompanyRead, CampaignCompanyRead, FitScore, CompanyExplainabilityResponse } from '@/lib/schemas';
+import type { CompanyRead, CampaignCompanyRead, FitScore, CompanyExplainabilityResponse, PlaybookRead } from '@/lib/schemas';
 
 interface CampaignCompanyDetailContextValue {
   /** Full company details. */
@@ -34,6 +34,18 @@ interface CampaignCompanyDetailContextValue {
   productFitError: string | null;
   /** Fetch product fit data if not already loaded. No-ops on subsequent calls. */
   ensureProductFit: () => void;
+  /** Cached playbook for the target product (lazy-loaded). */
+  playbook: PlaybookRead | null;
+  /** Whether playbook data is loading. */
+  playbookLoading: boolean;
+  /** Product name from the playbook listing. */
+  playbookProductName: string | null;
+  /** Fetch playbook data if not already loaded. No-ops on subsequent calls. */
+  ensurePlaybook: () => void;
+  /** Update the cached playbook (e.g. after generation). */
+  setPlaybook: (playbook: PlaybookRead | null) => void;
+  /** Update the cached product name. */
+  setPlaybookProductName: (name: string | null) => void;
 }
 
 const CampaignCompanyDetailContext = createContext<CampaignCompanyDetailContextValue | null>(null);
@@ -60,6 +72,12 @@ export function CampaignCompanyDetailProvider({ slug, domain, children }: Campai
   const [productFitLoading, setProductFitLoading] = useState(false);
   const [productFitError, setProductFitError] = useState<string | null>(null);
   const productFitFetched = useRef(false);
+
+  // Lazy state: playbook
+  const [playbook, setPlaybook] = useState<PlaybookRead | null>(null);
+  const [playbookLoading, setPlaybookLoading] = useState(false);
+  const [playbookProductName, setPlaybookProductName] = useState<string | null>(null);
+  const playbookFetched = useRef(false);
 
   // Fetch company + membership on mount
   useEffect(() => {
@@ -132,6 +150,46 @@ export function CampaignCompanyDetailProvider({ slug, domain, children }: Campai
     return () => { cancelled = true; };
   }, [domain, campaign?.target_product_id, campaignLoading]);
 
+  // Lazy fetch for playbook data — called by playbook tab on first visit
+  const ensurePlaybook = useCallback(() => {
+    if (playbookFetched.current || campaignLoading) return;
+
+    const productId = campaign?.target_product_id;
+    if (!productId) {
+      playbookFetched.current = true;
+      setPlaybookLoading(false);
+      return;
+    }
+
+    playbookFetched.current = true;
+    let cancelled = false;
+
+    async function fetchPlaybook() {
+      setPlaybookLoading(true);
+      try {
+        const { playbooks } = await getCompanyPlaybooks(domain);
+        const target = playbooks.find((p) => p.product_id === productId);
+        if (cancelled) return;
+
+        if (!target) {
+          setPlaybookLoading(false);
+          return;
+        }
+
+        setPlaybookProductName(target.product_name ?? null);
+        const detail = await getCompanyPlaybook(domain, target.id);
+        if (!cancelled) setPlaybook(detail);
+      } catch (err) {
+        console.error('Failed to fetch playbook:', err);
+      } finally {
+        if (!cancelled) setPlaybookLoading(false);
+      }
+    }
+
+    fetchPlaybook();
+    return () => { cancelled = true; };
+  }, [domain, campaign?.target_product_id, campaignLoading]);
+
   return (
     <CampaignCompanyDetailContext.Provider
       value={{
@@ -144,6 +202,12 @@ export function CampaignCompanyDetailProvider({ slug, domain, children }: Campai
         productFitLoading,
         productFitError,
         ensureProductFit,
+        playbook,
+        playbookLoading,
+        playbookProductName,
+        ensurePlaybook,
+        setPlaybook,
+        setPlaybookProductName,
       }}
     >
       {children}

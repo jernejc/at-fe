@@ -363,9 +363,9 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                                     <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-primary" />
                                         Outreach Cadence
-                                        {playbookDetail.outreach_cadence.total_days && (
+                                        {playbookDetail.outreach_cadence.duration_days && (
                                             <span className="text-xs font-normal text-muted-foreground">
-                                                ({playbookDetail.outreach_cadence.total_days} days)
+                                                ({playbookDetail.outreach_cadence.duration_days} days)
                                             </span>
                                         )}
                                     </h3>
@@ -502,21 +502,21 @@ export function PlaybooksTab({ playbooks, availableEmployees = [], domain, onSel
                             )}
 
                             {/* Objections */}
-                            {playbookDetail.objection_handling && Object.keys(playbookDetail.objection_handling).length > 0 && (
+                            {playbookDetail.objection_handling && playbookDetail.objection_handling.length > 0 && (
                                 <motion.section variants={detailItem}>
                                     <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                                         <ShieldAlert className="w-4 h-4 text-primary" />
                                         Objection Handling
                                     </h3>
                                     <div className="space-y-3">
-                                        {Object.entries(playbookDetail.objection_handling).map(([obj, response], i) => (
+                                        {playbookDetail.objection_handling.map((entry, i) => (
                                             <div key={i} className="rounded-lg border border-border/50 overflow-hidden">
                                                 <div className="px-4 py-2.5 bg-amber-500/5 border-b border-border/40">
-                                                    <p className="text-sm font-medium text-foreground">&quot;{obj}&quot;</p>
+                                                    <p className="text-sm font-medium text-foreground">&quot;{entry.objection}&quot;</p>
                                                 </div>
                                                 <div className="px-4 py-3">
                                                     <p className="text-sm text-muted-foreground leading-relaxed">
-                                                        {String(response)}
+                                                        {entry.response}
                                                     </p>
                                                 </div>
                                             </div>

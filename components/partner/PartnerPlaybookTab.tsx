@@ -254,9 +254,9 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                                     <CardTitle className="flex items-center gap-2 text-sm font-semibold">
                                         <Calendar className="w-4 h-4 text-primary" />
                                         Outreach Cadence
-                                        {playbookDetail.outreach_cadence.total_days && (
+                                        {playbookDetail.outreach_cadence.duration_days && (
                                             <span className="text-xs font-normal text-muted-foreground">
-                                                ({playbookDetail.outreach_cadence.total_days} days)
+                                                ({playbookDetail.outreach_cadence.duration_days} days)
                                             </span>
                                         )}
                                     </CardTitle>
@@ -372,7 +372,7 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                         )}
 
                         {/* Objection Handling Card with Accordions */}
-                        {playbookDetail.objection_handling && Object.keys(playbookDetail.objection_handling).length > 0 && (
+                        {playbookDetail.objection_handling && playbookDetail.objection_handling.length > 0 && (
                             <Card className='py-6'>
                                 <CardHeader className='px-6'>
                                     <CardTitle className="flex items-center gap-2 text-sm font-semibold">
@@ -382,14 +382,14 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                                 </CardHeader>
                                 <CardContent className='px-6'>
                                     <div className="space-y-2">
-                                        {Object.entries(playbookDetail.objection_handling).map(([obj, response], i) => (
+                                        {playbookDetail.objection_handling.map((entry, i) => (
                                             <div key={i} className="rounded-lg border border-border/50 overflow-hidden">
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleObjection(i)}
                                                     className="w-full px-4 py-2.5 bg-amber-500/5 flex items-center justify-between gap-2 hover:bg-amber-500/10 transition-colors text-left"
                                                 >
-                                                    <p className="text-sm font-medium text-foreground break-words min-w-0">&quot;{obj}&quot;</p>
+                                                    <p className="text-sm font-medium text-foreground break-words min-w-0">&quot;{entry.objection}&quot;</p>
                                                     <ChevronDown
                                                         className={cn(
                                                             "w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200",
@@ -408,7 +408,7 @@ export function PartnerPlaybookTab({ domain, productId, playbooks: initialPlaybo
                                                         >
                                                             <div className="px-4 py-3 border-t border-border/40">
                                                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                                                    {String(response)}
+                                                                    {entry.response}
                                                                 </p>
                                                             </div>
                                                         </motion.div>

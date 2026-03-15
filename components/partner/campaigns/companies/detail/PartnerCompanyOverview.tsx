@@ -333,19 +333,48 @@ function RatingRow({ label, value }: { label: string; value: number | null | und
 function OverviewSkeleton() {
   return (
     <div className="space-y-10">
-      <div className="space-y-3">
-        <div className="h-5 w-16 rounded bg-muted animate-pulse" />
-        <div className="h-4 w-full max-w-2xl rounded bg-muted animate-pulse" />
-        <div className="h-4 w-3/4 max-w-xl rounded bg-muted animate-pulse" />
-      </div>
-      <div className="space-y-3">
-        <div className="h-5 w-32 rounded bg-muted animate-pulse" />
-        <div className="grid grid-cols-4 gap-4">
+      {/* Campaign-specific cells skeleton */}
+      <section>
+        <Dashboard>
+          <DashboardCell size="half" height="auto">
+            <div className="h-4 w-20 rounded bg-muted animate-pulse" />
+            <div className="flex gap-4 mt-3">
+              <div className="w-16 h-16 rounded-xl bg-muted animate-pulse shrink-0" />
+              <div className="space-y-2 flex-1">
+                <div className="h-4 w-40 rounded bg-muted animate-pulse" />
+                <div className="h-3.5 w-28 rounded bg-muted animate-pulse" />
+              </div>
+            </div>
+          </DashboardCell>
+          <DashboardCell size="quarter">
+            <div className="h-4 w-20 rounded bg-muted animate-pulse" />
+            <div className="flex items-center gap-3 mt-auto">
+              <div className="size-8 rounded-full bg-muted animate-pulse" />
+              <div className="h-5 w-12 rounded bg-muted animate-pulse" />
+            </div>
+          </DashboardCell>
+          <DashboardCell size="quarter">
+            <div className="h-4 w-14 rounded bg-muted animate-pulse" />
+            <div className="flex items-center gap-3 mt-auto">
+              <div className="size-8 rounded-full bg-muted animate-pulse" />
+              <div className="h-5 w-24 rounded bg-muted animate-pulse" />
+            </div>
+          </DashboardCell>
+        </Dashboard>
+      </section>
+
+      {/* Company info skeleton */}
+      <section>
+        <div className="h-5 w-28 rounded bg-muted animate-pulse mb-4" />
+        <Dashboard>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-16 rounded-xl bg-muted animate-pulse" />
+            <DashboardCell key={i} size="quarter" height="auto">
+              <div className="h-3.5 w-16 rounded bg-muted animate-pulse" />
+              <div className="h-4 w-24 rounded bg-muted animate-pulse mt-2" />
+            </DashboardCell>
           ))}
-        </div>
-      </div>
+        </Dashboard>
+      </section>
     </div>
   );
 }

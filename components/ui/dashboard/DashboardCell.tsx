@@ -7,6 +7,7 @@ const cellVariants = cva("p-4 shadow-[1px_1px_0_0_var(--border)]", {
   variants: {
     size: {
       quarter: "col-span-4 md:col-span-2 lg:col-span-1",
+      third: "col-span-3 md:col-span-1",
       half: "col-span-4 lg:col-span-2",
       full: "col-span-4",
     },
