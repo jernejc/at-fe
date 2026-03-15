@@ -56,7 +56,7 @@ export function SignalStrengthIndicator({
 
       {showValue && (
         <span className="leading-none font-medium text-foreground">
-          {value} / 10
+          {parseFloat(value.toFixed(1))} / 10
         </span>
       )}
     </div>
