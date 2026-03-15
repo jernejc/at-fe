@@ -100,9 +100,9 @@ describe('useListKeyboardNav', () => {
     expect(typeof refCb).toBe('function');
   });
 
-  it('focuses the element when an item is selected via ref', () => {
+  it('scrolls the element into view when an item is selected via ref', () => {
     const el = document.createElement('div');
-    el.focus = vi.fn();
+    el.scrollIntoView = vi.fn();
 
     const { result, rerender } = renderHook(
       ({ selectedItem }: { selectedItem: Item | null }) =>
@@ -115,7 +115,7 @@ describe('useListKeyboardNav', () => {
 
     // Select the item
     rerender({ selectedItem: items[1] });
-    expect(el.focus).toHaveBeenCalled();
+    expect(el.scrollIntoView).toHaveBeenCalledWith({ block: 'center', behavior: 'smooth' });
   });
 
   it('removes listener on unmount', () => {
