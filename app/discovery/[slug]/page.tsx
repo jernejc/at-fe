@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, Mail, Phone, ExternalLink } from 'lucide-react';
+import { Globe, Mail, Phone } from 'lucide-react';
 import { LinkedinIcon } from '@/components/ui/icons/linkedin-icon';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';

@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -21,8 +21,10 @@ export function DiscoveryDetailHeader({
   industry,
   loading = false,
 }: DiscoveryDetailHeaderProps) {
+  const router = useRouter();
+
   if (loading) {
-    return <DiscoveryDetailHeaderSkeleton />;
+    return <DiscoveryDetailHeaderSkeleton onBack={() => router.back()} />;
   }
 
   return (
@@ -30,11 +32,11 @@ export function DiscoveryDetailHeader({
       <div className="max-w-[1600px] mx-auto px-10 pt-7 pb-4">
         <div className="flex items-center -ml-10">
           {/* Back button */}
-          <Link href="/discovery" className="shrink-0 mx-1">
-            <Button variant="ghost" size="icon-sm" aria-label="Back to discovery">
+          <div className="shrink-0 mx-1">
+            <Button variant="ghost" size="icon-sm" aria-label="Back to discovery" onClick={() => router.back()}>
               <ChevronLeft className="size-5" />
             </Button>
-          </Link>
+          </div>
 
           {/* Company logo */}
           <Avatar className="size-16 rounded-xl mr-4 shrink-0 bg-card">
@@ -70,17 +72,17 @@ export function DiscoveryDetailHeader({
 }
 
 /** Skeleton placeholder while company data loads. */
-function DiscoveryDetailHeaderSkeleton() {
+function DiscoveryDetailHeaderSkeleton({ onBack }: { onBack: () => void }) {
   return (
     <div className="bg-background">
       <div className="max-w-[1600px] mx-auto px-10 pt-7 pb-4">
         <div className="flex items-center -ml-10 mb-1">
           {/* Back button */}
-          <Link href="/discovery" className="shrink-0 mx-1">
-            <Button variant="ghost" size="icon-sm" aria-label="Back to discovery">
+          <div className="shrink-0 mx-1">
+            <Button variant="ghost" size="icon-sm" aria-label="Back to discovery" onClick={onBack}>
               <ChevronLeft className="size-5" />
             </Button>
-          </Link>
+          </div>
 
           {/* Logo placeholder */}
           <div className="size-16 rounded-xl bg-muted animate-pulse mr-4 shrink-0" />
