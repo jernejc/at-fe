@@ -51,7 +51,7 @@ export function PlaybookEmptyState({
       </Button>
 
       {isGenerating && (
-        <p className="text-xs text-muted-foreground">This may take up to a minute...</p>
+        <p className="text-xs text-muted-foreground">This may take a few minutes...</p>
       )}
     </div>
   );

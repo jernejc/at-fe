@@ -62,10 +62,12 @@ export {
     deletePlaybook,
     getCompanyPlaybooks,
     generateCompanyPlaybook,
+    generateCompanyPlaybookAsync,
     getCompanyPlaybook,
     generatePlaybooks,
     generatePlaybooksBulk,
 } from './playbooks';
+export type { AsyncPlaybookResponse } from './playbooks';
 
 // Search
 export { searchCompanies, search } from './search';

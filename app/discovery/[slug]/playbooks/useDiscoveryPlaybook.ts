@@ -1,14 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
-import {
-  getProducts,
-  getCompanyPlaybooks,
-  getCompanyPlaybook,
-  generateCompanyPlaybook,
-  waitForProcessingComplete,
-} from '@/lib/api';
+import { getProducts, getCompanyPlaybooks, getCompanyPlaybook } from '@/lib/api';
+import { usePlaybookGeneration } from '@/hooks/usePlaybookGeneration';
 import type { ProductSummary, PlaybookRead, PlaybookSummary } from '@/lib/schemas';
 
 export interface UseDiscoveryPlaybookReturn {
@@ -51,10 +46,6 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
 
   const [playbook, setPlaybook] = useState<PlaybookRead | null>(null);
   const [playbookLoading, setPlaybookLoading] = useState(false);
-
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationError, setGenerationError] = useState<string | null>(null);
-  const isGeneratingRef = useRef(false);
 
   // Fetch products and playbook summaries in parallel on mount
   useEffect(() => {
@@ -126,7 +117,6 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
   const selectProduct = useCallback((productId: number) => {
     setSelectedProductId(productId);
     setPlaybook(null);
-    setGenerationError(null);
   }, []);
 
   const selectedProductName =
@@ -137,41 +127,24 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
     [summaries],
   );
 
-  const generatePlaybookFn = useCallback(async () => {
-    if (!selectedProductId || isGeneratingRef.current) return;
+  const handleGenerationComplete = useCallback(async () => {
+    if (!selectedProductId) return;
 
-    isGeneratingRef.current = true;
-    setIsGenerating(true);
-    setGenerationError(null);
+    const { playbooks } = await getCompanyPlaybooks(domain);
+    setSummaries(playbooks);
 
-    try {
-      const response = await generateCompanyPlaybook(domain, selectedProductId);
-
-      if (response?.process_id) {
-        await waitForProcessingComplete(domain, response.process_id);
-      }
-
-      // Re-fetch summaries and load the new playbook
-      const { playbooks } = await getCompanyPlaybooks(domain);
-      setSummaries(playbooks);
-
-      const target = playbooks.find((p) => p.product_id === selectedProductId);
-      if (target) {
-        const detail = await getCompanyPlaybook(domain, target.id);
-        setPlaybook(detail);
-      } else {
-        setGenerationError(
-          'Playbook generation completed but playbook was not found. Please refresh.',
-        );
-      }
-    } catch (err) {
-      console.error('Failed to generate playbook:', err);
-      setGenerationError('Failed to generate playbook. Please try again.');
-    } finally {
-      isGeneratingRef.current = false;
-      setIsGenerating(false);
+    const target = playbooks.find((p) => p.product_id === selectedProductId);
+    if (target) {
+      const detail = await getCompanyPlaybook(domain, target.id);
+      setPlaybook(detail);
     }
   }, [domain, selectedProductId]);
+
+  const { isGenerating, generationError, startGeneration } = usePlaybookGeneration({
+    domain,
+    productId: selectedProductId,
+    onComplete: handleGenerationComplete,
+  });
 
   return {
     products,
@@ -184,7 +157,7 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
     playbookLoading,
     isGenerating,
     generationError,
-    generatePlaybook: generatePlaybookFn,
+    generatePlaybook: startGeneration,
     productIdsWithPlaybook,
   };
 }
