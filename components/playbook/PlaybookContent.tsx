@@ -40,7 +40,10 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
   } = usePlaybookDetail(playbook);
 
   const steps = useMemo(() => playbook.outreach_cadence?.sequence ?? [], [playbook.outreach_cadence]);
-  const contacts = playbook.contacts ?? [];
+  const contacts = useMemo(
+    () => [...(playbook.contacts ?? [])].sort((a, b) => (a.priority_rank ?? Infinity) - (b.priority_rank ?? Infinity)),
+    [playbook.contacts],
+  );
   const objections = useMemo(() => playbook.objection_handling ?? [], [playbook.objection_handling]);
 
   // Keyboard navigation — one per section, enabled only when that type is selected
@@ -84,146 +87,146 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
         />
       ) : null}
     >
-    <div className="space-y-10">
-      {/* Dashboard Summary */}
-      <Dashboard>
-        <DashboardCell size="quarter">
-          <DashboardCellTitle>Outreach Steps</DashboardCellTitle>
-          <DashboardCellBody>{stepCount}</DashboardCellBody>
-        </DashboardCell>
+      <div className="space-y-10">
+        {/* Dashboard Summary */}
+        <Dashboard>
+          <DashboardCell size="quarter">
+            <DashboardCellTitle>Outreach Steps</DashboardCellTitle>
+            <DashboardCellBody>{stepCount}</DashboardCellBody>
+          </DashboardCell>
 
-        <DashboardCell size="quarter">
-          <DashboardCellTitle>Contacts</DashboardCellTitle>
-          <DashboardCellBody>{contactCount}</DashboardCellBody>
-        </DashboardCell>
+          <DashboardCell size="quarter">
+            <DashboardCellTitle>Contacts</DashboardCellTitle>
+            <DashboardCellBody>{contactCount}</DashboardCellBody>
+          </DashboardCell>
 
-        <DashboardCell size="quarter">
-          <DashboardCellTitle>Channels</DashboardCellTitle>
-          <DashboardCellBody size="sm">
-            {channelCount > 0
-              ? (playbook.recommended_channels as string[])
-                .map((ch) => ch.replace(/_/g, ' '))
-                .join(', ')
-              : '—'}
-          </DashboardCellBody>
-        </DashboardCell>
+          <DashboardCell size="quarter">
+            <DashboardCellTitle>Channels</DashboardCellTitle>
+            <DashboardCellBody size="sm">
+              {channelCount > 0
+                ? (playbook.recommended_channels as string[])
+                  .map((ch) => ch.replace(/_/g, ' '))
+                  .join(', ')
+                : '—'}
+            </DashboardCellBody>
+          </DashboardCell>
 
-        <DashboardCell size="quarter">
-          <DashboardCellTitle>Last Generated</DashboardCellTitle>
-          <DashboardCellBody size="sm">
-            {playbook.regenerated_at
-              ? new Date(playbook.regenerated_at).toLocaleDateString()
-              : '—'}
-          </DashboardCellBody>
-        </DashboardCell>
+          <DashboardCell size="quarter">
+            <DashboardCellTitle>Last Generated</DashboardCellTitle>
+            <DashboardCellBody size="sm">
+              {playbook.regenerated_at
+                ? new Date(playbook.regenerated_at).toLocaleDateString()
+                : '—'}
+            </DashboardCellBody>
+          </DashboardCell>
 
-        <DashboardCell size="half" height="auto">
-          <DashboardCellTitle>Elevator Pitch</DashboardCellTitle>
-          <DashboardCellBody className="text-sm font-light font-sans">
-            {playbook.elevator_pitch ?? '—'}
-          </DashboardCellBody>
-        </DashboardCell>
+          <DashboardCell size="half" height="auto">
+            <DashboardCellTitle>Elevator Pitch</DashboardCellTitle>
+            <DashboardCellBody className="text-sm font-light font-sans">
+              {playbook.elevator_pitch ?? '—'}
+            </DashboardCellBody>
+          </DashboardCell>
 
-        <DashboardCell size="half" height="auto">
-          <DashboardCellTitle>Value Proposition</DashboardCellTitle>
-          <DashboardCellBody className="text-sm font-light font-sans">
-            {playbook.value_proposition ?? '—'}
-          </DashboardCellBody>
-        </DashboardCell>
-      </Dashboard>
+          <DashboardCell size="half" height="auto">
+            <DashboardCellTitle>Value Proposition</DashboardCellTitle>
+            <DashboardCellBody className="text-sm font-light font-sans">
+              {playbook.value_proposition ?? '—'}
+            </DashboardCellBody>
+          </DashboardCell>
+        </Dashboard>
 
-      {/* Outreach Cadence */}
-      {playbook.outreach_cadence?.sequence && playbook.outreach_cadence.sequence.length > 0 && (
-        <section>
-          <h3 className="text-lg font-semibold text-foreground mb-1">Outreach Cadence</h3>
-          {playbook.outreach_cadence.summary && (
-            <p className="text-muted-foreground mb-3 max-w-4xl">
-              {playbook.outreach_cadence.summary}
-            </p>
-          )}
-          <div className="flex flex-col">
-            <StepsTableHeader />
-            <Separator />
-            {playbook.outreach_cadence.sequence.map((step, i) => (
-              <div key={i}>
-                <StepRow
-                  ref={getStepRef(i)}
-                  step={step}
-                  onClick={() => handleStepClick(step, i)}
-                  isActive={isStepActive(i)}
-                  className='-mx-6'
-                />
-                <Separator />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+        {/* Outreach Cadence */}
+        {playbook.outreach_cadence?.sequence && playbook.outreach_cadence.sequence.length > 0 && (
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-1">Outreach Cadence</h3>
+            {playbook.outreach_cadence.summary && (
+              <p className="text-muted-foreground mb-3 max-w-4xl">
+                {playbook.outreach_cadence.summary}
+              </p>
+            )}
+            <div className="flex flex-col">
+              <StepsTableHeader />
+              <Separator />
+              {playbook.outreach_cadence.sequence.map((step, i) => (
+                <div key={i}>
+                  <StepRow
+                    ref={getStepRef(i)}
+                    step={step}
+                    onClick={() => handleStepClick(step, i)}
+                    isActive={isStepActive(i)}
+                    className='-mx-6'
+                  />
+                  <Separator />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Contacts */}
-      {playbook.contacts && playbook.contacts.length > 0 && (
-        <section>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Contacts</h3>
-          <div className="flex flex-col">
-            <ContactsTableHeader />
-            <Separator />
-            {playbook.contacts.map((contact) => (
-              <div key={contact.id}>
-                <ContactRow
-                  ref={getContactRef(contact.id)}
-                  contact={contact}
-                  onClick={handleContactClick}
-                  isActive={isContactActive(contact.id)}
-                  className='-mx-6'
-                />
-                <Separator />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+        {/* Contacts */}
+        {contacts.length > 0 && (
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Contacts</h3>
+            <div className="flex flex-col">
+              <ContactsTableHeader />
+              <Separator />
+              {contacts.map((contact) => (
+                <div key={contact.id}>
+                  <ContactRow
+                    ref={getContactRef(contact.id)}
+                    contact={contact}
+                    onClick={handleContactClick}
+                    isActive={isContactActive(contact.id)}
+                    className='-mx-6'
+                  />
+                  <Separator />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Objection Handling */}
-      {playbook.objection_handling && playbook.objection_handling.length > 0 && (
-        <section>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Objection Handling</h3>
-          <div className="flex flex-col">
-            <ObjectionsTableHeader />
-            <Separator />
-            {playbook.objection_handling.map((entry, i) => (
-              <div key={i}>
-                <ObjectionRow
-                  ref={getObjectionRef(i)}
-                  objection={entry.objection}
-                  response={entry.response}
-                  onClick={() => handleObjectionClick(entry, i)}
-                  isActive={isObjectionActive(i)}
-                  className='-mx-6'
-                />
-                <Separator />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+        {/* Objection Handling */}
+        {playbook.objection_handling && playbook.objection_handling.length > 0 && (
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Objection Handling</h3>
+            <div className="flex flex-col">
+              <ObjectionsTableHeader />
+              <Separator />
+              {playbook.objection_handling.map((entry, i) => (
+                <div key={i}>
+                  <ObjectionRow
+                    ref={getObjectionRef(i)}
+                    objection={entry.objection}
+                    response={entry.response}
+                    onClick={() => handleObjectionClick(entry, i)}
+                    isActive={isObjectionActive(i)}
+                    className='-mx-6'
+                  />
+                  <Separator />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Discovery Questions */}
-      {playbook.discovery_questions && playbook.discovery_questions.length > 0 && (
-        <section>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Discovery Questions</h3>
-          <div className="flex flex-col">
-            <QuestionsTableHeader />
-            <Separator />
-            {playbook.discovery_questions.map((q, i) => (
-              <div key={i}>
-                <QuestionRow question={q} className='-mx-6' />
-                <Separator />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
+        {/* Discovery Questions */}
+        {playbook.discovery_questions && playbook.discovery_questions.length > 0 && (
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Discovery Questions</h3>
+            <div className="flex flex-col">
+              <QuestionsTableHeader />
+              <Separator />
+              {playbook.discovery_questions.map((q, i) => (
+                <div key={i}>
+                  <QuestionRow question={q} className='-mx-6' />
+                  <Separator />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </DetailSidePanel>
   );
 }
