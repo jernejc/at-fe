@@ -33,6 +33,7 @@ function DiscoveryDetailLayoutInner({ slug, children }: { slug: string; children
     { label: 'Product fits', href: `/discovery/${slug}/products` },
     { label: 'Interests', href: `/discovery/${slug}/interests` },
     { label: 'Events', href: `/discovery/${slug}/events` },
+    { label: 'Playbooks', href: `/discovery/${slug}/playbooks` },
     // { label: 'People', href: `/discovery/${slug}/people` },
     // { label: 'Jobs', href: `/discovery/${slug}/jobs` },
   ];

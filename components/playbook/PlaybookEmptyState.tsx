@@ -36,7 +36,7 @@ export function PlaybookEmptyState({
         <p className="text-sm text-destructive">{generationError}</p>
       )}
 
-      <Button onClick={onGenerate} disabled={isGenerating} className="gap-2">
+      <Button variant="secondary" onClick={onGenerate} disabled={isGenerating} className="gap-2">
         {isGenerating ? (
           <>
             <RefreshCw className="size-4 animate-spin" />
