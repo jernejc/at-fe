@@ -81,9 +81,9 @@ export async function compareCompanyFits(domain: string, productIds?: number[]):
   return fetchAPI<CompanyFitComparisonResponse>(`/api/v1/products/compare/${encodeURIComponent(domain)}${query}`);
 }
 
-/** Export product candidates as an XLSX file (max 2500 rows). */
-export async function exportProductXlsx(productId: number): Promise<Blob> {
-  const url = `${API_BASE}/api/v1/products/${productId}/export/xlsx?limit=2500&playbooks_only=false`;
+/** Export product candidates as an XLSX file. */
+export async function exportProductXlsx(productId: number, limit = 100): Promise<Blob> {
+  const url = `${API_BASE}/api/v1/products/${productId}/export/xlsx?limit=${limit}&playbooks_only=false`;
   const authHeaders = await getAuthHeaders();
   const response = await fetch(url, { headers: authHeaders });
 
