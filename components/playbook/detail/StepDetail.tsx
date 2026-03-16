@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import type { CadenceStep, PlaybookContactResponse } from '@/lib/schemas';
-import { Mail, Phone, Video, MessageSquare } from 'lucide-react';
-import { LinkedinIcon } from '@/components/ui/icons/linkedin-icon';
+import { ChannelIcon } from '../ChannelIcon';
 import {
   Dashboard,
   DashboardCell,
@@ -16,17 +15,6 @@ interface StepDetailProps {
   contacts?: PlaybookContactResponse[];
   /** Called when a matched contact row is clicked. */
   onContactClick?: (contact: PlaybookContactResponse) => void;
-}
-
-/** Returns the matching icon for a channel name. */
-function ChannelIcon({ channel }: { channel: string }) {
-  switch (channel) {
-    case 'email': return <Mail className="w-8 h-8 shrink-0" />;
-    case 'linkedin': return <LinkedinIcon className="w-8 h-8 shrink-0" />;
-    case 'phone': return <Phone className="w-8 h-8 shrink-0" />;
-    case 'virtual_workshop': return <Video className="w-5 h-5 shrink-0" />;
-    default: return <MessageSquare className="w-8 h-8 shrink-0" />;
-  }
 }
 
 /** Detail panel content for a selected outreach cadence step using Dashboard cells. */
@@ -60,7 +48,7 @@ export function StepDetail({ step, contacts = [], onContactClick }: StepDetailPr
           <DashboardCellTitle>Channel</DashboardCellTitle>
           <DashboardCellBody size="sm" className="flex items-center justify-between gap-2 capitalize">
             <span>{step.channel.replace(/_/g, ' ')}</span>
-            <ChannelIcon channel={step.channel} />
+            <ChannelIcon channel={step.channel} className="w-8 h-8" />
           </DashboardCellBody>
         </DashboardCell>
 
@@ -98,8 +86,8 @@ export function StepDetail({ step, contacts = [], onContactClick }: StepDetailPr
         {step.purpose && (
           <DashboardCell size="full" height="auto">
             <DashboardCellTitle>Purpose</DashboardCellTitle>
-            <DashboardCellBody size="sm" className="text-sm font-sans font-normal leading-relaxed">
-              {step.purpose}
+            <DashboardCellBody size="sm" className="text-sm font-sans font-normal leading-relaxed capitalize">
+              {step.purpose.replaceAll('_', ' ')}
             </DashboardCellBody>
           </DashboardCell>
         )}

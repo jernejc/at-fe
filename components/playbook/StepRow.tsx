@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import type { CadenceStep } from '@/lib/schemas';
-import { Mail, Phone, Video, MessageSquare, StickyNote, Reply } from 'lucide-react';
-import { LinkedinIcon } from '@/components/ui/icons/linkedin-icon';
+import { StickyNote, Reply } from 'lucide-react';
+import { ChannelIcon } from './ChannelIcon';
 
 interface StepRowProps {
   step: CadenceStep;
@@ -11,17 +11,6 @@ interface StepRowProps {
   isActive?: boolean;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
-}
-
-/** Returns the matching icon for a channel name. */
-function ChannelIcon({ channel }: { channel: string }) {
-  switch (channel) {
-    case 'email': return <Mail className="w-4 h-4 shrink-0" />;
-    case 'linkedin': return <LinkedinIcon className="w-4 h-4 shrink-0" />;
-    case 'phone': return <Phone className="w-4 h-4 shrink-0" />;
-    case 'virtual_workshop': return <Video className="w-4 h-4 shrink-0" />;
-    default: return <MessageSquare className="w-4 h-4 shrink-0" />;
-  }
 }
 
 /** Row displaying an outreach cadence step with day offset, channel, contacts, objective, and indicator icons. */
