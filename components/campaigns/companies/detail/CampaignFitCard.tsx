@@ -39,10 +39,7 @@ export function CampaignFitCard({ fitBreakdown, fitsSummary, targetProductId, lo
       ? normalizeScore(matchingSummary.likelihood_score)
       : null;
 
-  const topDrivers = fitBreakdown?.top_drivers ?? matchingSummary?.top_drivers ?? [];
-  const explanation = topDrivers.length > 0
-    ? topDrivers.map((d) => d.replace(/_/g, ' ')).join(', ')
-    : null;
+  const explanation = fitBreakdown?.fit_explanation;
 
   const hasMatches =
     (fitBreakdown?.interest_matches?.length ?? 0) > 0 ||

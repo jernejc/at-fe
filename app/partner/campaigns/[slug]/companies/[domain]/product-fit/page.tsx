@@ -53,6 +53,13 @@ export default function CompanyProductFitPage() {
     >
       <ProductFitDashboard breakdown={breakdown} loading={loading} />
 
+      {breakdown?.fit_explanation && (
+        <div className="mt-10">
+          <h2 className="text-lg font-semibold text-foreground mb-1">Why this company?</h2>
+          <p className="text-muted-foreground leading-relaxed max-w-4xl">{breakdown.fit_explanation}</p>
+        </div>
+      )}
+
       <div className="mt-10">
         <DiscoverySignalsList
           signalType="interest"

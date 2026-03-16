@@ -13,7 +13,6 @@ import { SignalRow } from '@/components/signals/SignalRow';
 import { Separator } from '@/components/ui/separator';
 import { normalizeScore } from '@/lib/utils';
 import type { FitScore, SignalContribution } from '@/lib/schemas';
-import { AlertTriangle } from 'lucide-react';
 
 interface ProductFitDetailProps {
   breakdown: FitScore | null;
@@ -36,7 +35,6 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
   const likelihood = Math.round(normalizeScore(breakdown.likelihood_score));
   const interests = breakdown.interest_matches ?? [];
   const events = breakdown.event_matches ?? [];
-  const missing = breakdown.missing_signals ?? [];
   const drivers = breakdown.top_drivers ?? [];
 
   return (
@@ -64,6 +62,8 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
               </DashboardCellBody>
             </DashboardCell>
           </Dashboard>
+
+          <div>{breakdown.fit_explanation}</div>
         </ExpandableCardHeader>
 
         <ExpandableCardDetails className="space-y-3">
@@ -107,39 +107,6 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
       {/* Card 4: Matched Events */}
       {events.length > 0 && (
         <SignalMatchCard title="Matched Events" matches={events} />
-      )}
-
-      {/* Card 5: Missing Signals */}
-      {missing.length > 0 && (
-        <ExpandableCard>
-          <ExpandableCardHeader>
-            <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              Missing Signals ({missing.length})
-            </h3>
-            <ul className="space-y-2">
-              {missing.slice(0, 5).map((signal, i) => (
-                <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
-                  <span className="capitalize">{signal.replace(/_/g, ' ')}</span>
-                </li>
-              ))}
-            </ul>
-          </ExpandableCardHeader>
-
-          {missing.length > 5 && (
-            <ExpandableCardDetails>
-              <ul className="space-y-2">
-                {missing.slice(5).map((signal, i) => (
-                  <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
-                    <span className="capitalize">{signal.replace(/_/g, ' ')}</span>
-                  </li>
-                ))}
-              </ul>
-            </ExpandableCardDetails>
-          )}
-        </ExpandableCard>
       )}
     </div>
   );

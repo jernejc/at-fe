@@ -1,12 +1,76 @@
 // Fit score related schemas
 
+export interface SourceContribution {
+    source_type: string;
+    strength: number;
+    confidence: number;
+    evidence: string;
+    qualified: boolean;
+    qualifier_confidence: number;
+    qualifier_reasoning: string;
+    contribution_weight: number;
+}
+
 export interface SignalContribution {
+    signal_id?: number;
     category: string;
     display_name?: string | null;
     signal_type: string;
     strength: number;
     weight: number;
     contribution: number;
+    multiplier?: number | null;
+    confidence?: number;
+    source_type?: string;
+    evidence?: string;
+    qualifier?: string | null;
+    qualifier_confidence?: number;
+    qualifier_reasoning?: string;
+    source_contributions?: SourceContribution[];
+    qualified_sources?: string[];
+    excluded_sources?: string[];
+    urgency?: string | null;
+    detected_at?: string;
+    signal_date?: string | null;
+    age_days?: number;
+    decay_factor?: number;
+    source_type_factor?: number;
+    probability?: number;
+    idf_score?: number;
+    raw_probability?: number;
+    contribution_rank?: number;
+}
+
+export interface InterestWeight {
+    interest: string;
+    weight: number;
+    reasoning: string;
+    qualifier: string | null;
+}
+
+export interface EventWeight {
+    event: string;
+    weight: number;
+    urgency_multiplier: number;
+    reasoning: string;
+    qualifier: string | null;
+}
+
+export interface NegativeEventWeight {
+    event: string;
+    weight: number;
+    reasoning: string;
+    qualifier: string | null;
+}
+
+export interface ProductWeightsSnapshot {
+    product_id: number;
+    product_name: string;
+    interest_weights: InterestWeight[];
+    event_weights: EventWeight[];
+    negative_event_weights: NegativeEventWeight[];
+    source_type_weights: Record<string, number>;
+    snapshot_at: string;
 }
 
 export interface FitScore {
@@ -18,12 +82,23 @@ export interface FitScore {
     likelihood_score: number;
     urgency_score: number;
     combined_score: number;
+    negative_penalty?: number;
+    pre_penalty_score?: number;
     interest_matches?: SignalContribution[];
     event_matches?: SignalContribution[];
+    negative_matches?: SignalContribution[];
     top_drivers?: string[];
     missing_signals?: string[];
+    fit_explanation?: string | null;
+    explanation_generated_at?: string | null;
     signals_used: number;
+    signal_ids?: number[];
     calculated_at: string;
+    product_weights_snapshot?: ProductWeightsSnapshot | null;
+    likelihood_breakdown_v2?: { signals: SignalContribution[] } | null;
+    algorithm_version?: string;
+    likelihood_components?: unknown | null;
+    urgency_components?: unknown | null;
 }
 
 export interface FitScoreSummary {

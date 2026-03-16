@@ -99,7 +99,12 @@ export type {
 
 // Fit score types
 export type {
+    SourceContribution,
     SignalContribution,
+    InterestWeight,
+    EventWeight,
+    NegativeEventWeight,
+    ProductWeightsSnapshot,
     FitScore,
     FitScoreSummary,
     FitInclude,
