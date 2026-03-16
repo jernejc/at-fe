@@ -45,7 +45,7 @@ export function usePartnerSelection(
     load();
   }, [shouldFetch]);
 
-  // Pre-select suggested partners (only once)
+  // Pre-select and sort suggested partners to top (only once)
   useEffect(() => {
     if (preSelectedRef.current || partners.length === 0 || suggestions.length === 0) return;
     preSelectedRef.current = true;
@@ -55,6 +55,13 @@ export function usePartnerSelection(
       partners.filter((p) => suggestedSlugs.has(p.slug)).map((p) => p.slug),
     );
     setSelectedPartnerSlugs(validSlugs);
+
+    // Sort suggested partners to the top
+    setPartners((prev) => {
+      const suggested = prev.filter((p) => suggestedSlugs.has(p.slug));
+      const rest = prev.filter((p) => !suggestedSlugs.has(p.slug));
+      return [...suggested, ...rest];
+    });
   }, [partners, suggestions]);
 
   const togglePartner = useCallback((slug: string) => {
