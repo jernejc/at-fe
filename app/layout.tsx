@@ -1,20 +1,22 @@
-import type { Metadata } from "next";
-import { Inter, Exo_2 } from "next/font/google";
-import { AuthProvider } from "@/lib/auth/provider";
-import { PartnerProvider } from "@/components/providers/PartnerProvider";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Nav } from "@/components/nav/Nav";
-import { ScrollToTop } from "@/components/ScrollToTop";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter, Exo_2 } from 'next/font/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
+import { AuthProvider } from '@/lib/auth/provider';
+import { PartnerProvider } from '@/components/providers/PartnerProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Nav } from '@/components/nav/Nav';
+import { ScrollToTop } from '@/components/ScrollToTop';
+import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const exo2 = Exo_2({ subsets: ['latin'], weight: ['500'], variable: '--font-display' });
 
 export const metadata: Metadata = {
-  title: "LookAcross - Account Intelligence",
-  description: "Real-time account intelligence and buying signals for your target companies. No more cold outreach - reach out when they're ready to buy.",
+  title: 'LookAcross - Account Intelligence',
+  description:
+    "Real-time account intelligence and buying signals for your target companies. No more cold outreach - reach out when they're ready to buy.",
 };
 
 export default function RootLayout({
@@ -31,9 +33,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${inter.variable} ${exo2.variable} antialiased`}
-      >
+      <body className={`${inter.variable} ${exo2.variable} antialiased`}>
         <AuthProvider>
           <PartnerProvider>
             <ThemeProvider>
@@ -49,6 +49,9 @@ export default function RootLayout({
           </PartnerProvider>
         </AuthProvider>
       </body>
+      {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+      )}
     </html>
   );
 }
