@@ -3,13 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DetailSidePanel } from './DetailSidePanel';
 
-vi.mock('@/hooks/useIsMobile', () => ({
-  useIsMobile: vi.fn(() => false),
-}));
-
-import { useIsMobile } from '@/hooks/useIsMobile';
-const mockUseIsMobile = vi.mocked(useIsMobile);
-
 function renderPanel(open = false, onClose = vi.fn()) {
   return {
     onClose,
@@ -24,7 +17,6 @@ function renderPanel(open = false, onClose = vi.fn()) {
 describe('DetailSidePanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseIsMobile.mockReturnValue(false);
     document.body.style.overflow = '';
   });
 
@@ -96,17 +88,13 @@ describe('DetailSidePanel', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  describe('mobile', () => {
-    beforeEach(() => {
-      mockUseIsMobile.mockReturnValue(true);
-    });
-
-    it('locks body scroll when open on mobile', () => {
+  describe('scroll lock', () => {
+    it('locks body scroll when open', () => {
       renderPanel(true);
       expect(document.body.style.overflow).toBe('hidden');
     });
 
-    it('does not lock body scroll when closed on mobile', () => {
+    it('does not lock body scroll when closed', () => {
       renderPanel(false);
       expect(document.body.style.overflow).toBe('');
     });
@@ -118,22 +106,49 @@ describe('DetailSidePanel', () => {
       unmount();
       expect(document.body.style.overflow).toBe('');
     });
+  });
 
+  describe('click outside to close', () => {
+    it('calls onClose when clicking outside the panel', () => {
+      const onClose = vi.fn();
+      renderPanel(true, onClose);
+
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      });
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('does not call onClose when clicking inside the panel', () => {
+      const onClose = vi.fn();
+      renderPanel(true, onClose);
+
+      const panel = screen.getByText('Detail content').closest('.fixed.bg-background') as HTMLElement;
+      act(() => {
+        panel.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('does not listen for clicks when panel is closed', () => {
+      const onClose = vi.fn();
+      renderPanel(false, onClose);
+
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('mobile', () => {
     it('calls onClose when backdrop is clicked', async () => {
       const user = userEvent.setup();
       const { onClose, container } = renderPanel(true);
 
       const backdrop = container.querySelector('.fixed.inset-0') as HTMLElement;
       await user.click(backdrop);
-      expect(onClose).toHaveBeenCalledOnce();
-    });
-  });
-
-  describe('desktop', () => {
-    it('does not lock body scroll when open', () => {
-      mockUseIsMobile.mockReturnValue(false);
-      renderPanel(true);
-      expect(document.body.style.overflow).toBe('');
+      expect(onClose).toHaveBeenCalled();
     });
   });
 });

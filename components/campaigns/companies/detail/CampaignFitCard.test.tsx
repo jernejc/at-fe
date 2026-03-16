@@ -117,11 +117,16 @@ describe('CampaignFitCard', () => {
     expect(container.querySelector('[aria-label="Progress: 75%"]')).toBeInTheDocument();
   });
 
-  it('renders explanation from top_drivers', () => {
+  it('renders explanation from fit_explanation', () => {
     render(
-      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
+      <CampaignFitCard
+        fitBreakdown={makeFitScore({ fit_explanation: 'Strong hiring growth and tech adoption signals.' })}
+        fitsSummary={[]}
+        targetProductId={10}
+        loading={false}
+      />,
     );
-    expect(screen.getByText('hiring growth, tech adoption')).toBeInTheDocument();
+    expect(screen.getByText('Strong hiring growth and tech adoption signals.')).toBeInTheDocument();
   });
 
   it('renders "Campaign fit" heading', () => {

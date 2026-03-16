@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface DetailSidePanelProps {
   /** Whether the panel is open. */
@@ -19,7 +18,7 @@ interface DetailSidePanelProps {
 
 /** Reusable split-panel wrapper. Desktop: fixed right panel. Mobile: bottom sheet. */
 export function DetailSidePanel({ open, onClose, detail, children }: DetailSidePanelProps) {
-  const isMobile = useIsMobile();
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Close on Escape
   useEffect(() => {
@@ -31,13 +30,23 @@ export function DetailSidePanel({ open, onClose, detail, children }: DetailSideP
     return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  // Lock body scroll on mobile when open
+  // Lock body scroll when panel is open
   useEffect(() => {
-    if (open && isMobile) {
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = ''; };
-    }
-  }, [open, isMobile]);
+    if (!open) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  // Click outside to close (capture phase so row clicks can override via batching)
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current?.contains(e.target as Node)) return;
+      onClose();
+    };
+    document.addEventListener('mousedown', handler, { capture: true });
+    return () => document.removeEventListener('mousedown', handler, { capture: true });
+  }, [open, onClose]);
 
   return (
     <>
@@ -55,6 +64,7 @@ export function DetailSidePanel({ open, onClose, detail, children }: DetailSideP
 
       {/* Panel — slides from right on desktop, from bottom on mobile */}
       <div
+        ref={panelRef}
         className={cn(
           'fixed bg-background overflow-y-auto transition-transform duration-300 ease-out',
           // Desktop
