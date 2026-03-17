@@ -114,6 +114,13 @@ export {
     getCompanyProgress,
 } from './campaigns';
 
+// Notifications
+export {
+    getUnreadCount,
+    getNotifications,
+    markAllRead,
+} from './notifications';
+
 // Partners
 export {
     getPartners,

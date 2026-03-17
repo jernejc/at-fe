@@ -79,7 +79,7 @@ export function Pagination({
           <div className="flex items-center gap-1">
             {/* Previous Button */}
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => onPageChange(Math.max(1, currentPage - 1))}
               disabled={disabled || currentPage === 1}
@@ -100,7 +100,7 @@ export function Pagination({
               return (
                 <Button
                   key={pageNum}
-                  variant={currentPage === pageNum ? "secondary" : "outline"}
+                  variant={currentPage === pageNum ? "secondary" : "ghost"}
                   size="sm"
                   onClick={() => onPageChange(pageNum as number)}
                   disabled={disabled}
@@ -113,7 +113,7 @@ export function Pagination({
 
             {/* Next Button */}
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
               disabled={disabled || currentPage >= totalPages}

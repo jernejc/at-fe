@@ -239,3 +239,9 @@ export type {
 
 export { FILTER_OPERATOR_LABELS } from './filter';
 
+// Notification types
+export type {
+    Notification,
+    UnreadCountResponse,
+} from './notification';
+
