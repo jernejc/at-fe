@@ -26,6 +26,7 @@ export function NewCampaignFlow({ products, preselectedProductId }: NewCampaignF
         interpretation={flow.agenticState.interpretation}
         inputResetKey={flow.inputResetKey}
         externalSubmitRef={flow.externalSubmitRef}
+        externalPrefillRef={flow.externalPrefillRef}
         onClose={flow.handleClose}
         onRestart={flow.handleRestart}
         onSelectPartners={flow.handleSelectPartners}
@@ -38,7 +39,7 @@ export function NewCampaignFlow({ products, preselectedProductId }: NewCampaignF
       />
 
       <StepTransition stepKey={flow.step} direction={flow.direction}>
-        {flow.step === 'search' && <SearchStep />}
+        {flow.step === 'search' && <SearchStep onSuggestionClick={flow.handlePrefillQuery} />}
 
         {flow.step === 'results' && (
           <ResultsStep

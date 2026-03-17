@@ -101,6 +101,19 @@ export function useCampaignInput({
     [onProductSelect, componentState, messages.length, selectedProduct]
   );
 
+  /** Programmatically prefill the input without sending (e.g. from search step suggestions). */
+  const prefillExternal = useCallback(
+    (query: string) => {
+      setInputValue(query);
+      // Ensure component is in ready state so the input is editable
+      if (componentState === 'initial' || componentState === 'closed') {
+        setComponentState(selectedProduct ? 'ready' : 'initial');
+      }
+      setTimeout(() => inputRef.current?.focus(), 100);
+    },
+    [componentState, selectedProduct],
+  );
+
   /** Programmatically submit a query (e.g. from suggested queries). */
   const submitExternal = useCallback(
     (query: string) => {
@@ -181,5 +194,6 @@ export function useCampaignInput({
     toggleProductGrid,
     handleContainerBlur,
     submitExternal,
+    prefillExternal,
   };
 }

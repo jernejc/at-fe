@@ -47,22 +47,20 @@ export function CircularProgress({
         fill="none"
       />
       {/* Foreground arc */}
-      {clamped > 0 && (
-        <circle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke="var(--foreground)"
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          strokeLinecap="round"
-          opacity={getForegroundOpacity(clamped)}
-          transform={`rotate(-90 ${center} ${center})`}
-          style={{ transition: 'stroke-dashoffset 0.6s ease, opacity 0.6s ease' }}
-        />
-      )}
+      <circle
+        cx={center}
+        cy={center}
+        r={radius}
+        stroke="var(--foreground)"
+        strokeWidth={strokeWidth}
+        fill="none"
+        strokeDasharray={circumference}
+        strokeDashoffset={dashOffset}
+        strokeLinecap="round"
+        opacity={getForegroundOpacity(clamped)}
+        transform={`rotate(-90 ${center} ${center})`}
+        style={{ transition: 'stroke-dashoffset 0.6s ease, opacity 0.6s ease' }}
+      />
     </svg>
   );
 }

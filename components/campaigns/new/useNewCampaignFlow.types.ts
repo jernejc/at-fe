@@ -47,6 +47,7 @@ export interface TopBarProps {
   interpretation: import('@/lib/schemas').WSSearchInterpretation | null;
   inputResetKey: number;
   externalSubmitRef: React.MutableRefObject<((query: string) => void) | null>;
+  externalPrefillRef: React.MutableRefObject<((query: string) => void) | null>;
   onClose: () => void;
   onRestart: () => void;
   onSelectPartners: () => void;

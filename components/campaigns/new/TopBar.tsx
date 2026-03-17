@@ -19,6 +19,7 @@ export function TopBar({
   interpretation,
   inputResetKey,
   externalSubmitRef,
+  externalPrefillRef,
   onClose,
   onRestart,
   onSelectPartners,
@@ -68,6 +69,7 @@ export function TopBar({
             isSearching={isSearching}
             interpretation={interpretation}
             externalSubmitRef={externalSubmitRef}
+            externalPrefillRef={externalPrefillRef}
             className={cn(
               'sm:absolute sm:rounded-t-none sm:border-t-0 top-0 left-0 right-0',
               !showInput && 'hidden'

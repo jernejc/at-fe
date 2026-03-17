@@ -47,6 +47,9 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
   // Ref for programmatic submission into CampaignInput (e.g. suggested queries)
   const externalSubmitRef = useRef<((query: string) => void) | null>(null);
 
+  // Ref for prefilling CampaignInput without submitting (e.g. search step suggestions)
+  const externalPrefillRef = useRef<((query: string) => void) | null>(null);
+
   // Agentic search
   const {
     state: agenticState,
@@ -153,6 +156,11 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
     externalSubmitRef.current?.(query);
   }, []);
 
+  /** Prefill the input with a query without submitting (search step suggestions). */
+  const handlePrefillQuery = useCallback((query: string) => {
+    externalPrefillRef.current?.(query);
+  }, []);
+
   const handleSelectCompany = useCallback((domain: string) => {
     setSelectedCompanyDomain((prev) => (prev === domain ? null : domain));
   }, []);
@@ -178,11 +186,13 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
     handleProductSelect,
     inputResetKey,
     externalSubmitRef,
+    externalPrefillRef,
     // Search
     agenticState,
     isSearching,
     handleSubmit,
     handleSuggestedQuery,
+    handlePrefillQuery,
     // Results filters
     resultsFilters,
     filteredCompanies: resultsFilters.filteredCompanies,
