@@ -4,18 +4,23 @@ import { useMemo, useState } from 'react';
 import { Users } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 import { SearchField } from '@/components/ui/search-field';
+import { Button } from '@/components/ui/button';
 import type { PartnerListItem } from '../hooks/usePartnerSelection';
 import { PartnerRow, PartnerRowSkeleton, toPartnerRowDataFromSummary } from '../../partners/PartnerRow';
+import { Separator } from '@/components/ui/separator';
 
 interface PartnersStepProps {
   partners: PartnerListItem[];
   selectedSlugs: Set<string>;
   onToggle: (slug: string) => void;
   loading: boolean;
+  hasMore: boolean;
+  loadingMore: boolean;
+  onLoadMore: () => void;
 }
 
 /** Partner selection step with title and selectable row list. */
-export function PartnersStep({ partners, selectedSlugs, onToggle, loading }: PartnersStepProps) {
+export function PartnersStep({ partners, selectedSlugs, onToggle, loading, hasMore, loadingMore, onLoadMore }: PartnersStepProps) {
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -51,30 +56,41 @@ export function PartnersStep({ partners, selectedSlugs, onToggle, loading }: Par
               {filtered.map((p) => {
                 const row = toPartnerRowDataFromSummary(p);
                 return (
-                  <PartnerRow
-                    key={p.slug}
-                    partner={row}
-                    selectable
-                    selected={selectedSlugs.has(p.slug)}
-                    onSelect={() => onToggle(p.slug)}
-                    rightContent={
-                      <div className="hidden md:flex items-center gap-7 shrink-0">
-                        <span className="flex items-center gap-2 text-sm w-22">
-                          <Users className="w-3.5 h-3.5 shrink-0" />
-                          <span className="tabular-nums">
-                            {p.capacity != null ? formatCompactNumber(p.capacity) : '\u2013'}
+                  <div key={p.slug}>
+                    <Separator />
+                    <PartnerRow
+                      partner={row}
+                      selectable
+                      selected={selectedSlugs.has(p.slug)}
+                      onSelect={() => onToggle(p.slug)}
+                      rightContent={
+                        <div className="hidden md:flex items-center gap-7 shrink-0">
+                          <span className="flex items-center gap-2 text-sm w-22">
+                            <Users className="w-3.5 h-3.5 shrink-0" />
+                            <span className="tabular-nums">
+                              {p.capacity != null ? formatCompactNumber(p.capacity) : '\u2013'}
+                            </span>
                           </span>
-                        </span>
-                        {p.type && (
-                          <span className="w-24 truncate text-sm capitalize">
-                            {p.type}
-                          </span>
-                        )}
-                      </div>
-                    }
-                  />
+                          {p.type && (
+                            <span className="w-24 truncate text-sm capitalize">
+                              {p.type}
+                            </span>
+                          )}
+                        </div>
+                      }
+                      className="-mx-6"
+                    />
+                  </div>
                 );
               })}
+
+              {hasMore && !search.trim() && (
+                <div className="flex justify-center mt-4">
+                  <Button variant="ghost" onClick={onLoadMore} disabled={loadingMore}>
+                    {loadingMore ? 'Loading...' : 'Load more'}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

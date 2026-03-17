@@ -52,6 +52,8 @@ export interface TopBarProps {
   onSelectPartners: () => void;
   hasCompanies: boolean;
   canContinue: boolean;
+  selectedCapacity: number;
+  targetCompanyCount: number;
   onBack: () => void;
   onContinue: () => void;
 }

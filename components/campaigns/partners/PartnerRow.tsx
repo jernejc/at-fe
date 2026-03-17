@@ -123,7 +123,7 @@ export function PartnerRow({ partner, onClick, isActive, selectable, selected, o
       {selectable && (
         <SelectToggle
           checked={!!selected}
-          onChange={() => {/* handled by row click */}}
+          onChange={() => {/* handled by row click */ }}
         />
       )}
 

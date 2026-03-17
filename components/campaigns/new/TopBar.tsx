@@ -1,8 +1,9 @@
 'use client';
 
 import { X, RotateCcw, ArrowLeft, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCompactNumber } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { CircularProgress } from '@/components/ui/circular-progress';
 import { CampaignInput } from './CampaignInput';
 import type { TopBarProps } from './useNewCampaignFlow.types';
 
@@ -23,10 +24,13 @@ export function TopBar({
   onSelectPartners,
   hasCompanies,
   canContinue,
+  selectedCapacity,
+  targetCompanyCount,
   onBack,
   onContinue,
 }: TopBarProps) {
   const showInput = step === 'search' || step === 'results';
+  const progressValue = targetCompanyCount > 0 ? Math.min((selectedCapacity / targetCompanyCount) * 100, 100) : 0;
 
   return (
     <header className="shrink-0 bg-background">
@@ -44,8 +48,16 @@ export function TopBar({
           )}
         </div>
 
-        {/* Center section — CampaignInput with absolute dropdown */}
+        {/* Center section */}
         <div className="flex-1 max-w-2xl w-full relative z-10 h-22">
+          {step === 'partners' && (
+            <span className="flex items-center justify-center gap-2 text-sm text-muted-foreground h-full">
+              <CircularProgress value={progressValue} size={20} />
+              <span className="tabular-nums">
+                {formatCompactNumber(selectedCapacity)} / {formatCompactNumber(targetCompanyCount)} capacity selected
+              </span>
+            </span>
+          )}
           <CampaignInput
             key={inputResetKey}
             products={products}

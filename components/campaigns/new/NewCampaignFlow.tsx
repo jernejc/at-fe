@@ -31,6 +31,8 @@ export function NewCampaignFlow({ products, preselectedProductId }: NewCampaignF
         onSelectPartners={flow.handleSelectPartners}
         hasCompanies={flow.filteredCompanies.length > 0}
         canContinue={flow.partnerSelection.selectedPartnerSlugs.size > 0}
+        selectedCapacity={flow.partnerSelection.selectedCapacity}
+        targetCompanyCount={flow.filteredCompanies.length}
         onBack={flow.handleBack}
         onContinue={flow.handleContinue}
       />
@@ -59,6 +61,9 @@ export function NewCampaignFlow({ products, preselectedProductId }: NewCampaignF
             selectedSlugs={flow.partnerSelection.selectedPartnerSlugs}
             onToggle={flow.partnerSelection.togglePartner}
             loading={flow.partnerSelection.loading}
+            hasMore={flow.partnerSelection.hasMore}
+            loadingMore={flow.partnerSelection.loadingMore}
+            onLoadMore={flow.partnerSelection.loadMore}
           />
         )}
 
