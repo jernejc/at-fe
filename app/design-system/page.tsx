@@ -13,6 +13,7 @@ import { OverlaySection } from './_sections/overlay-section';
 import { CustomSection } from './_sections/custom-section';
 import { CampaignInputSection } from './_sections/campaign-input-section';
 import { RangeFilterSection } from './_sections/range-filter-section';
+import { NotificationSection } from './_sections/notification-section';
 
 const navItems = [
   { id: 'typography', label: 'Typography' },
@@ -27,6 +28,7 @@ const navItems = [
   { id: 'custom', label: 'Custom' },
   { id: 'campaign-input', label: 'Campaign Input' },
   { id: 'range-filter', label: 'Range Filter' },
+  { id: 'notifications', label: 'Notifications' },
 ];
 
 /** Internal design system showcase page. */
@@ -86,6 +88,8 @@ export default function DesignSystemPage() {
           <CampaignInputSection />
           <Separator />
           <RangeFilterSection />
+          <Separator />
+          <NotificationSection />
         </div>
       </main>
     </div>

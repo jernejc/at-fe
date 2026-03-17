@@ -91,7 +91,7 @@ export interface UseDiscoveryCompaniesReturn {
   setActiveSort: (sort: SortState | null) => void;
   refetch: () => void;
   isExporting: boolean;
-  handleExport: () => Promise<void>;
+  handleExport: (limit: number) => Promise<void>;
 }
 
 const VALID_SORT_FIELDS = new Set(SORT_OPTIONS.map((o) => o.value));
@@ -291,16 +291,16 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
     [productId],
   );
 
-  const handleExport = useCallback(async () => {
+  const handleExport = useCallback(async (limit: number) => {
     if (!productId) return;
     try {
       setIsExporting(true);
-      const blob = await exportProductXlsx(productId);
+      const blob = await exportProductXlsx(productId, limit);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       const productName = productFilter?.valueLabel?.toLowerCase().replace(/\s+/g, '_') ?? String(productId);
-      a.download = `${productName}_export.xlsx`;
+      a.download = `${productName}_top_${limit}_export.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

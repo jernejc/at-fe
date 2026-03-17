@@ -26,17 +26,20 @@ export function NewCampaignFlow({ products, preselectedProductId }: NewCampaignF
         interpretation={flow.agenticState.interpretation}
         inputResetKey={flow.inputResetKey}
         externalSubmitRef={flow.externalSubmitRef}
+        externalPrefillRef={flow.externalPrefillRef}
         onClose={flow.handleClose}
         onRestart={flow.handleRestart}
         onSelectPartners={flow.handleSelectPartners}
         hasCompanies={flow.filteredCompanies.length > 0}
         canContinue={flow.partnerSelection.selectedPartnerSlugs.size > 0}
+        selectedCapacity={flow.partnerSelection.selectedCapacity}
+        targetCompanyCount={flow.filteredCompanies.length}
         onBack={flow.handleBack}
         onContinue={flow.handleContinue}
       />
 
       <StepTransition stepKey={flow.step} direction={flow.direction}>
-        {flow.step === 'search' && <SearchStep />}
+        {flow.step === 'search' && <SearchStep onSuggestionClick={flow.handlePrefillQuery} />}
 
         {flow.step === 'results' && (
           <ResultsStep
@@ -59,6 +62,9 @@ export function NewCampaignFlow({ products, preselectedProductId }: NewCampaignF
             selectedSlugs={flow.partnerSelection.selectedPartnerSlugs}
             onToggle={flow.partnerSelection.togglePartner}
             loading={flow.partnerSelection.loading}
+            hasMore={flow.partnerSelection.hasMore}
+            loadingMore={flow.partnerSelection.loadingMore}
+            onLoadMore={flow.partnerSelection.loadMore}
           />
         )}
 

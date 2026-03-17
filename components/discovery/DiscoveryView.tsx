@@ -1,11 +1,14 @@
 'use client';
 
+import { useState, useCallback } from 'react';
+import { Popover } from '@base-ui/react/popover';
 import { Building2, Download, Loader2 } from 'lucide-react';
 import { CompanyRow, CompanyRowSkeleton } from '@/components/campaigns/CompanyRow';
 import type { CompanyRowMetric } from '@/components/campaigns/CompanyRow';
 import { Separator } from '@/components/ui/separator';
 import { SelectToggle } from '@/components/ui/select-toggle';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { DiscoveryToolbar } from './DiscoveryToolbar';
 import type { CompanyRowData } from '@/lib/schemas';
 import type { UseDiscoveryCompaniesReturn } from './useDiscoveryCompanies';
@@ -83,12 +86,7 @@ export function DiscoveryView({
             : 'Companies'}
         </h1>
         {hasProductFilter && (
-          <Button variant="outline" onClick={handleExport} disabled={isExporting}>
-            {isExporting
-              ? <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
-              : <Download className="w-4 h-4" data-icon="inline-start" />}
-            Export
-          </Button>
+          <ExportDropdown isExporting={isExporting} onExport={handleExport} />
         )}
       </div>
 
@@ -145,6 +143,63 @@ export function DiscoveryView({
         </div>
       )}
     </div>
+  );
+}
+
+const MAX_EXPORT_LIMIT = 5000;
+
+interface ExportDropdownProps {
+  isExporting: boolean;
+  onExport: (limit: number) => Promise<void>;
+}
+
+/** Popover dropdown that lets users choose how many companies to export. */
+function ExportDropdown({ isExporting, onExport }: ExportDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const [limit, setLimit] = useState(100);
+
+  const handleExport = useCallback(() => {
+    const clamped = Math.min(Math.max(1, limit), MAX_EXPORT_LIMIT);
+    setOpen(false);
+    onExport(clamped);
+  }, [limit, onExport]);
+
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger
+        render={
+          <Button variant="outline" disabled={isExporting}>
+            {isExporting
+              ? <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
+              : <Download className="w-4 h-4" data-icon="inline-start" />}
+            Export
+          </Button>
+        }
+      />
+      <Popover.Portal>
+        <Popover.Positioner side="bottom" align="end" sideOffset={4}>
+          <Popover.Popup
+            className="bg-popover text-popover-foreground ring-foreground/10 rounded-lg shadow-md ring-1 p-3 pl-5 data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 duration-100 z-50"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">Export top</span>
+              <Input
+                type="number"
+                min={1}
+                max={MAX_EXPORT_LIMIT}
+                value={limit}
+                onChange={(e) => setLimit(Number(e.target.value))}
+                className="w-20 text-center"
+              />
+              <span className="text-sm text-muted-foreground whitespace-nowrap">companies</span>
+              <Button size="icon" onClick={handleExport}>
+                <Download className="w-4 h-4" data-icon="inline-start" />
+              </Button>
+            </div>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 

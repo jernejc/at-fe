@@ -33,6 +33,8 @@ export interface CampaignInputProps {
   className?: string;
   /** Mutable ref populated with a function to programmatically submit a query. */
   externalSubmitRef?: React.MutableRefObject<((query: string) => void) | null>;
+  /** Mutable ref populated with a function to prefill the input without submitting. */
+  externalPrefillRef?: React.MutableRefObject<((query: string) => void) | null>;
 }
 
 /** Return type of the useCampaignInput hook. */
@@ -58,4 +60,5 @@ export interface UseCampaignInputReturn {
   toggleProductGrid: () => void;
   handleContainerBlur: (e: React.FocusEvent) => void;
   submitExternal: (query: string) => void;
+  prefillExternal: (query: string) => void;
 }

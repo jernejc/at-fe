@@ -30,6 +30,7 @@ export function CampaignInput({
   interpretation,
   className,
   externalSubmitRef,
+  externalPrefillRef,
 }: CampaignInputProps) {
   const {
     componentState,
@@ -50,6 +51,7 @@ export function CampaignInput({
     containerRef,
     handleContainerBlur,
     submitExternal,
+    prefillExternal,
   } = useCampaignInput({
     selectedProduct,
     onProductSelect,
@@ -63,6 +65,13 @@ export function CampaignInput({
       externalSubmitRef.current = submitExternal;
     }
   }, [externalSubmitRef, submitExternal]);
+
+  // Populate external prefill ref so parent can prefill input without submitting
+  useEffect(() => {
+    if (externalPrefillRef) {
+      externalPrefillRef.current = prefillExternal;
+    }
+  }, [externalPrefillRef, prefillExternal]);
 
   // Track completed phases for the terminal
   const [completedPhases, setCompletedPhases] = useState<WSSearchPhase[]>([]);
