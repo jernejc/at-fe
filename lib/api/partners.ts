@@ -3,9 +3,6 @@ import type {
     PaginatedResponse,
     PartnerSummary,
     PartnerRead,
-    PartnerCreate,
-    CampaignPartnerRead,
-    CampaignPartnerCreate,
     PartnerFilters,
     PartnerBulkAssignResult,
     PartnerAssignmentSummary,
@@ -27,26 +24,9 @@ export async function getPartner(idOrSlug: string | number): Promise<PartnerRead
     return fetchAPI<PartnerRead>(`/api/v1/partners/${encodeURIComponent(String(idOrSlug))}`);
 }
 
-export async function createPartner(data: PartnerCreate): Promise<PartnerRead> {
-    return fetchAPI<PartnerRead>('/api/v1/partners', {
-        method: 'POST',
-        body: JSON.stringify(data),
-    });
-}
-
 export async function getCampaignPartners(slug: string): Promise<PartnerAssignmentSummary[]> {
     return fetchAPI<PartnerAssignmentSummary[]>(
         `/api/v1/campaigns/${encodeURIComponent(slug)}/partners`
-    );
-}
-
-export async function assignPartnerToCampaign(
-    slug: string,
-    data: CampaignPartnerCreate
-): Promise<CampaignPartnerRead> {
-    return fetchAPI<CampaignPartnerRead>(
-        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners`,
-        { method: 'POST', body: JSON.stringify(data) }
     );
 }
 
@@ -66,13 +46,6 @@ export async function assignAllCompaniesToPartners(slug: string): Promise<Assign
     return fetchAPI<AssignAllResult>(
         `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/assign-all`,
         { method: 'POST' }
-    );
-}
-
-export async function unassignPartnerFromCampaign(slug: string, partnerId: number): Promise<void> {
-    await fetchAPI<void>(
-        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/${partnerId}`,
-        { method: 'DELETE' }
     );
 }
 

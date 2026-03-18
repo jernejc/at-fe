@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useCampaignDetail } from '@/components/providers/CampaignDetailProvider';
 import { CampaignCompaniesView } from '@/components/campaigns/companies/CampaignCompaniesView';
 import { useCampaignCompanies } from '@/components/campaigns/companies/useCampaignCompanies';
-import { useBulkSelection } from '@/components/campaigns/companies/useBulkSelection';
+import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useBulkActions } from '@/components/campaigns/companies/useBulkActions';
 import { CampaignCompanyDetail } from '@/components/campaigns/companies/detail/CampaignCompanyDetail';
 import { DetailSidePanel } from '@/components/ui/detail-side-panel/DetailSidePanel';

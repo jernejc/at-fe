@@ -47,7 +47,7 @@ WebSocket client for agentic/streaming search lives in `hooks/useAgenticSearch.t
 No global state library. State is managed via:
 - **React Context**: `PartnerProvider` (current partner data) and `ThemeProvider` (dark/light/system theme via localStorage — custom implementation, not `next-themes`)
 - **NextAuth session**: `useSession()` for auth state
-- **Page-level hooks**: Complex state encapsulated in custom hooks (`useCampaignPage`, `useCampaignWizard`, `useAccountDetail`, `useAgenticSearch`, etc.)
+- **Page-level hooks**: Complex state encapsulated in custom hooks (`useCampaignWizard`, `useAccountDetail`, `useAgenticSearch`, etc.)
 
 All data fetching is client-side via `useEffect` in `"use client"` components — no RSC data fetching.
 

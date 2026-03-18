@@ -1,5 +1,5 @@
 // Core utilities
-export { API_BASE, A2A_API_BASE, APIError, fetchAPI, buildQueryString } from './core';
+export { API_BASE, fetchAPI, buildQueryString } from './core';
 
 // Companies
 export {
@@ -12,52 +12,23 @@ export {
 } from './companies';
 
 // Employees
-export {
-    getEmployees,
-    getEmployee,
-} from './employees';
-
-// Signals
-export {
-    getSignalCategories,
-    getCompanySignals,
-    getSignalContributors,
-    aggregateCompanySignals,
-    getSignalStats,
-} from './signals';
+export { getEmployee } from './employees';
 
 // Fit Scores
-export {
-    getFits,
-    getFitHealth,
-    getFit,
-    getFitBreakdown,
-    calculateFits,
-} from './fit-scores';
+export { getFitBreakdown } from './fit-scores';
 
 // Products
 export {
     getProducts,
-    getProduct,
-    createProduct,
-    updateProduct,
-    deleteProduct,
-    calculateProductFit,
     getProductCandidates,
     exportProductXlsx,
 } from './products';
 
 // Playbooks
 export {
-    getPlaybooks,
-    getPlaybook,
-    deletePlaybook,
     getCompanyPlaybooks,
-    generateCompanyPlaybook,
     generateCompanyPlaybookAsync,
     getCompanyPlaybook,
-    generatePlaybooks,
-    generatePlaybooksBulk,
 } from './playbooks';
 export type { AsyncPlaybookResponse } from './playbooks';
 
@@ -74,21 +45,13 @@ export {
     unpublishCampaign,
     deleteCampaign,
     getCampaignOverview,
-    getCampaignComparison,
     getCampaignCompanies,
-    addCompanyToCampaign,
     addCompaniesBulk,
     updateMembership,
     removeCompanyFromCampaign,
-    exportCampaign,
     exportCampaignCSV,
     exportCampaignContactsCSV,
-    importCampaign,
-    refreshCampaignStats,
-    processCampaign,
-    getCampaignFunnel,
     getCampaignCompany,
-    getCompanyProgress,
 } from './campaigns';
 
 // Notifications
@@ -102,12 +65,9 @@ export {
 export {
     getPartners,
     getPartner,
-    createPartner,
     getCampaignPartners,
-    assignPartnerToCampaign,
     bulkAssignPartners,
     assignAllCompaniesToPartners,
-    unassignPartnerFromCampaign,
     getPartnerAssignedCompanies,
     assignCompanyToPartner,
     bulkAssignCompaniesToPartner,

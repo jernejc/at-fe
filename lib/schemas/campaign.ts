@@ -162,70 +162,6 @@ export interface BulkAddResult {
     errors: Record<string, any>[];
 }
 
-export interface CompanyComparison {
-    domain: string;
-    name: string | null;
-    industry: string | null;
-    employee_count: number | null;
-    hq_country: string | null;
-    fit_score: number | null;
-    likelihood_score: number | null;
-    urgency_score: number | null;
-    fit_rank: number;
-    top_signals: string[];
-    segment: string | null;
-}
-
-export interface CampaignComparison {
-    campaign_id: number;
-    campaign_name: string;
-    product_id: number | null;
-    product_name: string | null;
-    companies: CompanyComparison[];
-    total_companies: number;
-}
-
-export interface ProcessRequest {
-    use_a2a?: boolean;
-    force_reprocess?: boolean;
-    product_id?: number | null;
-}
-
-export interface ProcessResult {
-    status: string;
-    total: number;
-    processed: number;
-    failed: number;
-    errors: Record<string, any>[];
-}
-
-export interface CampaignExport {
-    version: string;
-    exported_at: string;
-    campaign: CampaignRead;
-    companies: any[];
-    memberships: any[];
-}
-
-export interface ImportResult {
-    campaign_id: number;
-    campaign_slug: string;
-    total_domains: number;
-    existing_companies: number;
-    created_companies: number;
-    failed_companies: Record<string, any>[];
-}
-
-export interface CampaignImport {
-    name: string;
-    description?: string | null;
-    owner?: string | null;
-    tags?: string[];
-    target_product_id?: number | null;
-    domains: string[];
-    companies?: Record<string, any>[] | null;
-}
-
 /**
  * Extended campaign data for the CampaignRow component.
  * Adds optional fields that the backend will provide once supported.
@@ -267,23 +203,6 @@ export interface CampaignFilters {
     sort_by?: 'name' | 'created_at' | 'updated_at' | 'company_count';
     sort_order?: 'asc' | 'desc';
     own_only?: boolean;
-}
-
-// Funnel metrics
-export interface FunnelStage {
-    name: string;
-    count: number;
-    percentage: number;
-    criteria: string;
-}
-
-export interface CampaignFunnel {
-    campaign_id: number;
-    campaign_name: string;
-    product_id: number | null;
-    stages: FunnelStage[];
-    total_companies: number;
-    conversion_rate: number;
 }
 
 // UI-only filter types for the campaign builder
@@ -331,40 +250,3 @@ export interface MembershipWithProgress extends MembershipRead {
     last_activity?: string;
 }
 
-// Company progress tracking (per-company within a campaign)
-export interface CompanyProgressStep {
-    step_number: number;
-    day_offset: number;
-    channel: string;
-    objective: string;
-    contacts: string[];
-    status: string;
-    completion_type: string;
-    planned_date: string;
-    completed_at: string | null;
-    partner_notes: string | null;
-}
-
-export interface CompanyProgressRead {
-    id: number;
-    assignment_id: number;
-    campaign_id: number;
-    company_id: number;
-    company_domain: string;
-    company_name: string;
-    assigned_at: string;
-    partner_id: number;
-    partner_name: string;
-    playbook_id: number;
-    status: string;
-    execution_started_at: string | null;
-    status_changed_at: string | null;
-    earned_revenue: string | null;
-    closed_at: string | null;
-    close_reason: string | null;
-    partner_notes: string | null;
-    progress_percentage: number;
-    steps: CompanyProgressStep[];
-    created_at: string;
-    updated_at: string;
-}

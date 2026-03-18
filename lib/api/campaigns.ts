@@ -6,19 +6,11 @@ import type {
     CampaignCreate,
     CampaignUpdate,
     CampaignOverview,
-    CampaignComparison,
     MembershipRead,
-    MembershipCreate,
     MembershipUpdate,
     BulkAddResult,
-    ProcessResult,
-    CampaignExport,
-    ImportResult,
-    CampaignImport,
     CampaignFilters,
-    CampaignFunnel,
     CampaignCompanyRead,
-    CompanyProgressRead,
 } from '../schemas';
 
 export async function getCampaigns(filters: CampaignFilters = {}): Promise<PaginatedResponse<CampaignSummary>> {
@@ -71,19 +63,6 @@ export async function getCampaignOverview(
     return fetchAPI<CampaignOverview>(`/api/v1/campaigns/${encodeURIComponent(slug)}/overview${query}`);
 }
 
-export async function getCampaignComparison(
-    slug: string,
-    options?: {
-        product_id?: number;
-        sort_by?: 'fit_score' | 'name' | 'employee_count' | 'industry';
-        sort_order?: 'asc' | 'desc';
-        limit?: number;
-    }
-): Promise<CampaignComparison> {
-    const query = buildQueryString(options || {});
-    return fetchAPI<CampaignComparison>(`/api/v1/campaigns/${encodeURIComponent(slug)}/comparison${query}`);
-}
-
 export async function getCampaignCompanies(
     slug: string,
     options?: {
@@ -98,16 +77,6 @@ export async function getCampaignCompanies(
 ): Promise<PaginatedResponse<MembershipRead>> {
     const query = buildQueryString(options || {});
     return fetchAPI<PaginatedResponse<MembershipRead>>(`/api/v1/campaigns/${encodeURIComponent(slug)}/companies${query}`);
-}
-
-export async function addCompanyToCampaign(
-    slug: string,
-    data: MembershipCreate
-): Promise<MembershipRead> {
-    return fetchAPI<MembershipRead>(`/api/v1/campaigns/${encodeURIComponent(slug)}/companies`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-    });
 }
 
 export async function addCompaniesBulk(
@@ -140,10 +109,6 @@ export async function removeCompanyFromCampaign(
     });
 }
 
-export async function exportCampaign(slug: string): Promise<CampaignExport> {
-    return fetchAPI<CampaignExport>(`/api/v1/campaigns/${encodeURIComponent(slug)}/export`);
-}
-
 async function fetchCSVExport(url: string): Promise<Blob> {
     const authHeaders = await getAuthHeaders();
     const response = await fetch(url, { headers: authHeaders });
@@ -169,45 +134,6 @@ export async function exportCampaignContactsCSV(slug: string): Promise<Blob> {
     return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/xlsx`);
 }
 
-export async function importCampaign(data: CampaignImport): Promise<ImportResult> {
-    return fetchAPI<ImportResult>('/api/v1/campaigns/import', {
-        method: 'POST',
-        body: JSON.stringify(data),
-    });
-}
-
-export async function refreshCampaignStats(
-    slug: string,
-    productId?: number
-): Promise<CampaignRead> {
-    const query = buildQueryString({ product_id: productId });
-    return fetchAPI<CampaignRead>(`/api/v1/campaigns/${encodeURIComponent(slug)}/refresh-stats${query}`, {
-        method: 'POST',
-    });
-}
-
-export async function processCampaign(
-    slug: string,
-    options?: {
-        use_a2a?: boolean;
-        force_reprocess?: boolean;
-        product_id?: number;
-    }
-): Promise<ProcessResult> {
-    return fetchAPI<ProcessResult>(`/api/v1/campaigns/${encodeURIComponent(slug)}/process`, {
-        method: 'POST',
-        body: JSON.stringify(options || {}),
-    });
-}
-
-export async function getCampaignFunnel(
-    slug: string,
-    productId?: number
-): Promise<CampaignFunnel> {
-    const query = buildQueryString({ product_id: productId });
-    return fetchAPI<CampaignFunnel>(`/api/v1/campaigns/${encodeURIComponent(slug)}/funnel${query}`);
-}
-
 /** Fetch a single company's membership detail within a campaign. */
 export async function getCampaignCompany(
     slug: string,
@@ -218,12 +144,3 @@ export async function getCampaignCompany(
     );
 }
 
-/** Fetch progress records for a specific company within a campaign. */
-export async function getCompanyProgress(
-    slug: string,
-    domain: string
-): Promise<CompanyProgressRead[]> {
-    return fetchAPI<CompanyProgressRead[]>(
-        `/api/v1/campaigns/${encodeURIComponent(slug)}/companies/${encodeURIComponent(domain)}/progress`
-    );
-}

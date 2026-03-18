@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { useBulkSelection } from './useBulkSelection';
+import { useBulkSelection } from '@/hooks/useBulkSelection';
 import type { CompanyRowData } from '@/lib/schemas';
 
 function makeCompany(overrides: Partial<CompanyRowData> = {}): CompanyRowData {

@@ -162,7 +162,8 @@ export function PartnerCompaniesCard({
                 <Separator />
                 <CompanyRow
                   company={company}
-                  compact
+                  hideStatus
+                  visibleMetrics={['fit', 'location', 'size']}
                   selectable={isEditing}
                   selected={selectedIds.has(company.id)}
                   onSelect={(e) => toggleSelect(company.id, e.shiftKey, companies)}

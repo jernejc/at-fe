@@ -59,17 +59,6 @@ export interface CampaignAssignmentSummary {
     assigned_at: string;
 }
 
-export interface PartnerCreate {
-    name: string;
-    slug?: string;
-    description?: string;
-    status?: string;
-    partner_type?: string;  // 'consulting' | 'technology' | 'reseller' | 'agency'
-    logo_url?: string;
-    industries?: string[];
-    capacity?: number;
-}
-
 export interface PartnerUpdate {
     name?: string;
     description?: string;
@@ -80,25 +69,6 @@ export interface PartnerUpdate {
 }
 
 // Campaign-Partner assignment schemas
-export interface CampaignPartnerRead {
-    id: number;
-    campaign_id: number;
-    partner_id: number;
-    role_in_campaign: string | null;
-    notes: string | null;
-    assigned_at: string;
-    assigned_by: string | null;
-    created_at: string;
-    updated_at: string;
-}
-
-export interface CampaignPartnerCreate {
-    partner_id: number;
-    role_in_campaign?: string;
-    notes?: string;
-    assigned_by?: string;
-}
-
 export interface CampaignPartnerUpdate {
     role_in_campaign?: string;
     notes?: string;

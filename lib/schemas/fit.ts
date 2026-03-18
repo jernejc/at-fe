@@ -131,17 +131,6 @@ export interface FitCacheInfo {
     stale_count: number;
 }
 
-export interface FitCacheHealth {
-    total_cached: number;
-    stale_count: number;
-    stale_percentage: number;
-    total_companies: number;
-    total_products: number;
-    coverage_percentage: number;
-    oldest_calculation?: string | null;
-    newest_calculation?: string | null;
-}
-
 export interface CandidateFitSummary {
     company_id: number;
     company_domain: string;
@@ -176,47 +165,3 @@ export interface ProductCandidatesResponse {
     cache_info: FitCacheInfo;
 }
 
-export interface FitCalculateRequest {
-    domain?: string | null;
-    product_id?: number | null;
-    force?: boolean;
-}
-
-export interface FitCalculateResponse {
-    companies_calculated: number;
-    companies_skipped: number;
-    products_processed: number;
-    duration_seconds: number;
-    status: string;
-}
-
-export interface CompanyFitComparisonResponse {
-    company_id: number;
-    company_domain: string;
-    company_name: string;
-    fits: ProductFitScore[];
-    best_fit_product?: string | null;
-    best_fit_score?: number | null;
-    signals_detected: number;
-}
-
-export interface ProductFitScore {
-    product_id: number;
-    product_name: string;
-    likelihood_score: number;
-    urgency_score: number;
-    combined_score: number;
-    interest_matches?: SignalMatch[];
-    event_matches?: SignalMatch[];
-    top_drivers?: string[];
-    missing_signals?: string[];
-}
-
-export interface SignalMatch {
-    signal: string;
-    signal_type: string;
-    strength: number;
-    weight: number;
-    contribution: number;
-    multiplier?: number | null;
-}

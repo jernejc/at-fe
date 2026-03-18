@@ -1,15 +1,5 @@
 import { fetchAPI, buildQueryString } from './core';
-import type {
-    PaginatedResponse,
-    EmployeeSummaryWithWeight,
-    EmployeeDetailResponse,
-    EmployeeFilters,
-} from '../schemas';
-
-export async function getEmployees(filters: EmployeeFilters = {}): Promise<PaginatedResponse<EmployeeSummaryWithWeight>> {
-    const query = buildQueryString(filters);
-    return fetchAPI<PaginatedResponse<EmployeeSummaryWithWeight>>(`/api/v1/employees${query}`);
-}
+import type { EmployeeDetailResponse } from '../schemas';
 
 export async function getEmployee(
     employeeId: number,
@@ -18,4 +8,3 @@ export async function getEmployee(
     const query = buildQueryString(options || {});
     return fetchAPI<EmployeeDetailResponse>(`/api/v1/employees/${employeeId}${query}`);
 }
-

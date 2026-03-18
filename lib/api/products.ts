@@ -2,44 +2,12 @@ import { fetchAPI, buildQueryString, API_BASE, getAuthHeaders } from './core';
 import type {
   PaginatedResponse,
   ProductSummary,
-  ProductRead,
-  ProductCreate,
-  ProductUpdate,
-  ProductFitResponse,
   ProductCandidatesResponse,
 } from '../schemas';
 
 export async function getProducts(page = 1, pageSize = 20, category?: string): Promise<PaginatedResponse<ProductSummary>> {
   const query = buildQueryString({ page, page_size: pageSize, category });
   return fetchAPI<PaginatedResponse<ProductSummary>>(`/api/v1/products${query}`);
-}
-
-export async function getProduct(productId: number): Promise<ProductRead> {
-  return fetchAPI<ProductRead>(`/api/v1/products/${productId}`);
-}
-
-export async function createProduct(product: ProductCreate): Promise<ProductRead> {
-  return fetchAPI<ProductRead>('/api/v1/products', {
-    method: 'POST',
-    body: JSON.stringify(product),
-  });
-}
-
-export async function updateProduct(productId: number, product: ProductUpdate): Promise<ProductRead> {
-  return fetchAPI<ProductRead>(`/api/v1/products/${productId}`, {
-    method: 'PUT',
-    body: JSON.stringify(product),
-  });
-}
-
-export async function deleteProduct(productId: number): Promise<void> {
-  await fetchAPI<void>(`/api/v1/products/${productId}`, {
-    method: 'DELETE',
-  });
-}
-
-export async function calculateProductFit(productId: number, domain: string): Promise<ProductFitResponse> {
-  return fetchAPI<ProductFitResponse>(`/api/v1/products/${productId}/fit/${encodeURIComponent(domain)}`);
 }
 
 export async function getProductCandidates(

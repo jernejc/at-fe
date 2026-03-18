@@ -30,14 +30,12 @@ interface CompanyRowProps {
   visibleMetrics?: CompanyRowMetric[];
   /** Custom render function for the right-side metrics area. When provided, replaces the default metrics. */
   renderMetrics?: (company: CompanyRowData) => React.ReactNode;
-  /** @deprecated Use hideStatus + visibleMetrics instead. */
-  compact?: boolean;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a company with status, score, and metrics. */
-export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, hideStatus, visibleMetrics, renderMetrics, compact, className, ref }: CompanyRowProps) {
+export function CompanyRow({ company, onClick, isActive, selectable, selected, onSelect, hideStatus, visibleMetrics, renderMetrics, className, ref }: CompanyRowProps) {
   const fitScore = company.fit_score != null
     ? Math.round(normalizeScoreNullable(company.fit_score))
     : null;
@@ -119,30 +117,6 @@ export function CompanyRow({ company, onClick, isActive, selectable, selected, o
       {renderMetrics ? (
         <div className="hidden md:flex items-center gap-7 shrink-0">
           {renderMetrics(company)}
-        </div>
-      ) : compact ? (
-        <div className="hidden md:flex items-center gap-5 shrink-0">
-          {fitScore != null && (
-            <FitScoreIndicator
-              score={fitScore}
-              change={company.fit_score_change ?? undefined}
-              size={16}
-            />
-          )}
-
-          {company.hq_country && (
-            <span className="flex items-center gap-2 text-sm">
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate max-w-[100px]">{company.hq_country}</span>
-            </span>
-          )}
-
-          {company.employee_count != null && (
-            <span className="flex items-center gap-2 text-sm">
-              <Users className="w-3.5 h-3.5 shrink-0" />
-              <span>{formatCompactNumber(company.employee_count)}</span>
-            </span>
-          )}
         </div>
       ) : (
         <div className="hidden md:flex items-center gap-7 shrink-0">
