@@ -13,12 +13,3 @@ export { useCampaignCompanies } from './companies/useCampaignCompanies';
 export { CampaignDetailHeader } from './CampaignDetailHeader';
 export { CompanyRowCompact, CompanyRowCompactSkeleton, type OutreachStatus } from './CompanyRowCompact';
 
-// Re-export partner components for backward compatibility
-export {
-    PartnerTab,
-    PartnerOverviewCard,
-    PartnerAssignmentsView,
-    PartnerDetailSheet,
-    PartnerSelection,
-    AutoAssignDialog
-} from '@/components/partners';

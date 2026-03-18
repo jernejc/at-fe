@@ -7,7 +7,6 @@ import type {
   ProductUpdate,
   ProductFitResponse,
   ProductCandidatesResponse,
-  CompanyFitComparisonResponse,
 } from '../schemas';
 
 export async function getProducts(page = 1, pageSize = 20, category?: string): Promise<PaginatedResponse<ProductSummary>> {
@@ -17,10 +16,6 @@ export async function getProducts(page = 1, pageSize = 20, category?: string): P
 
 export async function getProduct(productId: number): Promise<ProductRead> {
   return fetchAPI<ProductRead>(`/api/v1/products/${productId}`);
-}
-
-export async function getProductByName(name: string): Promise<ProductRead> {
-  return fetchAPI<ProductRead>(`/api/v1/products/by-name/${encodeURIComponent(name)}`);
 }
 
 export async function createProduct(product: ProductCreate): Promise<ProductRead> {
@@ -64,21 +59,6 @@ export async function getProductCandidates(
     `/api/v1/products/${productId}/candidates${query}`,
     requestOptions
   );
-}
-
-export async function calculateProductCandidates(
-  productId: number,
-  options?: { force?: boolean; company_ids?: number[] }
-): Promise<{ product_id: number; companies_calculated: number; companies_skipped: number; duration_seconds: number; status: string }> {
-  const query = buildQueryString({ force: options?.force, company_ids: options?.company_ids?.join(',') });
-  return fetchAPI(`/api/v1/products/${productId}/candidates/calculate${query}`, {
-    method: 'POST',
-  });
-}
-
-export async function compareCompanyFits(domain: string, productIds?: number[]): Promise<CompanyFitComparisonResponse> {
-  const query = buildQueryString({ product_ids: productIds?.join(',') });
-  return fetchAPI<CompanyFitComparisonResponse>(`/api/v1/products/compare/${encodeURIComponent(domain)}${query}`);
 }
 
 /** Export product candidates as an XLSX file. */

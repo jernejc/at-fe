@@ -105,39 +105,6 @@ export function copyToClipboard(text: string): void {
   navigator.clipboard.writeText(text);
 }
 
-/**
- * Generate a random campaign name
- */
-export function generateRandomCampaignName(): string {
-  const adjectives = ['Strategic', 'Dynamic', 'Growth', 'Targeted', 'Premium', 'Elite', 'Core', 'Prime'];
-  const nouns = ['Outreach', 'Initiative', 'Campaign', 'Push', 'Drive', 'Expansion', 'Sprint'];
-  const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  return `${adj} ${noun} ${suffix}`;
-}
-
-// Product color palette - cool tones
-export const PRODUCT_COLORS = [
-    'from-blue-500 to-blue-600',
-    'from-sky-500 to-sky-600',
-    'from-cyan-500 to-cyan-600',
-    'from-teal-500 to-teal-600',
-    'from-emerald-500 to-emerald-600',
-    'from-green-500 to-green-600',
-    'from-lime-500 to-lime-600',
-    'from-yellow-500 to-yellow-600',
-    'from-amber-500 to-amber-600',
-    'from-orange-500 to-orange-600',
-    'from-indigo-500 to-indigo-600',
-    'from-slate-500 to-slate-600',
-];
-
-export function getProductColor(productId: number | null | undefined): string {
-    if (productId === null || productId === undefined) return 'from-slate-400 to-slate-500';
-    return PRODUCT_COLORS[productId % PRODUCT_COLORS.length];
-}
-
 export function getProductTextColor(productId: number | null | undefined): string {
     if (productId === null || productId === undefined) return 'text-slate-500';
     // Map gradients to simplified text colors for badges
@@ -154,25 +121,6 @@ export function getProductTextColor(productId: number | null | undefined): strin
         'text-orange-600 dark:text-orange-400',
         'text-indigo-600 dark:text-indigo-400',
         'text-slate-600 dark:text-slate-400',
-    ];
-    return colors[(productId || 0) % colors.length];
-}
-
-export function getProductSolidColor(productId: number | null | undefined): string {
-    if (productId === null || productId === undefined) return 'bg-slate-400';
-    const colors = [
-        'bg-blue-500',
-        'bg-sky-500',
-        'bg-cyan-500',
-        'bg-teal-500',
-        'bg-emerald-500',
-        'bg-green-500',
-        'bg-lime-500',
-        'bg-yellow-500',
-        'bg-amber-500',
-        'bg-orange-500',
-        'bg-indigo-500',
-        'bg-slate-500',
     ];
     return colors[(productId || 0) % colors.length];
 }

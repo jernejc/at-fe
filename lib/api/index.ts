@@ -5,21 +5,16 @@ export { API_BASE, A2A_API_BASE, APIError, fetchAPI, buildQueryString } from './
 export {
     getCompanies,
     getCompany,
-    getCompanyLegacy,
     getCompanyExplainability,
     getSignalProvenance,
     getCompanyEmployees,
     getCompanyJobs,
-    getCompanyNews,
-    getCompanyPosts,
 } from './companies';
 
 // Employees
 export {
     getEmployees,
     getEmployee,
-    analyzeEmployee,
-    getEmployeeByLinkedIn,
 } from './employees';
 
 // Signals
@@ -44,14 +39,11 @@ export {
 export {
     getProducts,
     getProduct,
-    getProductByName,
     createProduct,
     updateProduct,
     deleteProduct,
     calculateProductFit,
     getProductCandidates,
-    calculateProductCandidates,
-    compareCompanyFits,
     exportProductXlsx,
 } from './products';
 
@@ -72,24 +64,9 @@ export type { AsyncPlaybookResponse } from './playbooks';
 // Search
 export { searchCompanies, search } from './search';
 
-// Helpers
-export {
-    getScoreCategory,
-    getScoreLabel,
-    getUrgencyLabel,
-    formatEmployeeCount,
-    PRODUCT_GROUPS,
-} from './helpers';
-export type { ProductGroupId } from './helpers';
-
-// Processing
-export type { ProcessingOptions } from './processing';
-export { startProcessing, waitForProcessingComplete } from './processing';
-
 // Campaigns
 export {
     getCampaigns,
-    getMyCampaigns,
     getCampaign,
     createCampaign,
     updateCampaign,
@@ -131,11 +108,8 @@ export {
     bulkAssignPartners,
     assignAllCompaniesToPartners,
     unassignPartnerFromCampaign,
-    suggestPartnersForCompanies,
     getPartnerAssignedCompanies,
     assignCompanyToPartner,
     bulkAssignCompaniesToPartner,
     unassignCompanyFromPartner,
-    updatePartnerCompanyAssignment,
-    getCompanyAssignedPartners,
 } from './partners';

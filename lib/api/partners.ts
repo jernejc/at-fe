@@ -8,13 +8,10 @@ import type {
     CampaignPartnerCreate,
     PartnerFilters,
     PartnerBulkAssignResult,
-    PartnerSuggestion,
     PartnerAssignmentSummary,
     PartnerCompanyAssignmentCreate,
     PartnerCompanyAssignmentRead,
-    PartnerCompanyAssignmentUpdate,
     PartnerCompanyAssignmentWithCompany,
-    PartnerCompanyAssignmentWithPartner,
     BulkCompanyAssignResult,
     AssignAllResult,
 } from '../schemas';
@@ -79,17 +76,6 @@ export async function unassignPartnerFromCampaign(slug: string, partnerId: numbe
     );
 }
 
-// Get partner suggestions based on company domains
-export async function suggestPartnersForCompanies(
-    domains: string[],
-    limit?: number
-): Promise<PartnerSuggestion[]> {
-    return fetchAPI<PartnerSuggestion[]>('/api/v1/partners/suggest_for_companies', {
-        method: 'POST',
-        body: JSON.stringify({ domains, limit }),
-    });
-}
-
 // ============= Partner-Company Assignments =============
 
 /**
@@ -150,29 +136,3 @@ export async function unassignCompanyFromPartner(
     );
 }
 
-/**
- * Update assignment metadata (notes, status)
- */
-export async function updatePartnerCompanyAssignment(
-    slug: string,
-    partnerId: number,
-    companyId: number,
-    data: PartnerCompanyAssignmentUpdate
-): Promise<PartnerCompanyAssignmentRead> {
-    return fetchAPI<PartnerCompanyAssignmentRead>(
-        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/${partnerId}/companies/${companyId}`,
-        { method: 'PATCH', body: JSON.stringify(data) }
-    );
-}
-
-/**
- * List partners assigned to a company within a campaign
- */
-export async function getCompanyAssignedPartners(
-    slug: string,
-    companyId: number
-): Promise<PartnerCompanyAssignmentWithPartner[]> {
-    return fetchAPI<PartnerCompanyAssignmentWithPartner[]>(
-        `/api/v1/campaigns/${encodeURIComponent(slug)}/companies/${companyId}/partners`
-    );
-}
