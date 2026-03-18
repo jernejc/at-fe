@@ -62,7 +62,7 @@ export function NavUserMenu() {
                   {partner.logo_url ? (
                     <div className="h-5 w-5 rounded-sm overflow-hidden bg-background flex items-center justify-center shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element -- dynamic external URL */}
-                    <img src={partner.logo_url} alt={partner.name} className="h-full w-full object-contain" />
+                      <img src={partner.logo_url} alt={partner.name} className="h-full w-full object-contain" />
                     </div>
                   ) : (
                     <Building2 className="h-5 w-5 text-muted-foreground shrink-0" />
@@ -89,6 +89,11 @@ export function NavUserMenu() {
             >
               Sign Out
             </button>
+            <Separator />
+            <div className="px-3 py-2 text-[10px] flex items-center justify-between bg-muted/50 text-muted-foreground">
+              <span>app version</span>
+              <span>v{process.env.NEXT_PUBLIC_APP_VERSION}</span>
+            </div>
           </div>
         </>
       )}
