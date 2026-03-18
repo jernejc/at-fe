@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
-import { getCompanyExplainability, getFitBreakdown } from '@/lib/api';
+import { getFitBreakdown } from '@/lib/api';
 import type { FitSummaryFit, FitScore } from '@/lib/schemas';
 
 export interface UseDiscoveryProductsReturn {
@@ -16,37 +16,21 @@ export interface UseDiscoveryProductsReturn {
   clearSelection: () => void;
 }
 
-/** Fetches product fit scores and manages product selection with breakdown fetching. */
+/** Provides product fit scores from cached explainability data and manages on-demand breakdown fetching. */
 export function useDiscoveryProducts(): UseDiscoveryProductsReturn {
-  const { domain } = useDiscoveryDetail();
+  const { domain, explainability, explainabilityLoading, explainabilityError, ensureExplainability } =
+    useDiscoveryDetail();
 
-  const [products, setProducts] = useState<FitSummaryFit[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    ensureExplainability();
+  }, [ensureExplainability]);
 
+  const products = explainability?.fits_summary ?? [];
+
+  // Local UI state: product selection + on-demand breakdown
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [breakdown, setBreakdown] = useState<FitScore | null>(null);
   const [breakdownLoading, setBreakdownLoading] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetch() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await getCompanyExplainability(domain);
-        if (cancelled) return;
-        setProducts(res.fits_summary);
-      } catch (err) {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Failed to load products');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    fetch();
-    return () => { cancelled = true; };
-  }, [domain]);
 
   const selectProduct = useCallback((productId: number) => {
     if (productId === selectedProductId) {
@@ -71,7 +55,7 @@ export function useDiscoveryProducts(): UseDiscoveryProductsReturn {
   }, []);
 
   return {
-    products, loading, error,
+    products, loading: explainabilityLoading, error: explainabilityError,
     selectedProductId, breakdown, breakdownLoading,
     selectProduct, clearSelection,
   };

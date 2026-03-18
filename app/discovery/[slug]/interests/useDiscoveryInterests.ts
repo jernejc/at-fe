@@ -1,42 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
 import { useSignalSelection } from '@/hooks/useSignalSelection';
-import { getCompanyExplainability } from '@/lib/api';
-import type { SignalInterest } from '@/lib/schemas';
 
-/** Fetches interest signals and narrative for the current discovery company. */
+/** Provides interest signals and narrative from cached explainability data. */
 export function useDiscoveryInterests() {
-  const { domain } = useDiscoveryDetail();
-
-  const [interests, setInterests] = useState<SignalInterest[]>([]);
-  const [narrative, setNarrative] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { domain, explainability, explainabilityLoading, explainabilityError, ensureExplainability } =
+    useDiscoveryDetail();
 
   const signalSelection = useSignalSelection(domain);
 
   useEffect(() => {
-    let cancelled = false;
-    async function fetch() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await getCompanyExplainability(domain);
-        if (cancelled) return;
-        setInterests(res.signals_summary.interests);
-        setNarrative(res.interest_narrative ?? null);
-      } catch (err) {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Failed to load interests');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    fetch();
-    return () => { cancelled = true; };
-  }, [domain]);
+    ensureExplainability();
+  }, [ensureExplainability]);
 
-  return { interests, narrative, loading, error, ...signalSelection };
+  const interests = explainability?.signals_summary.interests ?? [];
+  const narrative = explainability?.interest_narrative ?? null;
+
+  return {
+    interests,
+    narrative,
+    loading: explainabilityLoading,
+    error: explainabilityError,
+    ...signalSelection,
+  };
 }

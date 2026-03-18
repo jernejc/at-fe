@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
-import { getProducts, getCompanyPlaybooks, getCompanyPlaybook } from '@/lib/api';
+import { getCompanyPlaybooks, getCompanyPlaybook } from '@/lib/api';
 import { usePlaybookGeneration } from '@/hooks/usePlaybookGeneration';
-import type { ProductSummary, PlaybookRead, PlaybookSummary } from '@/lib/schemas';
+import type { ProductSummary, PlaybookRead } from '@/lib/schemas';
 
 export interface UseDiscoveryPlaybookReturn {
   /** All available products. */
@@ -33,89 +33,66 @@ export interface UseDiscoveryPlaybookReturn {
   productIdsWithPlaybook: Set<number>;
 }
 
-/** Loads products, matches playbooks, and handles generation in the discovery context. */
+/** Loads products and playbook summaries from cached provider data, manages selection and generation. */
 export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
-  const { domain } = useDiscoveryDetail();
+  const {
+    domain,
+    playbookProducts: products,
+    playbookSummaries: summaries,
+    playbooksLoading: productsLoading,
+    playbooksError: productsError,
+    ensurePlaybooks,
+    setPlaybookSummaries: setSummaries,
+  } = useDiscoveryDetail();
 
-  const [products, setProducts] = useState<ProductSummary[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [productsError, setProductsError] = useState<string | null>(null);
+  useEffect(() => {
+    ensurePlaybooks();
+  }, [ensurePlaybooks]);
 
-  const [summaries, setSummaries] = useState<PlaybookSummary[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-
+  // --- Local state: user-driven selection + detail ---
+  const [userSelectedProductId, setUserSelectedProductId] = useState<number | null>(null);
   const [playbook, setPlaybook] = useState<PlaybookRead | null>(null);
   const [playbookLoading, setPlaybookLoading] = useState(false);
 
-  // Fetch products and playbook summaries in parallel on mount
-  useEffect(() => {
-    let cancelled = false;
+  // Auto-select: prefer product with existing playbook, fall back to first product
+  const autoSelectedProductId = useMemo(() => {
+    if (productsLoading || products.length === 0) return null;
+    const playbookProductIds = new Set(summaries.map((p) => p.product_id));
+    const withPlaybook = products.find((p) => playbookProductIds.has(p.id));
+    return withPlaybook?.id ?? products[0].id;
+  }, [products, summaries, productsLoading]);
 
-    async function fetchInitialData() {
-      setProductsLoading(true);
-      setProductsError(null);
+  // User selection overrides auto-selection
+  const selectedProductId = userSelectedProductId ?? autoSelectedProductId;
 
-      try {
-        const [productsRes, playbooksRes] = await Promise.all([
-          getProducts(1, 100),
-          getCompanyPlaybooks(domain),
-        ]);
-
-        if (cancelled) return;
-
-        const items = productsRes.items;
-        const playbooks = playbooksRes.playbooks;
-        setProducts(items);
-        setSummaries(playbooks);
-
-        // Auto-select: prefer a product that already has a playbook
-        if (items.length > 0) {
-          const playbookProductIds = new Set(playbooks.map((p) => p.product_id));
-          const withPlaybook = items.find((p) => playbookProductIds.has(p.id));
-          setSelectedProductId(withPlaybook?.id ?? items[0].id);
-        }
-      } catch (err) {
-        if (cancelled) return;
-        setProductsError(err instanceof Error ? err.message : 'Failed to load data');
-      } finally {
-        if (!cancelled) setProductsLoading(false);
-      }
-    }
-
-    fetchInitialData();
-    return () => { cancelled = true; };
-  }, [domain]);
-
-  // Fetch playbook detail when selected product changes
+  // Fetch playbook detail when selection changes
   useEffect(() => {
     if (selectedProductId === null || productsLoading) return;
 
     const summary = summaries.find((s) => s.product_id === selectedProductId);
-    if (!summary) {
-      setPlaybook(null);
-      return;
-    }
+    if (!summary) return;
 
     let cancelled = false;
-    setPlaybookLoading(true);
 
-    getCompanyPlaybook(domain, summary.id)
-      .then((detail) => {
+    async function fetchDetail() {
+      setPlaybookLoading(true);
+      try {
+        const detail = await getCompanyPlaybook(domain, summary!.id);
         if (!cancelled) setPlaybook(detail);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('Failed to fetch playbook detail:', err);
         if (!cancelled) setPlaybook(null);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setPlaybookLoading(false);
-      });
+      }
+    }
+    fetchDetail();
 
     return () => { cancelled = true; };
   }, [selectedProductId, summaries, domain, productsLoading]);
 
   const selectProduct = useCallback((productId: number) => {
-    setSelectedProductId(productId);
+    setUserSelectedProductId(productId);
     setPlaybook(null);
   }, []);
 
@@ -127,6 +104,7 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
     [summaries],
   );
 
+  // After generation completes, refresh summaries in provider cache and fetch new detail
   const handleGenerationComplete = useCallback(async () => {
     if (!selectedProductId) return;
 
@@ -138,7 +116,7 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
       const detail = await getCompanyPlaybook(domain, target.id);
       setPlaybook(detail);
     }
-  }, [domain, selectedProductId]);
+  }, [domain, selectedProductId, setSummaries]);
 
   const { isGenerating, generationError, startGeneration } = usePlaybookGeneration({
     domain,
