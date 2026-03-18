@@ -100,7 +100,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
         product_id: selectedProduct?.id ?? undefined,
         include_partner_suggestions: true,
         entity_types: ['companies', 'partners'],
-        limit: 100,
+        limit: 2500,
         fields: COMPANY_SEARCH_FIELDS,
       });
     },
@@ -122,7 +122,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
           product_id: product.id,
           include_partner_suggestions: true,
           entity_types: ['companies', 'partners'],
-          limit: 100,
+          limit: 2500,
           fields: COMPANY_SEARCH_FIELDS,
         });
       }

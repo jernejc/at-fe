@@ -1,8 +1,12 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import type { WSCompanyResult } from '@/lib/schemas';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { CompanyRow } from './CompanyRow';
+
+const PAGE_SIZE = 25;
 
 interface CompanyListColumnProps {
   companies: WSCompanyResult[];
@@ -25,8 +29,49 @@ function CompanyRowSkeleton() {
   );
 }
 
-/** Scrollable column listing search result companies. */
+/** Inner list with its own visibleCount state, reset via key remount when companies change. */
+function CompanyList({ companies, selectedDomain, onSelect }: Omit<CompanyListColumnProps, 'isSearching'>) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const showMore = useCallback(() => {
+    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, companies.length));
+  }, [companies.length]);
+
+  const visibleCompanies = companies.slice(0, visibleCount);
+  const remaining = companies.length - visibleCount;
+
+  return (
+    <div>
+      {visibleCompanies.map((company) => (
+        <CompanyRow
+          key={company.domain}
+          company={company}
+          isSelected={selectedDomain === company.domain}
+          onSelect={onSelect}
+        />
+      ))}
+      {remaining > 0 && (
+        <div className="flex justify-center p-4">
+          <Button variant="ghost" size="sm" onClick={showMore}>
+            Show more ({remaining} remaining)
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Scrollable column listing search result companies with progressive rendering. */
 export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearching }: CompanyListColumnProps) {
+  // Use companies array identity as the key — when a new array is produced
+  // (new search or filter change), CompanyList remounts and resets visibleCount.
+  const [listKey, setListKey] = useState(0);
+  const [prevCompanies, setPrevCompanies] = useState(companies);
+  if (companies !== prevCompanies) {
+    setPrevCompanies(companies);
+    setListKey((k) => k + 1);
+  }
+
   if (isSearching) {
     return (
       <div>
@@ -46,15 +91,11 @@ export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearc
   }
 
   return (
-    <div>
-      {companies.map((company) => (
-        <CompanyRow
-          key={company.domain}
-          company={company}
-          isSelected={selectedDomain === company.domain}
-          onSelect={onSelect}
-        />
-      ))}
-    </div>
+    <CompanyList
+      key={listKey}
+      companies={companies}
+      selectedDomain={selectedDomain}
+      onSelect={onSelect}
+    />
   );
 }
