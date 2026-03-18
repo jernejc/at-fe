@@ -27,6 +27,7 @@ vi.mock("@/components/providers/PartnerProvider", () => ({
 }));
 vi.mock("@/components/ui/avatar", () => ({
   Avatar: ({ children, ...props }: any) => <div data-testid="avatar" {...props}>{children}</div>,
+  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
   AvatarImage: (props: any) => <img {...props} />,
   AvatarFallback: ({ children, ...props }: any) => <span {...props}>{children}</span>,
 }));

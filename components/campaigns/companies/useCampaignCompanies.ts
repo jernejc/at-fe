@@ -102,7 +102,7 @@ export function useCampaignCompanies({ slug, enabled = true, partners: externalP
   const [activeFilters, setActiveFiltersRaw] = useState<ActiveFilter[]>([]);
   const [activeSort, setActiveSortRaw] = useState<SortState | null>(defaultSort);
 
-  const partners = externalPartners ?? [];
+  const partners = useMemo(() => externalPartners ?? [], [externalPartners]);
   const [fetchVersion, setFetchVersion] = useState(0);
   const refetch = useCallback(() => setFetchVersion((v) => v + 1), []);
 

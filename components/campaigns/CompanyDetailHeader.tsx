@@ -56,6 +56,7 @@ export function CompanyDetailHeader({
           {/* Company logo */}
           <div className="flex items-center justify-center shrink-0 w-16 h-16 rounded-xl bg-card border border-border mr-4 overflow-hidden">
             {companyLogoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element -- base64 data URLs not supported by next/image */
               <img
                 src={companyLogoUrl}
                 alt={companyName ?? ''}

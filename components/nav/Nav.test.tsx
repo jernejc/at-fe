@@ -20,6 +20,7 @@ vi.mock("./NavUserMenu", () => ({
   NavUserMenu: () => <div data-testid="nav-user-menu" />,
 }));
 vi.mock("next/image", () => ({
+  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
   default: (props: any) => <img {...props} />,
 }));
 vi.mock("next/link", () => ({

@@ -186,6 +186,7 @@ export function AddPartnerDialog({
                                                     : "bg-slate-50 border-slate-100 text-slate-500 dark:bg-slate-800 dark:border-slate-800 dark:text-slate-400"
                                             )}>
                                                 {partner.logo_url ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element -- dynamic external URL
                                                     <img src={partner.logo_url} alt="" className="w-full h-full object-contain p-1" />
                                                 ) : (
                                                     <TypeIcon className="w-5 h-5" />

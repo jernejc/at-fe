@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, BellOff, Globe, Loader2 } from 'lucide-react';
+import { Bell, BellOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCampaignDetail } from '@/components/providers/CampaignDetailProvider';
 import { SettingsSection } from './SettingsSection';

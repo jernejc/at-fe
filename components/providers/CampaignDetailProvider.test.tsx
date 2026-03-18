@@ -68,9 +68,10 @@ function mockSuccessfulFetch(campaign = makeCampaign(), overview = makeOverview(
 }
 
 function makeWrapper(slug: string) {
-  return ({ children }: { children: ReactNode }) => (
-    <CampaignDetailProvider slug={slug}>{children}</CampaignDetailProvider>
-  );
+  function Wrapper({ children }: { children: ReactNode }) {
+    return <CampaignDetailProvider slug={slug}>{children}</CampaignDetailProvider>;
+  }
+  return Wrapper;
 }
 
 function renderWithProvider(slug = 'test-campaign') {

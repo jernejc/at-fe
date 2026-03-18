@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, Share2 } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DataPendingOverlayProps {

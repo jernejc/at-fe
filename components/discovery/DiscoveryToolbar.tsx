@@ -1,6 +1,6 @@
 'use client';
 
-import { Pencil, X, Plus, FolderPlus } from 'lucide-react';
+import { X, Plus, FolderPlus } from 'lucide-react';
 import { SearchField } from '@/components/ui/search-field';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
@@ -42,6 +42,7 @@ export function DiscoveryToolbar({
   onSortChange,
   isEditing,
   selectedCount,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used when edit button is re-enabled
   onStartEditing,
   onCancelEditing,
   onNewCampaign,

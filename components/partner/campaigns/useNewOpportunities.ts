@@ -40,11 +40,12 @@ export function useNewOpportunities(campaigns: CampaignSummary[], partnerId: num
   // not on every array reference change from setCampaigns().
   const campaignKey = campaigns.map((c) => c.id).join(',');
   const campaignsRef = useRef(campaigns);
-  campaignsRef.current = campaigns;
+  useEffect(() => { campaignsRef.current = campaigns; });
 
   useEffect(() => {
     const currentCampaigns = campaignsRef.current;
     if (!partnerId || currentCampaigns.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting state on empty input
       setItems([]);
       setLoading(false);
       return;

@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { integrations } from '@/components/partner/integrations/integrations-data';
 
 interface CRMConnectionContextValue {
     connectedIds: Set<string>;
@@ -11,11 +10,6 @@ interface CRMConnectionContextValue {
 }
 
 const CRMConnectionContext = createContext<CRMConnectionContextValue | null>(null);
-
-// Get all CRM integration IDs
-const crmIntegrationIds = integrations
-    .filter(i => i.category === 'crm')
-    .map(i => i.id);
 
 export function CRMConnectionProvider({ children }: { children: ReactNode }) {
     const [connectedIds, setConnectedIds] = useState<Set<string>>(new Set());

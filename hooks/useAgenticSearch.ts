@@ -88,7 +88,7 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
 
     const wsRef = useRef<WebSocket | null>(null);
     const optionsRef = useRef(options);
-    optionsRef.current = options;
+    useEffect(() => { optionsRef.current = options; });
 
     // Cleanup WebSocket on unmount
     useEffect(() => {

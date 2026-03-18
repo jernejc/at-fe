@@ -34,7 +34,7 @@ export function OutreachTimeline({ events }: OutreachTimelineProps) {
 
             {/* Events */}
             <div className="space-y-4">
-                {events.map((event, index) => {
+                {events.map((event) => {
                     const Icon = EVENT_ICONS[event.type];
                     const colors = EVENT_COLORS[event.type];
 

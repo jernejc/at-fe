@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { LiquidMetal } from "@paper-design/shaders-react";
 import { Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,13 +20,11 @@ export default function SignInPage() {
   } = useSignIn();
 
   const { theme } = useTheme();
-  const [shaderBg, setShaderBg] = useState("#FAFAFA");
-
-  useEffect(() => {
+  const shaderBg = useMemo(() => {
     const isDark =
       theme === "dark" ||
-      (theme === "system" && matchMedia("(prefers-color-scheme:dark)").matches);
-    setShaderBg(isDark ? "#0a0a0a" : "#FAFAFA");
+      (theme === "system" && typeof window !== "undefined" && matchMedia("(prefers-color-scheme:dark)").matches);
+    return isDark ? "#0a0a0a" : "#FAFAFA";
   }, [theme]);
 
   return (

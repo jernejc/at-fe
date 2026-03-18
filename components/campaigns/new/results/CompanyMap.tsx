@@ -18,7 +18,6 @@ interface CompanyMapProps {
 }
 
 /** Creates a custom cluster icon matching the design (yellow/orange circles with count). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createClusterIcon(cluster: any): L.DivIcon {
   const count = cluster.getChildCount();
   const size = count < 20 ? 36 : count < 50 ? 44 : count < 100 ? 52 : 60;

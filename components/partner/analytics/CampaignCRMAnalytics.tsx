@@ -1,14 +1,6 @@
 'use client';
 
 import { MessageSquare, CalendarCheck, TrendingUp, Clock } from 'lucide-react';
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    ResponsiveContainer,
-    Cell,
-} from 'recharts';
 import { CRMAnalyticsWrapper } from './CRMAnalyticsWrapper';
 import { CRMStatCard } from './CRMStatCard';
 import { Card, CardContent } from '@/components/ui/card';

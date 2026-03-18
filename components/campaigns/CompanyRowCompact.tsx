@@ -136,12 +136,14 @@ export function CompanyRowCompact({
                 <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
                         {logoSrc ? (
+                            /* eslint-disable-next-line @next/next/no-img-element -- base64 data URLs not supported by next/image */
                             <img
                                 src={logoSrc}
                                 alt=""
                                 className="w-8 h-8 object-contain"
                             />
                         ) : (
+                            /* eslint-disable-next-line @next/next/no-img-element -- external favicon with onError handler */
                             <img
                                 src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
                                 alt=""
@@ -307,6 +309,7 @@ export function CompanyRowCompact({
                 {partnerName && (
                     <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shrink-0">
                         {partnerLogoUrl ? (
+                            /* eslint-disable-next-line @next/next/no-img-element -- dynamic external URL */
                             <img
                                 src={partnerLogoUrl}
                                 alt={partnerName}

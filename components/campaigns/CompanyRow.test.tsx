@@ -199,8 +199,6 @@ describe('CompanyRow', () => {
 
     it('does not render a select toggle when selectable is false', () => {
       renderRow({ selectable: false });
-      expect(screen.queryByRole('checkbox')).not.toBeNull === undefined;
-      // More precise: no checkbox role
       expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     });
 

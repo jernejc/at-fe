@@ -28,6 +28,7 @@ export function usePartnerDetail({ partnerId, isOpen }: UsePartnerDetailOptions)
 
   useEffect(() => {
     if (!isOpen || !partnerId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting state on close is intentional
       setPartnerDetails(null);
       fetchingRef.current = null;
       return;

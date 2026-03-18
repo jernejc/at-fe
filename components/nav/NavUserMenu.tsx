@@ -61,7 +61,8 @@ export function NavUserMenu() {
                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
                   {partner.logo_url ? (
                     <div className="h-5 w-5 rounded-sm overflow-hidden bg-background flex items-center justify-center shrink-0">
-                      <img src={partner.logo_url} alt={partner.name} className="h-full w-full object-contain" />
+                      {/* eslint-disable-next-line @next/next/no-img-element -- dynamic external URL */}
+                    <img src={partner.logo_url} alt={partner.name} className="h-full w-full object-contain" />
                     </div>
                   ) : (
                     <Building2 className="h-5 w-5 text-muted-foreground shrink-0" />
