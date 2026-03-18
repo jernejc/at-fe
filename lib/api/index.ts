@@ -129,6 +129,7 @@ export {
     getCampaignPartners,
     assignPartnerToCampaign,
     bulkAssignPartners,
+    assignAllCompaniesToPartners,
     unassignPartnerFromCampaign,
     suggestPartnersForCompanies,
     getPartnerAssignedCompanies,

@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createCampaign, updateCampaign, addCompaniesBulk } from '@/lib/api/campaigns';
-import { bulkAssignPartners, bulkAssignCompaniesToPartner } from '@/lib/api/partners';
+import { bulkAssignPartners, assignAllCompaniesToPartners } from '@/lib/api/partners';
 import type { WSCompanyResult, WSPartnerSuggestion, PartnerSummary } from '@/lib/schemas';
 import { CAMPAIGN_ICON_NAMES, type CampaignIconName } from '@/lib/config/campaign-icons';
 
@@ -72,25 +72,10 @@ export function useCampaignCreation(): UseCampaignCreationReturn {
           if (fromAll) partnerIds.push(fromAll.id);
         });
 
-        // 5. Assign partners and round-robin distribute companies
+        // 5. Assign partners and distribute companies (server-side)
         if (partnerIds.length > 0) {
           await bulkAssignPartners(campaign.slug, partnerIds);
-
-          const companyIds = companies.map((c) => c.company_id).filter(Boolean);
-          if (companyIds.length > 0) {
-            const companiesPerPartner = new Map<number, number[]>();
-            partnerIds.forEach((id) => companiesPerPartner.set(id, []));
-            companyIds.forEach((cId, i) => {
-              const pId = partnerIds[i % partnerIds.length];
-              companiesPerPartner.get(pId)!.push(cId);
-            });
-
-            for (const [partnerId, pCompanyIds] of companiesPerPartner) {
-              if (pCompanyIds.length > 0) {
-                await bulkAssignCompaniesToPartner(campaign.slug, partnerId, pCompanyIds);
-              }
-            }
-          }
+          await assignAllCompaniesToPartners(campaign.slug);
         }
 
         // 6. Navigate to campaign detail

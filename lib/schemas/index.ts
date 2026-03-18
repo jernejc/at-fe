@@ -212,6 +212,7 @@ export type {
     PartnerCompanyAssignmentWithPartner,
     BulkCompanyAssignRequest,
     BulkCompanyAssignResult,
+    AssignAllResult,
 } from './partner';
 
 // Explainability types

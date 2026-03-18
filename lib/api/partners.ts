@@ -16,6 +16,7 @@ import type {
     PartnerCompanyAssignmentWithCompany,
     PartnerCompanyAssignmentWithPartner,
     BulkCompanyAssignResult,
+    AssignAllResult,
 } from '../schemas';
 
 // ============= Partners =============
@@ -60,6 +61,14 @@ export async function bulkAssignPartners(
     return fetchAPI<PartnerBulkAssignResult>(
         `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/bulk`,
         { method: 'POST', body: JSON.stringify({ partner_ids: partnerIds, assigned_by: assignedBy }) }
+    );
+}
+
+/** Assign all campaign companies to partners (server-side round-robin). */
+export async function assignAllCompaniesToPartners(slug: string): Promise<AssignAllResult> {
+    return fetchAPI<AssignAllResult>(
+        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/assign-all`,
+        { method: 'POST' }
     );
 }
 

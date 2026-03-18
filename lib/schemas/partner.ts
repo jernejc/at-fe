@@ -168,6 +168,16 @@ export interface BulkCompanyAssignResult {
     errors: string[];
 }
 
+/** Response from POST /api/v1/campaigns/{slug}/partners/assign-all. */
+export interface AssignAllResult {
+    assigned: number;
+    skipped: number;
+    cleared: number;
+    partners_count: number;
+    companies_count: number;
+    errors: string[];
+}
+
 // New response type from list_campaign_partners endpoint
 // Includes both partner details AND campaign assignment info
 export interface PartnerAssignmentSummary {
