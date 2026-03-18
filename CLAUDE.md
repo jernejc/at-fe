@@ -9,13 +9,14 @@ LookAcross Account Intelligence — a B2B SaaS frontend for tracking buying sign
 ## Commands
 
 ```bash
-npm run dev      # Start dev server (uses --webpack flag, not Turbopack)
-npm run build    # Production build
-npm run start    # Start production server
-npm run lint     # ESLint (flat config, v9)
+npm run dev        # Start dev server (uses --webpack flag, not Turbopack)
+npm run build      # Production build
+npm run start      # Start production server
+npm run lint       # ESLint (flat config, v9)
+npm run format     # Prettier (format all files)
+npm run test       # Vitest (single run)
+npm run test:watch # Vitest (watch mode)
 ```
-
-No test runner is configured.
 
 ## Architecture
 
@@ -38,16 +39,20 @@ All API calls go through `fetchAPI<T>()` in `lib/api/core.ts`:
 - Parses FastAPI-style errors (`{ "detail": "..." }`)
 - Two base URLs: `NEXT_PUBLIC_API_URL` (main backend, default `:8000`) and `NEXT_PUBLIC_A2A_API_URL` (A2A agent service, default `:8100`)
 
-API modules are organized per-domain: `campaigns`, `companies`, `employees`, `signals`, `fit-scores`, `products`, `playbooks`, `partners`, `search`, `stats`, `a2a`, `processing`, `users`.
+API modules are organized per-domain: `campaigns`, `companies`, `employees`, `fit-scores`, `notifications`, `partners`, `playbooks`, `products`, `search`.
 
 WebSocket client for agentic/streaming search lives in `hooks/useAgenticSearch.ts` (connects to `NEXT_PUBLIC_WS_URL`).
 
 ### State Management
 
 No global state library. State is managed via:
-- **React Context**: `PartnerProvider` (current partner data) and `ThemeProvider` (dark/light/system theme via localStorage — custom implementation, not `next-themes`)
+- **React Context (global)**: `PartnerProvider` (current partner data) and `ThemeProvider` (dark/light/system theme via localStorage — custom implementation, not `next-themes`)
+- **React Context (feature-specific)**:
+  - `CampaignDetailProvider` — caches campaign, overview, and partners data; provides publish/unpublish handlers
+  - `CampaignCompanyDetailProvider` — caches company + membership eagerly; lazy-loads product fit and playbook data
+  - `DiscoveryDetailProvider` — company detail with eager/lazy loading pattern (eager: company data; lazy: explainability, jobs, team, playbooks)
 - **NextAuth session**: `useSession()` for auth state
-- **Page-level hooks**: Complex state encapsulated in custom hooks (`useCampaignWizard`, `useAccountDetail`, `useAgenticSearch`, etc.)
+- **Page-level hooks**: Complex state encapsulated in custom hooks (`useCampaignSettings`, `useAgenticSearch`, `usePlaybookGeneration`, etc.)
 
 All data fetching is client-side via `useEffect` in `"use client"` components — no RSC data fetching.
 
@@ -68,18 +73,23 @@ All TypeScript types/interfaces are in `lib/schemas/` with barrel exports from `
 ### Provider Hierarchy (root layout)
 
 ```
-AuthProvider → PartnerProvider → ThemeProvider → TooltipProvider → {children} + Toaster
+AuthProvider → PartnerProvider → ThemeProvider → TooltipProvider → [ScrollToTop + Nav + {children}] + Toaster
 ```
 
 ### Key Conventions
 
 - Path alias: `@/*` maps to project root
-- Font: Inter (Google Fonts, loaded via `next/font`)
+- Fonts: Inter (sans) + Exo 2 weight=500 (display), loaded via `next/font`
 - Icons: `lucide-react`
 - Toasts: `sonner` (via shadcn `Toaster` component)
 - Animations: `framer-motion`
 - Charts: `recharts`
 - A2A diagrams: `@xyflow/react` + `dagre` for graph layout
+- Maps: `react-leaflet` + `leaflet`
+- Dates: `date-fns`
+- Visual effects: `@paper-design/shaders-react`
+- Analytics: Google Analytics via `@next/third-parties`
+- Testing: `vitest` + `@testing-library/react` + `jsdom`
 - Deployment: Firebase App Hosting (`apphosting.yaml`), `output: "standalone"` in next.config
 
 ## Development Guidelines
@@ -110,6 +120,8 @@ AuthProvider → PartnerProvider → ThemeProvider → TooltipProvider → {chil
 - **Document API contracts** at the top of each `lib/api/` module: what endpoint it hits, expected request/response shapes, and any quirks.
 
 ### Testing
+
+Vitest is configured with `@testing-library/react` and `jsdom`. Run `npm run test` (single run) or `npm run test:watch` (watch mode). Config in `vitest.config.ts`, setup in `vitest.setup.ts`.
 
 - **Test files live next to source files:** `ComponentName.test.tsx` alongside `ComponentName.tsx`.
 - **Test behavior, not implementation.** Tests should assert what the user sees and what the API receives, not internal state.
