@@ -1,6 +1,7 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { Users } from 'lucide-react';
+import { cn, formatCurrency, formatCompactNumber } from '@/lib/utils';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -43,7 +44,16 @@ export function CompanyRow({ company, isSelected, onSelect }: CompanyRowProps) {
 
       <div className="min-w-0 flex-1">
         <div className="text-sm font-medium text-foreground truncate">{company.name}</div>
-        <div className="text-xs text-muted-foreground truncate">{company.domain}</div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground truncate">
+          <span className="shrink-0 inline-flex items-center gap-0.5">
+            <Users className="size-3" />
+            {company.employee_count != null ? formatCompactNumber(company.employee_count) : '-'}
+          </span>
+          <span className="shrink-0">
+            {company.revenue_amount != null ? formatCurrency(company.revenue_amount) : '-'}
+          </span>
+          <span className="truncate">{company.domain}</span>
+        </div>
       </div>
 
       <Badge variant={matchVariant} size="sm" className="shrink-0">

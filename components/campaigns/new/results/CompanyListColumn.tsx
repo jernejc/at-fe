@@ -1,12 +1,22 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import type { WSCompanyResult } from '@/lib/schemas';
+import { useState, useCallback, useMemo } from 'react';
+import type { WSCompanyResult, SortState, SortOptionDefinition } from '@/lib/schemas';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Sort } from '@/components/ui/sort';
 import { CompanyRow } from './CompanyRow';
 
 const PAGE_SIZE = 25;
+
+const SORT_OPTIONS: SortOptionDefinition[] = [
+  { value: 'match_score', label: 'Match Strength' },
+  { value: 'product_fit_score', label: 'Product Fit' },
+  { value: 'revenue_amount', label: 'Revenue' },
+  { value: 'employee_count', label: 'Employee Size' },
+];
+
+const DEFAULT_SORT: SortState = { field: 'match_score', direction: 'desc' };
 
 interface CompanyListColumnProps {
   companies: WSCompanyResult[];
@@ -61,16 +71,35 @@ function CompanyList({ companies, selectedDomain, onSelect }: Omit<CompanyListCo
   );
 }
 
-/** Scrollable column listing search result companies with progressive rendering. */
+/** Sorts companies by the given sort state, pushing nulls to the end. */
+function sortCompanies(companies: WSCompanyResult[], sort: SortState | null): WSCompanyResult[] {
+  if (!sort) return companies;
+  const { field, direction } = sort;
+  const multiplier = direction === 'asc' ? 1 : -1;
+
+  return [...companies].sort((a, b) => {
+    const aVal = a[field as keyof WSCompanyResult] as number | null | undefined;
+    const bVal = b[field as keyof WSCompanyResult] as number | null | undefined;
+    if (aVal == null && bVal == null) return 0;
+    if (aVal == null) return 1;
+    if (bVal == null) return -1;
+    return (aVal - bVal) * multiplier;
+  });
+}
+
+/** Scrollable column listing search result companies with progressive rendering and sorting. */
 export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearching }: CompanyListColumnProps) {
-  // Use companies array identity as the key — when a new array is produced
-  // (new search or filter change), CompanyList remounts and resets visibleCount.
+  const [sort, setSort] = useState<SortState | null>(DEFAULT_SORT);
+
+  // Track original companies identity for list key (not the sorted array)
   const [listKey, setListKey] = useState(0);
   const [prevCompanies, setPrevCompanies] = useState(companies);
   if (companies !== prevCompanies) {
     setPrevCompanies(companies);
     setListKey((k) => k + 1);
   }
+
+  const sortedCompanies = useMemo(() => sortCompanies(companies, sort), [companies, sort]);
 
   if (isSearching) {
     return (
@@ -91,11 +120,18 @@ export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearc
   }
 
   return (
-    <CompanyList
-      key={listKey}
-      companies={companies}
-      selectedDomain={selectedDomain}
-      onSelect={onSelect}
-    />
+    <div className="flex flex-col h-full">
+      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-2">
+        <Sort options={SORT_OPTIONS} value={sort} onValueChange={setSort} />
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        <CompanyList
+          key={listKey}
+          companies={sortedCompanies}
+          selectedDomain={selectedDomain}
+          onSelect={onSelect}
+        />
+      </div>
+    </div>
   );
 }
