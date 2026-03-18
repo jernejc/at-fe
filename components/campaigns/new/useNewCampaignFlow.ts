@@ -9,6 +9,10 @@ import { usePartnerSelection } from './hooks/usePartnerSelection';
 import { useCampaignCreation } from './hooks/useCampaignCreation';
 import type { WizardStep, SlideDirection } from './useNewCampaignFlow.types';
 
+/** Fields to request from the search endpoint for company results. */
+const COMPANY_SEARCH_FIELDS =
+  'company_id,domain,name,industry,hq_country,hq_city,employee_count,logo_url,logo_base64,revenue,revenue_amount,product_fit_score,match_score,entity_type,id';
+
 interface UseNewCampaignFlowOptions {
   products: ProductSummary[];
   preselectedProductId: number | null;
@@ -97,6 +101,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
         include_partner_suggestions: true,
         entity_types: ['companies', 'partners'],
         limit: 100,
+        fields: COMPANY_SEARCH_FIELDS,
       });
     },
     [search, selectedProduct, goTo, searchHistory, buildCombinedQuery],
@@ -118,6 +123,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
           include_partner_suggestions: true,
           entity_types: ['companies', 'partners'],
           limit: 100,
+          fields: COMPANY_SEARCH_FIELDS,
         });
       }
     },

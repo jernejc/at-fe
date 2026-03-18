@@ -229,6 +229,7 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
                 product_id: searchOptions?.product_id,
                 context: searchOptions?.context || {},
                 request_id: searchOptions?.request_id || `search-${Date.now()}`,
+                fields: searchOptions?.fields,
             };
 
             ws.send(JSON.stringify(request));

@@ -38,6 +38,7 @@ export interface WSSearchRequest {
     product_id?: number | null;
     context?: Record<string, unknown>;
     request_id?: string;
+    fields?: string;
 }
 
 // Interpretation from LLM
