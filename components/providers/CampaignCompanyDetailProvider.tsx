@@ -121,6 +121,7 @@ export function CampaignCompanyDetailProvider({ slug, domain, children }: Campai
 
     productFitFetched.current = true;
     let cancelled = false;
+    let completed = false;
 
     async function fetchProductFit() {
       setProductFitLoading(true);
@@ -143,11 +144,15 @@ export function CampaignCompanyDetailProvider({ slug, domain, children }: Campai
         setProductFitError('Failed to load product fit data.');
       }
 
+      completed = true;
       setProductFitLoading(false);
     }
 
     fetchProductFit();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (!completed) productFitFetched.current = false;
+    };
   }, [domain, campaign?.target_product_id, campaignLoading]);
 
   // Lazy fetch for playbook data — called by playbook tab on first visit
@@ -163,6 +168,7 @@ export function CampaignCompanyDetailProvider({ slug, domain, children }: Campai
 
     playbookFetched.current = true;
     let cancelled = false;
+    let completed = false;
 
     async function fetchPlaybook() {
       setPlaybookLoading(true);
@@ -172,14 +178,19 @@ export function CampaignCompanyDetailProvider({ slug, domain, children }: Campai
         if (cancelled) return;
 
         if (!target) {
+          completed = true;
           setPlaybookLoading(false);
           return;
         }
 
         setPlaybookProductName(target.product_name ?? null);
         const detail = await getCompanyPlaybook(domain, target.id);
-        if (!cancelled) setPlaybook(detail);
+        if (!cancelled) {
+          completed = true;
+          setPlaybook(detail);
+        }
       } catch (err) {
+        if (!cancelled) completed = true;
         console.error('Failed to fetch playbook:', err);
       } finally {
         if (!cancelled) setPlaybookLoading(false);
@@ -187,7 +198,10 @@ export function CampaignCompanyDetailProvider({ slug, domain, children }: Campai
     }
 
     fetchPlaybook();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (!completed) playbookFetched.current = false;
+    };
   }, [domain, campaign?.target_product_id, campaignLoading]);
 
   return (

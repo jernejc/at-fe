@@ -34,7 +34,8 @@ export function useProductFit() {
 
   // Trigger lazy fetch on first visit to the product-fit tab
   useEffect(() => {
-    ensureProductFit();
+    const cleanup = ensureProductFit();
+    return cleanup;
   }, [ensureProductFit]);
 
   // Filter explainability signals to only those that matched in the breakdown
