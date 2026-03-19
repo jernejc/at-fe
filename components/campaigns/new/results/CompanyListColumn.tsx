@@ -121,7 +121,7 @@ export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearc
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-2">
+      <div className="sticky top-0 z-1 bg-card border-b border-border px-4 py-2">
         <Sort options={SORT_OPTIONS} value={sort} onValueChange={setSort} />
       </div>
       <div className="flex-1 overflow-y-auto">
