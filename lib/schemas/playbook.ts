@@ -22,6 +22,36 @@ export interface PlaybookContext {
     fit_score?: number | null;
 }
 
+/** Discriminated message type for outreach templates. */
+export type OutreachMessageType =
+    | 'anchor_artifact'
+    | 'initial_email'
+    | 'linkedin_note'
+    | 'cold_call_script'
+    | 'insight_email'
+    | 'linkedin_value_message'
+    | 'case_proof_email'
+    | 'followup_call_script'
+    | 'linkedin_followup_message'
+    | 'breakup_email'
+    | 'voicemail_script';
+
+/**
+ * A single outreach message within a template.
+ * Part of the structured messages array on OutreachTemplateResponse.
+ */
+export interface OutreachMessage {
+    id: number;
+    template_id: number;
+    message_type: OutreachMessageType;
+    channel: string;
+    subject: string | null;
+    body: string;
+    cta: string | null;
+    metadata: Record<string, unknown> | null;
+    sort_order: number;
+}
+
 export interface OutreachTemplateResponse {
     id: number;
     playbook_id: number;
@@ -33,7 +63,7 @@ export interface OutreachTemplateResponse {
     phone_script: string | null;
     phone_talking_points: string[] | null;
     voicemail_script: string | null;
-    messages: unknown[];
+    messages: OutreachMessage[];
 }
 
 export interface PlaybookContact {
@@ -78,13 +108,22 @@ export interface PlaybookContactResponse extends PlaybookContact {
 }
 
 /**
+ * A contact reference within a cadence step.
+ * Includes an optional employee_id for linking to full contact records.
+ */
+export interface CadenceStepContact {
+    name: string;
+    employee_id: number | null;
+}
+
+/**
  * A single step in an outreach cadence.
  */
 export interface CadenceStep {
     step: number | null;
     day_offset: number | null;
     channel: string;
-    contacts: string[];
+    contacts: CadenceStepContact[];
     objective: string | null;
     follow_up: string | null;
     notes: string | null;
@@ -136,6 +175,13 @@ export interface ObjectionHandlingEntry {
     response: string;
 }
 
+/** Coverage analysis of the buying committee for a playbook. */
+export interface CommitteeCoverage {
+    filled_slots: number;
+    total_slots: number;
+    gaps: string[];
+}
+
 export interface PlaybookRead {
     id: number;
     company_id: number;
@@ -151,6 +197,8 @@ export interface PlaybookRead {
     recommended_channels: string[] | null;
     contacts: PlaybookContactResponse[];
     outreach_cadence: OutreachCadence | null;
+    committee_confidence: number | null;
+    committee_coverage: CommitteeCoverage | null;
     generation_version: number;
     generation_metadata?: GenerationMetadata | null;
     regenerated_at?: string | null;

@@ -45,7 +45,7 @@ export function StepRow({ step, onClick, isActive, className, ref }: StepRowProp
       <div className="flex-1 min-w-0 flex flex-col">
         {step.contacts && step.contacts.length > 0 && (
           <span className="text-base font-medium text-foreground truncate leading-tight">
-            {step.contacts.join(', ')}
+            {step.contacts.map((c) => c.name).join(', ')}
           </span>
         )}
         {step.objective && (

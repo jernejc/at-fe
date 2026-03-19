@@ -19,15 +19,18 @@ interface StepDetailProps {
 
 /** Detail panel content for a selected outreach cadence step using Dashboard cells. */
 export function StepDetail({ step, contacts = [], onContactClick }: StepDetailProps) {
-  /** Match step contact names to real PlaybookContactResponse objects. */
+  /** Match step contact refs to real PlaybookContactResponse objects. */
   const { matched, unmatched } = useMemo(() => {
     if (!step.contacts?.length) return { matched: [], unmatched: [] };
     const matchedContacts: PlaybookContactResponse[] = [];
     const unmatchedNames: string[] = [];
-    for (const name of step.contacts) {
-      const found = contacts.find((c) => c.name === name);
+    for (const stepContact of step.contacts) {
+      // Prefer matching by employee_id when available (more reliable than name)
+      const found = stepContact.employee_id != null
+        ? contacts.find((c) => c.employee_id === stepContact.employee_id)
+        : contacts.find((c) => c.name === stepContact.name);
       if (found) matchedContacts.push(found);
-      else unmatchedNames.push(name);
+      else unmatchedNames.push(stepContact.name);
     }
     return { matched: matchedContacts, unmatched: unmatchedNames };
   }, [step.contacts, contacts]);

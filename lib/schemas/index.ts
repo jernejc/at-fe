@@ -46,7 +46,11 @@ export type {
     PlaybookContact,
     PlaybookContactResponse,
     OutreachTemplateResponse,
+    OutreachMessage,
+    OutreachMessageType,
     CadenceStep,
+    CadenceStepContact,
+    CommitteeCoverage,
     CompanyPlaybooksResponse,
     ObjectionHandlingEntry,
 } from './playbook';
