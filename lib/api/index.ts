@@ -72,4 +72,5 @@ export {
     assignCompanyToPartner,
     bulkAssignCompaniesToPartner,
     unassignCompanyFromPartner,
+    removeCampaignPartner,
 } from './partners';

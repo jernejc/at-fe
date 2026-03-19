@@ -74,7 +74,10 @@ export function useCampaignPartners({ slug, enabled = true, initialPartners }: U
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSort, setActiveSort] = useState<SortState | null>({ field: 'name', direction: 'asc' });
   const [fetchVersion, setFetchVersion] = useState(0);
-  const refetch = useCallback(() => setFetchVersion((v) => v + 1), []);
+  const refetch = useCallback(() => {
+    setLoading(true);
+    setFetchVersion((v) => v + 1);
+  }, []);
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState('');

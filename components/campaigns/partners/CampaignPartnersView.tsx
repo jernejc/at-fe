@@ -4,9 +4,31 @@ import { Building2 } from 'lucide-react';
 import { PartnerRow, PartnerRowSkeleton, type PartnerRowData } from './PartnerRow';
 import { Separator } from '@/components/ui/separator';
 import { CampaignPartnersToolbar } from './CampaignPartnersToolbar';
+import { EditPartnersList } from './EditPartnersList';
 import type { UseCampaignPartnersReturn } from './useCampaignPartners';
+import type { UseEditCampaignPartnersReturn } from './useEditCampaignPartners';
 
-interface CampaignPartnersViewProps extends UseCampaignPartnersReturn {
+type EditProps = Pick<
+  UseEditCampaignPartnersReturn,
+  | 'isEditing'
+  | 'enterEditMode'
+  | 'cancelEditMode'
+  | 'saveChanges'
+  | 'isSaving'
+  | 'hasChanges'
+  | 'filteredPartners'
+  | 'selectedSlugs'
+  | 'disabledSlugs'
+  | 'togglePartner'
+  | 'loadingPartners'
+  | 'hasMore'
+  | 'loadingMore'
+  | 'loadMore'
+  | 'editSearchQuery'
+  | 'setEditSearchQuery'
+>;
+
+interface CampaignPartnersViewProps extends UseCampaignPartnersReturn, EditProps {
   /** Currently selected partner ID, or null. */
   selectedPartnerId?: number | null;
   /** Handler when a partner row is clicked. */
@@ -28,18 +50,53 @@ export function CampaignPartnersView({
   selectedPartnerId,
   onPartnerClick,
   getItemRef,
+  // Edit mode props
+  isEditing,
+  enterEditMode,
+  cancelEditMode,
+  saveChanges,
+  isSaving,
+  hasChanges,
+  filteredPartners,
+  selectedSlugs,
+  disabledSlugs,
+  togglePartner,
+  loadingPartners,
+  hasMore,
+  loadingMore,
+  loadMore,
+  editSearchQuery,
+  setEditSearchQuery,
 }: CampaignPartnersViewProps) {
   return (
     <div className="flex flex-col gap-6">
       <CampaignPartnersToolbar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={isEditing ? editSearchQuery : searchQuery}
+        onSearchChange={isEditing ? setEditSearchQuery : setSearchQuery}
         sortOptions={sortOptions}
         activeSort={activeSort}
         onSortChange={setActiveSort}
+        isEditing={isEditing}
+        onEditClick={enterEditMode}
+        onSaveClick={saveChanges}
+        onCancelClick={cancelEditMode}
+        isSaving={isSaving}
+        hasChanges={hasChanges}
       />
 
-      {loading ? (
+      {isEditing ? (
+        <EditPartnersList
+          partners={filteredPartners}
+          selectedSlugs={selectedSlugs}
+          disabledSlugs={disabledSlugs}
+          onToggle={togglePartner}
+          loading={loadingPartners}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          onLoadMore={loadMore}
+          searchQuery={editSearchQuery}
+        />
+      ) : loading ? (
         <PartnersListSkeleton />
       ) : error ? (
         <div className="text-center py-16">

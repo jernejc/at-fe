@@ -1,6 +1,6 @@
 'use client';
 
-import { Download, Loader2, Pencil, X, Trash2, ChevronDown, CircleOff } from 'lucide-react';
+import { Download, Loader2, Pencil, X, Trash2, ChevronDown, CircleOff, Shuffle } from 'lucide-react';
 import { Menu } from '@base-ui/react/menu';
 import { SearchField } from '@/components/ui/search-field';
 import { Filter } from '@/components/ui/filter';
@@ -46,6 +46,12 @@ interface CampaignCompaniesToolbarProps {
   isReassigning: boolean;
   /** Campaign partners for the reassign dropdown. */
   partners: PartnerAssignmentSummary[];
+  /** Whether any companies in the list are unassigned. */
+  hasUnassigned: boolean;
+  /** Trigger server-side auto-assignment of unassigned companies. */
+  onAutoAssign: () => void;
+  /** Whether an auto-assign operation is in progress. */
+  isAutoAssigning: boolean;
 }
 
 /** Toolbar with search, filter, sort, export, and bulk-edit controls. */
@@ -68,6 +74,9 @@ export function CampaignCompaniesToolbar({
   isRemoving,
   isReassigning,
   partners,
+  hasUnassigned,
+  onAutoAssign,
+  isAutoAssigning,
 }: CampaignCompaniesToolbarProps) {
   const { isExporting, handleExport } = useCampaignExport({ slug: campaignSlug });
 
@@ -107,6 +116,21 @@ export function CampaignCompaniesToolbar({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
+        {hasUnassigned && (
+          <Button
+            variant="outline"
+            onClick={onAutoAssign}
+            disabled={isAutoAssigning}
+          >
+            {isAutoAssigning ? (
+              <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
+            ) : (
+              <Shuffle className="w-4 h-4" data-icon="inline-start" />
+            )}
+            Auto Assign
+          </Button>
+        )}
+
         <Button
           variant="outline"
           onClick={onStartEditing}

@@ -79,6 +79,8 @@ interface PartnerRowProps {
   selected?: boolean;
   /** Called when the selection toggle is clicked. Receives the mouse event for shift-key detection. */
   onSelect?: (e: React.MouseEvent) => void;
+  /** Whether the row is disabled (cannot be toggled). */
+  disabled?: boolean;
   /** Optional content to render on the right side, replacing the default metrics. */
   rightContent?: React.ReactNode;
   className?: string;
@@ -86,8 +88,11 @@ interface PartnerRowProps {
 }
 
 /** Horizontal row representation of a campaign partner. */
-export function PartnerRow({ partner, onClick, isActive, selectable, selected, onSelect, rightContent, className, ref }: PartnerRowProps) {
+export function PartnerRow({ partner, onClick, isActive, selectable, selected, onSelect, disabled, rightContent, className, ref }: PartnerRowProps) {
+  const isInteractive = !disabled && (!!onClick || !!selectable);
+
   const handleClick = (e: React.MouseEvent) => {
+    if (disabled) return;
     if (selectable && onSelect) {
       onSelect(e);
     } else {
@@ -96,6 +101,7 @@ export function PartnerRow({ partner, onClick, isActive, selectable, selected, o
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (selectable && onSelect) {
@@ -111,13 +117,14 @@ export function PartnerRow({ partner, onClick, isActive, selectable, selected, o
       ref={ref}
       className={cn(
         'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
-        (onClick || selectable) && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
-        (isActive || selected) && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
+        isInteractive && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        disabled && 'opacity-50 cursor-not-allowed',
+        (isActive || selected) && !disabled && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
         className,
       )}
       onClick={handleClick}
-      tabIndex={(onClick || selectable) ? 0 : undefined}
-      onKeyDown={(onClick || selectable) ? handleKeyDown : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      onKeyDown={isInteractive ? handleKeyDown : undefined}
     >
       {/* Selection toggle (edit mode) */}
       {selectable && (

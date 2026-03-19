@@ -41,11 +41,28 @@ export async function bulkAssignPartners(
     );
 }
 
+/**
+ * Remove a partner from a campaign.
+ * DELETE /api/v1/campaigns/{slug}/partners/{partner_id}
+ */
+export async function removeCampaignPartner(
+    slug: string,
+    partnerId: number
+): Promise<void> {
+    await fetchAPI<void>(
+        `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/${partnerId}`,
+        { method: 'DELETE' }
+    );
+}
+
 /** Assign all campaign companies to partners (server-side round-robin). */
-export async function assignAllCompaniesToPartners(slug: string): Promise<AssignAllResult> {
+export async function assignAllCompaniesToPartners(
+    slug: string,
+    options?: { clear_existing?: boolean }
+): Promise<AssignAllResult> {
     return fetchAPI<AssignAllResult>(
         `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/assign-all`,
-        { method: 'POST' }
+        { method: 'POST', body: JSON.stringify(options ?? {}) }
     );
 }
 

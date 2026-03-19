@@ -9,6 +9,8 @@ import { useBulkActions } from '@/components/campaigns/companies/useBulkActions'
 import { CampaignCompanyDetail } from '@/components/campaigns/companies/detail/CampaignCompanyDetail';
 import { DetailSidePanel } from '@/components/ui/detail-side-panel/DetailSidePanel';
 import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
+import { assignAllCompaniesToPartners } from '@/lib/api/partners';
+import { toast } from 'sonner';
 import type { CompanyRowData } from '@/lib/schemas';
 
 export default function CampaignCompaniesPage() {
@@ -34,6 +36,23 @@ export default function CampaignCompaniesPage() {
   const handleReassigned = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  // Auto-assign unassigned companies to partners
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+  const hasUnassigned = companiesState.companies.some((c) => !c.partner_id);
+
+  const handleAutoAssign = useCallback(async () => {
+    setIsAutoAssigning(true);
+    try {
+      const result = await assignAllCompaniesToPartners(slug, { clear_existing: false });
+      toast.success(`Assigned ${result.assigned} companies to partners`);
+      refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to auto-assign companies');
+    } finally {
+      setIsAutoAssigning(false);
+    }
+  }, [slug, refetch]);
 
   // Bulk edit mode
   const {
@@ -124,6 +143,9 @@ export default function CampaignCompaniesPage() {
         isRemoving={isRemoving}
         isReassigning={isReassigning}
         editPartners={partners}
+        hasUnassigned={hasUnassigned}
+        onAutoAssign={handleAutoAssign}
+        isAutoAssigning={isAutoAssigning}
       />
     </DetailSidePanel>
   );

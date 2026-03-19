@@ -4,6 +4,7 @@ import { Building2 } from 'lucide-react';
 import { CompanyRow, CompanyRowSkeleton } from '@/components/campaigns/CompanyRow';
 import { Separator } from '@/components/ui/separator';
 import { SelectToggle } from '@/components/ui/select-toggle';
+import { Pagination } from '@/components/ui/pagination';
 import { CampaignCompaniesToolbar } from './CampaignCompaniesToolbar';
 import type { CompanyRowData } from '@/lib/schemas';
 import type { PartnerAssignmentSummary } from '@/lib/schemas';
@@ -46,6 +47,12 @@ interface CampaignCompaniesViewProps extends UseCampaignCompaniesReturn {
   isReassigning: boolean;
   /** Campaign partners for the reassign dropdown. */
   editPartners: PartnerAssignmentSummary[];
+  /** Whether any companies in the list are unassigned. */
+  hasUnassigned: boolean;
+  /** Trigger server-side auto-assignment of unassigned companies. */
+  onAutoAssign: () => void;
+  /** Whether an auto-assign operation is in progress. */
+  isAutoAssigning: boolean;
 }
 
 /** Renders the campaign companies list with toolbar, rows, and empty state. */
@@ -61,6 +68,10 @@ export function CampaignCompaniesView({
   sortOptions,
   activeSort,
   setActiveSort,
+  page,
+  pageSize,
+  setPage,
+  totalCount,
   campaignSlug,
   selectedCompanyId,
   onCompanyClick,
@@ -79,6 +90,9 @@ export function CampaignCompaniesView({
   isRemoving,
   isReassigning,
   editPartners,
+  hasUnassigned,
+  onAutoAssign,
+  isAutoAssigning,
 }: CampaignCompaniesViewProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -101,6 +115,9 @@ export function CampaignCompaniesView({
         isRemoving={isRemoving}
         isReassigning={isReassigning}
         partners={editPartners}
+        hasUnassigned={hasUnassigned}
+        onAutoAssign={onAutoAssign}
+        isAutoAssigning={isAutoAssigning}
       />
 
       {loading ? (
@@ -135,6 +152,13 @@ export function CampaignCompaniesView({
               <Separator />
             </div>
           ))}
+          <Pagination
+            currentPage={page}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            disabled={loading}
+          />
         </div>
       )}
     </div>
