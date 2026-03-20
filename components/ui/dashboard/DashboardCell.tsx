@@ -13,7 +13,7 @@ const cellVariants = cva("p-4 shadow-[1px_1px_0_0_var(--border)]", {
     },
     height: {
       auto: "",
-      default: "h-55",
+      default: "md:h-55",
     },
     rowSpan: {
       1: "",

@@ -35,12 +35,29 @@ vi.mock("@/components/ui/separator", () => ({
   Separator: () => <hr />,
 }));
 
+const mockUseChangelog = vi.fn();
+vi.mock("./useChangelog", () => ({
+  useChangelog: () => mockUseChangelog(),
+}));
+vi.mock("./ChangelogDialog", () => ({
+  ChangelogDialog: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="changelog-dialog">Changelog</div> : null,
+}));
+
 beforeEach(() => {
   mockUseSession.mockReturnValue({
     data: { user: { name: "Jane Doe", email: "jane@example.com", image: null } },
   });
   mockUseTheme.mockReturnValue({ theme: "system", cycleTheme: vi.fn() });
   mockUsePartner.mockReturnValue({ partner: null });
+  mockUseChangelog.mockReturnValue({
+    dialogOpen: false,
+    openChangelog: vi.fn(),
+    closeChangelog: vi.fn(),
+    hasNewVersion: false,
+    versions: [],
+    newVersions: new Set(),
+  });
   mockSignOut.mockClear();
   mockFirebaseSignOut.mockClear();
 });
@@ -159,5 +176,64 @@ describe("NavUserMenu", () => {
     const backdrop = container.querySelector(".fixed.inset-0") as HTMLElement;
     await user.click(backdrop);
     expect(screen.queryByText("Jane Doe")).not.toBeInTheDocument();
+  });
+
+  it("shows blue dot when there is a new version", async () => {
+    mockUseChangelog.mockReturnValue({
+      dialogOpen: false,
+      openChangelog: vi.fn(),
+      closeChangelog: vi.fn(),
+      hasNewVersion: true,
+      versions: [],
+      newVersions: new Set(),
+    });
+
+    const user = userEvent.setup();
+    const { container } = render(<NavUserMenu />);
+
+    await user.click(screen.getByTestId("avatar").closest("button")!);
+    expect(container.querySelector(".bg-primary.rounded-full")).toBeInTheDocument();
+  });
+
+  it("does not show blue dot when version has been seen", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<NavUserMenu />);
+
+    await user.click(screen.getByTestId("avatar").closest("button")!);
+    expect(container.querySelector(".bg-primary.rounded-full")).not.toBeInTheDocument();
+  });
+
+  it("opens changelog dialog when version button is clicked", async () => {
+    const openChangelog = vi.fn();
+    mockUseChangelog.mockReturnValue({
+      dialogOpen: false,
+      openChangelog,
+      closeChangelog: vi.fn(),
+      hasNewVersion: false,
+      versions: [],
+      newVersions: new Set(),
+    });
+
+    const user = userEvent.setup();
+    render(<NavUserMenu />);
+
+    await user.click(screen.getByTestId("avatar").closest("button")!);
+    await user.click(screen.getByText(/changelog/i));
+
+    expect(openChangelog).toHaveBeenCalledOnce();
+  });
+
+  it("renders changelog dialog when dialogOpen is true", () => {
+    mockUseChangelog.mockReturnValue({
+      dialogOpen: true,
+      openChangelog: vi.fn(),
+      closeChangelog: vi.fn(),
+      hasNewVersion: false,
+      versions: [],
+      newVersions: new Set(),
+    });
+
+    render(<NavUserMenu />);
+    expect(screen.getByTestId("changelog-dialog")).toBeInTheDocument();
   });
 });

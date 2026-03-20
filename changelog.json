@@ -1,0 +1,36 @@
+{
+  "versions": [
+    {
+      "version": "1.2.0",
+      "date": "2026-03-20",
+      "changes": ["Added changelog with version history and release notes"]
+    },
+    {
+      "version": "1.1.2",
+      "date": "2026-03-20",
+      "changes": ["Fixed playbook schema compatibility issues"]
+    },
+    {
+      "version": "1.1.1",
+      "date": "2026-03-20",
+      "changes": [
+        "Fixed opportunities list display",
+        "Fixed cell background colours and alignments"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-03-19",
+      "changes": [
+        "Auto-assign and edit partners in existing campaigns",
+        "Adopted new playbook schema",
+        "Fixed z-index sorting issues"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-03-18",
+      "changes": ["Major redesign and refactor", "Initial production release"]
+    }
+  ]
+}
