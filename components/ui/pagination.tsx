@@ -67,7 +67,7 @@ export function Pagination({
   };
 
   return (
-    <div className="sticky bottom-0 z-20 border-t border-border bg-background">
+    <div className="sticky bottom-0 z-10 border-t border-border bg-background">
       <div className="max-w-[1600px] mx-auto px-6 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Page Info */}
