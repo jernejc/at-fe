@@ -90,7 +90,7 @@ export function PartnerCampaignOverviewDashboard({
         </div>
       </DashboardCell>
 
-      <DashboardCell size="quarter">
+      <DashboardCell size="quarter" gradient={!loading && avgFit && avgFit > 75 ? 'green' : undefined}>
         <DashboardCellTitle>Avg. fit</DashboardCellTitle>
         <DashboardCellBody loading={loading} className="flex items-center gap-3">
           {avgFit != null ? (

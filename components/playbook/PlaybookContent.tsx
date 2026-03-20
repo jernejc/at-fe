@@ -120,14 +120,14 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
             </DashboardCellBody>
           </DashboardCell>
 
-          <DashboardCell size="half" height="auto">
+          <DashboardCell size="half" height="auto" justify="start">
             <DashboardCellTitle>Elevator Pitch</DashboardCellTitle>
             <DashboardCellBody className="text-sm font-light font-sans">
               {playbook.elevator_pitch ?? '—'}
             </DashboardCellBody>
           </DashboardCell>
 
-          <DashboardCell size="half" height="auto">
+          <DashboardCell size="half" height="auto" justify="start">
             <DashboardCellTitle>Value Proposition</DashboardCellTitle>
             <DashboardCellBody className="text-sm font-light font-sans">
               {playbook.value_proposition ?? '—'}

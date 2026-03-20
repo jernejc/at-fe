@@ -29,7 +29,7 @@ export function NewOpportunitiesCell({ items, loading }: NewOpportunitiesCellPro
       </DashboardCellTitle>
 
       {loading ? (
-        <div className="flex flex-col mt-2 -mx-4">
+        <div className="flex flex-col mt-2">
           {Array.from({ length: 3 }, (_, i) => (
             <CompanyRowSkeleton key={i} hideStatus visibleMetrics={[]} />
           ))}
@@ -39,12 +39,12 @@ export function NewOpportunitiesCell({ items, loading }: NewOpportunitiesCellPro
           <p className="text-sm text-muted-foreground">No new opportunities this week</p>
         </div>
       ) : (
-        <div className="flex flex-col mt-2 -mx-4 overflow-y-auto">
+        <div className="flex flex-col mt-2">
           {items.map((item) => (
             <CompanyRow
               key={item.assignment.id}
               company={mapAssignmentToCompanyRow(item)}
-              onClick={() => router.push(`/partner/campaigns/${item.campaignSlug}`)}
+              onClick={() => router.push(`/partner/campaigns/${item.campaignSlug}/companies`)}
               visibleMetrics={[]}
             />
           ))}

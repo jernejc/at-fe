@@ -276,7 +276,7 @@ function CampaignCell({
 /** Quarter-width cell showing the product fit score. */
 function FitScoreCell({ fitScore }: { fitScore: number | null }) {
   return (
-    <DashboardCell size="quarter">
+    <DashboardCell size="quarter" gradient={fitScore && fitScore > 75 ? 'green' : 'none'}>
       <DashboardCellTitle>Product Fit</DashboardCellTitle>
       <DashboardCellBody className="flex items-center gap-3">
         {fitScore != null ? (
@@ -305,7 +305,7 @@ function StatusCell({
       <div>
         <DashboardCellTitle>Status</DashboardCellTitle>
         {isNew && (
-          <Badge variant="yellow" size="sm" className="mt-1">New</Badge>
+          <Badge variant="orange" className="mt-1">New</Badge>
         )}
       </div>
       <DashboardCellBody className="flex items-center gap-3">

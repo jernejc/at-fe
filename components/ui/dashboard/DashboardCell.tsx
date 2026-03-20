@@ -37,9 +37,15 @@ const innerVariants = cva("rounded-xl p-4 flex flex-col justify-between h-full",
         "bg-gradient-to-b from-green-50 to-emerald-50 dark:from-green-950/60 dark:to-emerald-950/60",
       red: "bg-gradient-to-b from-red-50 to-rose-50 dark:from-red-950/60 dark:to-rose-950/60",
     },
+    justify: {
+      start: "justify-start",
+      end: "justify-end",
+      between: "justify-between"
+    }
   },
   defaultVariants: {
     gradient: "none",
+    justify: "between"
   },
 })
 
@@ -57,13 +63,14 @@ function DashboardCell({
   height,
   rowSpan,
   gradient,
+  justify,
   className,
   children,
   ...props
 }: DashboardCellProps) {
   return (
     <div className={cn(cellVariants({ size, height, rowSpan }), className)} {...props}>
-      <div className={cn(innerVariants({ gradient }))}>
+      <div className={cn(innerVariants({ gradient, justify }))}>
         {children}
       </div>
     </div>

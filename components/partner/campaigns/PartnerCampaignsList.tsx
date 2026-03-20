@@ -52,7 +52,7 @@ export function PartnerCampaignsList() {
       {/* Dashboard metrics */}
       <Dashboard className="grid-rows-2">
         {/* Left half: New Opportunities (spans 2 cols + 2 rows) */}
-        <DashboardCell size="half" height="auto" rowSpan={2}>
+        <DashboardCell size="half" height="auto" rowSpan={2} className="max-h-110 overflow-y-auto">
           <NewOpportunitiesCell items={newOpportunities} loading={newOpportunitiesLoading} />
         </DashboardCell>
 
