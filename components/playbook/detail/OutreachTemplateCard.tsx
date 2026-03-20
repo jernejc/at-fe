@@ -34,28 +34,15 @@ const MESSAGE_TYPE_LABELS: Record<string, string> = {
   voicemail_script: 'Voicemail Script',
 };
 
-/** Collects non-null message fields from a template into a renderable list. */
+/** Collects message fields from a template into a renderable list. */
 function buildTemplateFields(template: OutreachTemplateResponse): TemplateField[] {
-  // Use structured messages array when available (new API schema)
-  if (template.messages && template.messages.length > 0) {
-    return [...template.messages]
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((msg) => ({
-        label: MESSAGE_TYPE_LABELS[msg.message_type] ?? msg.message_type.replace(/_/g, ' '),
-        subject: msg.subject,
-        content: msg.body,
-      }));
-  }
-
-  // Legacy fallback: use top-level fields
-  const fields: TemplateField[] = [];
-  if (template.draft_message) fields.push({ label: 'Draft Message', content: template.draft_message });
-  if (template.linkedin_connection_note) fields.push({ label: 'LinkedIn Note', content: template.linkedin_connection_note });
-  if (template.follow_up_email) fields.push({ label: 'Follow-up Email', content: template.follow_up_email });
-  if (template.phone_script) fields.push({ label: 'Phone Script', content: template.phone_script });
-  if (template.phone_talking_points?.length) fields.push({ label: 'Talking Points', content: template.phone_talking_points });
-  if (template.voicemail_script) fields.push({ label: 'Voicemail', content: template.voicemail_script });
-  return fields;
+  return [...template.messages]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((msg) => ({
+      label: MESSAGE_TYPE_LABELS[msg.message_type] ?? msg.message_type.replace(/_/g, ' '),
+      subject: msg.subject,
+      content: msg.body,
+    }));
 }
 
 /** Copies field content to clipboard and shows a toast notification. */

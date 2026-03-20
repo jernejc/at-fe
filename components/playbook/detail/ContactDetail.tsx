@@ -2,7 +2,6 @@ import type { PlaybookContactResponse } from '@/lib/schemas';
 import { Mail, Phone } from 'lucide-react';
 import { LinkedinIcon } from '@/components/ui/icons/linkedin-icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import {
@@ -75,10 +74,9 @@ export function ContactDetail({ contact }: ContactDetailProps) {
         {/* Roles */}
         {(contact.role_category || contact.committee_role) && (
           <DashboardCell size="half" height="auto">
-            <DashboardCellTitle>Roles</DashboardCellTitle>
+            <DashboardCellTitle>Role</DashboardCellTitle>
             <DashboardCellBody size="sm" className="flex items-center gap-2 flex-wrap">
-              {contact.role_category && <Badge variant="grey">{contact.role_category}</Badge>}
-              {contact.committee_role && <Badge variant="blue">{contact.committee_role}</Badge>}
+              {contact.committee_role || contact.role_category}
             </DashboardCellBody>
           </DashboardCell>
         )}
@@ -128,17 +126,17 @@ function ContactLinks({ contact }: { contact: PlaybookContactResponse }) {
     <div className="flex items-center gap-3">
       {contact.linkedin_url && (
         <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-          <LinkedinIcon className="w-4 h-4" />
+          <LinkedinIcon className="w-6 h-6" />
         </a>
       )}
       {contact.email && (
         <a href={`mailto:${contact.email}`} className="text-muted-foreground hover:text-foreground transition-colors">
-          <Mail className="w-4 h-4" />
+          <Mail className="w-6 h-6" />
         </a>
       )}
       {contact.phone && (
         <a href={`tel:${contact.phone}`} className="text-muted-foreground hover:text-foreground transition-colors">
-          <Phone className="w-4 h-4" />
+          <Phone className="w-6 h-6" />
         </a>
       )}
     </div>

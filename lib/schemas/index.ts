@@ -53,6 +53,7 @@ export type {
     CommitteeCoverage,
     CompanyPlaybooksResponse,
     ObjectionHandlingEntry,
+    ApproachNotes,
 } from './playbook';
 
 // Signal types

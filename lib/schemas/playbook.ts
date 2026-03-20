@@ -57,13 +57,33 @@ export interface OutreachTemplateResponse {
     playbook_id: number;
     contact_id: number;
     recipient: string | null;
-    draft_message: string | null;
-    linkedin_connection_note: string | null;
-    follow_up_email: string | null;
-    phone_script: string | null;
-    phone_talking_points: string[] | null;
-    voicemail_script: string | null;
     messages: OutreachMessage[];
+}
+
+/** KPI metrics and value framing anchored to the contact's role. */
+export interface RoleAnchor {
+    kpi_metrics: string[];
+    role_category: string;
+    value_framing: string;
+    pain_hypothesis: string;
+}
+
+/** A trigger hook describing a timely reason to engage a contact. */
+export interface TriggerHook {
+    why_now: string;
+    signal_type: string;
+    signal_category: string;
+    trigger_summary: string;
+    hypothesis_of_value: string;
+}
+
+/** Structured approach notes for a playbook contact. */
+export interface ApproachNotes {
+    role_anchor: RoleAnchor;
+    trigger_hooks: TriggerHook[];
+    opening_approach: string;
+    resistance_strategy: string;
+    meeting_value_exchange: string;
 }
 
 export interface PlaybookContact {
@@ -95,7 +115,7 @@ export interface PlaybookContactResponse extends PlaybookContact {
     // Channel preferences
     preferred_channel: string | null;
     channel_sequence: string[] | null;
-    approach_notes: string | null;
+    approach_notes: ApproachNotes | null;
     // Persona
     persona_type: string | null;
     persona_types: string[] | null;
