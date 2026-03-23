@@ -1,6 +1,11 @@
 {
   "versions": [
     {
+      "version": "1.2.1",
+      "date": "2026-03-23",
+      "changes": ["Improved campaign creation error handling to prevent duplicate campaigns on partial failure"]
+    },
+    {
       "version": "1.2.0",
       "date": "2026-03-20",
       "changes": ["Added changelog with version history and release notes"]
