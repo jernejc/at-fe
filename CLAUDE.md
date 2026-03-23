@@ -10,7 +10,7 @@ LookAcross Account Intelligence — a B2B SaaS frontend for tracking buying sign
 
 ```bash
 npm run dev        # Start dev server (uses --webpack flag, not Turbopack)
-npm run build      # Production build
+npm run build      # Run tests + lint, then production build
 npm run start      # Start production server
 npm run lint       # ESLint (flat config, v9)
 npm run format     # Prettier (format all files)
