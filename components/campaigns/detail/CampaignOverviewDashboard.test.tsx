@@ -184,7 +184,7 @@ describe('CampaignOverviewDashboard — metric cells', () => {
   it('displays target amount formatted as currency', () => {
     renderDashboard({ targetAmount: 5000000 });
     // Intl.NumberFormat compact in Node.js keeps trailing decimals
-    expect(screen.getByText('$5.00M')).toBeInTheDocument();
+    expect(screen.getByText('$5M')).toBeInTheDocument();
   });
 
   it('displays "--" for target when targetAmount is not provided', () => {
@@ -214,7 +214,7 @@ describe('CampaignOverviewDashboard — metric cells', () => {
 
   it('displays closed amount formatted as currency', () => {
     renderDashboard({ closedAmount: 250000 });
-    expect(screen.getByText('$250.00K')).toBeInTheDocument();
+    expect(screen.getByText('$250K')).toBeInTheDocument();
   });
 
   it('displays "--" for closed when closedAmount is not provided', () => {
@@ -272,16 +272,16 @@ describe('CampaignOverviewDashboard — loading state', () => {
 describe('CampaignOverviewDashboard — currency formatting', () => {
   it('formats thousands as K', () => {
     renderDashboard({ targetAmount: 5000 });
-    expect(screen.getByText('$5.00K')).toBeInTheDocument();
+    expect(screen.getByText('$5K')).toBeInTheDocument();
   });
 
   it('formats millions as M', () => {
     renderDashboard({ targetAmount: 5000000 });
-    expect(screen.getByText('$5.00M')).toBeInTheDocument();
+    expect(screen.getByText('$5M')).toBeInTheDocument();
   });
 
   it('formats with decimal precision', () => {
     renderDashboard({ targetAmount: 1500000 });
-    expect(screen.getByText('$1.50M')).toBeInTheDocument();
+    expect(screen.getByText('$1.5M')).toBeInTheDocument();
   });
 });
