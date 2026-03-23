@@ -10,7 +10,7 @@ LookAcross Account Intelligence — a B2B SaaS frontend for tracking buying sign
 
 ```bash
 npm run dev        # Start dev server (uses --webpack flag, not Turbopack)
-npm run build      # Run tests + lint, then production build
+npm run build      # Production build
 npm run start      # Start production server
 npm run lint       # ESLint (flat config, v9)
 npm run format     # Prettier (format all files)
@@ -28,12 +28,14 @@ npm run test:watch # Vitest (watch mode)
 ### Proxy (`proxy.ts`)
 
 Auth guard and role-based routing using Next.js 16's [proxy convention](https://nextjs.org/docs/messages/middleware-to-proxy). Exports `proxy` function and `config` matcher. Two roles:
+
 - **pdm** — internal users, full access except `/partner/*`
 - **partner** — restricted to `/partner/*` routes only
 
 ### API Layer (`lib/api/`)
 
 All API calls go through `fetchAPI<T>()` in `lib/api/core.ts`:
+
 - Injects Firebase Bearer token on every request
 - Auto-retries on 401 with forced token refresh
 - Parses FastAPI-style errors (`{ "detail": "..." }`)
@@ -46,6 +48,7 @@ WebSocket client for agentic/streaming search lives in `hooks/useAgenticSearch.t
 ### State Management
 
 No global state library. State is managed via:
+
 - **React Context (global)**: `PartnerProvider` (current partner data) and `ThemeProvider` (dark/light/system theme via localStorage — custom implementation, not `next-themes`)
 - **React Context (feature-specific)**:
   - `CampaignDetailProvider` — caches campaign, overview, and partners data; provides publish/unpublish handlers
