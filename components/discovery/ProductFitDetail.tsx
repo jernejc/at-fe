@@ -116,8 +116,9 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
 
 /** Renders an ExpandableCard with SignalRow items and custom contribution metrics. */
 function SignalMatchCard({ title, matches }: { title: string; matches: SignalContribution[] }) {
-  const preview = matches.slice(0, 3);
-  const remaining = matches.slice(3);
+  const sorted = [...matches].sort((a, b) => b.strength - a.strength);
+  const preview = sorted.slice(0, 3);
+  const remaining = sorted.slice(3);
 
   return (
     <ExpandableCard>
@@ -163,10 +164,6 @@ function SignalMatchCard({ title, matches }: { title: string; matches: SignalCon
 function ContributionMetrics({ match }: { match: SignalContribution }) {
   return (
     <div className="flex items-center gap-4 text-xs text-muted-foreground">
-      <span>
-        <span className="text-foreground font-medium">{Math.round(match.strength)}%</span>
-        <span className="ml-1">str</span>
-      </span>
       <span>
         <span className="text-foreground font-medium">{match.weight}x</span>
         <span className="ml-1">wt</span>
