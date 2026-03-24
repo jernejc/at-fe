@@ -2,6 +2,23 @@
 
 import type { CompanySummary, DataDepth } from './company';
 
+/** Single item returned by GET /api/v1/partners/companies (cross-campaign). */
+export interface PartnerCompanyItem {
+    company: CompanySummary & {
+        data_depth: DataDepth;
+        revenue: string | null;
+        enriched_summary: string | null;
+    };
+    campaign_id: number;
+    campaign_name: string;
+    campaign_slug: string;
+    campaign_icon: string;
+    assigned_at: string;
+    assigned_by: string | null;
+    assignment_status: string;
+    notes: string | null;
+}
+
 export interface PartnerSummary {
     id: number;
     name: string;

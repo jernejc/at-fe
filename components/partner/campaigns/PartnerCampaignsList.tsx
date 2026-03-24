@@ -30,6 +30,10 @@ export function PartnerCampaignsList() {
     pageSize,
     newOpportunities,
     newOpportunitiesLoading,
+    newOpportunitiesTotalCount,
+    newOpportunitiesHasMore,
+    newOpportunitiesLoadMore,
+    newOpportunitiesLoadingMore,
     handleSearchChange,
     handleFiltersChange,
     handleSortChange,
@@ -53,7 +57,14 @@ export function PartnerCampaignsList() {
       <Dashboard className="grid-rows-2">
         {/* Left half: New Opportunities (spans 2 cols + 2 rows) */}
         <DashboardCell size="half" height="auto" rowSpan={2} className="max-h-110 overflow-y-auto">
-          <NewOpportunitiesCell items={newOpportunities} loading={newOpportunitiesLoading} />
+          <NewOpportunitiesCell
+            items={newOpportunities}
+            loading={newOpportunitiesLoading}
+            totalCount={newOpportunitiesTotalCount}
+            hasMore={newOpportunitiesHasMore}
+            loadMore={newOpportunitiesLoadMore}
+            loadingMore={newOpportunitiesLoadingMore}
+          />
         </DashboardCell>
 
         {/* Right half, top row */}

@@ -126,6 +126,7 @@ export type {
     PartnerCompanyAssignmentCreate,
     PartnerCompanyAssignmentRead,
     PartnerCompanyAssignmentWithCompany,
+    PartnerCompanyItem,
     BulkCompanyAssignResult,
     AssignAllResult,
 } from './partner';

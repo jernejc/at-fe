@@ -68,6 +68,7 @@ export {
     getCampaignPartners,
     bulkAssignPartners,
     assignAllCompaniesToPartners,
+    getPartnerCompanies,
     getPartnerAssignedCompanies,
     assignCompanyToPartner,
     bulkAssignCompaniesToPartner,

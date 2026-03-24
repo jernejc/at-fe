@@ -53,7 +53,14 @@ export function usePartnerCampaignsList() {
   const [sort, setSort] = useState<SortState | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { newOpportunities, newOpportunitiesLoading } = useNewOpportunities(campaigns, partnerId);
+  const {
+    newOpportunities,
+    newOpportunitiesLoading,
+    totalCount: newOpportunitiesTotalCount,
+    hasMore: newOpportunitiesHasMore,
+    loadMore: newOpportunitiesLoadMore,
+    loadingMore: newOpportunitiesLoadingMore,
+  } = useNewOpportunities(partnerId);
 
   const apiParams = useMemo(() => {
     const statusFilter = filters.find((f) => f.key === 'status');
@@ -176,6 +183,10 @@ export function usePartnerCampaignsList() {
     pageSize: PAGE_SIZE,
     newOpportunities,
     newOpportunitiesLoading,
+    newOpportunitiesTotalCount,
+    newOpportunitiesHasMore,
+    newOpportunitiesLoadMore,
+    newOpportunitiesLoadingMore,
     handleSearchChange,
     handleFiltersChange,
     handleSortChange,

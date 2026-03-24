@@ -1,19 +1,31 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { CompanyRow, CompanyRowSkeleton } from '@/components/campaigns/CompanyRow';
 import { DashboardCellTitle } from '@/components/ui/dashboard';
+import { Button } from '@/components/ui/button';
 import type { NewOpportunityItem } from './useNewOpportunities';
 import { mapAssignmentToCompanyRow } from './useNewOpportunities';
 
 interface NewOpportunitiesCellProps {
   items: NewOpportunityItem[];
   loading: boolean;
+  totalCount: number;
+  hasMore: boolean;
+  loadMore: () => void;
+  loadingMore: boolean;
 }
 
 /** Dashboard cell content showing recently assigned companies as new opportunities. */
-export function NewOpportunitiesCell({ items, loading }: NewOpportunitiesCellProps) {
+export function NewOpportunitiesCell({
+  items,
+  loading,
+  totalCount,
+  hasMore,
+  loadMore,
+  loadingMore,
+}: NewOpportunitiesCellProps) {
   const router = useRouter();
 
   return (
@@ -21,9 +33,9 @@ export function NewOpportunitiesCell({ items, loading }: NewOpportunitiesCellPro
       <DashboardCellTitle className="flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-amber-500" />
         New Opportunities
-        {!loading && items.length > 0 && (
+        {!loading && totalCount > 0 && (
           <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
-            {items.length}
+            {totalCount}
           </span>
         )}
       </DashboardCellTitle>
@@ -42,12 +54,30 @@ export function NewOpportunitiesCell({ items, loading }: NewOpportunitiesCellPro
         <div className="flex flex-col mt-2">
           {items.map((item) => (
             <CompanyRow
-              key={item.assignment.id}
+              key={`${item.item.campaign_id}-${item.item.company.id}`}
               company={mapAssignmentToCompanyRow(item)}
               onClick={() => router.push(`/partner/campaigns/${item.campaignSlug}/companies`)}
               visibleMetrics={[]}
             />
           ))}
+          {hasMore && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-1 self-center text-muted-foreground"
+              onClick={loadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Loading…
+                </>
+              ) : (
+                'Load more'
+              )}
+            </Button>
+          )}
         </div>
       )}
     </div>

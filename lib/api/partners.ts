@@ -9,6 +9,7 @@ import type {
     PartnerCompanyAssignmentCreate,
     PartnerCompanyAssignmentRead,
     PartnerCompanyAssignmentWithCompany,
+    PartnerCompanyItem,
     BulkCompanyAssignResult,
     AssignAllResult,
 } from '../schemas';
@@ -64,6 +65,21 @@ export async function assignAllCompaniesToPartners(
         `/api/v1/campaigns/${encodeURIComponent(slug)}/partners/assign-all`,
         { method: 'POST', body: JSON.stringify(options ?? {}) }
     );
+}
+
+// ============= Partner Companies (cross-campaign) =============
+
+/**
+ * List companies assigned to the current partner across all campaigns.
+ * GET /api/v1/partners/companies
+ */
+export async function getPartnerCompanies(params: {
+    assigned_since?: string;
+    page?: number;
+    page_size?: number;
+}): Promise<PaginatedResponse<PartnerCompanyItem>> {
+    const query = buildQueryString(params as Record<string, unknown>);
+    return fetchAPI<PaginatedResponse<PartnerCompanyItem>>(`/api/v1/partners/companies${query}`);
 }
 
 // ============= Partner-Company Assignments =============
