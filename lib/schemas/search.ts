@@ -190,6 +190,7 @@ export interface WSCompleteMessage extends WSBaseMessage {
     search_time_ms: number;
     observation: string;
     suggested_queries: string[];
+    suggested_name?: string;
     refinement_tips: string[];
 }
 

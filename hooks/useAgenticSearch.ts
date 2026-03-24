@@ -43,6 +43,7 @@ export interface AgenticSearchState {
     error: string | null;
     requestId: string | null;
     suggestedQueries: string[];
+    suggestedName: string | null;
     refinementTips: string[];
     interestSummary: WSInterestFrequency[];
 }
@@ -78,6 +79,7 @@ const initialState: AgenticSearchState = {
     error: null,
     requestId: null,
     suggestedQueries: [],
+    suggestedName: null,
     refinementTips: [],
     interestSummary: [],
 };
@@ -187,6 +189,7 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
                             partnerSuggestions: data.partner_suggestions || prev.partnerSuggestions,
                             searchTimeMs: data.search_time_ms,
                             suggestedQueries: data.suggested_queries || [],
+                            suggestedName: data.suggested_name || null,
                             refinementTips: data.refinement_tips || [],
                             interestSummary: data.partner_suggestion_summary?.based_on_interests || prev.interestSummary,
                         };

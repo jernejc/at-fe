@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAgenticSearch } from '@/hooks/useAgenticSearch';
 import type { ProductSummary } from '@/lib/schemas';
@@ -69,6 +69,13 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
     step === 'partners',
   );
   const creation = useCampaignCreation();
+
+  // Prefill campaign name with AI-suggested name when search completes
+  useEffect(() => {
+    if (agenticState.suggestedName && !creation.campaignName) {
+      creation.setCampaignName(agenticState.suggestedName);
+    }
+  }, [agenticState.suggestedName, creation]);
 
   // Navigation helpers
   const goTo = useCallback((target: WizardStep) => {
