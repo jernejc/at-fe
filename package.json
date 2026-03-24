@@ -1,6 +1,6 @@
 {
   "name": "at-fe",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -40,6 +40,7 @@
     "react-dom": "19.2.4",
     "react-leaflet": "^5.0.0",
     "react-leaflet-cluster": "^4.0.0",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.6.0",
     "shadcn": "^3.6.2",
     "sharp": "^0.34.5",

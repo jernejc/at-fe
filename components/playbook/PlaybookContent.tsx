@@ -11,6 +11,8 @@ import {
   DashboardCellTitle,
   DashboardCellBody,
 } from '@/components/ui/dashboard';
+import { MarkdownContent } from '@/components/ui/markdown-content';
+import { Badge } from '@/components/ui/badge';
 import { ContactRow } from './ContactRow';
 import { StepRow } from './StepRow';
 import { QuestionRow } from './QuestionRow';
@@ -102,11 +104,13 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
 
           <DashboardCell size="quarter">
             <DashboardCellTitle>Channels</DashboardCellTitle>
-            <DashboardCellBody size="sm">
+            <DashboardCellBody size="sm" className="flex flex-wrap gap-1.5">
               {channelCount > 0
-                ? (playbook.recommended_channels as string[])
-                  .map((ch) => ch.replace(/_/g, ' '))
-                  .join(', ')
+                ? (playbook.recommended_channels as string[]).map((ch) => (
+                  <Badge key={ch} variant="grey">
+                    {ch.replace(/_/g, ' ')}
+                  </Badge>
+                ))
                 : '—'}
             </DashboardCellBody>
           </DashboardCell>
@@ -123,14 +127,14 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
           <DashboardCell size="half" height="auto" justify="start">
             <DashboardCellTitle>Elevator Pitch</DashboardCellTitle>
             <DashboardCellBody className="text-sm font-light font-sans">
-              {playbook.elevator_pitch ?? '—'}
+              <MarkdownContent content={playbook.elevator_pitch} />
             </DashboardCellBody>
           </DashboardCell>
 
           <DashboardCell size="half" height="auto" justify="start">
             <DashboardCellTitle>Value Proposition</DashboardCellTitle>
             <DashboardCellBody className="text-sm font-light font-sans">
-              {playbook.value_proposition ?? '—'}
+              <MarkdownContent content={playbook.value_proposition} />
             </DashboardCellBody>
           </DashboardCell>
         </Dashboard>

@@ -10,6 +10,7 @@ import {
   DashboardCellTitle,
   DashboardCellBody,
 } from '@/components/ui/dashboard';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 import { EngagementStrategyCard } from './EngagementStrategyCard';
 import { OutreachTemplateCards } from './OutreachTemplateCard';
 
@@ -86,7 +87,7 @@ export function ContactDetail({ contact }: ContactDetailProps) {
           <DashboardCell size="full" height="auto">
             <DashboardCellTitle>Fit Reasoning</DashboardCellTitle>
             <DashboardCellBody size="sm" className="text-sm font-sans font-normal leading-relaxed">
-              {contact.fit_reasoning ?? contact.fit_assessment?.reasoning}
+              <MarkdownContent content={contact.fit_reasoning ?? contact.fit_assessment?.reasoning} />
             </DashboardCellBody>
           </DashboardCell>
         )}
