@@ -19,6 +19,8 @@ export async function getProductCandidates(
     min_urgency_score?: number;
     industry?: string;
     country?: string;
+    sort_by?: string;
+    sort_order?: 'asc' | 'desc';
   },
   requestOptions?: RequestInit
 ): Promise<ProductCandidatesResponse> {

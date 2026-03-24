@@ -23,12 +23,12 @@ const SORT_OPTIONS: SortOptionDefinition[] = [
 
 const SCORE_FILTER: FilterDefinition = {
   key: 'score',
-  label: 'Score',
+  label: 'Min Score',
   operators: ['is'],
   options: [
-    { value: 'hot', label: 'Hot (80+)' },
-    { value: 'warm', label: 'Warm (60-79)' },
-    { value: 'cold', label: 'Cold (<60)' },
+    { value: 'hot', label: '80+' },
+    { value: 'warm', label: '60+' },
+    { value: 'cold', label: '40+' },
   ],
 };
 
@@ -230,23 +230,16 @@ export function useDiscoveryCompanies(): UseDiscoveryCompaniesReturn {
           total = result.total_results;
         } else if (productId) {
           // Product candidates mode
-          const minFit = scoreFilter?.value === 'hot' ? 0.8 : scoreFilter?.value === 'warm' ? 0.6 : undefined;
+          const minFit = scoreFilter?.value === 'hot' ? 0.8 : scoreFilter?.value === 'warm' ? 0.6 : scoreFilter?.value === 'cold' ? 0.4 : undefined;
           const result = await getProductCandidates(productId, {
             page,
             page_size: PAGE_SIZE,
             min_fit_score: minFit,
+            sort_by: activeSort?.field,
+            sort_order: activeSort?.direction,
           });
           rows = result.candidates.map(candidateToRow);
           total = result.total;
-
-          // Client-side score filtering for 'cold' (< 0.6)
-          if (scoreFilter?.value === 'cold') {
-            rows = rows.filter((r) => r.fit_score != null && r.fit_score < 0.6);
-          }
-          // Client-side warm upper-bound (< 0.8)
-          if (scoreFilter?.value === 'warm') {
-            rows = rows.filter((r) => r.fit_score != null && r.fit_score < 0.8);
-          }
         } else {
           // All companies mode
           const result = await getCompanies({

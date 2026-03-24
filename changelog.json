@@ -1,6 +1,14 @@
 {
   "versions": [
     {
+      "version": "1.2.4",
+      "date": "2026-03-24",
+      "changes": [
+        "Added sorting support for product candidates endpoint",
+        "Fixed discovery list showing no results when product and score filters are both active"
+      ]
+    },
+    {
       "version": "1.2.3",
       "date": "2026-03-24",
       "changes": [
