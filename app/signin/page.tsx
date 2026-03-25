@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { LiquidMetal } from "@paper-design/shaders-react";
+import Image from "next/image";
 import { Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSignIn } from "./useSignIn";
@@ -30,7 +31,14 @@ export default function SignInPage() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4 pb-12">
       {/* Shader animation */}
-      <div className="w-full max-w-md h-[280px] sm:h-80 mb-6 -mt-20 overflow-hidden bg-background">
+      <div className="relative w-full max-w-md h-[280px] sm:h-80 mb-6 -mt-20 overflow-hidden bg-background">
+        <Image
+          src="/images/liquid-placeholder.png"
+          alt=""
+          fill
+          className="absolute inset-0 object-contain"
+          priority
+        />
         <LiquidMetal
           width="100%"
           height="100%"
