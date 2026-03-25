@@ -5,6 +5,7 @@ import { useCampaignCompanyDetail } from './useCampaignCompanyDetail';
 import { CampaignCompanyDetailSkeleton } from './CampaignCompanyDetailSkeleton';
 import { AssignmentCard } from './AssignmentCard';
 import { CampaignFitCard } from './CampaignFitCard';
+import { ContactsCard } from './ContactsCard';
 import { CompanyInfoCard } from './CompanyInfoCard';
 import { AnalysisCard } from './AnalysisCard';
 import type { CompanyRowData, PartnerAssignmentSummary } from '@/lib/schemas';
@@ -29,8 +30,10 @@ export function CampaignCompanyDetail({
     company: companyData,
     explainability,
     fitBreakdown,
+    playbook,
     loading,
     fitLoading,
+    playbookLoading,
     reassigning,
     reassignToPartner,
   } = useCampaignCompanyDetail({
@@ -67,6 +70,11 @@ export function CampaignCompanyDetail({
             fitsSummary={explainability?.fits_summary ?? []}
             targetProductId={targetProductId}
             loading={fitLoading}
+          />
+
+          <ContactsCard
+            contacts={playbook?.contacts ?? []}
+            loading={playbookLoading}
           />
 
           {companyData && <CompanyInfoCard company={companyData} />}

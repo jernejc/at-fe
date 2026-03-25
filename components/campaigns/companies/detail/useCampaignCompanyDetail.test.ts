@@ -6,6 +6,8 @@ import type { CompanyRead, CompanyExplainabilityResponse, FitScore } from '@/lib
 const mockGetCompany = vi.fn();
 const mockGetCompanyExplainability = vi.fn();
 const mockGetFitBreakdown = vi.fn();
+const mockGetCompanyPlaybooks = vi.fn();
+const mockGetCompanyPlaybook = vi.fn();
 const mockAssignCompanyToPartner = vi.fn();
 const mockUnassignCompanyFromPartner = vi.fn();
 const mockToastSuccess = vi.fn();
@@ -18,6 +20,11 @@ vi.mock('@/lib/api/companies', () => ({
 
 vi.mock('@/lib/api/fit-scores', () => ({
   getFitBreakdown: (...args: any[]) => mockGetFitBreakdown(...args),
+}));
+
+vi.mock('@/lib/api/playbooks', () => ({
+  getCompanyPlaybooks: (...args: any[]) => mockGetCompanyPlaybooks(...args),
+  getCompanyPlaybook: (...args: any[]) => mockGetCompanyPlaybook(...args),
 }));
 
 vi.mock('@/lib/api/partners', () => ({
@@ -151,6 +158,8 @@ beforeEach(() => {
   mockGetCompany.mockResolvedValue({ company: makeCompanyRead(), counts: {} });
   mockGetCompanyExplainability.mockResolvedValue(makeExplainability());
   mockGetFitBreakdown.mockResolvedValue(makeFitScore());
+  mockGetCompanyPlaybooks.mockResolvedValue({ playbooks: [{ id: 100, product_id: 10, product_name: 'Product A' }] });
+  mockGetCompanyPlaybook.mockResolvedValue({ id: 100, contacts: [{ id: 1, name: 'Jane Doe' }] });
   mockAssignCompanyToPartner.mockResolvedValue({});
   mockUnassignCompanyFromPartner.mockResolvedValue(undefined);
 });
@@ -241,6 +250,62 @@ describe('useCampaignCompanyDetail — fit breakdown', () => {
 
     expect(result.current.fitBreakdown).toBeNull();
     expect(result.current.fitLoading).toBe(false);
+  });
+});
+
+describe('useCampaignCompanyDetail — playbook', () => {
+  it('fetches playbook when domain and targetProductId are available', async () => {
+    const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
+    await act(async () => {});
+
+    expect(mockGetCompanyPlaybooks).toHaveBeenCalledWith('acme.com');
+    expect(mockGetCompanyPlaybook).toHaveBeenCalledWith('acme.com', 100);
+    expect(result.current.playbook).toMatchObject({ id: 100 });
+    expect(result.current.playbookLoading).toBe(false);
+  });
+
+  it('does not fetch playbook when targetProductId is null', async () => {
+    const { result } = renderHook(() =>
+      useCampaignCompanyDetail({ ...defaultOptions, targetProductId: null }),
+    );
+    await act(async () => {});
+
+    expect(mockGetCompanyPlaybooks).not.toHaveBeenCalled();
+    expect(result.current.playbook).toBeNull();
+    expect(result.current.playbookLoading).toBe(false);
+  });
+
+  it('sets playbook to null when no matching playbook is found', async () => {
+    mockGetCompanyPlaybooks.mockResolvedValue({ playbooks: [{ id: 200, product_id: 999, product_name: 'Other' }] });
+
+    const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
+    await act(async () => {});
+
+    expect(mockGetCompanyPlaybook).not.toHaveBeenCalled();
+    expect(result.current.playbook).toBeNull();
+    expect(result.current.playbookLoading).toBe(false);
+  });
+
+  it('sets playbook to null on fetch error', async () => {
+    mockGetCompanyPlaybooks.mockRejectedValue(new Error('Network error'));
+
+    const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
+    await act(async () => {});
+
+    expect(result.current.playbook).toBeNull();
+    expect(result.current.playbookLoading).toBe(false);
+  });
+
+  it('resets playbook when domain changes', async () => {
+    const { result, rerender } = renderHook(
+      (props) => useCampaignCompanyDetail(props),
+      { initialProps: defaultOptions },
+    );
+    await act(async () => {});
+    expect(result.current.playbook).not.toBeNull();
+
+    rerender({ ...defaultOptions, domain: 'other.com' });
+    expect(result.current.playbook).toBeNull();
   });
 });
 

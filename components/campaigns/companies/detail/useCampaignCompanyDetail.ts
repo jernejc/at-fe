@@ -4,8 +4,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { getCompany, getCompanyExplainability } from '@/lib/api/companies';
 import { getFitBreakdown } from '@/lib/api/fit-scores';
+import { getCompanyPlaybooks, getCompanyPlaybook } from '@/lib/api/playbooks';
 import { assignCompanyToPartner, unassignCompanyFromPartner } from '@/lib/api/partners';
-import type { CompanyRead, CompanyExplainabilityResponse, FitScore } from '@/lib/schemas';
+import type { CompanyRead, CompanyExplainabilityResponse, FitScore, PlaybookRead } from '@/lib/schemas';
 
 interface UseCampaignCompanyDetailOptions {
   domain: string;
@@ -23,8 +24,10 @@ export interface UseCampaignCompanyDetailReturn {
   company: CompanyRead | null;
   explainability: CompanyExplainabilityResponse | null;
   fitBreakdown: FitScore | null;
+  playbook: PlaybookRead | null;
   loading: boolean;
   fitLoading: boolean;
+  playbookLoading: boolean;
   reassigning: boolean;
   reassignToPartner: (newPartnerId: number) => Promise<void>;
 }
@@ -44,6 +47,8 @@ export function useCampaignCompanyDetail({
 
   const [fitBreakdown, setFitBreakdown] = useState<FitScore | null>(null);
   const [fitLoading, setFitLoading] = useState(false);
+  const [playbook, setPlaybook] = useState<PlaybookRead | null>(null);
+  const [playbookLoading, setPlaybookLoading] = useState(false);
   const [reassigning, setReassigning] = useState(false);
 
   // Fetch company data and explainability only (lightweight: 2 API calls)
@@ -101,6 +106,39 @@ export function useCampaignCompanyDetail({
     return () => { cancelled = true; };
   }, [domain, targetProductId]);
 
+  // Fetch playbook contacts for the target product
+  useEffect(() => {
+    if (!domain || !targetProductId) {
+      setPlaybook(null);
+      setPlaybookLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setPlaybookLoading(true);
+    setPlaybook(null);
+
+    async function fetchPlaybook() {
+      try {
+        const { playbooks } = await getCompanyPlaybooks(domain);
+        const target = playbooks.find((p) => p.product_id === targetProductId);
+        if (cancelled || !target) {
+          if (!cancelled) setPlaybookLoading(false);
+          return;
+        }
+        const detail = await getCompanyPlaybook(domain, target.id);
+        if (!cancelled) setPlaybook(detail);
+      } catch {
+        // Silently fail — contacts card simply won't render
+      } finally {
+        if (!cancelled) setPlaybookLoading(false);
+      }
+    }
+
+    fetchPlaybook();
+    return () => { cancelled = true; };
+  }, [domain, targetProductId]);
+
   const reassignToPartner = useCallback(async (newPartnerId: number) => {
     setReassigning(true);
     try {
@@ -123,8 +161,10 @@ export function useCampaignCompanyDetail({
     company,
     explainability,
     fitBreakdown,
+    playbook,
     loading,
     fitLoading,
+    playbookLoading,
     reassigning,
     reassignToPartner,
   };

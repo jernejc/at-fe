@@ -1,6 +1,11 @@
 {
   "versions": [
     {
+      "version": "1.2.7",
+      "date": "2026-03-25",
+      "changes": ["Contacts card in campaign company detail sidebar with LinkedIn links"]
+    },
+    {
       "version": "1.2.6",
       "date": "2026-03-25",
       "changes": [

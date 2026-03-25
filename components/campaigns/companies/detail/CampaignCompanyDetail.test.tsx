@@ -66,8 +66,10 @@ function makeHookReturn(overrides: Record<string, any> = {}) {
       fits_summary: [],
     },
     fitBreakdown: null,
+    playbook: null,
     loading: false,
     fitLoading: false,
+    playbookLoading: false,
     reassigning: false,
     reassignToPartner: vi.fn(),
     ...overrides,
@@ -159,6 +161,27 @@ describe('CampaignCompanyDetail', () => {
     );
     render(<CampaignCompanyDetail {...defaultProps} />);
     expect(screen.getByText('Event Analysis')).toBeInTheDocument();
+  });
+
+  it('renders ContactsCard when playbook has contacts', () => {
+    mockUseCampaignCompanyDetail.mockReturnValue(
+      makeHookReturn({
+        playbook: {
+          id: 1,
+          contacts: [
+            { id: 1, name: 'Jane Doe', title: 'VP Eng', priority_rank: 1, linkedin_url: null, outreach_templates: [] },
+          ],
+        },
+      }),
+    );
+    render(<CampaignCompanyDetail {...defaultProps} />);
+    expect(screen.getByText('Contacts')).toBeInTheDocument();
+    expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+  });
+
+  it('does not render ContactsCard when playbook is null', () => {
+    render(<CampaignCompanyDetail {...defaultProps} />);
+    expect(screen.queryByText('Contacts')).not.toBeInTheDocument();
   });
 
   it('does not render analysis cards when narratives are null', () => {
