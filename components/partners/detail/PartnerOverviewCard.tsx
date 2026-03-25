@@ -41,7 +41,7 @@ export function PartnerOverviewCard({ partner }: PartnerOverviewCardProps) {
         </div>
       </ExpandableCardHeader>
 
-      <ExpandableCardDetails className="space-y-4">
+      <ExpandableCardDetails className="pt-5 space-y-4">
         {description && (
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">About</p>

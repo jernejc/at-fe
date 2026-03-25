@@ -47,7 +47,7 @@ export function CompanyInfoCard({ company }: CompanyInfoCardProps) {
       </ExpandableCardHeader>
 
       {hasExpandedContent && (
-        <ExpandableCardDetails className="space-y-5">
+        <ExpandableCardDetails className="pt-5 space-y-5">
           {/* Specialties */}
           {company.specialties && company.specialties.length > 0 && (
             <>

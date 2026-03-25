@@ -66,7 +66,7 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
           <div>{breakdown.fit_explanation}</div>
         </ExpandableCardHeader>
 
-        <ExpandableCardDetails className="space-y-3">
+        <ExpandableCardDetails className="pt-5 space-y-3">
           <Separator />
           <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
             <div className="space-y-1">
@@ -142,7 +142,7 @@ function SignalMatchCard({ title, matches }: { title: string; matches: SignalCon
 
       {remaining.length > 0 && (
         <ExpandableCardDetails>
-          <div className="-mt-5">
+          <div>
             {remaining.map((match, i) => (
               <div key={`${match.category}-${i}`}>
                 <SignalRow

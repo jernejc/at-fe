@@ -81,7 +81,7 @@ export function CampaignFitCard({ fitBreakdown, fitsSummary, targetProductId, lo
       </ExpandableCardHeader>
 
       {hasMatches && (
-        <ExpandableCardDetails className="space-y-4">
+        <ExpandableCardDetails className="pt-5 space-y-4">
           {fitBreakdown!.interest_matches && fitBreakdown!.interest_matches.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">

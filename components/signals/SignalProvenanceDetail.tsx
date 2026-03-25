@@ -132,7 +132,7 @@ export function SignalProvenanceDetail({ signal, isLoading }: SignalProvenanceDe
           )}
         </ExpandableCardHeader>
 
-        <ExpandableCardDetails className="space-y-5">
+        <ExpandableCardDetails className="pt-5 space-y-5">
           <Separator />
 
           {/* Badges: signal_type + source_types */}
@@ -216,7 +216,7 @@ export function SignalProvenanceDetail({ signal, isLoading }: SignalProvenanceDe
 
           {remainingContributors.length > 0 && (
             <ExpandableCardDetails>
-              <div className="-mx-6 -mt-5">
+              <div className="-mx-6">
                 {remainingContributors.map((contributor, i) => (
                   <PersonRow
                     key={`${contributor.employee_id}-${i}`}

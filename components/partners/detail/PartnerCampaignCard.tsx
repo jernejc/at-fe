@@ -42,7 +42,7 @@ export function PartnerCampaignCard({ campaign, partnerId }: PartnerCampaignCard
         </div>
       </ExpandableCardHeader>
 
-      <ExpandableCardDetails>
+      <ExpandableCardDetails className="pt-5">
         {loading ? (
           <div className="space-y-1">
             {Array.from({ length: 3 }, (_, i) => (

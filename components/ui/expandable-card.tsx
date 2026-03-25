@@ -97,7 +97,7 @@ function ExpandableCard({
 
 /** Always-visible header content for an ExpandableCard. */
 function ExpandableCardHeader({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="expandable-card-header" className={cn('px-6 pt-5 pb-6', className)} {...props} />;
+  return <div data-slot="expandable-card-header" className={cn('px-6 pt-5 last:pb-5', className)} {...props} />;
 }
 
 /** Collapsible content section that expands/collapses with animation. */
@@ -120,7 +120,7 @@ function ExpandableCardDetails({ className, children, ...props }: React.Componen
           transition={{ type: 'spring', stiffness: 400, damping: 30 }}
           className="overflow-hidden"
         >
-          <div className={cn('px-6 pb-5', className)} {...props}>
+          <div className={cn('px-6', className)} {...props}>
             {children}
           </div>
         </motion.div>
@@ -143,7 +143,7 @@ function ExpandableCardFooter() {
         else toggle();
       }}
       className={cn(
-        'flex w-full items-center justify-center gap-1.5 border-t border-border px-4 py-2.5',
+        'mt-5 flex w-full items-center justify-center gap-1.5 border-t border-border px-4 py-2.5',
         'text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors',
       )}
     >

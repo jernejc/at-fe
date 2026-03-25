@@ -61,7 +61,7 @@ export function AnalysisCard({
       </ExpandableCardHeader>
 
       {hasSignals && (
-        <ExpandableCardDetails className="space-y-4">
+        <ExpandableCardDetails className="pt-5 space-y-4">
           {interests.length > 0 && (
             <>
               <Separator />
