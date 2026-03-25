@@ -1,21 +1,28 @@
 "use client";
 
-import { Bell, BellOff } from "lucide-react";
+import { Bell, BellOff, CheckCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavNotifications } from "./useNavNotifications";
 import type { Notification } from "@/lib/schemas";
 
 /** Single notification row inside the dropdown. */
-function NotificationItem({ notification }: { notification: Notification }) {
+function NotificationItem({
+  notification,
+  onClick,
+}: {
+  notification: Notification;
+  onClick: () => void;
+}) {
   const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
     addSuffix: true,
   });
 
   return (
-    <div
-      className={`px-4 py-3 border-b border-border last:border-b-0 transition-colors ${notification.read ? "" : "bg-primary/5"
-        }`}
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full text-left px-4 py-3 border-b border-border last:border-b-0 transition-colors cursor-pointer hover:bg-muted ${notification.read ? "" : "bg-primary/5"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-foreground leading-snug">
@@ -29,7 +36,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
         {notification.message}
       </p>
       <p className="text-[11px] text-muted-foreground/70 mt-1">{timeAgo}</p>
-    </div>
+    </button>
   );
 }
 
@@ -46,8 +53,15 @@ function NotificationSkeleton() {
 
 /** Notification bell with unread badge and dropdown list. */
 export function NavNotifications() {
-  const { open, setOpen, unreadCount, notifications, loading } =
-    useNavNotifications();
+  const {
+    open,
+    setOpen,
+    unreadCount,
+    notifications,
+    loading,
+    handleNotificationClick,
+    markAllReadManual,
+  } = useNavNotifications();
 
   return (
     <div className="relative">
@@ -72,10 +86,21 @@ export function NavNotifications() {
           />
           <div className="absolute right-0 top-full mt-2 w-80 bg-background rounded-xl shadow-xl border border-border z-50 overflow-hidden">
             {/* Header */}
-            <div className="px-4 py-3 border-b border-border">
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">
                 Notifications
               </h3>
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllReadManual}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  aria-label="Mark all read"
+                >
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  Mark all read
+                </button>
+              )}
             </div>
 
             {/* Content */}
@@ -100,7 +125,11 @@ export function NavNotifications() {
 
               {!loading &&
                 notifications.map((n) => (
-                  <NotificationItem key={n.id} notification={n} />
+                  <NotificationItem
+                    key={n.id}
+                    notification={n}
+                    onClick={() => handleNotificationClick(n)}
+                  />
                 ))}
             </div>
           </div>

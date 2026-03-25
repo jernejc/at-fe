@@ -155,6 +155,7 @@ export { FILTER_OPERATOR_LABELS } from './filter';
 
 // Notification types
 export type {
+    NotificationData,
     Notification,
     UnreadCountResponse,
 } from './notification';

@@ -193,6 +193,8 @@ export interface CampaignRowData extends CampaignSummary {
     engaged_count?: number;
     /** Total leads assigned to the partner for this campaign. Partner view only. */
     assigned_count?: number;
+    /** Number of new opportunities from notifications. Partner view only. */
+    newOpportunityCount?: number;
 }
 
 // Filters for campaign list

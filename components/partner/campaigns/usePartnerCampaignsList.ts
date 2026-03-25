@@ -3,9 +3,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { getCampaigns, getProducts } from '@/lib/api';
-import type { CampaignSummary, CampaignRowData } from '@/lib/schemas';
-import { useNewOpportunities } from './useNewOpportunities';
+import { getCampaigns, getProducts, getNotifications } from '@/lib/api';
+import type { CampaignSummary, CampaignRowData, Notification } from '@/lib/schemas';
 import type { ProductSummary } from '@/lib/schemas/product';
 import type {
   FilterDefinition,
@@ -15,6 +14,7 @@ import type {
 } from '@/lib/schemas/filter';
 
 const PAGE_SIZE = 20;
+const NEW_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
 const STATUS_FILTER: FilterDefinition = {
   key: 'status',
@@ -22,7 +22,6 @@ const STATUS_FILTER: FilterDefinition = {
   operators: ['is'],
   options: [
     { value: 'published', label: 'Published' },
-    { value: 'draft', label: 'Draft' },
     { value: 'completed', label: 'Completed' },
     { value: 'archived', label: 'Archived' },
   ],
@@ -41,10 +40,10 @@ export const SORT_OPTIONS: SortOptionDefinition[] = [
 export function usePartnerCampaignsList() {
   const router = useRouter();
   const { data: session } = useSession();
-  const partnerId = session?.user?.partner_id;
 
   const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
   const [products, setProducts] = useState<ProductSummary[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,15 +51,6 @@ export function usePartnerCampaignsList() {
   const [filters, setFilters] = useState<ActiveFilter[]>([]);
   const [sort, setSort] = useState<SortState | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-
-  const {
-    newOpportunities,
-    newOpportunitiesLoading,
-    totalCount: newOpportunitiesTotalCount,
-    hasMore: newOpportunitiesHasMore,
-    loadMore: newOpportunitiesLoadMore,
-    loadingMore: newOpportunitiesLoadingMore,
-  } = useNewOpportunities(partnerId);
 
   const apiParams = useMemo(() => {
     const statusFilter = filters.find((f) => f.key === 'status');
@@ -78,14 +68,16 @@ export function usePartnerCampaignsList() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [productsData, campaignsData] = await Promise.all([
+      const [productsData, campaignsData, notificationsData] = await Promise.all([
         getProducts(1, 100),
         getCampaigns(apiParams),
+        getNotifications(100),
       ]);
 
       setProducts(productsData.items);
       const items = Array.isArray(campaignsData) ? campaignsData : campaignsData.items || [];
       setCampaigns(items);
+      setNotifications(notificationsData.items);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -108,6 +100,29 @@ export function usePartnerCampaignsList() {
     }
   }, [fetchData, session, apiParams]);
 
+  /** Filter and aggregate "new" opportunity notifications. */
+  const { newOpportunitiesTotal, campaignNewOpportunityMap } = useMemo(() => {
+    const now = Date.now();
+    const newNotifs = notifications.filter((n) => {
+      if (n.type !== 'new_opportunities') return false;
+      const isNew = !n.read || now - new Date(n.created_at).getTime() < NEW_THRESHOLD_MS;
+      return isNew;
+    });
+
+    let total = 0;
+    const map = new Map<number, number>();
+    for (const n of newNotifs) {
+      const count = n.data.opportunity_count ?? 0;
+      total += count;
+      const cid = n.campaign_id;
+      if (cid != null) {
+        map.set(cid, (map.get(cid) ?? 0) + count);
+      }
+    }
+
+    return { newOpportunitiesTotal: total, campaignNewOpportunityMap: map };
+  }, [notifications]);
+
   // Client-side search filter + enrichment
   const filteredRows = useMemo(() => {
     const needle = search.toLowerCase().trim();
@@ -120,8 +135,9 @@ export function usePartnerCampaignsList() {
       product_name: products.find((p) => p.id === c.target_product_id)?.name ?? null,
       engaged_count: 0,
       assigned_count: 0,
+      newOpportunityCount: campaignNewOpportunityMap.get(c.id) ?? 0,
     }));
-  }, [campaigns, products, search]);
+  }, [campaigns, products, search, campaignNewOpportunityMap]);
 
   const { paginatedRows, totalFiltered } = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
@@ -135,15 +151,14 @@ export function usePartnerCampaignsList() {
   const metrics = useMemo(() => {
     const campaignCount = filteredRows.length;
     const opportunitiesWon = filteredRows.reduce((sum, c) => sum + (c.completed_won_count ?? 0), 0);
-    const totalWon = filteredRows.reduce((sum, c) => sum + (c.total_won_amount ?? 0), 0);
 
     const withConversion = filteredRows.filter((c) => c.company_count > 0 && c.completed_won_count != null);
     const avgConversion = withConversion.length > 0
       ? withConversion.reduce((sum, c) => sum + ((c.completed_won_count ?? 0) / c.company_count) * 100, 0) / withConversion.length
       : 0;
 
-    return { campaignCount, opportunitiesWon, avgConversion, totalWon };
-  }, [filteredRows]);
+    return { campaignCount, newOpportunitiesTotal, opportunitiesWon, avgConversion };
+  }, [filteredRows, newOpportunitiesTotal]);
 
   const hasActiveFilters = filters.length > 0 || search.trim().length > 0;
   const hasNoCampaigns = !loading && !error && campaigns.length === 0 && !hasActiveFilters;
@@ -181,12 +196,6 @@ export function usePartnerCampaignsList() {
     sort,
     currentPage,
     pageSize: PAGE_SIZE,
-    newOpportunities,
-    newOpportunitiesLoading,
-    newOpportunitiesTotalCount,
-    newOpportunitiesHasMore,
-    newOpportunitiesLoadMore,
-    newOpportunitiesLoadingMore,
     handleSearchChange,
     handleFiltersChange,
     handleSortChange,

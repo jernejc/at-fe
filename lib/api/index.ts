@@ -58,6 +58,7 @@ export {
 export {
     getUnreadCount,
     getNotifications,
+    markNotificationRead,
     markAllRead,
 } from './notifications';
 

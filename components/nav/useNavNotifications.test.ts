@@ -6,11 +6,23 @@ import type { Notification } from "@/lib/schemas";
 const mockGetUnreadCount = vi.fn();
 const mockGetNotifications = vi.fn();
 const mockMarkAllRead = vi.fn();
+const mockMarkNotificationRead = vi.fn();
+const mockPush = vi.fn();
+const mockSession = { user: { role: "pdm" } };
 
 vi.mock("@/lib/api", () => ({
   getUnreadCount: () => mockGetUnreadCount(),
   getNotifications: (...args: unknown[]) => mockGetNotifications(...args),
   markAllRead: () => mockMarkAllRead(),
+  markNotificationRead: (...args: unknown[]) => mockMarkNotificationRead(...args),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({ data: mockSession }),
 }));
 
 function makeNotification(overrides: Partial<Notification> = {}): Notification {
@@ -36,6 +48,8 @@ beforeEach(() => {
   mockGetUnreadCount.mockResolvedValue({ unread_count: 0 });
   mockGetNotifications.mockResolvedValue({ items: [] });
   mockMarkAllRead.mockResolvedValue(undefined);
+  mockMarkNotificationRead.mockResolvedValue(undefined);
+  mockSession.user = { role: "pdm" } as typeof mockSession.user;
 });
 
 afterEach(() => {
@@ -136,33 +150,10 @@ describe("useNavNotifications", () => {
     expect(mockGetNotifications).toHaveBeenCalledWith(40);
   });
 
-  it("marks all as read locally and calls API when closing with unread items", async () => {
-    const unreadItem = makeNotification({ id: 1, read: false });
-    const readItem = makeNotification({ id: 2, read: true });
+  it("does not mark all as read when closing the dropdown", async () => {
     mockGetUnreadCount.mockResolvedValue({ unread_count: 1 });
-    mockGetNotifications.mockResolvedValue({ items: [unreadItem, readItem] });
-
-    const { result } = renderHook(() => useNavNotifications());
-    await act(() => vi.advanceTimersByTimeAsync(0));
-
-    // Open
-    await act(async () => result.current.setOpen(true));
-    await act(() => vi.advanceTimersByTimeAsync(0));
-
-    expect(result.current.notifications[0].read).toBe(false);
-
-    // Close
-    await act(async () => result.current.setOpen(false));
-
-    expect(result.current.notifications.every((n) => n.read)).toBe(true);
-    expect(result.current.unreadCount).toBe(0);
-    expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not call markAllRead when closing with no unread items", async () => {
-    mockGetUnreadCount.mockResolvedValue({ unread_count: 0 });
     mockGetNotifications.mockResolvedValue({
-      items: [makeNotification({ read: true })],
+      items: [makeNotification({ id: 1, read: false })],
     });
 
     const { result } = renderHook(() => useNavNotifications());
@@ -173,6 +164,7 @@ describe("useNavNotifications", () => {
     await act(async () => result.current.setOpen(false));
 
     expect(mockMarkAllRead).not.toHaveBeenCalled();
+    expect(result.current.unreadCount).toBe(1);
   });
 
   it("invalidates cache when polled unread count increases", async () => {
@@ -220,5 +212,136 @@ describe("useNavNotifications", () => {
     await act(() => vi.advanceTimersByTimeAsync(0));
 
     expect(result.current.notifications).toHaveLength(1);
+  });
+
+  describe("handleNotificationClick", () => {
+    it("marks an unread notification as read locally and calls the API", async () => {
+      const notification = makeNotification({ id: 5, read: false });
+      mockGetUnreadCount.mockResolvedValue({ unread_count: 1 });
+      mockGetNotifications.mockResolvedValue({ items: [notification] });
+
+      const { result } = renderHook(() => useNavNotifications());
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.setOpen(true));
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.handleNotificationClick(notification));
+
+      expect(result.current.notifications[0].read).toBe(true);
+      expect(mockMarkNotificationRead).toHaveBeenCalledWith(5);
+    });
+
+    it("decrements unread count when clicking an unread notification", async () => {
+      const notification = makeNotification({ id: 5, read: false });
+      mockGetUnreadCount.mockResolvedValue({ unread_count: 3 });
+      mockGetNotifications.mockResolvedValue({ items: [notification] });
+
+      const { result } = renderHook(() => useNavNotifications());
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.setOpen(true));
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.handleNotificationClick(notification));
+
+      expect(result.current.unreadCount).toBe(2);
+    });
+
+    it("does not call API for already-read notifications", async () => {
+      const notification = makeNotification({ id: 5, read: true });
+      mockGetNotifications.mockResolvedValue({ items: [notification] });
+
+      const { result } = renderHook(() => useNavNotifications());
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.setOpen(true));
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.handleNotificationClick(notification));
+
+      expect(mockMarkNotificationRead).not.toHaveBeenCalled();
+    });
+
+    it("navigates to /campaigns/{slug} for PDM users and closes dropdown", async () => {
+      const notification = makeNotification({
+        id: 5,
+        data: { campaign_slug: "my-campaign" },
+      });
+      mockGetNotifications.mockResolvedValue({ items: [notification] });
+
+      const { result } = renderHook(() => useNavNotifications());
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.setOpen(true));
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.handleNotificationClick(notification));
+
+      expect(mockPush).toHaveBeenCalledWith("/campaigns/my-campaign");
+      expect(result.current.open).toBe(false);
+    });
+
+    it("navigates to /partner/campaigns/{slug} for partner users and closes dropdown", async () => {
+      mockSession.user = { role: "partner" } as typeof mockSession.user;
+      const notification = makeNotification({
+        id: 5,
+        data: { campaign_slug: "my-campaign" },
+      });
+      mockGetNotifications.mockResolvedValue({ items: [notification] });
+
+      const { result } = renderHook(() => useNavNotifications());
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.setOpen(true));
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.handleNotificationClick(notification));
+
+      expect(mockPush).toHaveBeenCalledWith("/partner/campaigns/my-campaign");
+      expect(result.current.open).toBe(false);
+    });
+
+    it("does not navigate when notification has no campaign_slug", async () => {
+      const notification = makeNotification({
+        id: 5,
+          });
+      mockGetNotifications.mockResolvedValue({ items: [notification] });
+
+      const { result } = renderHook(() => useNavNotifications());
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.setOpen(true));
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.handleNotificationClick(notification));
+
+      expect(mockPush).not.toHaveBeenCalled();
+      expect(result.current.open).toBe(true);
+    });
+  });
+
+  describe("markAllReadManual", () => {
+    it("marks all notifications read locally, resets count, and calls API", async () => {
+      mockGetUnreadCount.mockResolvedValue({ unread_count: 2 });
+      mockGetNotifications.mockResolvedValue({
+        items: [
+          makeNotification({ id: 1, read: false }),
+          makeNotification({ id: 2, read: false }),
+        ],
+      });
+
+      const { result } = renderHook(() => useNavNotifications());
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.setOpen(true));
+      await act(() => vi.advanceTimersByTimeAsync(0));
+
+      await act(async () => result.current.markAllReadManual());
+
+      expect(result.current.notifications.every((n) => n.read)).toBe(true);
+      expect(result.current.unreadCount).toBe(0);
+      expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+    });
   });
 });

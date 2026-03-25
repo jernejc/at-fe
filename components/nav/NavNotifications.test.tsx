@@ -11,6 +11,8 @@ const mockHook: UseNavNotificationsReturn = {
   unreadCount: 0,
   notifications: [],
   loading: false,
+  handleNotificationClick: vi.fn(),
+  markAllReadManual: vi.fn(),
 };
 
 vi.mock("./useNavNotifications", () => ({
@@ -41,6 +43,8 @@ beforeEach(() => {
   mockHook.notifications = [];
   mockHook.loading = false;
   mockHook.setOpen = vi.fn();
+  mockHook.handleNotificationClick = vi.fn();
+  mockHook.markAllReadManual = vi.fn();
 });
 
 describe("NavNotifications", () => {
@@ -147,5 +151,44 @@ describe("NavNotifications", () => {
     await user.click(backdrop);
 
     expect(mockHook.setOpen).toHaveBeenCalledWith(false);
+  });
+
+  it("shows mark all read button when there are unread notifications", () => {
+    mockHook.open = true;
+    mockHook.unreadCount = 3;
+    render(<NavNotifications />);
+
+    expect(screen.getByRole("button", { name: "Mark all read" })).toBeInTheDocument();
+  });
+
+  it("does not show mark all read button when unread count is zero", () => {
+    mockHook.open = true;
+    mockHook.unreadCount = 0;
+    render(<NavNotifications />);
+
+    expect(screen.queryByRole("button", { name: "Mark all read" })).not.toBeInTheDocument();
+  });
+
+  it("calls markAllReadManual when mark all read button is clicked", async () => {
+    const user = userEvent.setup();
+    mockHook.open = true;
+    mockHook.unreadCount = 3;
+    render(<NavNotifications />);
+
+    await user.click(screen.getByRole("button", { name: "Mark all read" }));
+
+    expect(mockHook.markAllReadManual).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls handleNotificationClick when a notification item is clicked", async () => {
+    const user = userEvent.setup();
+    const notification = makeNotification({ id: 1, title: "Click me" });
+    mockHook.open = true;
+    mockHook.notifications = [notification];
+    render(<NavNotifications />);
+
+    await user.click(screen.getByText("Click me"));
+
+    expect(mockHook.handleNotificationClick).toHaveBeenCalledWith(notification);
   });
 });

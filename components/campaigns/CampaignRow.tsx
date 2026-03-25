@@ -45,7 +45,10 @@ export function CampaignRow({ campaign, onClick, className }: CampaignRowProps) 
       {/* Left: Campaign icon + status dot */}
       <div className="flex flex-col items-center gap-1.5 shrink-0">
         <div className="w-8 h-10 flex items-start justify-center">
-          <CampaignIcon name={campaign.icon} className="w-7 h-7" />
+          <CampaignIcon
+            name={campaign.icon}
+            className={cn('w-7 h-7', (campaign.newOpportunityCount ?? 0) > 0 && 'text-amber-500')}
+          />
         </div>
         <StatusIndicator status={campaign.status} />
       </div>
@@ -64,6 +67,11 @@ export function CampaignRow({ campaign, onClick, className }: CampaignRowProps) 
           <span className="flex items-center gap-2">
             <Building2 className="w-3.5 h-3.5 shrink-0" />
             <span>{formatCompactNumber(campaign.company_count)}</span>
+            {(campaign.newOpportunityCount ?? 0) > 0 && (
+              <span className="text-amber-500 font-medium">
+                {campaign.newOpportunityCount} new
+              </span>
+            )}
           </span>
 
           {campaign.avg_employee_size && (

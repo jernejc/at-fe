@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getUnreadCount, getNotifications, markAllRead } from "./notifications";
+import { getUnreadCount, getNotifications, markNotificationRead, markAllRead } from "./notifications";
 
 const mockFetchAPI = vi.fn();
 const mockBuildQueryString = vi.fn();
@@ -75,6 +75,26 @@ describe("getNotifications", () => {
     mockFetchAPI.mockRejectedValue(new Error("Server error"));
 
     await expect(getNotifications()).rejects.toThrow("Server error");
+  });
+});
+
+describe("markNotificationRead", () => {
+  it("sends a PATCH request with read payload to the notification endpoint", async () => {
+    mockFetchAPI.mockResolvedValue(undefined);
+
+    await markNotificationRead(42);
+
+    expect(mockFetchAPI).toHaveBeenCalledWith("/api/v1/notifications/42", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ read: true }),
+    });
+  });
+
+  it("propagates errors from fetchAPI", async () => {
+    mockFetchAPI.mockRejectedValue(new Error("Not found"));
+
+    await expect(markNotificationRead(42)).rejects.toThrow("Not found");
   });
 });
 

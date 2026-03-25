@@ -4,7 +4,8 @@
  * Endpoints:
  *   GET  /api/v1/notifications/unread-count  → UnreadCountResponse
  *   GET  /api/v1/notifications?page_size=N   → PaginatedResponse<Notification>
- *   POST /api/v1/notifications/mark-all-read → void
+ *   PATCH /api/v1/notifications/{id}          → void (mark single read)
+ *   POST  /api/v1/notifications/mark-all-read → void
  */
 
 import { fetchAPI, buildQueryString } from './core';
@@ -19,6 +20,15 @@ export async function getUnreadCount(): Promise<UnreadCountResponse> {
 export async function getNotifications(pageSize = 25): Promise<PaginatedResponse<Notification>> {
     const query = buildQueryString({ page_size: pageSize });
     return fetchAPI<PaginatedResponse<Notification>>(`/api/v1/notifications${query}`);
+}
+
+/** Mark a single notification as read. */
+export async function markNotificationRead(notificationId: number): Promise<void> {
+    return fetchAPI<void>(`/api/v1/notifications/${notificationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ read: true }),
+    });
 }
 
 /** Mark all notifications as read for the current user. */

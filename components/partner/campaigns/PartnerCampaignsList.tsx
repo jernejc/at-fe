@@ -9,9 +9,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { CampaignRow, CampaignRowSkeleton } from '@/components/campaigns/CampaignRow';
 import { Separator } from '@/components/ui/separator';
-import { formatCurrency } from '@/lib/utils';
 import { usePartnerCampaignsList, FILTER_DEFINITIONS, SORT_OPTIONS } from './usePartnerCampaignsList';
-import { NewOpportunitiesCell } from './NewOpportunitiesCell';
 
 /** Partner campaigns list page with search, filters, sort, dashboard, and pagination. */
 export function PartnerCampaignsList() {
@@ -28,12 +26,6 @@ export function PartnerCampaignsList() {
     sort,
     currentPage,
     pageSize,
-    newOpportunities,
-    newOpportunitiesLoading,
-    newOpportunitiesTotalCount,
-    newOpportunitiesHasMore,
-    newOpportunitiesLoadMore,
-    newOpportunitiesLoadingMore,
     handleSearchChange,
     handleFiltersChange,
     handleSortChange,
@@ -54,37 +46,22 @@ export function PartnerCampaignsList() {
       </div>
 
       {/* Dashboard metrics */}
-      <Dashboard className="grid-rows-2">
-        {/* Left half: New Opportunities (spans 2 cols + 2 rows) */}
-        <DashboardCell size="half" height="auto" rowSpan={2} className="max-h-110 overflow-y-auto">
-          <NewOpportunitiesCell
-            items={newOpportunities}
-            loading={newOpportunitiesLoading}
-            totalCount={newOpportunitiesTotalCount}
-            hasMore={newOpportunitiesHasMore}
-            loadMore={newOpportunitiesLoadMore}
-            loadingMore={newOpportunitiesLoadingMore}
-          />
-        </DashboardCell>
-
-        {/* Right half, top row */}
+      <Dashboard>
         <DashboardCell>
           <DashboardCellTitle>Campaigns</DashboardCellTitle>
           <DashboardCellBody loading={loading}>{metrics.campaignCount}</DashboardCellBody>
         </DashboardCell>
         <DashboardCell>
+          <DashboardCellTitle>New opportunities</DashboardCellTitle>
+          <DashboardCellBody loading={loading}>{metrics.newOpportunitiesTotal}</DashboardCellBody>
+        </DashboardCell>
+        <DashboardCell>
           <DashboardCellTitle>Opportunities won</DashboardCellTitle>
           <DashboardCellBody loading={loading}>{metrics.opportunitiesWon}</DashboardCellBody>
         </DashboardCell>
-
-        {/* Right half, bottom row */}
         <DashboardCell>
           <DashboardCellTitle>Avg. conversion</DashboardCellTitle>
           <DashboardCellBody loading={loading}>{Math.round(metrics.avgConversion)}%</DashboardCellBody>
-        </DashboardCell>
-        <DashboardCell gradient={!loading && metrics.totalWon > 0 ? 'green' : 'none'}>
-          <DashboardCellTitle>Total earned</DashboardCellTitle>
-          <DashboardCellBody loading={loading}>{formatCurrency(metrics.totalWon)}</DashboardCellBody>
         </DashboardCell>
       </Dashboard>
 
