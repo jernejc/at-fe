@@ -72,6 +72,7 @@ export interface CampaignAssignmentSummary {
     campaign_id: number;
     campaign_name: string;
     campaign_slug: string;
+    campaign_icon: string | null;
     role_in_campaign: string | null;
     assigned_at: string;
 }

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { format } from 'date-fns';
 import { ExpandableCard, ExpandableCardHeader, ExpandableCardDetails } from '@/components/ui/expandable-card';
-import { Badge } from '@/components/ui/badge';
 import { CompanyRow, CompanyRowSkeleton } from '@/components/campaigns/CompanyRow';
 import { Separator } from '@/components/ui/separator';
+import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { usePartnerCampaignCompanies } from './usePartnerCampaignCompanies';
 import type { CampaignAssignmentSummary } from '@/lib/schemas';
 
@@ -30,13 +31,14 @@ export function PartnerCampaignCard({ campaign, partnerId }: PartnerCampaignCard
   return (
     <ExpandableCard expanded={expanded} onExpandedChange={handleExpandedChange}>
       <ExpandableCardHeader>
-        <div className="flex items-center justify-between gap-3">
-          <h4 className="text-sm font-semibold text-foreground truncate">{campaign.campaign_name}</h4>
-          {campaign.role_in_campaign && (
-            <Badge variant="grey" className="text-xs shrink-0 capitalize">
-              {campaign.role_in_campaign}
-            </Badge>
-          )}
+        <div className="flex items-center gap-3">
+          <CampaignIcon name={campaign.campaign_icon} className="w-5 h-5 shrink-0" />
+          <div className="min-w-0">
+            <h4 className="text-sm font-semibold text-foreground truncate">{campaign.campaign_name}</h4>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Assigned {format(new Date(campaign.assigned_at), 'MMM d, yyyy')}
+            </p>
+          </div>
         </div>
       </ExpandableCardHeader>
 
