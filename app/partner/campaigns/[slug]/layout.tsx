@@ -38,7 +38,7 @@ function PartnerCampaignLayoutInner({ slug, children }: { slug: string; children
   const navItems = [
     { label: 'Overview', href: `/partner/campaigns/${slug}` },
     { label: 'Companies', href: `/partner/campaigns/${slug}/companies` },
-    { label: 'Materials', href: `/partner/campaigns/${slug}/materials` },
+    // { label: 'Materials', href: `/partner/campaigns/${slug}/materials` },
   ];
 
   if (error) {
