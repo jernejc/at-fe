@@ -16,6 +16,7 @@ interface PublishDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void>;
   loading: boolean;
+  unassignedCount?: number;
 }
 
 const COPY = {
@@ -34,7 +35,7 @@ const COPY = {
 } as const;
 
 /** Confirmation dialog for publishing or unpublishing a campaign. */
-export function PublishDialog({ mode, open, onOpenChange, onConfirm, loading }: PublishDialogProps) {
+export function PublishDialog({ mode, open, onOpenChange, onConfirm, loading, unassignedCount }: PublishDialogProps) {
   const copy = COPY[mode];
 
   const handleConfirm = async () => {
@@ -48,6 +49,11 @@ export function PublishDialog({ mode, open, onOpenChange, onConfirm, loading }: 
         <DialogHeader>
           <DialogTitle>{copy.title}</DialogTitle>
           <DialogDescription>{copy.description}</DialogDescription>
+          {mode === 'publish' && unassignedCount != null && unassignedCount > 0 && (
+            <p className="text-sm text-destructive">
+              {unassignedCount} {unassignedCount === 1 ? 'company has' : 'companies have'} no partner assigned.
+            </p>
+          )}
         </DialogHeader>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>

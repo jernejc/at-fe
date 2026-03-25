@@ -12,7 +12,22 @@ vi.mock('@/components/providers/CampaignDetailProvider', () => ({
     handleUnpublish: mockHandleUnpublish,
     isPublishing: false,
     isUnpublishing: false,
+    overview: null,
   }),
+}));
+
+vi.mock('../detail/PublishDialog', () => ({
+  PublishDialog: ({ mode, open, onConfirm, loading }: any) => {
+    if (!open) return null;
+    return (
+      <div data-testid="publish-dialog" data-mode={mode}>
+        <span>{mode === 'publish' ? 'Publish Campaign' : 'Unpublish Campaign'}</span>
+        <button onClick={onConfirm} disabled={loading}>
+          Confirm
+        </button>
+      </div>
+    );
+  },
 }));
 
 beforeEach(() => {
@@ -32,11 +47,13 @@ describe('StatusSection — draft status', () => {
     expect(screen.getByText('Campaign is in draft mode')).toBeInTheDocument();
   });
 
-  it('calls handlePublish when Publish button is clicked', async () => {
+  it('calls handlePublish after confirming the dialog', async () => {
     const user = userEvent.setup();
     render(<StatusSection status="draft" />);
 
     await user.click(screen.getByText('Publish'));
+    expect(screen.getByTestId('publish-dialog')).toBeInTheDocument();
+    await user.click(screen.getByText('Confirm'));
     expect(mockHandlePublish).toHaveBeenCalledOnce();
   });
 });
@@ -54,11 +71,13 @@ describe('StatusSection — published status', () => {
     expect(screen.getByText('Campaign is live and visible to partners')).toBeInTheDocument();
   });
 
-  it('calls handleUnpublish when Unpublish button is clicked', async () => {
+  it('calls handleUnpublish after confirming the dialog', async () => {
     const user = userEvent.setup();
     render(<StatusSection status="published" />);
 
     await user.click(screen.getByText('Unpublish'));
+    expect(screen.getByTestId('publish-dialog')).toBeInTheDocument();
+    await user.click(screen.getByText('Confirm'));
     expect(mockHandleUnpublish).toHaveBeenCalledOnce();
   });
 });

@@ -120,7 +120,7 @@ export function CampaignCompaniesToolbar({
           <Button
             variant="outline"
             onClick={onAutoAssign}
-            disabled={isAutoAssigning}
+            disabled={isAutoAssigning || partners.length === 0}
           >
             {isAutoAssigning ? (
               <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />

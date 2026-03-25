@@ -31,6 +31,7 @@ export default function CampaignOverviewPage() {
       handleUnpublish={handleUnpublish}
       partnerCount={partnerCount}
       inactivePartnerCount={inactivePartnerCount}
+      unassignedCount={overview?.unassigned_company_count}
     />
   );
 }

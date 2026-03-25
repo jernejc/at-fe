@@ -188,6 +188,7 @@ export function CampaignOverviewDashboard({
         onOpenChange={(open) => !open && setPublishDialogMode(null)}
         onConfirm={publishDialogMode === 'unpublish' ? handleUnpublish : handlePublish}
         loading={publishDialogMode === 'unpublish' ? isUnpublishing : isPublishing}
+        unassignedCount={unassignedCount}
       />
     </>
   );

@@ -78,6 +78,7 @@ export interface CampaignOverview extends CampaignRead {
     industry_breakdown: Record<string, number>;
     processing_progress: number;
     product_name: string | null;
+    unassigned_company_count: number;
 }
 
 export interface MembershipRead {
