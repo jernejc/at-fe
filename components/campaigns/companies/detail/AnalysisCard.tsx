@@ -70,7 +70,7 @@ export function AnalysisCard({
                   Related Interests
                 </p>
                 <div className="flex flex-col -mx-6">
-                  {interests.slice(0, 6).map((signal) => (
+                  {[...interests].sort((a, b) => b.strength - a.strength).slice(0, 6).map((signal) => (
                     <SignalRow key={signal.id} signal={signal} />
                   ))}
                 </div>
@@ -86,7 +86,7 @@ export function AnalysisCard({
                   Related Events
                 </p>
                 <div className="flex flex-col -mx-6">
-                  {events.slice(0, 6).map((signal) => (
+                  {[...events].sort((a, b) => b.strength - a.strength).slice(0, 6).map((signal) => (
                     <SignalRow key={signal.id} signal={signal} />
                   ))}
                 </div>
