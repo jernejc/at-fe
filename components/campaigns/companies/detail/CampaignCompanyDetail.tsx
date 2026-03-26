@@ -2,6 +2,7 @@
 
 import { Brain, Target, Calendar } from 'lucide-react';
 import { useCampaignCompanyDetail } from './useCampaignCompanyDetail';
+import type { CachedCompanyDetail } from './useCampaignCompanyDetail';
 import { CampaignCompanyDetailSkeleton } from './CampaignCompanyDetailSkeleton';
 import { AssignmentCard } from './AssignmentCard';
 import { CampaignFitCard } from './CampaignFitCard';
@@ -16,6 +17,7 @@ interface CampaignCompanyDetailProps {
   targetProductId: number | null;
   partners: PartnerAssignmentSummary[];
   onReassigned: (newPartnerId: number) => void;
+  cache?: React.RefObject<Map<string, CachedCompanyDetail>>;
 }
 
 /** Campaign company detail sidebar content with expandable cards. */
@@ -25,6 +27,7 @@ export function CampaignCompanyDetail({
   targetProductId,
   partners,
   onReassigned,
+  cache,
 }: CampaignCompanyDetailProps) {
   const {
     company: companyData,
@@ -43,6 +46,7 @@ export function CampaignCompanyDetail({
     slug,
     targetProductId,
     onReassigned,
+    cache,
   });
 
   const signalNarrative = explainability?.signal_narrative;

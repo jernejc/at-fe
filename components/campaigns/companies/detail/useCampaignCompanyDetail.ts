@@ -8,6 +8,14 @@ import { getCompanyPlaybooks, getCompanyPlaybook } from '@/lib/api/playbooks';
 import { assignCompanyToPartner, unassignCompanyFromPartner } from '@/lib/api/partners';
 import type { CompanyRead, CompanyExplainabilityResponse, FitScore, PlaybookRead } from '@/lib/schemas';
 
+/** Cached detail data for a single company, keyed by domain. */
+export interface CachedCompanyDetail {
+  company: CompanyRead | null;
+  explainability: CompanyExplainabilityResponse | null;
+  fitBreakdown: FitScore | null;
+  playbook: PlaybookRead | null;
+}
+
 interface UseCampaignCompanyDetailOptions {
   domain: string;
   companyId: number;
@@ -18,6 +26,8 @@ interface UseCampaignCompanyDetailOptions {
   targetProductId: number | null;
   /** Called after a successful partner reassignment with the new partner ID. */
   onReassigned?: (newPartnerId: number) => void;
+  /** Optional cache shared across selections to avoid re-fetching previously viewed companies. */
+  cache?: React.RefObject<Map<string, CachedCompanyDetail>>;
 }
 
 export interface UseCampaignCompanyDetailReturn {
@@ -40,20 +50,24 @@ export function useCampaignCompanyDetail({
   slug,
   targetProductId,
   onReassigned,
+  cache,
 }: UseCampaignCompanyDetailOptions): UseCampaignCompanyDetailReturn {
-  const [company, setCompany] = useState<CompanyRead | null>(null);
-  const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cached = cache?.current.get(domain);
 
-  const [fitBreakdown, setFitBreakdown] = useState<FitScore | null>(null);
+  const [company, setCompany] = useState<CompanyRead | null>(cached?.company ?? null);
+  const [explainability, setExplainability] = useState<CompanyExplainabilityResponse | null>(cached?.explainability ?? null);
+  const [loading, setLoading] = useState(!cached);
+
+  const [fitBreakdown, setFitBreakdown] = useState<FitScore | null>(cached?.fitBreakdown ?? null);
   const [fitLoading, setFitLoading] = useState(false);
-  const [playbook, setPlaybook] = useState<PlaybookRead | null>(null);
+  const [playbook, setPlaybook] = useState<PlaybookRead | null>(cached?.playbook ?? null);
   const [playbookLoading, setPlaybookLoading] = useState(false);
   const [reassigning, setReassigning] = useState(false);
 
   // Fetch company data and explainability only (lightweight: 2 API calls)
   useEffect(() => {
     if (!domain) return;
+    if (cache?.current.has(domain)) return;
 
     let cancelled = false;
     setLoading(true);
@@ -68,6 +82,12 @@ export function useCampaignCompanyDetail({
         if (cancelled) return;
         setCompany(companyRes.company);
         setExplainability(explainabilityRes);
+
+        // Write to cache
+        const entry = cache?.current.get(domain) ?? { company: null, explainability: null, fitBreakdown: null, playbook: null };
+        entry.company = companyRes.company;
+        entry.explainability = explainabilityRes;
+        cache?.current.set(domain, entry);
       })
       .catch((err) => {
         if (cancelled) return;
@@ -78,7 +98,7 @@ export function useCampaignCompanyDetail({
       });
 
     return () => { cancelled = true; };
-  }, [domain]);
+  }, [domain, cache]);
 
   // Fetch fit breakdown independently when we have a target product
   useEffect(() => {
@@ -87,6 +107,7 @@ export function useCampaignCompanyDetail({
       setFitLoading(false);
       return;
     }
+    if (cache?.current.get(domain)?.fitBreakdown) return;
 
     let cancelled = false;
     setFitLoading(true);
@@ -94,7 +115,13 @@ export function useCampaignCompanyDetail({
 
     getFitBreakdown(domain, targetProductId)
       .then((result) => {
-        if (!cancelled) setFitBreakdown(result);
+        if (!cancelled) {
+          setFitBreakdown(result);
+
+          const entry = cache?.current.get(domain) ?? { company: null, explainability: null, fitBreakdown: null, playbook: null };
+          entry.fitBreakdown = result;
+          cache?.current.set(domain, entry);
+        }
       })
       .catch(() => {
         if (!cancelled) setFitBreakdown(null);
@@ -104,7 +131,7 @@ export function useCampaignCompanyDetail({
       });
 
     return () => { cancelled = true; };
-  }, [domain, targetProductId]);
+  }, [domain, targetProductId, cache]);
 
   // Fetch playbook contacts for the target product
   useEffect(() => {
@@ -113,6 +140,7 @@ export function useCampaignCompanyDetail({
       setPlaybookLoading(false);
       return;
     }
+    if (cache?.current.get(domain)?.playbook) return;
 
     let cancelled = false;
     setPlaybookLoading(true);
@@ -127,7 +155,13 @@ export function useCampaignCompanyDetail({
           return;
         }
         const detail = await getCompanyPlaybook(domain, target.id);
-        if (!cancelled) setPlaybook(detail);
+        if (!cancelled) {
+          setPlaybook(detail);
+
+          const entry = cache?.current.get(domain) ?? { company: null, explainability: null, fitBreakdown: null, playbook: null };
+          entry.playbook = detail;
+          cache?.current.set(domain, entry);
+        }
       } catch {
         // Silently fail — contacts card simply won't render
       } finally {
@@ -137,7 +171,7 @@ export function useCampaignCompanyDetail({
 
     fetchPlaybook();
     return () => { cancelled = true; };
-  }, [domain, targetProductId]);
+  }, [domain, targetProductId, cache]);
 
   const reassignToPartner = useCallback(async (newPartnerId: number) => {
     setReassigning(true);

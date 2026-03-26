@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useCampaignDetail } from '@/components/providers/CampaignDetailProvider';
 import { CampaignCompaniesView } from '@/components/campaigns/companies/CampaignCompaniesView';
 import { useCampaignCompanies } from '@/components/campaigns/companies/useCampaignCompanies';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useBulkActions } from '@/components/campaigns/companies/useBulkActions';
 import { CampaignCompanyDetail } from '@/components/campaigns/companies/detail/CampaignCompanyDetail';
+import type { CachedCompanyDetail } from '@/components/campaigns/companies/detail/useCampaignCompanyDetail';
 import { DetailSidePanel } from '@/components/ui/detail-side-panel/DetailSidePanel';
 import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 import { assignAllCompaniesToPartners } from '@/lib/api/partners';
@@ -24,6 +25,7 @@ export default function CampaignCompaniesPage() {
   });
 
   const [selectedCompany, setSelectedCompany] = useState<CompanyRowData | null>(null);
+  const companyCacheRef = useRef(new Map<string, CachedCompanyDetail>());
 
   const handleCompanyClick = useCallback((company: CompanyRowData) => {
     setSelectedCompany((prev) => (prev?.id === company.id ? null : company));
@@ -136,6 +138,7 @@ export default function CampaignCompaniesPage() {
             targetProductId={campaign?.target_product_id ?? null}
             partners={partners}
             onReassigned={handleReassigned}
+            cache={companyCacheRef}
           />
         ) : null
       }
