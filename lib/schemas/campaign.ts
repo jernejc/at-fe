@@ -86,6 +86,7 @@ export interface MembershipRead {
     company_id: number;
     domain: string;
     company_name: string | null;
+    is_unresolved: boolean;
     industry: string | null;
     employee_count: number | null;
     hq_country: string | null;
@@ -93,7 +94,26 @@ export interface MembershipRead {
     cached_fit_score: number | null;
     cached_likelihood_score: number | null;
     cached_urgency_score: number | null;
+    // Processing fields
+    processing_status: string;
     is_processed: boolean;
+    processing_error: string | null;
+    processing_started_at: string | null;
+    processing_completed_at: string | null;
+    // Target depth/status fields
+    target_data_depth: string;
+    target_signal_status: string;
+    target_fit_status: string;
+    target_playbook_status: string;
+    // Inclusion flags
+    include_employees: boolean;
+    include_posts: boolean;
+    include_jobs: boolean;
+    // Achieved depth/status fields
+    achieved_data_depth: string | null;
+    achieved_signal_status: string | null;
+    achieved_fit_status: string | null;
+    achieved_playbook_status: string | null;
     notes: string | null;
     priority: number;
     logo_base64?: string | null;

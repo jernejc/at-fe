@@ -31,11 +31,28 @@ export default function CampaignCompaniesPage() {
 
   const handleClose = useCallback(() => setSelectedCompany(null), []);
 
-  const { refetch, partners } = companiesState;
+  const { refetch, partners, updateCompanyPartner, activeFilters } = companiesState;
 
-  const handleReassigned = useCallback(() => {
-    refetch();
-  }, [refetch]);
+  const handleReassigned = useCallback((newPartnerId: number) => {
+    const newPartner = partners.find((p) => p.partner_id === newPartnerId);
+    if (!newPartner) return;
+
+    // Optimistically update the selected company
+    setSelectedCompany((prev) => prev ? {
+      ...prev,
+      partner_id: newPartner.partner_id,
+      partner_name: newPartner.partner_name,
+      partner_logo_url: newPartner.partner_logo_url ?? undefined,
+    } : null);
+
+    // Optimistically update the company in the list
+    if (selectedCompany) {
+      updateCompanyPartner(selectedCompany.id, newPartner.partner_id, newPartner.partner_name);
+    }
+
+    // Only refetch if a partner filter is active (company may leave the filtered set)
+    if (activeFilters.some((f) => f.key === 'partner')) refetch();
+  }, [partners, selectedCompany, updateCompanyPartner, activeFilters, refetch]);
 
   // Auto-assign unassigned companies to partners
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);

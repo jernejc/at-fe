@@ -1,6 +1,16 @@
 {
   "versions": [
     {
+      "version": "1.2.8",
+      "date": "2026-03-26",
+      "changes": [
+        "Fixed reassignment dropdown closing the detail side panel",
+        "Fixed reassignment API sending wrong ID",
+        "Reassign dropdown no longer shows the currently assigned partner",
+        "Optimistic partner update on reassignment for instant UI feedback"
+      ]
+    },
+    {
       "version": "1.2.7",
       "date": "2026-03-25",
       "changes": ["Contacts card in campaign company detail sidebar with LinkedIn links"]

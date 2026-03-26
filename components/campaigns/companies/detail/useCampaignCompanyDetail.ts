@@ -16,8 +16,8 @@ interface UseCampaignCompanyDetailOptions {
   slug: string;
   /** Campaign's target product, used for fit breakdown. */
   targetProductId: number | null;
-  /** Called after a successful partner reassignment. */
-  onReassigned?: () => void;
+  /** Called after a successful partner reassignment with the new partner ID. */
+  onReassigned?: (newPartnerId: number) => void;
 }
 
 export interface UseCampaignCompanyDetailReturn {
@@ -147,7 +147,7 @@ export function useCampaignCompanyDetail({
       }
       await assignCompanyToPartner(slug, newPartnerId, { company_id: companyId });
       toast.success('Company reassigned successfully');
-      onReassigned?.();
+      onReassigned?.(newPartnerId);
     } catch (err) {
       toast.error('Failed to reassign company', {
         description: err instanceof Error ? err.message : 'Please try again',

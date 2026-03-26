@@ -77,8 +77,18 @@ export function useBulkActions(): UseBulkActionsReturn {
     refetch: () => void,
     onDone: () => void,
   ) => {
-    const selected = companies.filter((c) => selectedIds.has(c.id));
+    let selected = companies.filter((c) => selectedIds.has(c.id));
     if (selected.length === 0) return;
+
+    // Skip companies already assigned to the target partner
+    if (partnerId > 0) {
+      selected = selected.filter((c) => c.partner_id !== partnerId);
+      if (selected.length === 0) {
+        toast.success('All selected companies are already assigned to this partner');
+        onDone();
+        return;
+      }
+    }
 
     setIsReassigning(true);
     try {
@@ -87,7 +97,7 @@ export function useBulkActions(): UseBulkActionsReturn {
         const withPartner = selected.filter((c) => c.partner_id != null);
         const results = await Promise.allSettled(
           withPartner.map((c) =>
-            unassignCompanyFromPartner(slug, c.partner_id!, c.id),
+            unassignCompanyFromPartner(slug, c.partner_id!, c.company_id ?? c.id),
           ),
         );
         const succeeded = results.filter((r) => r.status === 'fulfilled').length;
@@ -99,7 +109,17 @@ export function useBulkActions(): UseBulkActionsReturn {
           toast.warning(`Unassigned ${succeeded}, failed ${failed}`);
         }
       } else {
-        const companyIds = selected.map((c) => c.id);
+        // Unassign companies that already have a different partner
+        const withPartner = selected.filter((c) => c.partner_id != null);
+        if (withPartner.length > 0) {
+          await Promise.allSettled(
+            withPartner.map((c) =>
+              unassignCompanyFromPartner(slug, c.partner_id!, c.company_id ?? c.id),
+            ),
+          );
+        }
+        // Bulk assign to new partner
+        const companyIds = selected.map((c) => c.company_id ?? c.id);
         await bulkAssignCompaniesToPartner(slug, partnerId, companyIds);
         toast.success(`Reassigned ${companyIds.length} ${companyIds.length === 1 ? 'company' : 'companies'}`);
       }

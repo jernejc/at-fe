@@ -1,6 +1,6 @@
 {
   "name": "at-fe",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -9,7 +9,8 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify": "eslint && vitest run && next build"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",

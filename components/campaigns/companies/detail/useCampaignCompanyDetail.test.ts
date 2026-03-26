@@ -147,7 +147,7 @@ function makeExplainability(overrides: Partial<CompanyExplainabilityResponse> = 
 const defaultOptions = {
   domain: 'acme.com',
   companyId: 1,
-  partnerId: null as string | null,
+  partnerId: null as number | null,
   slug: 'test-campaign',
   targetProductId: 10 as number | null,
   onReassigned: vi.fn(),
@@ -323,7 +323,7 @@ describe('useCampaignCompanyDetail — reassignment', () => {
 
     expect(mockAssignCompanyToPartner).toHaveBeenCalledWith('test-campaign', 20, { company_id: 1 });
     expect(mockUnassignCompanyFromPartner).not.toHaveBeenCalled();
-    expect(onReassigned).toHaveBeenCalledOnce();
+    expect(onReassigned).toHaveBeenCalledWith(20);
     expect(mockToastSuccess).toHaveBeenCalledWith('Company reassigned successfully');
   });
 

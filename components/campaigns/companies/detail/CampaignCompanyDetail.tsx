@@ -15,7 +15,7 @@ interface CampaignCompanyDetailProps {
   slug: string;
   targetProductId: number | null;
   partners: PartnerAssignmentSummary[];
-  onReassigned: () => void;
+  onReassigned: (newPartnerId: number) => void;
 }
 
 /** Campaign company detail sidebar content with expandable cards. */
@@ -38,7 +38,7 @@ export function CampaignCompanyDetail({
     reassignToPartner,
   } = useCampaignCompanyDetail({
     domain: company.domain,
-    companyId: company.id,
+    companyId: company.company_id ?? company.id,
     partnerId: company.partner_id ?? null,
     slug,
     targetProductId,
@@ -60,7 +60,7 @@ export function CampaignCompanyDetail({
             partnerName={company.partner_name}
             partnerLogoUrl={company.partner_logo_url}
             status={company.status}
-            partners={partners}
+            partners={partners.filter((p) => p.partner_id !== company.partner_id)}
             reassigning={reassigning}
             onReassign={reassignToPartner}
           />

@@ -120,6 +120,8 @@ export interface StatsResponse {
  */
 export interface CompanyRowData {
     id: number;
+    /** Actual company ID (distinct from membership id). */
+    company_id?: number;
     name: string;
     domain: string;
     logo_url?: string | null;

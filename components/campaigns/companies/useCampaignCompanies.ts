@@ -45,6 +45,7 @@ function buildPartnerFilter(partners: PartnerAssignmentSummary[]): FilterDefinit
 function toRowData(m: MembershipRead): CompanyRowData {
   return {
     id: m.id,
+    company_id: m.company_id,
     name: m.company_name ?? m.domain,
     domain: m.domain,
     logo_url: m.logo_url,
@@ -88,6 +89,8 @@ export interface UseCampaignCompaniesReturn {
   partners: PartnerAssignmentSummary[];
   /** Re-fetch the companies list. */
   refetch: () => void;
+  /** Optimistically update partner fields on a company. */
+  updateCompanyPartner: (membershipId: number, partnerId: number, partnerName: string) => void;
 }
 
 /** Fetches and manages campaign companies with search, sort, and filter. */
@@ -105,6 +108,15 @@ export function useCampaignCompanies({ slug, enabled = true, partners: externalP
   const partners = useMemo(() => externalPartners ?? [], [externalPartners]);
   const [fetchVersion, setFetchVersion] = useState(0);
   const refetch = useCallback(() => setFetchVersion((v) => v + 1), []);
+
+  /** Optimistically update partner fields on a company without refetching. */
+  const updateCompanyPartner = useCallback((membershipId: number, partnerId: number, partnerName: string) => {
+    setRawCompanies((prev) => prev.map((m) =>
+      m.id === membershipId
+        ? { ...m, assigned_partner_id: partnerId, assigned_partner_name: partnerName }
+        : m
+    ));
+  }, []);
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -220,5 +232,6 @@ export function useCampaignCompanies({ slug, enabled = true, partners: externalP
     setActiveSort,
     partners,
     refetch,
+    updateCompanyPartner,
   };
 }
