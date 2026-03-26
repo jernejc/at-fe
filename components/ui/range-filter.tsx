@@ -1,7 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { Popover } from '@base-ui/react/popover';
+import { X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
 
 /** Props for the RangeFilter component. */
 export interface RangeFilterProps {
@@ -21,6 +24,8 @@ export interface RangeFilterProps {
   onChange?: (range: [number, number]) => void;
   /** Custom formatter for the displayed average value. @default String(avg) */
   formatAvg?: (avg: number) => string;
+  /** Slider increment. When omitted, a "nice" step is auto-computed from the range. */
+  step?: number;
   className?: string;
 }
 
@@ -88,6 +93,16 @@ function buildBuckets(
   return buckets;
 }
 
+/** Compute a "nice" slider step so the range yields ~40–200 discrete positions. */
+function computeNiceStep(span: number): number {
+  if (span <= 100) return 1;
+  const rawStep = span / 100;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const normalized = rawStep / magnitude;
+  const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return nice * magnitude;
+}
+
 /** Compute a weighted average directly from the raw histogram. */
 function weightedAvg(hist: Map<number, number>): number {
   let total = 0;
@@ -99,11 +114,83 @@ function weightedAvg(hist: Map<number, number>): number {
   return count === 0 ? 0 : Math.round(total / count);
 }
 
+const popupStyles =
+  'bg-popover text-popover-foreground ring-foreground/10 rounded-lg shadow-md ring-1 p-1 origin-(--transform-origin) data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 duration-100';
+
+/** Clickable min/max label that opens a popover with a numeric input for exact value entry. */
+function RangeInput({
+  label,
+  value,
+  clampMin,
+  clampMax,
+  onAccept,
+}: {
+  label: 'min' | 'max';
+  value: number;
+  clampMin: number;
+  clampMax: number;
+  onAccept: (v: number) => void;
+}) {
+  const [draft, setDraft] = React.useState(String(value));
+  const [open, setOpen] = React.useState(false);
+
+  const resetDraft = () => setDraft(String(value));
+
+  const accept = () => {
+    const parsed = Number(draft);
+    if (Number.isNaN(parsed)) { setOpen(false); return; }
+    const clamped = Math.max(clampMin, Math.min(clampMax, parsed));
+    onAccept(clamped);
+    setOpen(false);
+  };
+
+  return (
+    <Popover.Root open={open} onOpenChange={(nextOpen) => { setOpen(nextOpen); if (nextOpen) resetDraft(); }}>
+      <Popover.Trigger
+        className={cn(buttonVariants({ variant: 'ghost', size: 'xs' }), 'text-muted-foreground h-auto px-1 py-0.5')}
+      >
+        {label === 'min' ? `min ${value.toLocaleString()}` : `${value.toLocaleString()} max`}
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner side="bottom" align={label === 'min' ? 'start' : 'end'} sideOffset={4} className="isolate z-50">
+          <Popover.Popup className={popupStyles}>
+            <div className="flex items-center gap-1" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); accept(); } }}>
+              <input
+                type="number"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                autoFocus
+                className="h-7 w-28 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus:border-ring [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+              />
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className={cn(buttonVariants({ variant: 'ghost', size: 'icon-xs' }), 'text-muted-foreground')}
+                aria-label="Cancel"
+              >
+                <X className="size-3" />
+              </button>
+              <button
+                type="button"
+                onClick={accept}
+                className={cn(buttonVariants({ variant: 'ghost', size: 'icon-xs' }), 'text-muted-foreground')}
+                aria-label="Confirm"
+              >
+                <Check className="size-3" />
+              </button>
+            </div>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
 /**
  * Histogram bar chart with a dual-thumb range slider for filtering numeric values.
  * Bars inside the selected range are dark; bars outside are muted.
  */
-export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars = 50, range: propRange, onChange, formatAvg, className }: RangeFilterProps) {
+export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars = 50, range: propRange, onChange, formatAvg, step: propStep, className }: RangeFilterProps) {
   const hist = React.useMemo(() => buildHistogram(values), [values]);
   const buckets = React.useMemo(() => buildBuckets(hist, propMin, propMax, maxBars), [hist, propMin, propMax, maxBars]);
   const avg = React.useMemo(() => weightedAvg(hist), [hist]);
@@ -111,6 +198,7 @@ export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars
   const dataMin = buckets.length > 0 ? buckets[0].start : 0;
   const dataMax = buckets.length > 0 ? buckets[buckets.length - 1].end : 0;
   const maxCount = Math.max(...buckets.map((b) => b.count), 1);
+  const step = propStep ?? computeNiceStep(dataMax - dataMin);
 
   const [rangeMin, setRangeMin] = React.useState(propRange ? propRange[0] : dataMin);
   const [rangeMax, setRangeMax] = React.useState(propRange ? propRange[1] : dataMax);
@@ -191,6 +279,7 @@ export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars
           type="range"
           min={dataMin}
           max={dataMax}
+          step={step}
           value={rangeMin}
           onChange={handleMinChange}
           className="range-thumb absolute inset-0 w-full appearance-none bg-transparent pointer-events-none"
@@ -201,6 +290,7 @@ export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars
           type="range"
           min={dataMin}
           max={dataMax}
+          step={step}
           value={rangeMax}
           onChange={handleMaxChange}
           className="range-thumb absolute inset-0 w-full appearance-none bg-transparent pointer-events-none"
@@ -210,8 +300,20 @@ export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars
 
       {/* Footer */}
       <div className="flex justify-between mt-0.5">
-        <span className="text-sm text-muted-foreground">min {rangeMin.toLocaleString()}</span>
-        <span className="text-sm text-muted-foreground">{rangeMax.toLocaleString()} max</span>
+        <RangeInput
+          label="min"
+          value={rangeMin}
+          clampMin={dataMin}
+          clampMax={rangeMax}
+          onAccept={(v) => { setRangeMin(v); onChange?.([v, rangeMax]); }}
+        />
+        <RangeInput
+          label="max"
+          value={rangeMax}
+          clampMin={rangeMin}
+          clampMax={dataMax}
+          onAccept={(v) => { setRangeMax(v); onChange?.([rangeMin, v]); }}
+        />
       </div>
     </div>
   );
