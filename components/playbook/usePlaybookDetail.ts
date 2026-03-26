@@ -79,17 +79,17 @@ export function usePlaybookDetail(playbook: PlaybookRead) {
 
   const handleContactClick = useCallback((contact: PlaybookContactResponse) => {
     const isActive = selected?.type === 'contact' && selected.data.id === contact.id;
-    updateUrl(isActive ? null : { type: 'contact', data: contact }, true);
+    updateUrl(isActive ? null : { type: 'contact', data: contact }, false);
   }, [selected, updateUrl]);
 
   const handleStepClick = useCallback((step: CadenceStep, index: number) => {
     const isActive = selected?.type === 'step' && selected.index === index;
-    updateUrl(isActive ? null : { type: 'step', data: step, index }, true);
+    updateUrl(isActive ? null : { type: 'step', data: step, index }, false);
   }, [selected, updateUrl]);
 
   const handleObjectionClick = useCallback((entry: ObjectionHandlingEntry, index: number) => {
     const isActive = selected?.type === 'objection' && selected.index === index;
-    updateUrl(isActive ? null : { type: 'objection', data: entry, index }, true);
+    updateUrl(isActive ? null : { type: 'objection', data: entry, index }, false);
   }, [selected, updateUrl]);
 
   // --- Navigate handlers (replace, for keyboard nav) ---
@@ -107,7 +107,7 @@ export function usePlaybookDetail(playbook: PlaybookRead) {
   }, [updateUrl]);
 
   const handleClose = useCallback(() => {
-    updateUrl(null, true);
+    updateUrl(null, false);
   }, [updateUrl]);
 
   // --- Active checkers ---
