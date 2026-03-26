@@ -41,7 +41,10 @@ export function DetailSidePanel({ open, onClose, detail, children }: DetailSideP
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (panelRef.current?.contains(e.target as Node)) return;
+      const target = e.target as HTMLElement;
+      if (panelRef.current?.contains(target)) return;
+      // Don't close when clicking inside portaled floating UI (menus, popovers, etc.)
+      if (target.closest?.('[role="menu"], [role="menuitem"], [role="listbox"], [role="option"], [role="dialog"], [data-floating-ui-portal]')) return;
       onClose();
     };
     document.addEventListener('mousedown', handler, { capture: true });

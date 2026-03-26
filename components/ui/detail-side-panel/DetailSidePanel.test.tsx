@@ -130,6 +130,28 @@ describe('DetailSidePanel', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
 
+    it('does not call onClose when clicking inside a portaled menu', () => {
+      const onClose = vi.fn();
+      renderPanel(true, onClose);
+
+      // Simulate a portaled dropdown menu rendered outside the panel DOM
+      const portal = document.createElement('div');
+      const menu = document.createElement('div');
+      menu.setAttribute('role', 'menu');
+      const menuItem = document.createElement('div');
+      menuItem.setAttribute('role', 'menuitem');
+      menu.appendChild(menuItem);
+      portal.appendChild(menu);
+      document.body.appendChild(portal);
+
+      act(() => {
+        menuItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      });
+      expect(onClose).not.toHaveBeenCalled();
+
+      document.body.removeChild(portal);
+    });
+
     it('does not listen for clicks when panel is closed', () => {
       const onClose = vi.fn();
       renderPanel(false, onClose);
