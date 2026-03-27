@@ -4,14 +4,24 @@ export interface CampaignSummary {
     id: number;
     name: string;
     slug: string;
+    icon: string | null;
     status: string;
     company_count: number;
     processed_count: number;
     avg_fit_score: number | null;
     target_product_id: number | null;
     owner: string | null;
+    owner_id: number | null;
     created_at: string;
     updated_at: string;
+    partner_count: number;
+    avg_employee_count: number | null;
+    min_employee_count: number | null;
+    max_employee_count: number | null;
+    avg_revenue: number | null;
+    min_revenue: number | null;
+    max_revenue: number | null;
+    top_location: string | null;
 }
 
 export interface CampaignRead {
@@ -189,14 +199,8 @@ export interface BulkAddResult {
  * All new fields are optional so the row degrades gracefully.
  */
 export interface CampaignRowData extends CampaignSummary {
-    /** Lucide icon name chosen by the user (e.g. "rocket", "target") */
-    icon?: string | null;
     /** Resolved target product name(s) */
     product_name?: string | null;
-    /** Average employee size range, e.g. "100-200" */
-    avg_employee_size?: string | null;
-    /** Primary geographic location, e.g. "United States" */
-    main_location?: string | null;
     /** Companies with active outreach (in-progress) */
     in_progress_count?: number;
     /** Companies that completed the funnel and were won */

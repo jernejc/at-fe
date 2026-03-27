@@ -28,7 +28,7 @@ export function StatusIndicator({ status, size = 8, className }: StatusIndicator
         style={{ width: size, height: size }}
       />
       <TooltipContent side="bottom">
-        <span className="capitalize">{status}</span>
+        Status: <span className="capitalize">{status}</span>
       </TooltipContent>
     </Tooltip>
   );

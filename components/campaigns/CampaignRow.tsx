@@ -1,13 +1,14 @@
 'use client';
 
-import { cn, formatCompactNumber, formatCurrency, normalizeScoreNullable } from '@/lib/utils';
+import { cn, formatCompactNumber, formatCompactRange, formatCurrency, normalizeScoreNullable } from '@/lib/utils';
 import type { CampaignRowData } from '@/lib/schemas';
-import { Building2, Users, MapPin } from 'lucide-react';
+import { Building2, Users, MapPin, Handshake, DollarSign } from 'lucide-react';
 import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { CampaignProgress } from '@/components/ui/campaign-progress';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface CampaignRowProps {
   /** Campaign data (extended summary with optional enrichment fields) */
@@ -64,28 +65,79 @@ export function CampaignRow({ campaign, onClick, className }: CampaignRowProps) 
         </span>
 
         <div className="flex items-center gap-4 text-xs mt-2">
-          <span className="flex items-center gap-2">
-            <Building2 className="w-3.5 h-3.5 shrink-0" />
-            <span>{formatCompactNumber(campaign.company_count)}</span>
-            {(campaign.newOpportunityCount ?? 0) > 0 && (
-              <span className="text-amber-500 font-medium">
-                {campaign.newOpportunityCount} new
+          <Tooltip>
+            <TooltipTrigger >
+              <span className="flex items-center gap-2">
+                <Building2 className="w-3.5 h-3.5 shrink-0" />
+                <span>{formatCompactNumber(campaign.company_count)}</span>
+                {(campaign.newOpportunityCount ?? 0) > 0 && (
+                  <span className="text-amber-500 font-medium">
+                    {campaign.newOpportunityCount} new
+                  </span>
+                )}
               </span>
-            )}
-          </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {campaign.company_count.toLocaleString()} companies
+            </TooltipContent>
+          </Tooltip>
 
-          {campaign.avg_employee_size && (
-            <span className="flex items-center gap-2">
-              <Users className="w-3.5 h-3.5 shrink-0" />
-              <span>{campaign.avg_employee_size}</span>
-            </span>
+          {formatCompactRange(campaign.min_employee_count, campaign.max_employee_count) && (
+            <Tooltip>
+              <TooltipTrigger >
+                <span className="flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5 shrink-0" />
+                  <span>{formatCompactRange(campaign.min_employee_count, campaign.max_employee_count)}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Employee count: {formatCompactRange(campaign.min_employee_count, campaign.max_employee_count)}
+                {campaign.avg_employee_count != null && ` · Avg ${formatCompactNumber(campaign.avg_employee_count)}`}
+              </TooltipContent>
+            </Tooltip>
           )}
 
-          {campaign.main_location && (
-            <span className="flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate max-w-[120px]">{campaign.main_location}</span>
-            </span>
+          {formatCompactRange(campaign.min_revenue, campaign.max_revenue) && (
+            <Tooltip>
+              <TooltipTrigger >
+                <span className="flex items-center gap-1">
+                  <DollarSign className="w-3.5 h-3.5 shrink-0" />
+                  <span>{formatCompactRange(campaign.min_revenue, campaign.max_revenue)}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Revenue: ${formatCompactRange(campaign.min_revenue, campaign.max_revenue)}
+                {campaign.avg_revenue != null && ` · Avg $${formatCompactNumber(campaign.avg_revenue)}`}
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {campaign.partner_count > 0 && (
+            <Tooltip>
+              <TooltipTrigger >
+                <span className="flex items-center gap-2">
+                  <Handshake className="w-3.5 h-3.5 shrink-0" />
+                  <span>{campaign.partner_count}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {campaign.partner_count} partner{campaign.partner_count !== 1 ? 's' : ''}
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {campaign.top_location && (
+            <Tooltip>
+              <TooltipTrigger >
+                <span className="flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate max-w-[120px]">{campaign.top_location}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Top location: {campaign.top_location}
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
       </div>

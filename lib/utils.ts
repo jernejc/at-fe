@@ -24,6 +24,22 @@ export function formatCompactNumber(num: number): string {
   return num.toString();
 }
 
+/**
+ * Format a min–max range using compact notation (e.g. "100-35.3K").
+ * Returns a single value if min === max, or null if both are null.
+ */
+export function formatCompactRange(
+  min: number | null | undefined,
+  max: number | null | undefined,
+): string | null {
+  if (min == null && max == null) return null;
+  if (min != null && max != null) {
+    if (min === max) return formatCompactNumber(min);
+    return `${formatCompactNumber(min)}-${formatCompactNumber(max)}`;
+  }
+  return formatCompactNumber((min ?? max)!);
+}
+
 const NEW_THRESHOLD_DAYS = 7;
 
 /**

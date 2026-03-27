@@ -10,14 +10,24 @@ function makeCampaign(overrides: Partial<CampaignRowData> = {}): CampaignRowData
     id: 1,
     name: 'Test Campaign',
     slug: 'test-campaign',
+    icon: null,
     status: 'active',
     company_count: 100,
     processed_count: 40,
     avg_fit_score: 0.72,
     target_product_id: null,
     owner: null,
+    owner_id: null,
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
+    partner_count: 0,
+    avg_employee_count: null,
+    min_employee_count: null,
+    max_employee_count: null,
+    avg_revenue: null,
+    min_revenue: null,
+    max_revenue: null,
+    top_location: null,
     ...overrides,
   };
 }
@@ -52,23 +62,33 @@ describe('CampaignRow', () => {
     expect(screen.getByText('1.5K')).toBeInTheDocument();
   });
 
-  it('displays average employee size when provided', () => {
-    renderRow({ campaign: makeCampaign({ avg_employee_size: '100-200' }) });
-    expect(screen.getByText('100-200')).toBeInTheDocument();
+  it('displays employee count range when provided', () => {
+    renderRow({ campaign: makeCampaign({ min_employee_count: 100, max_employee_count: 35340 }) });
+    expect(screen.getByText('100-35.3K')).toBeInTheDocument();
   });
 
-  it('hides employee size when not provided', () => {
-    renderRow({ campaign: makeCampaign({ avg_employee_size: undefined }) });
-    expect(screen.queryByText('100-200')).not.toBeInTheDocument();
+  it('hides employee count when not provided', () => {
+    renderRow({ campaign: makeCampaign({ min_employee_count: null, max_employee_count: null }) });
+    expect(screen.queryByText(/\d+.*-.*\d+/)).not.toBeInTheDocument();
   });
 
-  it('displays main location when provided', () => {
-    renderRow({ campaign: makeCampaign({ main_location: 'United States' }) });
+  it('displays revenue range when provided', () => {
+    renderRow({ campaign: makeCampaign({ min_revenue: 10000000, max_revenue: 500000000 }) });
+    expect(screen.getByText('10.0M-500.0M')).toBeInTheDocument();
+  });
+
+  it('displays partner count when provided', () => {
+    renderRow({ campaign: makeCampaign({ partner_count: 4 }) });
+    expect(screen.getByText('4')).toBeInTheDocument();
+  });
+
+  it('displays top location when provided', () => {
+    renderRow({ campaign: makeCampaign({ top_location: 'United States' }) });
     expect(screen.getByText('United States')).toBeInTheDocument();
   });
 
   it('hides location when not provided', () => {
-    renderRow({ campaign: makeCampaign({ main_location: undefined }) });
+    renderRow({ campaign: makeCampaign({ top_location: null }) });
     expect(screen.queryByText('United States')).not.toBeInTheDocument();
   });
 
