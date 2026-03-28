@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import type { PlaybookContactResponse } from '@/lib/schemas';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
+// import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 
 interface ContactRowProps {
   contact: PlaybookContactResponse;
@@ -59,16 +59,16 @@ export function ContactRow({ contact, onClick, isActive, hideMetrics, className,
       {/* Metrics */}
       {!hideMetrics && <div className="hidden md:flex items-center gap-7 shrink-0">
         {/* Role category */}
-        <span className="text-sm truncate w-34">
+        <span className="text-sm truncate w-42">
           {contact.role_category ?? '\u2013'}
         </span>
 
         {/* Fit score */}
-        {contact.fit_score != null ? (
+        {/* {contact.fit_score != null ? (
           <FitScoreIndicator score={Math.round(contact.fit_score * 100)} size={16} showChange={false} className="w-14" />
         ) : (
           <span className="w-14 text-sm text-muted-foreground">{'\u2013'}</span>
-        )}
+        )} */}
 
         {/* LinkedIn */}
         {contact.linkedin_url ? (

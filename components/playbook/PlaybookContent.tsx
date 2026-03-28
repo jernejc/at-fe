@@ -257,8 +257,8 @@ function ContactsTableHeader() {
       <div className="w-8 shrink-0" />
       <div className="flex-1 min-w-0">Contact</div>
       <div className="hidden md:flex items-center gap-7 shrink-0">
-        <span className="w-34">Role</span>
-        <span className="w-14">Fit</span>
+        <span className="w-42">Role</span>
+        {/* <span className="w-14">Fit</span> */}
         <span className="w-4" />
       </div>
     </div>

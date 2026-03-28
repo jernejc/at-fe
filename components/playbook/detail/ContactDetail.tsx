@@ -2,8 +2,8 @@ import type { PlaybookContactResponse } from '@/lib/schemas';
 import { Mail, Phone } from 'lucide-react';
 import { LinkedinIcon } from '@/components/ui/icons/linkedin-icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
-import { CircularProgress } from '@/components/ui/circular-progress';
+// import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
+// import { CircularProgress } from '@/components/ui/circular-progress';
 import {
   Dashboard,
   DashboardCell,
@@ -20,8 +20,8 @@ interface ContactDetailProps {
 
 /** Detail panel content for a selected playbook contact using Dashboard cells. */
 export function ContactDetail({ contact }: ContactDetailProps) {
-  const fitScore = contact.fit_score != null ? Math.round(contact.fit_score * 100) : null;
-  const urgencyValue = contact.fit_urgency != null ? contact.fit_urgency * 10 : null;
+  // const fitScore = contact.fit_score != null ? Math.round(contact.fit_score * 100) : null;
+  // const urgencyValue = contact.fit_urgency != null ? contact.fit_urgency * 10 : null;
 
   return (
     <div className="space-y-5">
@@ -43,7 +43,7 @@ export function ContactDetail({ contact }: ContactDetailProps) {
         </DashboardCell>
 
         {/* Fit Score */}
-        {fitScore != null && (
+        {/* {fitScore != null && (
           <DashboardCell size="half" height="auto" gradient={fitScore > 75 ? 'green' : 'none'}>
             <DashboardCellTitle>Fit Score</DashboardCellTitle>
             <DashboardCellBody size="sm" className="flex items-center gap-3">
@@ -51,10 +51,10 @@ export function ContactDetail({ contact }: ContactDetailProps) {
               <span>{fitScore}</span>
             </DashboardCellBody>
           </DashboardCell>
-        )}
+        )} */}
 
         {/* Urgency */}
-        {urgencyValue != null && (
+        {/* {urgencyValue != null && (
           <DashboardCell size="half" height="auto" gradient={contact.fit_urgency! > 7 ? 'green' : 'none'}>
             <DashboardCellTitle>Urgency</DashboardCellTitle>
             <DashboardCellBody size="sm" className="flex items-center gap-3">
@@ -62,7 +62,7 @@ export function ContactDetail({ contact }: ContactDetailProps) {
               <span>{contact.fit_urgency}/10</span>
             </DashboardCellBody>
           </DashboardCell>
-        )}
+        )} */}
 
         {/* Priority */}
         {contact.priority_rank != null && (
