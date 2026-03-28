@@ -1,6 +1,19 @@
 import { cn } from '@/lib/utils';
 import { OctagonX } from 'lucide-react';
 
+/** Strips common markdown syntax for plain-text previews. */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [text](url) → text
+    .replace(/[*_]{1,3}(.+?)[*_]{1,3}/g, '$1') // bold/italic
+    .replace(/^#{1,6}\s+/gm, '') // headings
+    .replace(/^[-*+]\s+/gm, '') // unordered list markers
+    .replace(/^\d+\.\s+/gm, '') // ordered list markers
+    .replace(/`([^`]+)`/g, '$1') // inline code
+    .replace(/\n/g, ' ') // collapse newlines
+    .trim();
+}
+
 interface ObjectionRowProps {
   objection: string;
   response?: string;
@@ -40,7 +53,7 @@ export function ObjectionRow({ objection, response, onClick, isActive, className
       <div className="flex-1 min-w-0 flex flex-col">
         <span className="text-base font-medium text-foreground truncate leading-tight">{objection}</span>
         {response && (
-          <span className="text-xs text-muted-foreground truncate mt-0.5 max-w-4xl">{response}</span>
+          <span className="text-xs text-muted-foreground truncate mt-0.5 max-w-4xl">{stripMarkdown(response)}</span>
         )}
       </div>
     </div>

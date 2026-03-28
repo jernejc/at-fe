@@ -1,6 +1,7 @@
 import type { ObjectionHandlingEntry } from '@/lib/schemas';
 import { Dashboard, DashboardCell } from '@/components/ui/dashboard';
 import { DashboardCellTitle } from '@/components/ui/dashboard';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 interface ObjectionDetailProps {
   entry: ObjectionHandlingEntry;
@@ -12,9 +13,9 @@ export function ObjectionDetail({ entry }: ObjectionDetailProps) {
     <Dashboard>
       <DashboardCell size="full" height="auto">
         <DashboardCellTitle>{entry.objection}</DashboardCellTitle>
-        <p className="mt-4 text-sm leading-relaxed">
-          {entry.response}
-        </p>
+        <div className="mt-4 text-sm leading-relaxed">
+          <MarkdownContent content={entry.response} />
+        </div>
       </DashboardCell>
     </Dashboard>
   );

@@ -11,6 +11,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 interface EngagementStrategyCardProps {
   contact: PlaybookContactResponse;
@@ -100,9 +101,7 @@ export function EngagementStrategyCard({ contact }: EngagementStrategyCardProps)
             <Separator className="-mt-2" />
             {tabs.map((tab) => (
               <TabsContent key={tab.value} value={tab.value} className="pt-4">
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
-                  {getTabContent(contact, tab.value)}
-                </p>
+                <MarkdownContent content={getTabContent(contact, tab.value)} className="text-sm text-foreground leading-relaxed" />
               </TabsContent>
             ))}
           </Tabs>
