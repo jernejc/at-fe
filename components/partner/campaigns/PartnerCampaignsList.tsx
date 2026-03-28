@@ -130,6 +130,7 @@ export function PartnerCampaignsList() {
               <CampaignRow
                 campaign={row}
                 onClick={handleRowClick}
+                hidePartnerCount
                 className="-mx-5"
               />
               <Separator />

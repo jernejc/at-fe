@@ -15,11 +15,13 @@ interface CampaignRowProps {
   campaign: CampaignRowData;
   /** Row click handler */
   onClick?: (campaign: CampaignRowData) => void;
+  /** Hide the partner count chip */
+  hidePartnerCount?: boolean;
   className?: string;
 }
 
 /** Horizontal table-row representation of a campaign with metrics. */
-export function CampaignRow({ campaign, onClick, className }: CampaignRowProps) {
+export function CampaignRow({ campaign, onClick, hidePartnerCount, className }: CampaignRowProps) {
   const fitScore = campaign.avg_fit_score != null
     ? Math.round(normalizeScoreNullable(campaign.avg_fit_score))
     : null;
@@ -112,7 +114,7 @@ export function CampaignRow({ campaign, onClick, className }: CampaignRowProps) 
             </Tooltip>
           )}
 
-          {campaign.partner_count > 0 && (
+          {!hidePartnerCount && campaign.partner_count > 0 && (
             <Tooltip>
               <TooltipTrigger >
                 <span className="flex items-center gap-2">
