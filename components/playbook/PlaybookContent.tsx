@@ -14,7 +14,6 @@ import {
 import { MarkdownContent } from '@/components/ui/markdown-content';
 import { Badge } from '@/components/ui/badge';
 import { ContactRow } from './ContactRow';
-import { StepRow } from './StepRow';
 import { QuestionRow } from './QuestionRow';
 import { ObjectionRow } from './ObjectionRow';
 import { usePlaybookDetail } from './usePlaybookDetail';
@@ -36,12 +35,11 @@ export function PlaybookContent({ playbook }: PlaybookContentProps) {
 /** Inner component that uses useSearchParams (requires Suspense boundary). */
 function PlaybookContentInner({ playbook }: PlaybookContentProps) {
   const {
-    selected, handleContactClick, handleStepClick, handleObjectionClick,
-    navigateToContact, navigateToStep, navigateToObjection,
-    handleClose, isContactActive, isStepActive, isObjectionActive,
+    selected, handleContactClick, handleObjectionClick,
+    navigateToContact, navigateToObjection,
+    handleClose, isContactActive, isObjectionActive,
   } = usePlaybookDetail(playbook);
 
-  const steps = useMemo(() => playbook.outreach_cadence?.sequence ?? [], [playbook.outreach_cadence]);
   const contacts = useMemo(
     () => [...(playbook.contacts ?? [])].sort((a, b) => (a.priority_rank ?? Infinity) - (b.priority_rank ?? Infinity)),
     [playbook.contacts],
@@ -57,14 +55,6 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
     enabled: selected?.type === 'contact',
   });
 
-  const { getItemRef: getStepRef } = useListKeyboardNav({
-    items: steps,
-    selectedItem: selected?.type === 'step' ? selected.data : null,
-    getKey: (s) => steps.indexOf(s),
-    onSelect: (s) => navigateToStep(s, steps.indexOf(s)),
-    enabled: selected?.type === 'step',
-  });
-
   const { getItemRef: getObjectionRef } = useListKeyboardNav({
     items: objections,
     selectedItem: selected?.type === 'objection' ? selected.data : null,
@@ -74,7 +64,6 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
   });
 
   const channelCount = playbook.recommended_channels?.length ?? 0;
-  const stepCount = steps.length;
   const contactCount = contacts.length;
 
   return (
@@ -82,21 +71,12 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
       open={!!selected}
       onClose={handleClose}
       detail={selected ? (
-        <PlaybookDetailContent
-          selection={selected}
-          contacts={contacts}
-          onContactClick={handleContactClick}
-        />
+        <PlaybookDetailContent selection={selected} />
       ) : null}
     >
       <div className="space-y-10">
         {/* Dashboard Summary */}
         <Dashboard>
-          <DashboardCell size="quarter">
-            <DashboardCellTitle>Outreach Steps</DashboardCellTitle>
-            <DashboardCellBody>{stepCount}</DashboardCellBody>
-          </DashboardCell>
-
           <DashboardCell size="quarter">
             <DashboardCellTitle>Contacts</DashboardCellTitle>
             <DashboardCellBody>{contactCount}</DashboardCellBody>
@@ -138,34 +118,6 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
             </DashboardCellBody>
           </DashboardCell>
         </Dashboard>
-
-        {/* Outreach Cadence */}
-        {playbook.outreach_cadence?.sequence && playbook.outreach_cadence.sequence.length > 0 && (
-          <section>
-            <h3 className="text-lg font-semibold text-foreground mb-1">Outreach Cadence</h3>
-            {playbook.outreach_cadence.summary && (
-              <p className="text-muted-foreground mb-3 max-w-4xl">
-                {playbook.outreach_cadence.summary}
-              </p>
-            )}
-            <div className="flex flex-col">
-              <StepsTableHeader />
-              <Separator />
-              {playbook.outreach_cadence.sequence.map((step, i) => (
-                <div key={i}>
-                  <StepRow
-                    ref={getStepRef(i)}
-                    step={step}
-                    onClick={() => handleStepClick(step, i)}
-                    isActive={isStepActive(i)}
-                    className='-mx-6'
-                  />
-                  <Separator />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* Contacts */}
         {contacts.length > 0 && (
@@ -232,21 +184,6 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
         )}
       </div>
     </DetailSidePanel>
-  );
-}
-
-/** Column headers for the outreach cadence table. */
-function StepsTableHeader() {
-  return (
-    <div className="flex items-center gap-4 px-6 py-2 text-xs font-medium text-muted-foreground -mx-6">
-      <div className="w-10 shrink-0">Step</div>
-      <div className="flex-1 min-w-0">Contact</div>
-      <div className="hidden md:flex items-center gap-7 shrink-0">
-        <span className="w-28">Channel</span>
-        <span className="w-6 text-center">Notes</span>
-        <span className="w-6 text-center">F/U</span>
-      </div>
-    </div>
   );
 }
 

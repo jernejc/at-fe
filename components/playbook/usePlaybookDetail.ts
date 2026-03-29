@@ -2,19 +2,17 @@
 
 import { useMemo, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import type { PlaybookRead, PlaybookContactResponse, CadenceStep, ObjectionHandlingEntry } from '@/lib/schemas';
+import type { PlaybookRead, PlaybookContactResponse, ObjectionHandlingEntry } from '@/lib/schemas';
 
 /** Discriminated union representing the currently selected playbook detail item. */
 export type PlaybookDetailSelection =
   | { type: 'contact'; data: PlaybookContactResponse }
-  | { type: 'step'; data: CadenceStep; index: number }
   | { type: 'objection'; data: ObjectionHandlingEntry; index: number };
 
 /** Encodes a selection into a URL param value. */
 function encodeSelection(sel: PlaybookDetailSelection): string {
   switch (sel.type) {
     case 'contact': return `contact:${sel.data.id}`;
-    case 'step': return `step:${sel.index}`;
     case 'objection': return `objection:${sel.index}`;
   }
 }
@@ -33,10 +31,6 @@ function resolveSelection(param: string, playbook: PlaybookRead): PlaybookDetail
     case 'contact': {
       const contact = playbook.contacts?.find((c) => c.id === id);
       return contact ? { type: 'contact', data: contact } : null;
-    }
-    case 'step': {
-      const step = playbook.outreach_cadence?.sequence?.[id];
-      return step ? { type: 'step', data: step, index: id } : null;
     }
     case 'objection': {
       const entry = playbook.objection_handling?.[id];
@@ -82,11 +76,6 @@ export function usePlaybookDetail(playbook: PlaybookRead) {
     updateUrl(isActive ? null : { type: 'contact', data: contact }, false);
   }, [selected, updateUrl]);
 
-  const handleStepClick = useCallback((step: CadenceStep, index: number) => {
-    const isActive = selected?.type === 'step' && selected.index === index;
-    updateUrl(isActive ? null : { type: 'step', data: step, index }, false);
-  }, [selected, updateUrl]);
-
   const handleObjectionClick = useCallback((entry: ObjectionHandlingEntry, index: number) => {
     const isActive = selected?.type === 'objection' && selected.index === index;
     updateUrl(isActive ? null : { type: 'objection', data: entry, index }, false);
@@ -96,10 +85,6 @@ export function usePlaybookDetail(playbook: PlaybookRead) {
 
   const navigateToContact = useCallback((contact: PlaybookContactResponse) => {
     updateUrl({ type: 'contact', data: contact }, false);
-  }, [updateUrl]);
-
-  const navigateToStep = useCallback((step: CadenceStep, index: number) => {
-    updateUrl({ type: 'step', data: step, index }, false);
   }, [updateUrl]);
 
   const navigateToObjection = useCallback((entry: ObjectionHandlingEntry, index: number) => {
@@ -117,11 +102,6 @@ export function usePlaybookDetail(playbook: PlaybookRead) {
     [selected],
   );
 
-  const isStepActive = useCallback(
-    (index: number) => selected?.type === 'step' && selected.index === index,
-    [selected],
-  );
-
   const isObjectionActive = useCallback(
     (index: number) => selected?.type === 'objection' && selected.index === index,
     [selected],
@@ -130,14 +110,11 @@ export function usePlaybookDetail(playbook: PlaybookRead) {
   return {
     selected,
     handleContactClick,
-    handleStepClick,
     handleObjectionClick,
     navigateToContact,
-    navigateToStep,
     navigateToObjection,
     handleClose,
     isContactActive,
-    isStepActive,
     isObjectionActive,
   };
 }

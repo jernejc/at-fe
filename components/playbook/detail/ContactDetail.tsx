@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dashboard';
 import { MarkdownContent } from '@/components/ui/markdown-content';
 import { EngagementStrategyCard } from './EngagementStrategyCard';
-import { OutreachTemplateCards } from './OutreachTemplateCard';
+import { SequenceCards } from './SequenceCards';
 
 interface ContactDetailProps {
   contact: PlaybookContactResponse;
@@ -106,13 +106,9 @@ export function ContactDetail({ contact }: ContactDetailProps) {
       {/* Engagement Strategy */}
       <EngagementStrategyCard contact={contact} />
 
-      {/* Outreach Templates */}
-      {contact.outreach_templates && contact.outreach_templates.length > 0 && (
-        <div className="space-y-3">
-          {contact.outreach_templates.map((template) => (
-            <OutreachTemplateCards key={template.id} template={template} />
-          ))}
-        </div>
+      {/* Outreach Sequence */}
+      {contact.sequence && contact.sequence.length > 0 && (
+        <SequenceCards sequence={contact.sequence} />
       )}
     </div>
   );

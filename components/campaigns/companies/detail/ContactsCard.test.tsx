@@ -47,7 +47,7 @@ function makeContact(overrides: Partial<PlaybookContactResponse> = {}): Playbook
     persona_confidence: null,
     committee_role: null,
     fit_assessment: null,
-    outreach_templates: [],
+    sequence: [],
     ...overrides,
   };
 }

@@ -86,6 +86,24 @@ export interface ApproachNotes {
     meeting_value_exchange: string;
 }
 
+/** A single step in a contact's personalized outreach sequence. */
+export interface ContactSequenceItem {
+    step: number;
+    day_offset: number;
+    week: number;
+    channel: string;
+    message_type: string;
+    thread: string;
+    purpose: string;
+    framework_technique: string;
+    objective: string;
+    subject: string | null;
+    body: string;
+    cta: string | null;
+    source: string;
+    metadata: Record<string, unknown> | null;
+}
+
 export interface PlaybookContact {
     id: number;
     employee_id: number | null;
@@ -123,8 +141,8 @@ export interface PlaybookContactResponse extends PlaybookContact {
     committee_role: string | null;
     // Fit assessment
     fit_assessment: ContactFitAssessment | null;
-    // Outreach
-    outreach_templates: OutreachTemplateResponse[];
+    // Outreach sequence
+    sequence: ContactSequenceItem[];
 }
 
 /**
@@ -216,7 +234,6 @@ export interface PlaybookRead {
     objection_handling: ObjectionHandlingEntry[] | null;
     recommended_channels: string[] | null;
     contacts: PlaybookContactResponse[];
-    outreach_cadence: OutreachCadence | null;
     committee_confidence: number | null;
     committee_coverage: CommitteeCoverage | null;
     generation_version: number;

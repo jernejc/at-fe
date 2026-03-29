@@ -169,7 +169,7 @@ describe('CampaignCompanyDetail', () => {
         playbook: {
           id: 1,
           contacts: [
-            { id: 1, name: 'Jane Doe', title: 'VP Eng', priority_rank: 1, linkedin_url: null, outreach_templates: [] },
+            { id: 1, name: 'Jane Doe', title: 'VP Eng', priority_rank: 1, linkedin_url: null, sequence: [] },
           ],
         },
       }),
