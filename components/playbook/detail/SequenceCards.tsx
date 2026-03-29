@@ -17,12 +17,30 @@ interface SequenceCardsProps {
   sequence: ContactSequenceItem[];
 }
 
-/** Copies body (and optional subject) to clipboard. */
+/** Formats a snake_case key into a readable label. */
+function formatKey(key: string): string {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Copies body, metadata scripts, and talking points to clipboard. */
 function handleCopy(item: ContactSequenceItem) {
   const parts: string[] = [];
   if (item.subject) parts.push(`Subject: ${item.subject}`);
   parts.push(item.body);
   if (item.cta) parts.push(item.cta);
+
+  const coldCallScript = item.metadata?.cold_call_script;
+  if (coldCallScript && typeof coldCallScript === 'object' && !Array.isArray(coldCallScript)) {
+    const lines = Object.entries(coldCallScript as Record<string, string>)
+      .map(([key, value]) => `${formatKey(key)}: ${value}`);
+    parts.push(`Cold Call Script\n${lines.join('\n')}`);
+  }
+
+  const talkingPoints = item.metadata?.phone_talking_points;
+  if (Array.isArray(talkingPoints) && talkingPoints.length > 0) {
+    parts.push(`Talking Points\n${(talkingPoints as string[]).map((p) => `• ${p}`).join('\n')}`);
+  }
+
   copyToClipboard(parts.join('\n\n'));
   toast.success('Copied to clipboard');
 }
@@ -43,6 +61,16 @@ export function SequenceCards({ sequence }: SequenceCardsProps) {
 
 /** Single expandable card for one sequence step. */
 function SequenceCard({ item }: { item: ContactSequenceItem }) {
+  const coldCallScript = item.metadata?.cold_call_script;
+  const talkingPoints = item.metadata?.phone_talking_points;
+
+  const coldCallEntries = coldCallScript && typeof coldCallScript === 'object' && !Array.isArray(coldCallScript)
+    ? Object.entries(coldCallScript as Record<string, string>)
+    : null;
+  const validTalkingPoints = Array.isArray(talkingPoints) && talkingPoints.length > 0
+    ? (talkingPoints as string[])
+    : null;
+
   return (
     <ExpandableCard>
       <ExpandableCardHeader className="flex items-center gap-3">
@@ -86,6 +114,34 @@ function SequenceCard({ item }: { item: ContactSequenceItem }) {
             </>
           )}
         </div>
+
+        {/* Cold Call Script */}
+        {coldCallEntries && (
+          <div className="bg-background rounded-lg px-4 py-3 mt-3">
+            <p className="text-xs font-semibold text-foreground mb-2">Cold Call Script</p>
+            <div className="space-y-2">
+              {coldCallEntries.map(([key, value]) => (
+                <div key={key}>
+                  <span className="text-xs font-semibold text-muted-foreground">{formatKey(key)}</span>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Phone Talking Points */}
+        {validTalkingPoints && (
+          <div className="bg-background rounded-lg px-4 py-3 mt-3">
+            <p className="text-xs font-semibold text-foreground mb-2">Talking Points</p>
+            <ul className="list-disc list-outside ml-4 space-y-1">
+              {validTalkingPoints.map((point, i) => (
+                <li key={i} className="text-sm text-muted-foreground leading-relaxed">{point}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="text-center pb-1">
           <Button
             variant="ghost"
