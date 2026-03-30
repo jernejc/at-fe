@@ -479,7 +479,7 @@ export function CustomSection() {
             <DashboardCellBody className="flex items-end">
               <StatusesChart
                 newCount={5}
-                backlogCount={5}
+                unworkedCount={5}
                 inProgressCount={7}
                 wonCount={5}
                 lostCount={10}

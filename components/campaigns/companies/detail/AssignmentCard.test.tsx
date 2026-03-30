@@ -77,9 +77,9 @@ describe('AssignmentCard', () => {
     expect(screen.getByText('Closed Won')).toBeInTheDocument();
   });
 
-  it('formats unknown status as Backlog', () => {
+  it('formats unknown status as Unworked', () => {
     render(<AssignmentCard {...defaultProps} status="some_unknown" />);
-    expect(screen.getByText('Backlog')).toBeInTheDocument();
+    expect(screen.getByText('Unworked')).toBeInTheDocument();
   });
 
   it('shows "Reassigning..." text while reassigning', () => {

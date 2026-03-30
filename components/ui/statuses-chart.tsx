@@ -3,8 +3,8 @@ import { cn } from '@/lib/utils';
 interface StatusesChartProps {
   /** Number of companies with 'new' status. */
   newCount: number;
-  /** Number of companies with 'default'/backlog status. */
-  backlogCount: number;
+  /** Number of companies with 'default'/unworked status. */
+  unworkedCount: number;
   /** Number of companies with 'in_progress' status. */
   inProgressCount: number;
   /** Number of companies with 'closed_won' status. */
@@ -27,7 +27,7 @@ export function calcBarHeight(count: number, maxCount: number): number {
 
 const STATUS_CONFIG = [
   { key: 'new', label: 'new', color: '--accent-yellow' },
-  { key: 'backlog', label: 'backlog', color: '--gray-300' },
+  { key: 'backlog', label: 'unworked', color: '--gray-300' },
   { key: 'inProgress', label: 'engaged', color: '--accent-green' },
   { key: 'won', label: 'won', color: '--accent-green-dark' },
   { key: 'lost', label: 'lost', color: '--accent-dark-red' },
@@ -81,23 +81,23 @@ function StatusBar({
 /** Compact vertical bar chart showing company status distribution within a campaign. */
 export function StatusesChart({
   newCount,
-  backlogCount,
+  unworkedCount,
   inProgressCount,
   wonCount,
   lostCount,
   inProgressCompletion = 0,
   className,
 }: StatusesChartProps) {
-  const counts = [newCount, backlogCount, inProgressCount, wonCount, lostCount];
+  const counts = [newCount, unworkedCount, inProgressCount, wonCount, lostCount];
   const maxCount = Math.max(...counts);
   const heights = counts.map((c) => calcBarHeight(c, maxCount));
 
   return (
     <div className={cn('flex w-full items-end gap-2', className)}>
-      {/* Left pair: new + backlog */}
+      {/* Left pair: new + unworked */}
       <div className="flex w-0 flex-2 items-end gap-0.5">
         <StatusBar count={newCount} height={heights[0]} color={STATUS_CONFIG[0].color} label={STATUS_CONFIG[0].label} />
-        <StatusBar count={backlogCount} height={heights[1]} color={STATUS_CONFIG[1].color} label={STATUS_CONFIG[1].label} />
+        <StatusBar count={unworkedCount} height={heights[1]} color={STATUS_CONFIG[1].color} label={STATUS_CONFIG[1].label} />
       </div>
       {/* Center: engaged */}
       <div className="flex w-0 flex-1 items-end">

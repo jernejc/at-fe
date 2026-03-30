@@ -108,6 +108,6 @@ function formatStatus(status: string): string {
     case 'in_progress': return 'In Progress';
     case 'closed_won': return 'Closed Won';
     case 'closed_lost': return 'Closed Lost';
-    default: return 'Backlog';
+    default: return 'Unworked';
   }
 }

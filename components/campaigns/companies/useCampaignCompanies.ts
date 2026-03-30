@@ -25,7 +25,7 @@ const STATUS_FILTER: FilterDefinition = {
     { value: 'in_progress', label: 'In Progress' },
     { value: 'closed_won', label: 'Closed Won' },
     { value: 'closed_lost', label: 'Closed Lost' },
-    { value: 'default', label: 'Backlog' },
+    { value: 'default', label: 'Unworked' },
   ],
 };
 

@@ -24,7 +24,7 @@ interface PartnerCampaignOverviewDashboardProps {
   conversionRate?: number | null;
   /** Status distribution counts for the Statuses chart cell. */
   statusNew?: number;
-  statusBacklog?: number;
+  statusUnworked?: number;
   statusInProgress?: number;
   statusWon?: number;
   statusLost?: number;
@@ -42,7 +42,7 @@ export function PartnerCampaignOverviewDashboard({
   progressPct,
   conversionRate,
   statusNew,
-  statusBacklog,
+  statusUnworked,
   statusInProgress,
   statusWon,
   statusLost,
@@ -133,7 +133,7 @@ export function PartnerCampaignOverviewDashboard({
         <DashboardCellBody loading={loading} className="flex items-end">
           <StatusesChart
             newCount={statusNew ?? 0}
-            backlogCount={statusBacklog ?? 0}
+            unworkedCount={statusUnworked ?? 0}
             inProgressCount={statusInProgress ?? 0}
             wonCount={statusWon ?? 0}
             lostCount={statusLost ?? 0}

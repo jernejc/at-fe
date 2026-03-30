@@ -76,8 +76,8 @@ export function deriveCompanyStatus(opts: {
 }
 
 const STATUS_LABELS: Record<CompanyStatusValue, string> = {
-  default: 'Backlog',
-  new: 'Backlog',
+  default: 'Unworked',
+  new: 'Unworked',
   in_progress: 'In Progress',
   closed_won: 'Closed Won',
   closed_lost: 'Closed Lost',
