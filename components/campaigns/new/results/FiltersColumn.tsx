@@ -114,6 +114,7 @@ export function FiltersColumn({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <RangeFilter
           title="Avg. match"
+          tooltip="How well each company matches your search query, even if their product fit differs."
           values={filters.matchValues}
           min={0}
           max={100}
@@ -124,6 +125,7 @@ export function FiltersColumn({
 
         <RangeFilter
           title="Avg. product fit"
+          tooltip="How well each company fits the selected product based on detected signals."
           values={filters.fitValues}
           min={0}
           max={100}

@@ -2,14 +2,17 @@
 
 import * as React from 'react';
 import { Popover } from '@base-ui/react/popover';
-import { X, Check } from 'lucide-react';
+import { X, Check, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 /** Props for the RangeFilter component. */
 export interface RangeFilterProps {
   /** Label displayed in the top-left corner. */
   title: string;
+  /** Optional tooltip text shown via an info icon next to the title. */
+  tooltip?: string;
   /** Raw values array (rounded & counted) OR a pre-computed { value: count } map. */
   values: number[] | Record<number, number>;
   /** Override the chart/slider minimum (extends range beyond data if needed). */
@@ -190,7 +193,7 @@ function RangeInput({
  * Histogram bar chart with a dual-thumb range slider for filtering numeric values.
  * Bars inside the selected range are dark; bars outside are muted.
  */
-export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars = 50, range: propRange, onChange, formatAvg, step: propStep, className }: RangeFilterProps) {
+export function RangeFilter({ title, tooltip, values, min: propMin, max: propMax, maxBars = 50, range: propRange, onChange, formatAvg, step: propStep, className }: RangeFilterProps) {
   const hist = React.useMemo(() => buildHistogram(values), [values]);
   const buckets = React.useMemo(() => buildBuckets(hist, propMin, propMax, maxBars), [hist, propMin, propMax, maxBars]);
   const avg = React.useMemo(() => weightedAvg(hist), [hist]);
@@ -242,7 +245,19 @@ export function RangeFilter({ title, values, min: propMin, max: propMax, maxBars
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
-        <span className="text-sm text-muted-foreground">{title}</span>
+        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+          {title}
+          {tooltip && (
+            <Tooltip>
+              <TooltipTrigger className="text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+                <Info className="size-3.5" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-52">
+                {tooltip}
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </span>
         <span className="text-4xl font-display font-medium text-foreground">{formatAvg ? formatAvg(avg) : avg}</span>
       </div>
 

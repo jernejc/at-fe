@@ -1,6 +1,14 @@
 {
   "versions": [
     {
+      "version": "1.2.12",
+      "date": "2026-03-30",
+      "changes": [
+        "Column header for company search results list",
+        "Info tooltips on match, product fit, and avg. fit filters explaining score meanings"
+      ]
+    },
+    {
       "version": "1.2.11",
       "date": "2026-03-28",
       "changes": [

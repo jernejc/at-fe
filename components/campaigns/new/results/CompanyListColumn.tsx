@@ -124,6 +124,11 @@ export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearc
       <div className="sticky top-0 z-1 bg-card border-b border-border px-4 py-2">
         <Sort options={SORT_OPTIONS} value={sort} onValueChange={setSort} />
       </div>
+      <div className="flex items-center gap-3 px-4 py-1.5 text-xs font-medium text-muted-foreground border-b border-border">
+        <span className="w-10 shrink-0 text-left">Fit</span>
+        <span className="min-w-0 flex-1">Company</span>
+        <span className="w-20 shrink-0">Match</span>
+      </div>
       <div className="flex-1 overflow-y-auto">
         <CompanyList
           key={listKey}
