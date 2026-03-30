@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
 import { getCompanyPlaybooks, getCompanyPlaybook } from '@/lib/api';
 import { usePlaybookGeneration } from '@/hooks/usePlaybookGeneration';
@@ -49,8 +50,13 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
     ensurePlaybooks();
   }, [ensurePlaybooks]);
 
+  const searchParams = useSearchParams();
+
   // --- Local state: user-driven selection + detail ---
-  const [userSelectedProductId, setUserSelectedProductId] = useState<number | null>(null);
+  const [userSelectedProductId, setUserSelectedProductId] = useState<number | null>(() => {
+    const param = searchParams.get('product');
+    return param ? Number(param) : null;
+  });
   const [playbook, setPlaybook] = useState<PlaybookRead | null>(null);
   const [playbookLoading, setPlaybookLoading] = useState(false);
 
@@ -91,10 +97,25 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
     return () => { cancelled = true; };
   }, [selectedProductId, summaries, domain, productsLoading]);
 
+  /** Replace the `?product=` search param without creating a history entry. */
+  const syncProductToUrl = useCallback((productId: number) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('product', String(productId));
+    window.history.replaceState(null, '', url.toString());
+  }, []);
+
+  // Sync auto-selected product to URL so the link is shareable even without manual selection
+  useEffect(() => {
+    if (userSelectedProductId === null && autoSelectedProductId !== null) {
+      syncProductToUrl(autoSelectedProductId);
+    }
+  }, [userSelectedProductId, autoSelectedProductId, syncProductToUrl]);
+
   const selectProduct = useCallback((productId: number) => {
     setUserSelectedProductId(productId);
     setPlaybook(null);
-  }, []);
+    syncProductToUrl(productId);
+  }, [syncProductToUrl]);
 
   const selectedProductName =
     products.find((p) => p.id === selectedProductId)?.name ?? null;
