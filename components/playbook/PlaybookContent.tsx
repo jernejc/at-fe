@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/dashboard';
 import { MarkdownContent } from '@/components/ui/markdown-content';
 import { Badge } from '@/components/ui/badge';
+import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
+import { normalizeScoreNullable } from '@/lib/utils';
 import { ContactRow } from './ContactRow';
 import { QuestionRow } from './QuestionRow';
 import { ObjectionRow } from './ObjectionRow';
@@ -65,6 +67,7 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
 
   const channelCount = playbook.recommended_channels?.length ?? 0;
   const contactCount = contacts.length;
+  const normalizedScore = Math.round(normalizeScoreNullable(playbook.fit_score));
 
   return (
     <DetailSidePanel
@@ -92,6 +95,15 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
                   </Badge>
                 ))
                 : '—'}
+            </DashboardCellBody>
+          </DashboardCell>
+
+          <DashboardCell size="quarter" gradient={normalizedScore > 75 ? 'green' : undefined}>
+            <DashboardCellTitle>Product fit</DashboardCellTitle>
+            <Badge variant="grey" className="mt-2">{playbook.product_name ?? '—'}</Badge>
+            <DashboardCellBody className="flex items-end justify-between">
+              <span>{normalizedScore}%</span>
+              <FitScoreIndicator score={normalizedScore} size={56} showChange={false} showValue={false} />
             </DashboardCellBody>
           </DashboardCell>
 
