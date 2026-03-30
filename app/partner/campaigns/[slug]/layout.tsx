@@ -67,7 +67,7 @@ function PartnerCampaignLayoutInner({ slug, children }: { slug: string; children
   return (
     <div className="flex-1 flex flex-col bg-background">
       <div className="flex-1">
-        <div className='relative z-2'>
+        <div className='relative z-3'>
           <CampaignDetailHeader
             campaignName={campaignName}
             campaignIcon={campaignIcon}
@@ -76,7 +76,7 @@ function PartnerCampaignLayoutInner({ slug, children }: { slug: string; children
             loading={loading}
           />
         </div>
-        <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-1 bg-background -mt-6 min-w-0">
+        <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-2 bg-background -mt-6 min-w-0">
           <StatusIndicator
             status={campaignStatus ?? 'draft'}
             size={8}

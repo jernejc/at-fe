@@ -57,7 +57,7 @@ function DiscoveryDetailLayoutInner({ slug, children }: { slug: string; children
   return (
     <div className="flex-1 flex flex-col bg-background">
       <div className="flex-1">
-        <div className="relative z-2">
+        <div className="relative z-3">
           <DiscoveryDetailHeader
             companyName={company?.name ?? null}
             logoSrc={logoSrc}
@@ -66,7 +66,7 @@ function DiscoveryDetailLayoutInner({ slug, children }: { slug: string; children
             loading={loading}
           />
         </div>
-        <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-1 bg-background -mt-6">
+        <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-2 bg-background -mt-6">
           <Avatar className="size-4 rounded">
             {logoSrc && <AvatarImage src={logoSrc} alt={company?.name} className="rounded" />}
             <AvatarFallback className="rounded text-[8px]">

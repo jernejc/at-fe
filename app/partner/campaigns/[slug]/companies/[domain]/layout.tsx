@@ -60,7 +60,7 @@ function CompanyDetailLayoutInner({
 
   return (
     <>
-      <div className="relative z-2">
+      <div className="relative z-3">
         <CompanyDetailHeader
           slug={slug}
           campaignIcon={campaignIcon}
@@ -69,7 +69,7 @@ function CompanyDetailLayoutInner({
           loading={loading}
         />
       </div>
-      <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-1 bg-background -mt-6">
+      <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-2 bg-background -mt-6">
         <Avatar className="size-4 rounded">
           {companyLogoUrl && <AvatarImage src={companyLogoUrl} alt={company?.name} className="rounded" />}
           <AvatarFallback className="rounded text-[8px]">
