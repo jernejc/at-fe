@@ -27,7 +27,6 @@ function handleCopy(item: ContactSequenceItem) {
   const parts: string[] = [];
   if (item.subject) parts.push(`Subject: ${item.subject}`);
   parts.push(item.body);
-  if (item.cta) parts.push(item.cta);
 
   const coldCallScript = item.metadata?.cold_call_script;
   if (coldCallScript && typeof coldCallScript === 'object' && !Array.isArray(coldCallScript)) {
@@ -107,12 +106,6 @@ function SequenceCard({ item }: { item: ContactSequenceItem }) {
           <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
             {item.body}
           </p>
-          {item.cta && (
-            <>
-              <Separator className="my-2" />
-              <p className="text-sm font-medium text-foreground">{item.cta}</p>
-            </>
-          )}
         </div>
 
         {/* Cold Call Script */}
