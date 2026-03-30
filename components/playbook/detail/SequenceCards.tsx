@@ -17,9 +17,42 @@ interface SequenceCardsProps {
   sequence: ContactSequenceItem[];
 }
 
+/** Desired display order and explanations for cold call script sections. */
+const COLD_CALL_ORDER: { key: string; label: string; explanation: string }[] = [
+  { key: 'opener', label: 'Opener', explanation: 'Permission + respect time' },
+  { key: 'reason', label: 'Reason', explanation: 'Trigger + relevance' },
+  { key: 'insight', label: 'Insight', explanation: 'Why it matters' },
+  { key: 'question', label: 'Question', explanation: 'Engage them' },
+  { key: 'bridge', label: 'Bridge', explanation: 'Position your value' },
+  { key: 'close', label: 'Close', explanation: 'Ask for meeting' },
+];
+
 /** Formats a snake_case key into a readable label. */
 function formatKey(key: string): string {
   return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Orders cold call script entries according to COLD_CALL_ORDER, appending any unknown keys at the end. */
+function orderColdCallEntries(
+  entries: [string, string][],
+): { key: string; label: string; explanation?: string; value: string }[] {
+  const map = new Map(entries);
+  const ordered: { key: string; label: string; explanation?: string; value: string }[] = [];
+
+  for (const { key, label, explanation } of COLD_CALL_ORDER) {
+    const value = map.get(key);
+    if (value) {
+      ordered.push({ key, label, explanation, value });
+      map.delete(key);
+    }
+  }
+
+  // Append any remaining entries not in the predefined order
+  for (const [key, value] of map) {
+    ordered.push({ key, label: formatKey(key), value });
+  }
+
+  return ordered;
 }
 
 /** Copies body, metadata scripts, and talking points to clipboard. */
@@ -30,8 +63,8 @@ function handleCopy(item: ContactSequenceItem) {
 
   const coldCallScript = item.metadata?.cold_call_script;
   if (coldCallScript && typeof coldCallScript === 'object' && !Array.isArray(coldCallScript)) {
-    const lines = Object.entries(coldCallScript as Record<string, string>)
-      .map(([key, value]) => `${formatKey(key)}: ${value}`);
+    const ordered = orderColdCallEntries(Object.entries(coldCallScript as Record<string, string>));
+    const lines = ordered.map((e) => `${e.label}: ${e.value}`);
     parts.push(`Cold Call Script\n${lines.join('\n')}`);
   }
 
@@ -64,7 +97,7 @@ function SequenceCard({ item }: { item: ContactSequenceItem }) {
   const talkingPoints = item.metadata?.phone_talking_points;
 
   const coldCallEntries = coldCallScript && typeof coldCallScript === 'object' && !Array.isArray(coldCallScript)
-    ? Object.entries(coldCallScript as Record<string, string>)
+    ? orderColdCallEntries(Object.entries(coldCallScript as Record<string, string>))
     : null;
   const validTalkingPoints = Array.isArray(talkingPoints) && talkingPoints.length > 0
     ? (talkingPoints as string[])
@@ -113,10 +146,15 @@ function SequenceCard({ item }: { item: ContactSequenceItem }) {
           <div className="bg-background rounded-lg px-4 py-3 mt-3">
             <p className="text-xs font-semibold text-foreground mb-2">Cold Call Script</p>
             <div className="space-y-2">
-              {coldCallEntries.map(([key, value]) => (
-                <div key={key}>
-                  <span className="text-xs font-semibold text-muted-foreground">{formatKey(key)}</span>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{value}</p>
+              {coldCallEntries.map((entry) => (
+                <div key={entry.key}>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {entry.label}
+                    {entry.explanation && (
+                      <span className="font-normal text-muted-foreground/60"> — {entry.explanation}</span>
+                    )}
+                  </span>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{entry.value}</p>
                 </div>
               ))}
             </div>
