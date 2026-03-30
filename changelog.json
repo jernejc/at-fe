@@ -1,6 +1,11 @@
 {
   "versions": [
     {
+      "version": "1.2.12",
+      "date": "2026-03-30",
+      "changes": ["Outreach timeline view with horizontal day-by-day sequence grid"]
+    },
+    {
       "version": "1.2.11",
       "date": "2026-03-28",
       "changes": [
