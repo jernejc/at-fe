@@ -15,7 +15,8 @@ import { MarkdownContent } from '@/components/ui/markdown-content';
 import { Badge } from '@/components/ui/badge';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { normalizeScoreNullable } from '@/lib/utils';
-import { OutreachTimeline } from './OutreachTimeline';
+// import { OutreachTimeline } from './OutreachTimeline';
+import { ContactRow } from './ContactRow';
 import { QuestionRow } from './QuestionRow';
 import { ObjectionRow } from './ObjectionRow';
 import { usePlaybookDetail } from './usePlaybookDetail';
@@ -46,15 +47,6 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
     () => [...(playbook.contacts ?? [])].sort((a, b) => (a.priority_rank ?? Infinity) - (b.priority_rank ?? Infinity)),
     [playbook.contacts],
   );
-  const maxDay = useMemo(() => {
-    let max = 0;
-    for (const c of contacts) {
-      for (const s of c.sequence ?? []) {
-        if (s.day_offset > max) max = s.day_offset;
-      }
-    }
-    return max;
-  }, [contacts]);
   const objections = useMemo(() => playbook.objection_handling ?? [], [playbook.objection_handling]);
 
   // Keyboard navigation — one per section, enabled only when that type is selected
@@ -140,15 +132,26 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
           </DashboardCell>
         </Dashboard>
 
-        {/* Outreach */}
+        {/* Contacts */}
         {contacts.length > 0 && (
-          <OutreachTimeline
-            contacts={contacts}
-            maxDay={maxDay}
-            onContactClick={handleContactClick}
-            isContactActive={isContactActive}
-            getContactRef={getContactRef}
-          />
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Contacts</h3>
+            <div className="flex flex-col">
+              <Separator />
+              {contacts.map((contact, i) => (
+                <div key={contact.id}>
+                  <ContactRow
+                    ref={getContactRef(i)}
+                    contact={contact}
+                    onClick={handleContactClick}
+                    isActive={isContactActive(contact.id)}
+                    className="-mx-6"
+                  />
+                  <Separator />
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Objection Handling */}

@@ -29,8 +29,8 @@ export function OutreachTimeline({
               Contact
             </div>
             <div className="flex items-center">
-              {Array.from({ length: maxDay }, (_, i) => (
-                <div key={i + 1} className="w-20 m-2 shrink-0 text-center text-xs font-medium text-muted-foreground">
+              {Array.from({ length: maxDay + 1 }, (_, i) => (
+                <div key={i} className="w-20 m-2 shrink-0 text-center text-xs font-medium text-muted-foreground">
                   Day {i + 1}
                 </div>
               ))}

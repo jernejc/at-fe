@@ -65,8 +65,8 @@ export function OutreachRow({ contact, maxDay, onClick, isActive, ref }: Outreac
 
       {/* Day cells */}
       <div className="flex items-center">
-        {Array.from({ length: maxDay }, (_, i) => {
-          const day = i + 1;
+        {Array.from({ length: maxDay + 1 }, (_, i) => {
+          const day = i;
           const step = stepsByDay.get(day);
           return step ? (
             <OutreachStepCell key={day} step={step} />
