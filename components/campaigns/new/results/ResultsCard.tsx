@@ -21,6 +21,8 @@ interface ResultsCardProps {
   suggestedQueries: string[];
   onSuggestedQueryClick: (query: string) => void;
   isSearching: boolean;
+  excludedDomains: Set<string>;
+  onToggleExclude: (domain: string) => void;
 }
 
 /** Full-screen card with two-column layout: filters/detail (left) + company list (right). */
@@ -35,6 +37,8 @@ export function ResultsCard({
   suggestedQueries,
   onSuggestedQueryClick,
   isSearching,
+  excludedDomains,
+  onToggleExclude,
 }: ResultsCardProps) {
   const [mobileTab, setMobileTab] = useState<ResultsTab>('metrics');
 
@@ -89,6 +93,8 @@ export function ResultsCard({
             selectedDomain={selectedCompanyDomain}
             onSelect={handleSelectCompany}
             isSearching={isSearching}
+            excludedDomains={excludedDomains}
+            onToggleExclude={onToggleExclude}
           />
         </div>
       </div>

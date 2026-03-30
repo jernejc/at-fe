@@ -23,6 +23,8 @@ interface CompanyListColumnProps {
   selectedDomain: string | null;
   onSelect: (domain: string) => void;
   isSearching: boolean;
+  excludedDomains: Set<string>;
+  onToggleExclude: (domain: string) => void;
 }
 
 /** Skeleton row matching the CompanyRow layout. */
@@ -40,7 +42,7 @@ function CompanyRowSkeleton() {
 }
 
 /** Inner list with its own visibleCount state, reset via key remount when companies change. */
-function CompanyList({ companies, selectedDomain, onSelect }: Omit<CompanyListColumnProps, 'isSearching'>) {
+function CompanyList({ companies, selectedDomain, onSelect, excludedDomains, onToggleExclude }: Omit<CompanyListColumnProps, 'isSearching'>) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const showMore = useCallback(() => {
@@ -58,6 +60,8 @@ function CompanyList({ companies, selectedDomain, onSelect }: Omit<CompanyListCo
           company={company}
           isSelected={selectedDomain === company.domain}
           onSelect={onSelect}
+          isExcluded={excludedDomains.has(company.domain)}
+          onToggleExclude={onToggleExclude}
         />
       ))}
       {remaining > 0 && (
@@ -88,7 +92,7 @@ function sortCompanies(companies: WSCompanyResult[], sort: SortState | null): WS
 }
 
 /** Scrollable column listing search result companies with progressive rendering and sorting. */
-export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearching }: CompanyListColumnProps) {
+export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearching, excludedDomains, onToggleExclude }: CompanyListColumnProps) {
   const [sort, setSort] = useState<SortState | null>(DEFAULT_SORT);
 
   // Track original companies identity for list key (not the sorted array)
@@ -127,7 +131,7 @@ export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearc
       <div className="flex items-center gap-3 px-4 py-1.5 text-xs font-medium text-muted-foreground border-b border-border">
         <span className="w-10 shrink-0 text-left">Fit</span>
         <span className="min-w-0 flex-1">Company</span>
-        <span className="w-20 shrink-0">Match</span>
+        <span className="w-30 shrink-0">Match</span>
       </div>
       <div className="flex-1 overflow-y-auto">
         <CompanyList
@@ -135,6 +139,8 @@ export function CompanyListColumn({ companies, selectedDomain, onSelect, isSearc
           companies={sortedCompanies}
           selectedDomain={selectedDomain}
           onSelect={onSelect}
+          excludedDomains={excludedDomains}
+          onToggleExclude={onToggleExclude}
         />
       </div>
     </div>

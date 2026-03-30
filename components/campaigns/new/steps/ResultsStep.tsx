@@ -15,6 +15,8 @@ interface ResultsStepProps {
   suggestedQueries: string[];
   onSuggestedQueryClick: (query: string) => void;
   isSearching: boolean;
+  excludedDomains: Set<string>;
+  onToggleExclude: (domain: string) => void;
 }
 
 /** Results step showing a full-screen card with filters and company list. */
@@ -29,6 +31,8 @@ export function ResultsStep({
   suggestedQueries,
   onSuggestedQueryClick,
   isSearching,
+  excludedDomains,
+  onToggleExclude,
 }: ResultsStepProps) {
   return (
     <div className="flex-1 p-4 overflow-hidden">
@@ -43,6 +47,8 @@ export function ResultsStep({
         suggestedQueries={suggestedQueries}
         onSuggestedQueryClick={onSuggestedQueryClick}
         isSearching={isSearching}
+        excludedDomains={excludedDomains}
+        onToggleExclude={onToggleExclude}
       />
     </div>
   );

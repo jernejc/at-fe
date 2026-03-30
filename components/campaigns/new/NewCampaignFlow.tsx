@@ -53,6 +53,8 @@ export function NewCampaignFlow({ products, preselectedProductId }: NewCampaignF
             suggestedQueries={flow.agenticState.suggestedQueries}
             onSuggestedQueryClick={flow.handleSuggestedQuery}
             isSearching={flow.isSearching}
+            excludedDomains={flow.excludedDomains}
+            onToggleExclude={flow.toggleExcludedDomain}
           />
         )}
 

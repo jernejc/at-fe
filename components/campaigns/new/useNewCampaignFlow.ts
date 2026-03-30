@@ -39,6 +39,9 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
   // Company detail selection (results step sub-state)
   const [selectedCompanyDomain, setSelectedCompanyDomain] = useState<string | null>(null);
 
+  // Domains manually excluded by the user (will not be added to the campaign)
+  const [excludedDomains, setExcludedDomains] = useState<Set<string>>(new Set());
+
   // Search history for multi-turn query chaining
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
@@ -146,6 +149,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
     resultsFilters.resetFilters();
     partnerSelection.reset();
     setSelectedCompanyDomain(null);
+    setExcludedDomains(new Set());
     setSelectedProduct(null);
     setSearchHistory([]);
     lastQueryRef.current = null;
@@ -174,6 +178,15 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
     externalPrefillRef.current?.(query);
   }, []);
 
+  const toggleExcludedDomain = useCallback((domain: string) => {
+    setExcludedDomains((prev) => {
+      const next = new Set(prev);
+      if (next.has(domain)) next.delete(domain);
+      else next.add(domain);
+      return next;
+    });
+  }, []);
+
   const handleSelectCompany = useCallback((domain: string) => {
     setSelectedCompanyDomain((prev) => (prev === domain ? null : domain));
   }, []);
@@ -182,12 +195,12 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
     if (!selectedProduct) return;
     creation.create({
       productId: selectedProduct.id,
-      companies: resultsFilters.filteredCompanies,
+      companies: resultsFilters.filteredCompanies.filter((c) => !excludedDomains.has(c.domain)),
       selectedPartnerSlugs: partnerSelection.selectedPartnerSlugs,
       partnerSuggestions: agenticState.partnerSuggestions,
       allPartners: partnerSelection.partners,
     });
-  }, [selectedProduct, creation, resultsFilters.filteredCompanies, partnerSelection, agenticState.partnerSuggestions]);
+  }, [selectedProduct, creation, resultsFilters.filteredCompanies, excludedDomains, partnerSelection, agenticState.partnerSuggestions]);
 
   return {
     // Step
@@ -212,6 +225,9 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
     // Company detail
     selectedCompanyDomain,
     handleSelectCompany,
+    // Exclude/re-add
+    excludedDomains,
+    toggleExcludedDomain,
     // Partners
     partnerSelection,
     // Creation
