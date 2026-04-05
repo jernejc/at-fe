@@ -12,6 +12,7 @@ const pdmRoutes: NavRoute[] = [
   { label: "Campaigns", href: "/" },
   { label: "Partners", href: "/partners" },
   { label: "Discovery", href: "/discovery" },
+  { label: "Events", href: "/events" },
 ];
 
 const partnerRoutes: NavRoute[] = [
@@ -35,6 +36,8 @@ export function useNavRoutes(): { routes: NavRoute[]; activeHref: string } {
     activeHref = "/partners";
   } else if (pathname.startsWith("/discovery")) {
     activeHref = "/discovery";
+  } else if (pathname.startsWith("/events")) {
+    activeHref = "/events";
   }
 
   return { routes, activeHref };

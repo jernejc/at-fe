@@ -324,3 +324,68 @@
 .leaflet-container {
     background: transparent;
 }
+
+/* Google office map pin markers */
+.google-office-pin {
+    background: transparent !important;
+    border: none !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.google-office-tooltip {
+    background: var(--popover);
+    color: var(--popover-foreground);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    white-space: nowrap;
+}
+
+.google-office-tooltip::before {
+    border-top-color: var(--border) !important;
+}
+
+.dark .google-office-tooltip {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Partner event map pin markers */
+.event-pin {
+    background: transparent !important;
+    border: none !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: transform 0.15s ease;
+}
+
+.event-pin:hover {
+    transform: scale(1.15);
+}
+
+.event-pin-selected {
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
+    z-index: 700 !important;
+}
+
+.event-tooltip {
+    background: var(--popover);
+    color: var(--popover-foreground);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.event-tooltip::before {
+    border-top-color: var(--border) !important;
+}
+
+.dark .event-tooltip {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
