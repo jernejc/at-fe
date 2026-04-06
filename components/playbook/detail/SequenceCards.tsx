@@ -110,7 +110,7 @@ function SequenceCard({ item }: { item: ContactSequenceItem }) {
         <div className="shrink-0 w-10 h-10 rounded-lg bg-muted flex flex-col items-center justify-center">
           <span className="text-[10px] text-muted-foreground uppercase leading-none">Day</span>
           <span className="text-base font-semibold text-foreground leading-tight">
-            {item.day_offset}
+            {item.day_offset + 1}
           </span>
         </div>
 
