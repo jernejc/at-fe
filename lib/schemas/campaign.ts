@@ -1,5 +1,14 @@
 // Campaign-related TypeScript schemas
 
+/** Supported campaign export file formats. */
+export type ExportFormat = 'csv' | 'xlsx' | 'gsheet';
+
+/** Response from a Google Sheets export endpoint. */
+export interface GSheetExportResult {
+    url: string;
+    title: string;
+}
+
 export interface CampaignSummary {
     id: number;
     name: string;

@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Download, Loader2 } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { PublishDialog } from './PublishDialog';
-import { useCampaignExport } from '@/hooks/useCampaignExport';
+import { CampaignExportDropdown } from '@/components/campaigns/CampaignExportDropdown';
 import { normalizeScoreNullable } from '@/lib/utils';
 import type { CampaignRead, CampaignOverview } from '@/lib/schemas';
 
@@ -48,7 +48,6 @@ export function CampaignOverviewDashboard({
   conversionRate,
 }: CampaignOverviewDashboardProps) {
   const [publishDialogMode, setPublishDialogMode] = useState<'publish' | 'unpublish' | null>(null);
-  const { isExporting, handleExport } = useCampaignExport({ slug: campaign?.slug ?? '' });
 
   const status = campaign?.status ?? 'draft';
   const rawFit = campaign?.avg_fit_score ?? null;
@@ -101,19 +100,8 @@ export function CampaignOverviewDashboard({
             <DashboardCellBody loading={loading}>
               {campaign?.company_count ?? 0}
             </DashboardCellBody>
-            {!loading && (
-              <Button
-                variant="outline"
-                onClick={handleExport}
-                disabled={isExporting}
-              >
-                {isExporting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
-                ) : (
-                  <Download className="w-4 h-4" data-icon="inline-start" />
-                )}
-                Export
-              </Button>
+            {!loading && campaign?.slug && (
+              <CampaignExportDropdown slug={campaign.slug} />
             )}
           </div>
         </DashboardCell>

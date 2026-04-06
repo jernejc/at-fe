@@ -11,6 +11,8 @@ import type {
     BulkAddResult,
     CampaignFilters,
     CampaignCompanyRead,
+    ExportFormat,
+    GSheetExportResult,
 } from '../schemas';
 
 export async function getCampaigns(filters: CampaignFilters = {}): Promise<PaginatedResponse<CampaignSummary>> {
@@ -132,6 +134,24 @@ export async function exportCampaignCSV(slug: string): Promise<Blob> {
 
 export async function exportCampaignContactsCSV(slug: string): Promise<Blob> {
     return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/xlsx`);
+}
+
+/** Export campaign companies in the specified format. */
+export async function exportCampaign(slug: string, format: ExportFormat): Promise<Blob | GSheetExportResult> {
+    const path = `/api/v1/campaigns/${encodeURIComponent(slug)}/export/${format}`;
+    if (format === 'gsheet') {
+        return fetchAPI<GSheetExportResult>(path);
+    }
+    return fetchCSVExport(`${API_BASE}${path}`);
+}
+
+/** Export campaign contacts in the specified format. */
+export async function exportCampaignContacts(slug: string, format: ExportFormat): Promise<Blob | GSheetExportResult> {
+    const path = `/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/${format}`;
+    if (format === 'gsheet') {
+        return fetchAPI<GSheetExportResult>(path);
+    }
+    return fetchCSVExport(`${API_BASE}${path}`);
 }
 
 /** Fetch a single company's membership detail within a campaign. */

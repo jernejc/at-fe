@@ -1,13 +1,13 @@
 'use client';
 
-import { Download, Loader2, Pencil, X, Trash2, ChevronDown, CircleOff, Shuffle } from 'lucide-react';
+import { Loader2, Pencil, X, Trash2, ChevronDown, CircleOff, Shuffle } from 'lucide-react';
 import { Menu } from '@base-ui/react/menu';
 import { SearchField } from '@/components/ui/search-field';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { useCampaignExport } from '@/hooks/useCampaignExport';
+import { CampaignExportDropdown } from '@/components/campaigns/CampaignExportDropdown';
 import { cn } from '@/lib/utils';
 import type { FilterDefinition, ActiveFilter, SortOptionDefinition, SortState } from '@/lib/schemas/filter';
 import type { PartnerAssignmentSummary } from '@/lib/schemas';
@@ -78,8 +78,6 @@ export function CampaignCompaniesToolbar({
   onAutoAssign,
   isAutoAssigning,
 }: CampaignCompaniesToolbarProps) {
-  const { isExporting, handleExport } = useCampaignExport({ slug: campaignSlug });
-
   if (isEditing) {
     return <EditToolbar
       selectedCount={selectedCount}
@@ -139,18 +137,7 @@ export function CampaignCompaniesToolbar({
           Edit
         </Button>
 
-        <Button
-          variant="secondary"
-          onClick={handleExport}
-          disabled={isExporting}
-        >
-          {isExporting ? (
-            <Loader2 className="w-4 h-4 animate-spin" data-icon="inline-start" />
-          ) : (
-            <Download className="w-4 h-4" data-icon="inline-start" />
-          )}
-          Export
-        </Button>
+        <CampaignExportDropdown slug={campaignSlug} variant="secondary" />
       </div>
     </div>
   );

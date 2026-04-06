@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "1.2.14",
+      "date": "2026-04-06",
+      "changes": [
+        "Unified export dropdown with CSV, Excel, and Google Sheets format selection across all campaign export locations"
+      ]
+    },
+    {
       "version": "1.2.13",
       "date": "2026-04-06",
       "changes": [

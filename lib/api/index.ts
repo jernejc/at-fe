@@ -51,6 +51,8 @@ export {
     removeCompanyFromCampaign,
     exportCampaignCSV,
     exportCampaignContactsCSV,
+    exportCampaign,
+    exportCampaignContacts,
     getCampaignCompany,
 } from './campaigns';
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { exportCampaignCSV, exportCampaignContactsCSV } from '@/lib/api';
+import { exportCampaign, exportCampaignContacts } from '@/lib/api';
+import type { ExportFormat, GSheetExportResult } from '@/lib/schemas';
 import { toast } from 'sonner';
 
 interface UseCampaignExportOptions {
@@ -9,8 +10,8 @@ interface UseCampaignExportOptions {
 interface UseCampaignExportReturn {
   isExporting: boolean;
   isExportingContacts: boolean;
-  handleExport: () => Promise<void>;
-  handleExportContacts: () => Promise<void>;
+  handleExport: (format: ExportFormat) => Promise<void>;
+  handleExportContacts: (format: ExportFormat) => Promise<void>;
 }
 
 /** Encapsulates campaign export (companies & contacts) download logic. */
@@ -18,13 +19,19 @@ export function useCampaignExport({ slug }: UseCampaignExportOptions): UseCampai
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingContacts, setIsExportingContacts] = useState(false);
 
-  const handleExport = async () => {
+  const handleExport = async (format: ExportFormat) => {
     if (!slug) return;
     try {
       setIsExporting(true);
-      const blob = await exportCampaignCSV(slug);
-      triggerDownload(blob, `campaign-${slug}-export.xlsx`);
-      toast.success('Campaign exported successfully');
+      const result = await exportCampaign(slug, format);
+      if (format === 'gsheet') {
+        const { url } = result as GSheetExportResult;
+        window.open(url, '_blank');
+        toast.success('Google Sheet created successfully');
+      } else {
+        triggerDownload(result as Blob, `campaign-${slug}-export.${format}`);
+        toast.success('Campaign exported successfully');
+      }
     } catch (error) {
       console.error('Export failed:', error);
       toast.error('Failed to export campaign');
@@ -33,13 +40,19 @@ export function useCampaignExport({ slug }: UseCampaignExportOptions): UseCampai
     }
   };
 
-  const handleExportContacts = async () => {
+  const handleExportContacts = async (format: ExportFormat) => {
     if (!slug) return;
     try {
       setIsExportingContacts(true);
-      const blob = await exportCampaignContactsCSV(slug);
-      triggerDownload(blob, `campaign-${slug}-contacts.xlsx`);
-      toast.success('Contacts exported successfully');
+      const result = await exportCampaignContacts(slug, format);
+      if (format === 'gsheet') {
+        const { url } = result as GSheetExportResult;
+        window.open(url, '_blank');
+        toast.success('Google Sheet created successfully');
+      } else {
+        triggerDownload(result as Blob, `campaign-${slug}-contacts.${format}`);
+        toast.success('Contacts exported successfully');
+      }
     } catch (error) {
       console.error('Export contacts failed:', error);
       toast.error('Failed to export contacts');

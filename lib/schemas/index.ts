@@ -109,6 +109,8 @@ export type {
     Partner,
     PartnerType,
     CampaignCompanyRead,
+    ExportFormat,
+    GSheetExportResult,
 } from './campaign';
 
 // Partner types

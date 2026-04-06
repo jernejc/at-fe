@@ -21,8 +21,6 @@ export function useSignalSelection(
   const [provenance, setProvenance] = useState<SignalProvenanceResponse | null>(null);
   const [provenanceLoading, setProvenanceLoading] = useState(false);
 
-  const fetcher = fetchProvenance ?? ((id: number) => getSignalProvenance(domain, id));
-
   const selectSignal = useCallback((signalId: number) => {
     // Toggle off if same signal clicked
     if (signalId === selectedSignalId) {
@@ -35,6 +33,7 @@ export function useSignalSelection(
     setProvenanceLoading(true);
     setProvenance(null);
 
+    const fetcher = fetchProvenance ?? ((id: number) => getSignalProvenance(domain, id));
     fetcher(signalId)
       .then((res) => {
         setProvenance(res);
@@ -45,7 +44,7 @@ export function useSignalSelection(
       .finally(() => {
         setProvenanceLoading(false);
       });
-  }, [fetcher, selectedSignalId]);
+  }, [fetchProvenance, domain, selectedSignalId]);
 
   const clearSelection = useCallback(() => {
     setSelectedSignalId(null);
