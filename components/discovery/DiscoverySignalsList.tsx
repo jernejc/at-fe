@@ -80,7 +80,7 @@ export function DiscoverySignalsList({
       <section>
         <SignalTableHeader />
         <Separator />
-        {signals.map((signal) => (
+        {[...signals].sort((a, b) => b.strength - a.strength).map((signal) => (
           <div key={signal.id}>
             <SignalRow
               ref={getItemRef?.(signal.id)}
