@@ -13,10 +13,15 @@ export interface UseSignalSelectionReturn {
 }
 
 /** Manages signal selection and provenance fetching for detail panels. */
-export function useSignalSelection(domain: string): UseSignalSelectionReturn {
+export function useSignalSelection(
+  domain: string,
+  fetchProvenance?: (signalId: number) => Promise<SignalProvenanceResponse>,
+): UseSignalSelectionReturn {
   const [selectedSignalId, setSelectedSignalId] = useState<number | null>(null);
   const [provenance, setProvenance] = useState<SignalProvenanceResponse | null>(null);
   const [provenanceLoading, setProvenanceLoading] = useState(false);
+
+  const fetcher = fetchProvenance ?? ((id: number) => getSignalProvenance(domain, id));
 
   const selectSignal = useCallback((signalId: number) => {
     // Toggle off if same signal clicked
@@ -30,7 +35,7 @@ export function useSignalSelection(domain: string): UseSignalSelectionReturn {
     setProvenanceLoading(true);
     setProvenance(null);
 
-    getSignalProvenance(domain, signalId)
+    fetcher(signalId)
       .then((res) => {
         setProvenance(res);
       })
@@ -40,7 +45,7 @@ export function useSignalSelection(domain: string): UseSignalSelectionReturn {
       .finally(() => {
         setProvenanceLoading(false);
       });
-  }, [domain, selectedSignalId]);
+  }, [fetcher, selectedSignalId]);
 
   const clearSelection = useCallback(() => {
     setSelectedSignalId(null);

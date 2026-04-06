@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
-import { getFitBreakdown } from '@/lib/api';
 import type { FitSummaryFit, FitScore } from '@/lib/schemas';
 
 export interface UseDiscoveryProductsReturn {
@@ -18,7 +17,7 @@ export interface UseDiscoveryProductsReturn {
 
 /** Provides product fit scores from cached explainability data and manages on-demand breakdown fetching. */
 export function useDiscoveryProducts(): UseDiscoveryProductsReturn {
-  const { domain, explainability, explainabilityLoading, explainabilityError, ensureExplainability } =
+  const { explainability, explainabilityLoading, explainabilityError, ensureExplainability, getCachedFitBreakdown } =
     useDiscoveryDetail();
 
   useEffect(() => {
@@ -43,11 +42,11 @@ export function useDiscoveryProducts(): UseDiscoveryProductsReturn {
     setBreakdownLoading(true);
     setBreakdown(null);
 
-    getFitBreakdown(domain, productId)
+    getCachedFitBreakdown(productId)
       .then((res) => setBreakdown(res))
       .catch((err) => console.error('Failed to fetch fit breakdown', err))
       .finally(() => setBreakdownLoading(false));
-  }, [domain, selectedProductId]);
+  }, [getCachedFitBreakdown, selectedProductId]);
 
   const clearSelection = useCallback(() => {
     setSelectedProductId(null);

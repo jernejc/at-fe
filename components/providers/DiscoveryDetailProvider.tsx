@@ -16,6 +16,9 @@ import {
   getCompanyEmployees,
   getProducts,
   getCompanyPlaybooks,
+  getFitBreakdown,
+  getSignalProvenance,
+  getCompanyPlaybook,
 } from '@/lib/api';
 import type {
   CompanyDetailResponse,
@@ -24,7 +27,10 @@ import type {
   EmployeeSummary,
   ProductSummary,
   PlaybookSummary,
+  FitScore,
+  PlaybookRead,
 } from '@/lib/schemas';
+import type { SignalProvenanceResponse } from '@/lib/schemas/provenance';
 
 // ---------------------------------------------------------------------------
 // Context shape
@@ -81,6 +87,16 @@ interface DiscoveryDetailContextValue {
   ensurePlaybooks: () => void;
   /** Update cached summaries (e.g. after generation completes). */
   setPlaybookSummaries: (summaries: PlaybookSummary[]) => void;
+
+  // --- Detail caches (survive tab switches) ---
+  /** Returns cached fit breakdown or fetches and caches it. */
+  getCachedFitBreakdown: (productId: number) => Promise<FitScore>;
+  /** Returns cached signal provenance or fetches and caches it. */
+  getCachedSignalProvenance: (signalId: number) => Promise<SignalProvenanceResponse>;
+  /** Returns cached playbook detail or fetches and caches it. */
+  getCachedPlaybookDetail: (playbookId: number) => Promise<PlaybookRead>;
+  /** Evict a playbook from the detail cache (e.g. after generation). */
+  invalidatePlaybookCache: (playbookId: number) => void;
 }
 
 const DiscoveryDetailContext = createContext<DiscoveryDetailContextValue | null>(null);
@@ -272,6 +288,39 @@ export function DiscoveryDetailProvider({ domain, children }: DiscoveryDetailPro
     fetch();
   }, [domain]);
 
+  // --- Detail caches ---
+  const fitBreakdownCache = useRef<Map<number, FitScore>>(new Map());
+  const signalProvenanceCache = useRef<Map<number, SignalProvenanceResponse>>(new Map());
+  const playbookDetailCache = useRef<Map<number, PlaybookRead>>(new Map());
+
+  const getCachedFitBreakdown = useCallback(async (productId: number): Promise<FitScore> => {
+    const cached = fitBreakdownCache.current.get(productId);
+    if (cached) return cached;
+    const result = await getFitBreakdown(domain, productId);
+    fitBreakdownCache.current.set(productId, result);
+    return result;
+  }, [domain]);
+
+  const getCachedSignalProvenance = useCallback(async (signalId: number): Promise<SignalProvenanceResponse> => {
+    const cached = signalProvenanceCache.current.get(signalId);
+    if (cached) return cached;
+    const result = await getSignalProvenance(domain, signalId);
+    signalProvenanceCache.current.set(signalId, result);
+    return result;
+  }, [domain]);
+
+  const getCachedPlaybookDetail = useCallback(async (playbookId: number): Promise<PlaybookRead> => {
+    const cached = playbookDetailCache.current.get(playbookId);
+    if (cached) return cached;
+    const result = await getCompanyPlaybook(domain, playbookId);
+    playbookDetailCache.current.set(playbookId, result);
+    return result;
+  }, [domain]);
+
+  const invalidatePlaybookCache = useCallback((playbookId: number) => {
+    playbookDetailCache.current.delete(playbookId);
+  }, []);
+
   return (
     <DiscoveryDetailContext.Provider
       value={{
@@ -305,6 +354,10 @@ export function DiscoveryDetailProvider({ domain, children }: DiscoveryDetailPro
         playbooksError,
         ensurePlaybooks,
         setPlaybookSummaries,
+        getCachedFitBreakdown,
+        getCachedSignalProvenance,
+        getCachedPlaybookDetail,
+        invalidatePlaybookCache,
       }}
     >
       {children}

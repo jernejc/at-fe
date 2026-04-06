@@ -1,6 +1,15 @@
 {
   "versions": [
     {
+      "version": "1.2.13",
+      "date": "2026-04-06",
+      "changes": [
+        "Cached side panel detail data (product fits, signal provenance, playbooks) across tab switches in discovery",
+        "Fixed scroll prevention bug when side panel was open",
+        "Fixed bug where signals were not always sorted"
+      ]
+    },
+    {
       "version": "1.2.12",
       "date": "2026-03-30",
       "changes": [

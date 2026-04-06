@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
-import { getCompanyPlaybooks, getCompanyPlaybook } from '@/lib/api';
+import { getCompanyPlaybooks } from '@/lib/api';
 import { usePlaybookGeneration } from '@/hooks/usePlaybookGeneration';
 import type { ProductSummary, PlaybookRead } from '@/lib/schemas';
 
@@ -44,6 +44,8 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
     playbooksError: productsError,
     ensurePlaybooks,
     setPlaybookSummaries: setSummaries,
+    getCachedPlaybookDetail,
+    invalidatePlaybookCache,
   } = useDiscoveryDetail();
 
   useEffect(() => {
@@ -83,7 +85,7 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
     async function fetchDetail() {
       setPlaybookLoading(true);
       try {
-        const detail = await getCompanyPlaybook(domain, summary!.id);
+        const detail = await getCachedPlaybookDetail(summary!.id);
         if (!cancelled) setPlaybook(detail);
       } catch (err) {
         console.error('Failed to fetch playbook detail:', err);
@@ -95,7 +97,7 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
     fetchDetail();
 
     return () => { cancelled = true; };
-  }, [selectedProductId, summaries, domain, productsLoading]);
+  }, [selectedProductId, summaries, getCachedPlaybookDetail, productsLoading]);
 
   /** Replace the `?product=` search param without creating a history entry. */
   const syncProductToUrl = useCallback((productId: number) => {
@@ -134,10 +136,11 @@ export function useDiscoveryPlaybook(): UseDiscoveryPlaybookReturn {
 
     const target = playbooks.find((p) => p.product_id === selectedProductId);
     if (target) {
-      const detail = await getCompanyPlaybook(domain, target.id);
+      invalidatePlaybookCache(target.id);
+      const detail = await getCachedPlaybookDetail(target.id);
       setPlaybook(detail);
     }
-  }, [domain, selectedProductId, setSummaries]);
+  }, [domain, selectedProductId, setSummaries, invalidatePlaybookCache, getCachedPlaybookDetail]);
 
   const { isGenerating, generationError, startGeneration } = usePlaybookGeneration({
     domain,

@@ -6,10 +6,10 @@ import { useSignalSelection } from '@/hooks/useSignalSelection';
 
 /** Provides event signals and narrative from cached explainability data. */
 export function useDiscoveryEvents() {
-  const { domain, explainability, explainabilityLoading, explainabilityError, ensureExplainability } =
+  const { domain, explainability, explainabilityLoading, explainabilityError, ensureExplainability, getCachedSignalProvenance } =
     useDiscoveryDetail();
 
-  const signalSelection = useSignalSelection(domain);
+  const signalSelection = useSignalSelection(domain, getCachedSignalProvenance);
 
   useEffect(() => {
     ensureExplainability();
