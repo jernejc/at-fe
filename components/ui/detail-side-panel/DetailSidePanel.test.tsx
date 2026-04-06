@@ -17,7 +17,6 @@ function renderPanel(open = false, onClose = vi.fn()) {
 describe('DetailSidePanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    document.body.style.overflow = '';
   });
 
   it('renders children', () => {
@@ -88,24 +87,10 @@ describe('DetailSidePanel', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  describe('scroll lock', () => {
-    it('locks body scroll when open', () => {
-      renderPanel(true);
-      expect(document.body.style.overflow).toBe('hidden');
-    });
-
-    it('does not lock body scroll when closed', () => {
-      renderPanel(false);
-      expect(document.body.style.overflow).toBe('');
-    });
-
-    it('restores body scroll on unmount', () => {
-      const { unmount } = renderPanel(true);
-      expect(document.body.style.overflow).toBe('hidden');
-
-      unmount();
-      expect(document.body.style.overflow).toBe('');
-    });
+  it('applies overscroll-contain class to the panel', () => {
+    renderPanel(true);
+    const panel = screen.getByText('Detail content').closest('.fixed.bg-background');
+    expect(panel?.className).toContain('overscroll-contain');
   });
 
   describe('click outside to close', () => {

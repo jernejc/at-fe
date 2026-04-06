@@ -30,13 +30,6 @@ export function DetailSidePanel({ open, onClose, detail, children }: DetailSideP
     return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  // Lock body scroll when panel is open
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
-
   // Click outside to close (capture phase so row clicks can override via batching)
   useEffect(() => {
     if (!open) return;
@@ -69,7 +62,7 @@ export function DetailSidePanel({ open, onClose, detail, children }: DetailSideP
       <div
         ref={panelRef}
         className={cn(
-          'fixed bg-background overflow-y-auto transition-transform duration-300 ease-out',
+          'fixed bg-background overflow-y-auto overscroll-contain transition-transform duration-300 ease-out',
           // Desktop
           'md:right-0 md:top-24 md:bottom-0 md:w-[50vw] md:border-l-[0.5px] md:border-border-d md:z-15',
           // Mobile
