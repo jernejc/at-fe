@@ -25,6 +25,7 @@ describe("useNavRoutes", () => {
       { label: "Campaigns", href: "/" },
       { label: "Partners", href: "/partners" },
       { label: "Discovery", href: "/discovery" },
+      { label: "Events", href: "/events" },
     ]);
   });
 

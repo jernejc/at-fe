@@ -23,7 +23,7 @@ export function OutreachRow({ contact, maxDay, onClick, isActive, ref }: Outreac
       map.set(s.day_offset, s);
     }
     return map;
-  }, [contact.sequence]);
+  }, [contact]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
