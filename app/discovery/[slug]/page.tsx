@@ -7,11 +7,11 @@ import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvid
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { TechStackList } from '@/components/companies/TechStackList';
 
 export default function DiscoveryOverviewPage() {
   const { data, loading } = useDiscoveryDetail();
   const [showAllSpecialties, setShowAllSpecialties] = useState(false);
-  const [showAllTech, setShowAllTech] = useState(false);
 
   if (loading) {
     return <OverviewSkeleton />;
@@ -145,7 +145,7 @@ export default function DiscoveryOverviewPage() {
       {company.specialties?.length > 0 && (
         <section>
           <h3 className="text-base font-medium text-foreground mb-3">
-            Specialties <span className="text-muted-foreground font-normal">({company.specialties.length})</span>
+            Specialties
           </h3>
           <div className="flex flex-wrap gap-2">
             {(showAllSpecialties ? company.specialties : company.specialties.slice(0, 20)).map((s, i) => (
@@ -166,25 +166,7 @@ export default function DiscoveryOverviewPage() {
 
       {/* Tech Stack */}
       {company.technologies?.length > 0 && (
-        <section>
-          <h3 className="text-base font-medium text-foreground mb-3">
-            Tech Stack <span className="text-muted-foreground font-normal">({company.technologies.length})</span>
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {(showAllTech ? company.technologies : company.technologies.slice(0, 20)).map((t, i) => (
-              <Badge key={i} variant="blue">{t.technology}</Badge>
-            ))}
-            {company.technologies.length > 20 && (
-              <button
-                type="button"
-                onClick={() => setShowAllTech(v => !v)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2"
-              >
-                {showAllTech ? 'Show less' : `+${company.technologies.length - 20} more`}
-              </button>
-            )}
-          </div>
-        </section>
+        <TechStackList technologies={company.technologies} />
       )}
 
       {/* Employee Ratings */}
