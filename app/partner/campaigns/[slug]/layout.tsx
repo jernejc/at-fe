@@ -74,6 +74,9 @@ function PartnerCampaignLayoutInner({ slug, children }: { slug: string; children
             campaignStatus={campaignStatus}
             productName={productName}
             loading={loading}
+            slug={slug}
+            exportActions={['companies', 'contacts']}
+            showImport
           />
         </div>
         <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-2 bg-background -mt-6 min-w-0">

@@ -42,7 +42,7 @@ function CompanyDetailLayoutInner({
   children: React.ReactNode;
 }) {
   const { campaignIcon } = useCampaignDetailHeader();
-  const { company, loading } = useCampaignCompanyDetail();
+  const { company, membership, loading } = useCampaignCompanyDetail();
 
   const companyName = company?.name ?? null;
   const companyLogoUrl = company?.logo_base64
@@ -67,6 +67,7 @@ function CompanyDetailLayoutInner({
           companyName={companyName}
           companyLogoUrl={companyLogoUrl}
           loading={loading}
+          companyId={membership?.company_id ?? null}
         />
       </div>
       <div className="sticky top-24 h-6 px-4 text-xs font-semibold flex gap-2 items-end z-2 bg-background -mt-6">

@@ -29,7 +29,6 @@ export default function PartnerCampaignCompaniesPage() {
   return (
     <PartnerCampaignCompaniesView
       {...companiesState}
-      campaignSlug={campaign?.slug ?? ''}
       onCompanyClick={handleCompanyClick}
     />
   );

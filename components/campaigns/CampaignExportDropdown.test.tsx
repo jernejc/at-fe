@@ -31,7 +31,23 @@ describe('CampaignExportDropdown', () => {
 
   it('passes slug to useCampaignExport', () => {
     render(<CampaignExportDropdown slug="my-slug" />);
-    expect(mockUseCampaignExport).toHaveBeenCalledWith({ slug: 'my-slug' });
+    expect(mockUseCampaignExport).toHaveBeenCalledWith({ slug: 'my-slug', companyId: undefined });
+  });
+
+  it('passes companyId to useCampaignExport when provided', () => {
+    render(<CampaignExportDropdown slug="my-slug" companyId={42} />);
+    expect(mockUseCampaignExport).toHaveBeenCalledWith({ slug: 'my-slug', companyId: 42 });
+  });
+
+  it('renders "Export Company" label when companyId is set', async () => {
+    const user = userEvent.setup();
+    render(<CampaignExportDropdown slug="test" companyId={7} />);
+
+    await user.click(screen.getByText('Export'));
+    await screen.findByRole('menu');
+
+    expect(screen.getByRole('button', { name: /Export Company$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Export Companies/i })).not.toBeInTheDocument();
   });
 
   it('opens the dropdown and shows format options on click', async () => {

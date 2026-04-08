@@ -2,7 +2,6 @@
 
 import { Building2 } from 'lucide-react';
 import { CompanyRow, CompanyRowSkeleton } from '@/components/campaigns/CompanyRow';
-import { CampaignExportMenu } from '@/components/campaigns/CampaignExportMenu';
 import { SearchField } from '@/components/ui/search-field';
 import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
@@ -15,8 +14,6 @@ import type { CompanyRowData } from '@/lib/schemas';
 import type { UseCampaignCompaniesReturn } from '@/components/campaigns/companies/useCampaignCompanies';
 
 interface PartnerCampaignCompaniesViewProps extends UseCampaignCompaniesReturn {
-  /** Campaign slug used for export. */
-  campaignSlug: string;
   /** Handler when a company row is clicked. */
   onCompanyClick?: (company: CompanyRowData) => void;
 }
@@ -34,7 +31,6 @@ export function PartnerCampaignCompaniesView({
   sortOptions,
   activeSort,
   setActiveSort,
-  campaignSlug,
   onCompanyClick,
 }: PartnerCampaignCompaniesViewProps) {
   return (
@@ -48,7 +44,6 @@ export function PartnerCampaignCompaniesView({
         sortOptions={sortOptions}
         activeSort={activeSort}
         onSortChange={setActiveSort}
-        campaignSlug={campaignSlug}
       />
 
       {loading ? (
@@ -185,10 +180,9 @@ interface ToolbarProps {
   sortOptions: SortOptionDefinition[];
   activeSort: SortState | null;
   onSortChange: (sort: SortState | null) => void;
-  campaignSlug: string;
 }
 
-/** Simplified toolbar — search, filter, sort, and export. */
+/** Simplified toolbar — search, filter, sort. */
 function Toolbar({
   searchQuery,
   onSearchChange,
@@ -198,34 +192,27 @@ function Toolbar({
   sortOptions,
   activeSort,
   onSortChange,
-  campaignSlug,
 }: ToolbarProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-        <SearchField
-          className="w-64"
-          placeholder="Search companies…"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
+    <div className="flex items-center gap-2 flex-wrap min-w-0">
+      <SearchField
+        className="w-64"
+        placeholder="Search companies…"
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
 
-        <Filter
-          definitions={filterDefinitions}
-          value={activeFilters}
-          onValueChange={onFiltersChange}
-        />
+      <Filter
+        definitions={filterDefinitions}
+        value={activeFilters}
+        onValueChange={onFiltersChange}
+      />
 
-        <Sort
-          options={sortOptions}
-          value={activeSort}
-          onValueChange={onSortChange}
-        />
-      </div>
-
-      <div className="flex items-center gap-2 shrink-0">
-        <CampaignExportMenu slug={campaignSlug} variant="secondary" />
-      </div>
+      <Sort
+        options={sortOptions}
+        value={activeSort}
+        onValueChange={onSortChange}
+      />
     </div>
   );
 }

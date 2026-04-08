@@ -145,7 +145,6 @@ export default function CampaignCompaniesPage() {
     >
       <CampaignCompaniesView
         {...companiesState}
-        campaignSlug={slug}
         selectedCompanyId={selectedCompany?.id ?? null}
         onCompanyClick={handleCompanyClick}
         getItemRef={getItemRef}

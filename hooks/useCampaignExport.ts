@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 
 interface UseCampaignExportOptions {
   slug: string;
+  /** When set, exports are scoped to a single company. */
+  companyId?: number;
 }
 
 interface UseCampaignExportReturn {
@@ -15,7 +17,7 @@ interface UseCampaignExportReturn {
 }
 
 /** Encapsulates campaign export (companies & contacts) download logic. */
-export function useCampaignExport({ slug }: UseCampaignExportOptions): UseCampaignExportReturn {
+export function useCampaignExport({ slug, companyId }: UseCampaignExportOptions): UseCampaignExportReturn {
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingContacts, setIsExportingContacts] = useState(false);
 
@@ -23,7 +25,7 @@ export function useCampaignExport({ slug }: UseCampaignExportOptions): UseCampai
     if (!slug) return;
     try {
       setIsExporting(true);
-      const result = await exportCampaign(slug, format);
+      const result = await exportCampaign(slug, format, companyId);
       if (format === 'gsheet') {
         const { url } = result as GSheetExportResult;
         window.open(url, '_blank');
@@ -44,7 +46,7 @@ export function useCampaignExport({ slug }: UseCampaignExportOptions): UseCampai
     if (!slug) return;
     try {
       setIsExportingContacts(true);
-      const result = await exportCampaignContacts(slug, format);
+      const result = await exportCampaignContacts(slug, format, companyId);
       if (format === 'gsheet') {
         const { url } = result as GSheetExportResult;
         window.open(url, '_blank');

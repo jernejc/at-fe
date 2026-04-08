@@ -1,15 +1,11 @@
 'use client';
 
-import { useRef } from 'react';
-import { Upload } from 'lucide-react';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { StatusesChart } from '@/components/ui/statuses-chart';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { EngagementIndicator } from '@/components/ui/engagement-indicator';
-import { CampaignExportMenu } from '@/components/campaigns/CampaignExportMenu';
 import { normalizeScoreNullable } from '@/lib/utils';
 import type { CampaignRead, CampaignOverview } from '@/lib/schemas';
 
@@ -51,7 +47,6 @@ export function PartnerCampaignOverviewDashboard({
   const status = campaign?.status ?? 'draft';
   const rawFit = campaign?.avg_fit_score ?? null;
   const avgFit = rawFit != null ? Math.round(normalizeScoreNullable(rawFit)) : null;
-  const importInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <Dashboard>
@@ -63,37 +58,12 @@ export function PartnerCampaignOverviewDashboard({
         </DashboardCellBody>
       </DashboardCell>
 
-      <DashboardCell size="quarter" height="auto">
+      <DashboardCell size="half" height="auto">
         <DashboardCellTitle>Status</DashboardCellTitle>
         <DashboardCellBody size="sm" loading={loading} className="flex items-center gap-3">
           <StatusIndicator status={status} size={10} />
           <span className='capitalize'>{status}</span>
         </DashboardCellBody>
-      </DashboardCell>
-
-      <DashboardCell size="quarter" height="auto">
-        <DashboardCellTitle>Actions</DashboardCellTitle>
-        <div className="flex items-center justify-between gap-2 mt-1">
-          {!loading && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => importInputRef.current?.click()}
-              >
-                <Upload className="w-4 h-4 mr-1.5" />
-                Import
-              </Button>
-              <CampaignExportMenu slug={campaign?.slug ?? ''} />
-              <input
-                ref={importInputRef}
-                type="file"
-                accept=".xlsx,.csv"
-                className="hidden"
-                onChange={() => { }}
-              />
-            </>
-          )}
-        </div>
       </DashboardCell>
 
       {/* Row 2 — Companies, Avg. fit, Statuses, Leads Engaged */}

@@ -11,8 +11,6 @@ import type { PartnerAssignmentSummary } from '@/lib/schemas';
 import type { UseCampaignCompaniesReturn } from './useCampaignCompanies';
 
 interface CampaignCompaniesViewProps extends UseCampaignCompaniesReturn {
-  /** Campaign slug for export functionality. */
-  campaignSlug: string;
   /** Currently selected company ID, or null. */
   selectedCompanyId?: number | null;
   /** Handler when a company row is clicked. */
@@ -72,7 +70,6 @@ export function CampaignCompaniesView({
   pageSize,
   setPage,
   totalCount,
-  campaignSlug,
   selectedCompanyId,
   onCompanyClick,
   getItemRef,
@@ -105,7 +102,6 @@ export function CampaignCompaniesView({
         sortOptions={sortOptions}
         activeSort={activeSort}
         onSortChange={setActiveSort}
-        campaignSlug={campaignSlug}
         isEditing={isEditing}
         selectedCount={selectedCount}
         onStartEditing={onStartEditing}

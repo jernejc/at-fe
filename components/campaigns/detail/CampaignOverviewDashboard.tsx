@@ -8,7 +8,6 @@ import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from 
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { FitScoreIndicator } from '@/components/ui/fit-score-indicator';
 import { PublishDialog } from './PublishDialog';
-import { CampaignExportDropdown } from '@/components/campaigns/CampaignExportDropdown';
 import { normalizeScoreNullable } from '@/lib/utils';
 import type { CampaignRead, CampaignOverview } from '@/lib/schemas';
 
@@ -96,14 +95,9 @@ export function CampaignOverviewDashboard({
               </Badge>
             )}
           </div>
-          <div className="flex items-end justify-between">
-            <DashboardCellBody loading={loading}>
-              {campaign?.company_count ?? 0}
-            </DashboardCellBody>
-            {!loading && campaign?.slug && (
-              <CampaignExportDropdown slug={campaign.slug} />
-            )}
-          </div>
+          <DashboardCellBody loading={loading}>
+            {campaign?.company_count ?? 0}
+          </DashboardCellBody>
         </DashboardCell>
 
         <DashboardCell

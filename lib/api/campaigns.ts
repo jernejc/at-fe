@@ -136,18 +136,20 @@ export async function exportCampaignContactsCSV(slug: string): Promise<Blob> {
     return fetchCSVExport(`${API_BASE}/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/xlsx`);
 }
 
-/** Export campaign companies in the specified format. */
-export async function exportCampaign(slug: string, format: ExportFormat): Promise<Blob | GSheetExportResult> {
-    const path = `/api/v1/campaigns/${encodeURIComponent(slug)}/export/${format}`;
+/** Export campaign companies in the specified format. Optionally scoped to a single company. */
+export async function exportCampaign(slug: string, format: ExportFormat, companyId?: number): Promise<Blob | GSheetExportResult> {
+    const query = buildQueryString({ company_id: companyId });
+    const path = `/api/v1/campaigns/${encodeURIComponent(slug)}/export/${format}${query}`;
     if (format === 'gsheet') {
         return fetchAPI<GSheetExportResult>(path);
     }
     return fetchCSVExport(`${API_BASE}${path}`);
 }
 
-/** Export campaign contacts in the specified format. */
-export async function exportCampaignContacts(slug: string, format: ExportFormat): Promise<Blob | GSheetExportResult> {
-    const path = `/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/${format}`;
+/** Export campaign contacts in the specified format. Optionally scoped to a single company. */
+export async function exportCampaignContacts(slug: string, format: ExportFormat, companyId?: number): Promise<Blob | GSheetExportResult> {
+    const query = buildQueryString({ company_id: companyId });
+    const path = `/api/v1/campaigns/${encodeURIComponent(slug)}/export/contacts/${format}${query}`;
     if (format === 'gsheet') {
         return fetchAPI<GSheetExportResult>(path);
     }

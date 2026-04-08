@@ -7,7 +7,6 @@ import { Filter } from '@/components/ui/filter';
 import { Sort } from '@/components/ui/sort';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { CampaignExportDropdown } from '@/components/campaigns/CampaignExportDropdown';
 import { cn } from '@/lib/utils';
 import type { FilterDefinition, ActiveFilter, SortOptionDefinition, SortState } from '@/lib/schemas/filter';
 import type { PartnerAssignmentSummary } from '@/lib/schemas';
@@ -27,7 +26,6 @@ interface CampaignCompaniesToolbarProps {
   sortOptions: SortOptionDefinition[];
   activeSort: SortState | null;
   onSortChange: (sort: SortState | null) => void;
-  campaignSlug: string;
   /** Whether bulk-edit mode is active. */
   isEditing: boolean;
   /** Number of currently selected companies. */
@@ -64,7 +62,6 @@ export function CampaignCompaniesToolbar({
   sortOptions,
   activeSort,
   onSortChange,
-  campaignSlug,
   isEditing,
   selectedCount,
   onStartEditing,
@@ -136,8 +133,6 @@ export function CampaignCompaniesToolbar({
           <Pencil className="w-4 h-4" data-icon="inline-start" />
           Edit
         </Button>
-
-        <CampaignExportDropdown slug={campaignSlug} variant="secondary" />
       </div>
     </div>
   );

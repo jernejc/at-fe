@@ -27,6 +27,8 @@ interface CampaignExportDropdownProps {
   variant?: 'outline' | 'secondary';
   /** Which export targets to show. Defaults to ['companies']. */
   actions?: ('companies' | 'contacts')[];
+  /** When set, scopes exports to a single company. */
+  companyId?: number;
 }
 
 /** Dropdown with format selection and export action(s) for campaign data. */
@@ -34,11 +36,12 @@ export function CampaignExportDropdown({
   slug,
   variant = 'outline',
   actions = ['companies'],
+  companyId,
 }: CampaignExportDropdownProps) {
   const [format, setFormat] = useState<ExportFormat>('xlsx');
   const [open, setOpen] = useState(false);
   const { isExporting, isExportingContacts, handleExport, handleExportContacts } =
-    useCampaignExport({ slug });
+    useCampaignExport({ slug, companyId });
   const exporting = isExporting || isExportingContacts;
 
   return (
@@ -52,7 +55,7 @@ export function CampaignExportDropdown({
         ) : (
           <Download className="w-4 h-4" data-icon="inline-start" />
         )}
-        Export
+        <span className="hidden md:inline">Export</span>
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner side="bottom" align="end" sideOffset={4} className="isolate z-50">
@@ -86,7 +89,7 @@ export function CampaignExportDropdown({
                   onClick={() => { setOpen(false); handleExport(format); }}
                   disabled={isExporting}
                 >
-                  Export Companies
+                  {companyId != null ? 'Export Company' : 'Export Companies'}
                 </Button>
               )}
               {actions.includes('contacts') && (

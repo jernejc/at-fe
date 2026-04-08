@@ -29,7 +29,6 @@ const defaultProps: React.ComponentProps<typeof CampaignCompaniesToolbar> = {
   sortOptions: defaultSortOptions,
   activeSort: null,
   onSortChange: vi.fn(),
-  campaignSlug: 'test-campaign',
   isEditing: false,
   selectedCount: 0,
   onStartEditing: vi.fn(),
@@ -81,11 +80,6 @@ describe('CampaignCompaniesToolbar', () => {
   it('renders Edit button in normal mode', () => {
     renderToolbar();
     expect(screen.getByText('Edit')).toBeInTheDocument();
-  });
-
-  it('renders Export button in normal mode', () => {
-    renderToolbar();
-    expect(screen.getByText('Export')).toBeInTheDocument();
   });
 
   it('shows edit toolbar when isEditing is true', () => {

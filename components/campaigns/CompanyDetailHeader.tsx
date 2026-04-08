@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CampaignIcon } from '@/lib/config/campaign-icons';
+import { CampaignExportDropdown } from '@/components/campaigns/CampaignExportDropdown';
 
 interface CompanyDetailHeaderProps {
   /** Campaign slug for navigation links. */
@@ -16,6 +17,8 @@ interface CompanyDetailHeaderProps {
   companyLogoUrl: string | null;
   /** Show skeleton while loading. */
   loading?: boolean;
+  /** Company id used to scope exports to this single company. */
+  companyId?: number | null;
 }
 
 /** Company detail header with campaign breadcrumb icon, company logo, and name. */
@@ -25,6 +28,7 @@ export function CompanyDetailHeader({
   companyName,
   companyLogoUrl,
   loading = false,
+  companyId,
 }: CompanyDetailHeaderProps) {
   if (loading) {
     return <CompanyDetailHeaderSkeleton />;
@@ -33,7 +37,8 @@ export function CompanyDetailHeader({
   return (
     <div className="bg-background">
       <div className="max-w-[1600px] mx-auto px-10 pt-7 pb-4">
-        <div className="flex items-center -ml-10">
+        <div className="flex items-center justify-between -ml-10">
+          <div className="flex items-center min-w-0 flex-1">
           {/* Back to campaigns */}
           <Link href={`/partner/campaigns`} className="shrink-0 mx-1">
             <Button variant="ghost" size="icon-sm" aria-label="Back to campaign">
@@ -78,6 +83,19 @@ export function CompanyDetailHeader({
               {companyName ?? 'Unknown Company'}
             </h1>
           </div>
+          </div>
+
+          {/* Right-aligned export */}
+          {companyId != null && (
+            <div className="flex items-center gap-2 ml-4 shrink-0">
+              <CampaignExportDropdown
+                slug={slug}
+                actions={['companies', 'contacts']}
+                companyId={companyId}
+                variant="secondary"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
