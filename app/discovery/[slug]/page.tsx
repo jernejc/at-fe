@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, Mail, Phone } from 'lucide-react';
-import { LinkedinIcon } from '@/components/ui/icons/linkedin-icon';
+import { Globe, Link as LinkIcon, Mail, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { Badge } from '@/components/ui/badge';
@@ -21,9 +21,7 @@ export default function DiscoveryOverviewPage() {
   if (!company) return null;
 
   const hq = [company.hq_city, company.hq_state].filter(Boolean).join(', ');
-  const linkedinUrl = company.linkedin_id
-    ? `https://linkedin.com/company/${company.linkedin_id}`
-    : company.social_profiles?.find(p => p.platform === 'linkedin')?.url ?? null;
+  const socialProfiles = company.social_profiles ?? [];
   const websiteHref = company.website_url?.startsWith('http')
     ? company.website_url
     : company.website_url ? `https://${company.website_url}` : null;
@@ -85,22 +83,32 @@ export default function DiscoveryOverviewPage() {
           )}
 
           {/* Links */}
-          {(websiteHref || linkedinUrl) && (
+          {(websiteHref || socialProfiles.length > 0) && (
             <DashboardCell size="quarter" height="auto">
               <DashboardCellTitle>Links</DashboardCellTitle>
-              <div className="mt-2 space-y-1.5">
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {websiteHref && (
-                  <a href={websiteHref} target="_blank" rel="noopener" className="flex items-center gap-1.5 text-sm text-primary hover:underline truncate">
-                    <Globe className="size-3.5 shrink-0" />
-                    {company.website_url}
+                  <a href={websiteHref} target="_blank" rel="noopener" aria-label="Website">
+                    <Button variant="outline" size="sm">
+                      <Globe />
+                      Website
+                    </Button>
                   </a>
                 )}
-                {linkedinUrl && (
-                  <a href={linkedinUrl} target="_blank" rel="noopener" className="flex items-center gap-1.5 text-sm text-primary hover:underline">
-                    <LinkedinIcon className="size-3.5 shrink-0" />
-                    LinkedIn
+                {socialProfiles.map((p) => (
+                  <a
+                    key={p.url}
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={p.platform}
+                  >
+                    <Button variant="outline" size="sm" className="capitalize">
+                      <LinkIcon />
+                      {p.platform}
+                    </Button>
                   </a>
-                )}
+                ))}
               </div>
             </DashboardCell>
           )}

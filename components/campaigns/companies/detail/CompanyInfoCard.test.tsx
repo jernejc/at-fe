@@ -120,8 +120,8 @@ describe('CompanyInfoCard', () => {
     expect(screen.getByText('Technology')).toBeInTheDocument();
     expect(screen.getByText('Type')).toBeInTheDocument();
     expect(screen.getByText('Private')).toBeInTheDocument();
-    expect(screen.getByText('Size')).toBeInTheDocument();
-    expect(screen.getByText('201-500')).toBeInTheDocument();
+    expect(screen.getByText('Employees')).toBeInTheDocument();
+    expect(screen.getByText('500')).toBeInTheDocument();
     expect(screen.getByText('Stock')).toBeInTheDocument();
     expect(screen.getByText('ACME')).toBeInTheDocument();
   });
@@ -161,6 +161,8 @@ describe('CompanyInfoCard', () => {
           industry: null,
           company_type: null,
           employee_count_range: null,
+          website_url: null,
+          social_profiles: [],
         })}
       />,
     );

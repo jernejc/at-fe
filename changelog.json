@@ -1,6 +1,11 @@
 {
   "versions": [
     {
+      "version": "1.2.16",
+      "date": "2026-04-08",
+      "changes": ["Fix bug where not all social links were shown for companies"]
+    },
+    {
       "version": "1.2.15",
       "date": "2026-04-07",
       "changes": ["Company tech stack search and sorting"]
