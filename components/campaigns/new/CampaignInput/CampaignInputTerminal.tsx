@@ -114,7 +114,7 @@ export function CampaignInputTerminal({
   interpretation,
 }: CampaignInputTerminalProps) {
   return (
-    <div className="bg-black max-h-45 overflow-y-auto flex flex-col-reverse">
+    <div className="bg-black max-h-50 overflow-y-auto flex flex-col-reverse">
       <div className="">
         <div className="p-4 space-y-2 font-mono text-xs">
           {TERMINAL_STEPS.map((step, index) => {

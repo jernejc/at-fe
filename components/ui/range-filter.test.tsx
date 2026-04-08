@@ -242,6 +242,44 @@ describe('RangeInput', () => {
     });
   });
 
+  describe('slider endpoint snapping', () => {
+    // With min=2, max=1977, computeNiceStep yields 20, so the range input snaps to
+    // 2, 22, ..., 1962 — never reaching 1977. The handlers must snap to dataMax.
+    const wideValues = [2, 500, 1000, 1500, 1977];
+
+    it('snaps max thumb to dataMax when dragged within one step of the end', () => {
+      const onChange = vi.fn();
+      render(
+        <RangeFilter title="Year" values={wideValues} min={2} max={1977} range={[2, 1977]} onChange={onChange} />,
+      );
+      const sliders = screen.getAllByRole('slider');
+      // Second slider is the max thumb
+      fireEvent.change(sliders[1], { target: { value: '1962' } });
+      expect(onChange).toHaveBeenCalledWith([2, 1977]);
+    });
+
+    it('snaps min thumb to dataMin when dragged within one step of the start', () => {
+      const onChange = vi.fn();
+      render(
+        <RangeFilter title="Year" values={wideValues} min={2} max={1977} range={[500, 1977]} onChange={onChange} />,
+      );
+      const sliders = screen.getAllByRole('slider');
+      // Step is 20, so 10 is within one step of dataMin (2)
+      fireEvent.change(sliders[0], { target: { value: '10' } });
+      expect(onChange).toHaveBeenCalledWith([2, 1977]);
+    });
+
+    it('does not snap interior max values', () => {
+      const onChange = vi.fn();
+      render(
+        <RangeFilter title="Year" values={wideValues} min={2} max={1977} range={[2, 1977]} onChange={onChange} />,
+      );
+      const sliders = screen.getAllByRole('slider');
+      fireEvent.change(sliders[1], { target: { value: '1000' } });
+      expect(onChange).toHaveBeenCalledWith([2, 1000]);
+    });
+  });
+
   describe('draft reset on reopen', () => {
     it('resets draft to current value when reopened after cancel', async () => {
       const user = userEvent.setup();

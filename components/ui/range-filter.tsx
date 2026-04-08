@@ -202,6 +202,11 @@ export function RangeFilter({ title, tooltip, values, min: propMin, max: propMax
   const dataMax = buckets.length > 0 ? buckets[buckets.length - 1].end : 0;
   const maxCount = Math.max(...buckets.map((b) => b.count), 1);
   const step = propStep ?? computeNiceStep(dataMax - dataMin);
+  // Browsers snap the range thumb's rendered position to step-aligned values, so if
+  // (dataMax - dataMin) isn't divisible by step the max thumb can't reach the right edge.
+  // Extend the slider's max attribute to the next step multiple — handlers still snap the
+  // reported value back to dataMax.
+  const sliderMax = dataMin + Math.ceil((dataMax - dataMin) / step) * step;
 
   const [rangeMin, setRangeMin] = React.useState(propRange ? propRange[0] : dataMin);
   const [rangeMax, setRangeMax] = React.useState(propRange ? propRange[1] : dataMax);
@@ -219,14 +224,18 @@ export function RangeFilter({ title, tooltip, values, min: propMin, max: propMax
 
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
-    const next = Math.min(val, rangeMax);
+    // Snap to dataMin when within one step (range input snaps to min+n*step, so endpoints can be unreachable)
+    const snapped = val - step < dataMin ? dataMin : val;
+    const next = Math.min(snapped, rangeMax);
     setRangeMin(next);
     onChange?.([next, rangeMax]);
   };
 
   const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
-    const next = Math.max(val, rangeMin);
+    // Snap to dataMax when within one step
+    const snapped = val + step > dataMax ? dataMax : val;
+    const next = Math.max(snapped, rangeMin);
     setRangeMax(next);
     onChange?.([rangeMin, next]);
   };
@@ -293,7 +302,7 @@ export function RangeFilter({ title, tooltip, values, min: propMin, max: propMax
         <input
           type="range"
           min={dataMin}
-          max={dataMax}
+          max={sliderMax}
           step={step}
           value={rangeMin}
           onChange={handleMinChange}
@@ -304,7 +313,7 @@ export function RangeFilter({ title, tooltip, values, min: propMin, max: propMax
         <input
           type="range"
           min={dataMin}
-          max={dataMax}
+          max={sliderMax}
           step={step}
           value={rangeMax}
           onChange={handleMaxChange}
