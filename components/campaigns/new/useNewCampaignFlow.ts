@@ -67,18 +67,20 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
 
   // Sub-hooks
   const resultsFilters = useResultsFilters(agenticState.companies);
+  const { resetFilters } = resultsFilters;
   const partnerSelection = usePartnerSelection(
     agenticState.partnerSuggestions,
     step === 'partners',
   );
   const creation = useCampaignCreation();
+  const { campaignName, setCampaignName } = creation;
 
   // Prefill campaign name with AI-suggested name when search completes
   useEffect(() => {
-    if (agenticState.suggestedName && !creation.campaignName) {
-      creation.setCampaignName(agenticState.suggestedName);
+    if (agenticState.suggestedName && !campaignName) {
+      setCampaignName(agenticState.suggestedName);
     }
-  }, [agenticState.suggestedName, creation]);
+  }, [agenticState.suggestedName, campaignName, setCampaignName]);
 
   // Navigation helpers
   const goTo = useCallback((target: WizardStep) => {
@@ -106,6 +108,8 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
 
       const combinedQuery = buildCombinedQuery(newHistory);
       goTo('results');
+      resetSearch();
+      resetFilters();
       search(combinedQuery, {
         product_id: selectedProduct?.id ?? undefined,
         include_partner_suggestions: true,
@@ -114,7 +118,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
         fields: COMPANY_SEARCH_FIELDS,
       });
     },
-    [search, selectedProduct, goTo, searchHistory, buildCombinedQuery],
+    [search, resetSearch, resetFilters, selectedProduct, goTo, searchHistory, buildCombinedQuery],
   );
 
   const handleProductSelect = useCallback(
@@ -128,6 +132,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
       if (searchHistory.length > 0) {
         const combinedQuery = buildCombinedQuery(searchHistory);
         resetSearch();
+        resetFilters();
         search(combinedQuery, {
           product_id: product.id,
           include_partner_suggestions: true,
@@ -137,7 +142,7 @@ export function useNewCampaignFlow({ products, preselectedProductId }: UseNewCam
         });
       }
     },
-    [search, resetSearch, searchHistory, buildCombinedQuery, selectedProduct],
+    [search, resetSearch, resetFilters, searchHistory, buildCombinedQuery, selectedProduct],
   );
 
   const handleClose = useCallback(() => {

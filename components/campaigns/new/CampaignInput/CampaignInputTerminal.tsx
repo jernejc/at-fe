@@ -100,7 +100,7 @@ function InterpretationDetails({ interpretation }: { interpretation: WSSearchInt
           className="flex items-baseline gap-1.5"
         >
           <span className="text-emerald-600 shrink-0">{item.label}:</span>
-          <span className="text-gray-400 truncate">{item.value}</span>
+          <span className="text-gray-400">{item.value}</span>
         </motion.div>
       ))}
     </div>
@@ -114,7 +114,7 @@ export function CampaignInputTerminal({
   interpretation,
 }: CampaignInputTerminalProps) {
   return (
-    <div className="bg-black max-h-35 overflow-y-auto flex flex-col-reverse">
+    <div className="bg-black max-h-45 overflow-y-auto flex flex-col-reverse">
       <div className="">
         <div className="p-4 space-y-2 font-mono text-xs">
           {TERMINAL_STEPS.map((step, index) => {

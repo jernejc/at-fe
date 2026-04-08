@@ -92,6 +92,12 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
     const optionsRef = useRef(options);
     useEffect(() => { optionsRef.current = options; });
 
+    // Notify consumers of phase changes via effect rather than from inside a
+    // setState updater (updaters may run more than once under Strict Mode).
+    useEffect(() => {
+        optionsRef.current.onPhaseChange?.(state.phase);
+    }, [state.phase]);
+
     // Cleanup WebSocket on unmount
     useEffect(() => {
         return () => {
@@ -118,13 +124,8 @@ export function useAgenticSearch(options: UseAgenticSearchOptions = {}): UseAgen
                 case 'result': {
                     const phase = data.phase;
 
-                    // Update phase
-                    setState(prev => {
-                        if (prev.phase !== phase) {
-                            optionsRef.current.onPhaseChange?.(phase);
-                        }
-                        return { ...prev, phase };
-                    });
+                    // Update phase (onPhaseChange is fired by a dedicated effect)
+                    setState(prev => (prev.phase === phase ? prev : { ...prev, phase }));
 
                     // Handle phase-specific data
                     if (phase === 'interpreting' && data.interpretation) {

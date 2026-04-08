@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { WSCompanyResult } from '@/lib/schemas';
 
 interface UseResultsFiltersReturn {
@@ -23,14 +23,33 @@ interface UseResultsFiltersReturn {
   resetFilters: () => void;
 }
 
+type Range = [number, number];
+
+/** Compute [min, max] of a numeric field across companies, ignoring null/undefined. */
+function computeExtent(
+  companies: WSCompanyResult[],
+  pick: (c: WSCompanyResult) => number | null | undefined,
+): Range {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const c of companies) {
+    const v = pick(c);
+    if (v == null) continue;
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  return min === Infinity ? [0, 0] : [min, max];
+}
+
 /** Manages local filter state for search results — no re-search, purely client-side. */
 export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFiltersReturn {
-  const [matchRange, setMatchRange] = useState<[number, number]>([0, 100]);
-  const [fitRange, setFitRange] = useState<[number, number]>([0, 100]);
-  const [employeeRange, setEmployeeRange] = useState<[number, number]>([0, 0]);
-  const [revenueRange, setRevenueRange] = useState<[number, number]>([0, 0]);
-  const [selectedIndustries, setSelectedIndustries] = useState<Set<string>>(new Set());
-  const prevCompaniesRef = useRef(companies);
+  // User overrides — null means "follow the data extent". This avoids the
+  // cascading-render trap of syncing data-derived state inside an effect.
+  const [matchOverride, setMatchOverride] = useState<Range | null>(null);
+  const [fitOverride, setFitOverride] = useState<Range | null>(null);
+  const [employeeOverride, setEmployeeOverride] = useState<Range | null>(null);
+  const [revenueOverride, setRevenueOverride] = useState<Range | null>(null);
+  const [industriesOverride, setIndustriesOverride] = useState<Set<string> | null>(null);
 
   // Derive histogram values from raw results
   const matchValues = useMemo(
@@ -63,32 +82,27 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
       .map(([name, count]) => ({ name, count }));
   }, [companies]);
 
-  // Reset filters when companies change (new search)
+  // Auto extents derived from current data; effective range falls back to these
+  // when the user hasn't overridden the filter.
+  const employeeAuto = useMemo(() => computeExtent(companies, (c) => c.employee_count), [companies]);
+  const revenueAuto = useMemo(() => computeExtent(companies, (c) => c.revenue_amount), [companies]);
+  const industriesAuto = useMemo(
+    () => new Set(allIndustries.map((i) => i.name)),
+    [allIndustries],
+  );
+
+  // Mirror the latest auto industry set into a ref so the stable toggle
+  // callback can read it without depending on it.
+  const industriesAutoRef = useRef(industriesAuto);
   useEffect(() => {
-    if (companies !== prevCompaniesRef.current && companies.length > 0) {
-      const empNums = companies
-        .map((c) => c.employee_count)
-        .filter((n): n is number => n != null);
-      const empMin = empNums.length > 0 ? Math.min(...empNums) : 0;
-      const empMax = empNums.length > 0 ? Math.max(...empNums) : 0;
+    industriesAutoRef.current = industriesAuto;
+  }, [industriesAuto]);
 
-      const revNums = companies
-        .map((c) => c.revenue_amount)
-        .filter((n): n is number => n != null);
-      const revMin = revNums.length > 0 ? Math.min(...revNums) : 0;
-      const revMax = revNums.length > 0 ? Math.max(...revNums) : 0;
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMatchRange([0, 100]);
-      setFitRange([0, 100]);
-      setEmployeeRange([empMin, empMax]);
-      setRevenueRange([revMin, revMax]);
-      setSelectedIndustries(
-        new Set(companies.map((c) => c.industry).filter(Boolean) as string[]),
-      );
-    }
-    prevCompaniesRef.current = companies;
-  }, [companies]);
+  const matchRange: Range = useMemo(() => matchOverride ?? [0, 100], [matchOverride]);
+  const fitRange: Range = useMemo(() => fitOverride ?? [0, 100], [fitOverride]);
+  const employeeRange: Range = employeeOverride ?? employeeAuto;
+  const revenueRange: Range = revenueOverride ?? revenueAuto;
+  const selectedIndustries: Set<string> = industriesOverride ?? industriesAuto;
 
   const filteredCompanies = useMemo(() => {
     return companies.filter((c) => {
@@ -118,47 +132,31 @@ export function useResultsFilters(companies: WSCompanyResult[]): UseResultsFilte
     });
   }, [companies, matchRange, fitRange, employeeRange, revenueRange, selectedIndustries]);
 
-  const onMatchRangeChange = useCallback((range: [number, number]) => setMatchRange(range), []);
-  const onFitRangeChange = useCallback((range: [number, number]) => setFitRange(range), []);
-  const onEmployeeRangeChange = useCallback(
-    (range: [number, number]) => setEmployeeRange(range),
-    [],
-  );
-  const onRevenueRangeChange = useCallback(
-    (range: [number, number]) => setRevenueRange(range),
-    [],
-  );
+  const onMatchRangeChange = useCallback((range: Range) => setMatchOverride(range), []);
+  const onFitRangeChange = useCallback((range: Range) => setFitOverride(range), []);
+  const onEmployeeRangeChange = useCallback((range: Range) => setEmployeeOverride(range), []);
+  const onRevenueRangeChange = useCallback((range: Range) => setRevenueOverride(range), []);
 
   const onIndustryToggle = useCallback((industry: string) => {
-    setSelectedIndustries((prev) => {
-      const next = new Set(prev);
+    setIndustriesOverride((prev) => {
+      // First touch: branch off the current auto set so toggling one industry
+      // deselects only that one (the rest stay selected).
+      const base = prev ?? industriesAutoRef.current;
+      const next = new Set(base);
       if (next.has(industry)) next.delete(industry);
       else next.add(industry);
       return next;
     });
   }, []);
 
+  /** Stable reset — clears all user overrides so filters fall back to data extents. */
   const resetFilters = useCallback(() => {
-    setMatchRange([0, 100]);
-    setFitRange([0, 100]);
-    const empNums = companies
-      .map((c) => c.employee_count)
-      .filter((n): n is number => n != null);
-    setEmployeeRange([
-      empNums.length > 0 ? Math.min(...empNums) : 0,
-      empNums.length > 0 ? Math.max(...empNums) : 0,
-    ]);
-    const revNums = companies
-      .map((c) => c.revenue_amount)
-      .filter((n): n is number => n != null);
-    setRevenueRange([
-      revNums.length > 0 ? Math.min(...revNums) : 0,
-      revNums.length > 0 ? Math.max(...revNums) : 0,
-    ]);
-    setSelectedIndustries(
-      new Set(companies.map((c) => c.industry).filter(Boolean) as string[]),
-    );
-  }, [companies]);
+    setMatchOverride(null);
+    setFitOverride(null);
+    setEmployeeOverride(null);
+    setRevenueOverride(null);
+    setIndustriesOverride(null);
+  }, []);
 
   return {
     filteredCompanies,
