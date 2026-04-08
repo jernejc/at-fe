@@ -31,6 +31,14 @@ export function Pagination({
   // Don't render if only one page
   if (totalPages <= 1) return null;
 
+  const handlePageChange = (next: number) => {
+    if (next === currentPage) return;
+    onPageChange(next);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 108, behavior: 'smooth' });
+    }
+  };
+
   // Generate page numbers with smart ellipsis
   const generatePageNumbers = (): (number | string)[] => {
     const pages: (number | string)[] = [];
@@ -81,7 +89,7 @@ export function Pagination({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
               disabled={disabled || currentPage === 1}
               className="h-8 w-8 p-0"
             >
@@ -102,7 +110,7 @@ export function Pagination({
                   key={pageNum}
                   variant={currentPage === pageNum ? "secondary" : "ghost"}
                   size="sm"
-                  onClick={() => onPageChange(pageNum as number)}
+                  onClick={() => handlePageChange(pageNum as number)}
                   disabled={disabled}
                   className="h-8 w-8 p-0"
                 >
@@ -115,7 +123,7 @@ export function Pagination({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
               disabled={disabled || currentPage >= totalPages}
               className="h-8 w-8 p-0"
             >

@@ -164,6 +164,27 @@ describe('Pagination', () => {
     });
   });
 
+  describe('scroll to top on page change', () => {
+    it('scrolls to top when navigating to a different page', async () => {
+      const scrollToSpy = vi.fn();
+      window.scrollTo = scrollToSpy as unknown as typeof window.scrollTo;
+      const user = userEvent.setup();
+      renderPagination({ currentPage: 1 });
+      await user.click(screen.getByRole('button', { name: '3' }));
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 108, behavior: 'smooth' });
+    });
+
+    it('does not scroll when clicking the current page', async () => {
+      const scrollToSpy = vi.fn();
+      window.scrollTo = scrollToSpy as unknown as typeof window.scrollTo;
+      const user = userEvent.setup();
+      renderPagination({ currentPage: 3 });
+      await user.click(screen.getByRole('button', { name: '3' }));
+      expect(scrollToSpy).not.toHaveBeenCalled();
+      expect(defaultProps.onPageChange).not.toHaveBeenCalled();
+    });
+  });
+
   describe('disabled state', () => {
     it('disables all buttons when disabled prop is true', () => {
       renderPagination({ currentPage: 3, disabled: true });
