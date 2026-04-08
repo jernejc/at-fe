@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { AlertCircle, Globe, Link as LinkIcon, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
@@ -11,6 +10,7 @@ import { CompanyStatus, type CompanyStatusValue } from '@/components/ui/company-
 import { CampaignIcon } from '@/lib/config/campaign-icons';
 import { getCompanyStatusLabel } from '@/lib/utils';
 import { TechStackList } from '@/components/companies/TechStackList';
+import { SpecialtiesList } from '@/components/companies/SpecialtiesList';
 import { usePartnerCompanyOverview } from './usePartnerCompanyOverview';
 
 /** Partner company overview — campaign cells + company details (mirrors discovery overview). */
@@ -26,8 +26,6 @@ export function PartnerCompanyOverview() {
     loading,
     error,
   } = usePartnerCompanyOverview();
-
-  const [showAllSpecialties, setShowAllSpecialties] = useState(false);
 
   if (loading) return <OverviewSkeleton />;
   if (error || !company) {
@@ -183,25 +181,7 @@ export function PartnerCompanyOverview() {
 
       {/* Specialties */}
       {company.specialties?.length > 0 && (
-        <section>
-          <h3 className="text-base font-medium text-foreground mb-3">
-            Specialties
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {(showAllSpecialties ? company.specialties : company.specialties.slice(0, 20)).map((s, i) => (
-              <Badge key={i} variant="grey">{s}</Badge>
-            ))}
-            {company.specialties.length > 20 && (
-              <button
-                type="button"
-                onClick={() => setShowAllSpecialties((v) => !v)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2"
-              >
-                {showAllSpecialties ? 'Show less' : `+${company.specialties.length - 20} more`}
-              </button>
-            )}
-          </div>
-        </section>
+        <SpecialtiesList specialties={company.specialties} />
       )}
 
       {/* Tech Stack */}

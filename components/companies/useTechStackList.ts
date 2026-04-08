@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { differenceInYears } from 'date-fns';
 import type { Technology } from '@/lib/schemas';
 
@@ -62,15 +62,8 @@ interface UseTechStackListResult {
 
 /** State + filtering/sorting/grouping for the shared tech stack list. */
 export function useTechStackList(technologies: Technology[]): UseTechStackListResult {
-  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<TechSortMode>('name');
-
-  // 300ms debounce on search input → search.
-  useEffect(() => {
-    const id = setTimeout(() => setSearch(searchInput), 300);
-    return () => clearTimeout(id);
-  }, [searchInput]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -112,8 +105,8 @@ export function useTechStackList(technologies: Technology[]): UseTechStackListRe
   }, [flat, sort]);
 
   return {
-    search: searchInput,
-    setSearch: setSearchInput,
+    search,
+    setSearch,
     sort,
     setSort,
     filteredCount: filtered.length,

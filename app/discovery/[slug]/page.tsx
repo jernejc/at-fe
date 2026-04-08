@@ -1,17 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import { Globe, Link as LinkIcon, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDiscoveryDetail } from '@/components/providers/DiscoveryDetailProvider';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TechStackList } from '@/components/companies/TechStackList';
+import { SpecialtiesList } from '@/components/companies/SpecialtiesList';
 
 export default function DiscoveryOverviewPage() {
   const { data, loading } = useDiscoveryDetail();
-  const [showAllSpecialties, setShowAllSpecialties] = useState(false);
 
   if (loading) {
     return <OverviewSkeleton />;
@@ -151,25 +149,7 @@ export default function DiscoveryOverviewPage() {
 
       {/* Specialties */}
       {company.specialties?.length > 0 && (
-        <section>
-          <h3 className="text-base font-medium text-foreground mb-3">
-            Specialties
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {(showAllSpecialties ? company.specialties : company.specialties.slice(0, 20)).map((s, i) => (
-              <Badge key={i} variant="grey">{s}</Badge>
-            ))}
-            {company.specialties.length > 20 && (
-              <button
-                type="button"
-                onClick={() => setShowAllSpecialties(v => !v)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2"
-              >
-                {showAllSpecialties ? 'Show less' : `+${company.specialties.length - 20} more`}
-              </button>
-            )}
-          </div>
-        </section>
+        <SpecialtiesList specialties={company.specialties} />
       )}
 
       {/* Tech Stack */}
