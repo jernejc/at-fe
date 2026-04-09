@@ -10,7 +10,7 @@ import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 export default function DiscoveryProductsPage() {
   const {
     products, loading, error,
-    selectedProductId, breakdown, breakdownLoading, selectProduct, clearSelection,
+    selectedProductId, selectProduct, clearSelection,
   } = useDiscoveryProducts();
 
   const selectedProduct = useMemo(
@@ -30,7 +30,7 @@ export default function DiscoveryProductsPage() {
     <DetailSidePanel
       open={!!selectedProductId}
       onClose={clearSelection}
-      detail={<ProductFitDetail breakdown={breakdown} isLoading={breakdownLoading} />}
+      detail={<ProductFitDetail product={selectedProduct} />}
     >
       <DiscoveryProductsList
         products={products}

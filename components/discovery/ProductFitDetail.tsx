@@ -12,30 +12,30 @@ import { CircularProgress } from '@/components/ui/circular-progress';
 import { SignalRow } from '@/components/signals/SignalRow';
 import { Separator } from '@/components/ui/separator';
 import { normalizeScore } from '@/lib/utils';
-import type { FitScore, SignalContribution } from '@/lib/schemas';
+import type { FitSummaryFit, SignalContribution } from '@/lib/schemas';
 
 interface ProductFitDetailProps {
-  breakdown: FitScore | null;
+  product: FitSummaryFit | null;
   isLoading?: boolean;
 }
 
-/** Product fit breakdown detail content for use inside DetailSidePanel. */
-export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps) {
+/** Product fit product detail content for use inside DetailSidePanel. */
+export function ProductFitDetail({ product, isLoading }: ProductFitDetailProps) {
   if (isLoading) return <ProductFitDetailSkeleton />;
 
-  if (!breakdown) {
+  if (!product) {
     return (
       <div className="p-8 text-center text-muted-foreground">
-        Failed to load product fit breakdown.
+        Failed to load product fit product.
       </div>
     );
   }
 
-  const score = Math.round(normalizeScore(breakdown.combined_score));
-  const likelihood = Math.round(normalizeScore(breakdown.likelihood_score));
-  const interests = breakdown.interest_matches ?? [];
-  const events = breakdown.event_matches ?? [];
-  const drivers = breakdown.top_drivers ?? [];
+  const score = Math.round(normalizeScore(product.combined_score));
+  const likelihood = Math.round(normalizeScore(product.likelihood_score));
+  const interests = product.interest_matches ?? [];
+  const events = product.event_matches ?? [];
+  const drivers = product.top_drivers ?? [];
 
   return (
     <div className="space-y-4">
@@ -43,7 +43,7 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
       <ExpandableCard>
         <ExpandableCardHeader className="space-y-4">
           <h2 className="text-lg font-semibold text-foreground leading-tight">
-            {breakdown.product_name}
+            {product.product_name}
           </h2>
 
           <Dashboard className="grid-cols-2">
@@ -63,20 +63,14 @@ export function ProductFitDetail({ breakdown, isLoading }: ProductFitDetailProps
             </DashboardCell>
           </Dashboard>
 
-          <div>{breakdown.fit_explanation}</div>
+          <div>{product.fit_explanation}</div>
         </ExpandableCardHeader>
 
         <ExpandableCardDetails className="pt-5 space-y-3">
           <Separator />
-          <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
-            <div className="space-y-1">
-              <span className="block font-medium text-foreground">Signals Used</span>
-              <span>{breakdown.signals_used}</span>
-            </div>
-            <div className="space-y-1">
-              <span className="block font-medium text-foreground">Calculated</span>
-              <span>{new Date(breakdown.calculated_at).toLocaleDateString()}</span>
-            </div>
+          <div className="text-xs text-muted-foreground space-y-1">
+            <span className="block font-medium text-foreground">Calculated</span>
+            <span>{new Date(product.calculated_at).toLocaleDateString()}</span>
           </div>
         </ExpandableCardDetails>
       </ExpandableCard>

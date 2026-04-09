@@ -95,7 +95,7 @@ function TechItem({ tech }: { tech: Technology }) {
     : 'Verification date unknown';
 
   return (
-    <div className="border-b border-r border-border px-3 py-2">
+    <div className="px-3 py-2">
       <Tooltip>
         <TooltipTrigger
           render={<span className={cn('text-xs text-foreground cursor-default', weight)} />}

@@ -46,7 +46,7 @@ export function SpecialtiesList({ specialties }: SpecialtiesListProps) {
               {filtered.map((s, i) => (
                 <div
                   key={`${s}-${i}`}
-                  className="border-b border-r border-border px-3 py-2 text-xs text-foreground"
+                  className="px-3 py-2 text-xs text-foreground"
                 >
                   {s}
                 </div>

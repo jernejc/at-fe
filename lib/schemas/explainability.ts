@@ -14,6 +14,8 @@ export interface SignalComponent {
     employee_signal_ids: number[];
 }
 
+import type { SignalContribution } from './fit';
+
 /**
  * Aggregated interest signal with underlying components
  */
@@ -81,8 +83,13 @@ export interface FitSummaryFit {
     likelihood_score: number;
     urgency_score: number;
     combined_score: number;
+    negative_penalty?: number;
     top_drivers: string[];
+    fit_explanation?: string | null;
+    explanation_generated_at?: string | null;
     calculated_at: string;
+    interest_matches?: SignalContribution[];
+    event_matches?: SignalContribution[];
 }
 
 export interface DataCoverage {
