@@ -67,6 +67,8 @@ interface UseCampaignCompaniesOptions {
   partners?: PartnerAssignmentSummary[];
   /** Initial sort state. Defaults to fit_score descending. Pass null for no default sort. */
   defaultSort?: SortState | null;
+  /** Whether to include the partner filter. Defaults to true. */
+  showPartnerFilter?: boolean;
 }
 
 export interface UseCampaignCompaniesReturn {
@@ -94,7 +96,7 @@ export interface UseCampaignCompaniesReturn {
 }
 
 /** Fetches and manages campaign companies with search, sort, and filter. */
-export function useCampaignCompanies({ slug, enabled = true, partners: externalPartners, defaultSort = { field: 'fit_score', direction: 'desc' } }: UseCampaignCompaniesOptions): UseCampaignCompaniesReturn {
+export function useCampaignCompanies({ slug, enabled = true, partners: externalPartners, defaultSort = { field: 'fit_score', direction: 'desc' }, showPartnerFilter = true }: UseCampaignCompaniesOptions): UseCampaignCompaniesReturn {
   const [rawCompanies, setRawCompanies] = useState<MembershipRead[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -210,8 +212,8 @@ export function useCampaignCompanies({ slug, enabled = true, partners: externalP
   }, [rawCompanies, debouncedSearch, partners]);
 
   const filterDefinitions = useMemo<FilterDefinition[]>(
-    () => [STATUS_FILTER, buildPartnerFilter(partners)],
-    [partners],
+    () => showPartnerFilter ? [STATUS_FILTER, buildPartnerFilter(partners)] : [STATUS_FILTER],
+    [partners, showPartnerFilter],
   );
 
   return {

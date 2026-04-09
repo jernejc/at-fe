@@ -17,6 +17,7 @@ export default function PartnerCampaignCompaniesPage() {
     enabled: !campaignLoading && !!campaign,
     partners,
     defaultSort: null,
+    showPartnerFilter: false,
   });
 
   const handleCompanyClick = useCallback(
