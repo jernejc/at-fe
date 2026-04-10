@@ -1,6 +1,14 @@
 {
   "versions": [
     {
+      "version": "1.4.1",
+      "date": "2026-04-10",
+      "changes": [
+        "Unified analysis card combining signal, interest, and event narratives",
+        "Company side panel product fit signals now link to discovery details"
+      ]
+    },
+    {
       "version": "1.4.0",
       "date": "2026-04-10",
       "changes": [

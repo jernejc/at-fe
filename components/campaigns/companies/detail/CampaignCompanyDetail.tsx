@@ -1,6 +1,5 @@
 'use client';
 
-import { Brain, Target, Calendar } from 'lucide-react';
 import { useCampaignCompanyDetail } from './useCampaignCompanyDetail';
 import type { CachedCompanyDetail } from './useCampaignCompanyDetail';
 import { CampaignCompanyDetailSkeleton } from './CampaignCompanyDetailSkeleton';
@@ -32,10 +31,8 @@ export function CampaignCompanyDetail({
   const {
     company: companyData,
     explainability,
-    fitBreakdown,
     playbook,
     loading,
-    fitLoading,
     playbookLoading,
     reassigning,
     reassignToPartner,
@@ -52,7 +49,6 @@ export function CampaignCompanyDetail({
   const signalNarrative = explainability?.signal_narrative;
   const interestNarrative = explainability?.interest_narrative;
   const eventNarrative = explainability?.event_narrative;
-  const signals = explainability?.signals_summary;
 
   return (
     <div>
@@ -70,10 +66,10 @@ export function CampaignCompanyDetail({
           />
 
           <CampaignFitCard
-            fitBreakdown={fitBreakdown}
             fitsSummary={explainability?.fits_summary ?? []}
             targetProductId={targetProductId}
-            loading={fitLoading}
+            domain={company.domain}
+            loading={loading}
           />
 
           <ContactsCard
@@ -85,32 +81,9 @@ export function CampaignCompanyDetail({
 
           {signalNarrative && (
             <AnalysisCard
-              title="Signal Analysis"
-              icon={Brain}
-              narrative={signalNarrative}
-              interests={signals?.interests}
-              events={signals?.events}
-              accentColor="violet"
-            />
-          )}
-
-          {interestNarrative && (
-            <AnalysisCard
-              title="Interest Analysis"
-              icon={Target}
-              narrative={interestNarrative}
-              interests={signals?.interests}
-              accentColor="amber"
-            />
-          )}
-
-          {eventNarrative && (
-            <AnalysisCard
-              title="Event Analysis"
-              icon={Calendar}
-              narrative={eventNarrative}
-              events={signals?.events}
-              accentColor="blue"
+              signalNarrative={signalNarrative}
+              interestNarrative={interestNarrative}
+              eventNarrative={eventNarrative}
             />
           )}
         </div>

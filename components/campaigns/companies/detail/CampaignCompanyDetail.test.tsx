@@ -65,10 +65,8 @@ function makeHookReturn(overrides: Record<string, any> = {}) {
       signals_summary: { interests: [], events: [] },
       fits_summary: [],
     },
-    fitBreakdown: null,
     playbook: null,
     loading: false,
-    fitLoading: false,
     playbookLoading: false,
     reassigning: false,
     reassignToPartner: vi.fn(),
@@ -131,28 +129,12 @@ describe('CampaignCompanyDetail', () => {
     expect(screen.getByText('Strong hiring signals detected')).toBeInTheDocument();
   });
 
-  it('renders Interest Analysis card when interest_narrative exists', () => {
+  it('renders interest and event narratives inside unified analysis card', () => {
     mockUseCampaignCompanyDetail.mockReturnValue(
       makeHookReturn({
         explainability: {
-          signal_narrative: null,
+          signal_narrative: 'Strong signals detected',
           interest_narrative: 'Cloud adoption is a key interest',
-          event_narrative: null,
-          signals_summary: { interests: [], events: [] },
-          fits_summary: [],
-        },
-      }),
-    );
-    render(<CampaignCompanyDetail {...defaultProps} />);
-    expect(screen.getByText('Interest Analysis')).toBeInTheDocument();
-  });
-
-  it('renders Event Analysis card when event_narrative exists', () => {
-    mockUseCampaignCompanyDetail.mockReturnValue(
-      makeHookReturn({
-        explainability: {
-          signal_narrative: null,
-          interest_narrative: null,
           event_narrative: 'Recent product launch detected',
           signals_summary: { interests: [], events: [] },
           fits_summary: [],
@@ -160,7 +142,8 @@ describe('CampaignCompanyDetail', () => {
       }),
     );
     render(<CampaignCompanyDetail {...defaultProps} />);
-    expect(screen.getByText('Event Analysis')).toBeInTheDocument();
+    expect(screen.getByText('Signal Analysis')).toBeInTheDocument();
+    expect(screen.getByText('Strong signals detected')).toBeInTheDocument();
   });
 
   it('renders ContactsCard when playbook has contacts', () => {

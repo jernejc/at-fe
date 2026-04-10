@@ -49,12 +49,14 @@ interface SignalRowProps {
   isActive?: boolean;
   /** Custom right-side metrics. When provided, replaces the default metrics block. */
   metrics?: ReactNode;
+  /** Enable hover styles without requiring an onClick handler. */
+  hoverable?: boolean;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 }
 
 /** Horizontal row representation of a signal with strength indicator, source badges, and metrics. */
-export function SignalRow({ signal, onClick, isActive, metrics, className, ref }: SignalRowProps) {
+export function SignalRow({ signal, onClick, isActive, metrics, hoverable, className, ref }: SignalRowProps) {
   const visibleSourceTypes = (signal.source_types ?? []).filter((st) => {
     const n = st.toLowerCase();
     return n !== 'apollo_industry' && n !== 'apollo_growth' && n !== 'apollo_revenue';
@@ -66,7 +68,7 @@ export function SignalRow({ signal, onClick, isActive, metrics, className, ref }
       onClick={onClick}
       className={cn(
         'group flex items-center gap-4 px-6 py-4 transition-colors outline-none',
-        (onClick) && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
+        (onClick || hoverable) && 'cursor-pointer hover:bg-card hover:shadow-[0_0_0_1px_var(--border)] hover:rounded-xl',
         isActive && 'bg-card shadow-[0_0_0_1px_var(--border)] rounded-xl',
         className,
       )}

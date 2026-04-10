@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Brain, Target, Calendar } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CampaignFitCard } from '@/components/campaigns/companies/detail/CampaignFitCard';
 import { CompanyInfoCard } from '@/components/campaigns/companies/detail/CompanyInfoCard';
@@ -16,12 +16,11 @@ interface CompanyDetailColumnProps {
 
 /** Scrollable column showing company fit, info, and analysis cards. */
 export function CompanyDetailColumn({ domain, productId, onBack }: CompanyDetailColumnProps) {
-  const { company, explainability, fitBreakdown, loading } = useCompanyDetail(domain, productId);
+  const { company, explainability, loading } = useCompanyDetail(domain);
 
   const signalNarrative = explainability?.signal_narrative;
   const interestNarrative = explainability?.interest_narrative;
   const eventNarrative = explainability?.event_narrative;
-  const signals = explainability?.signals_summary;
 
   return (
     <div className="mx-auto max-w-2xl p-6 space-y-3">
@@ -37,42 +36,19 @@ export function CompanyDetailColumn({ domain, productId, onBack }: CompanyDetail
       ) : (
         <>
           <CampaignFitCard
-            fitBreakdown={fitBreakdown}
             fitsSummary={explainability?.fits_summary ?? []}
             targetProductId={productId}
-            loading={false}
+            domain={domain}
+            loading={loading}
           />
 
           {company && <CompanyInfoCard company={company} />}
 
           {signalNarrative && (
             <AnalysisCard
-              title="Signal Analysis"
-              icon={Brain}
-              narrative={signalNarrative}
-              interests={signals?.interests}
-              events={signals?.events}
-              accentColor="violet"
-            />
-          )}
-
-          {interestNarrative && (
-            <AnalysisCard
-              title="Interest Analysis"
-              icon={Target}
-              narrative={interestNarrative}
-              interests={signals?.interests}
-              accentColor="amber"
-            />
-          )}
-
-          {eventNarrative && (
-            <AnalysisCard
-              title="Event Analysis"
-              icon={Calendar}
-              narrative={eventNarrative}
-              events={signals?.events}
-              accentColor="blue"
+              signalNarrative={signalNarrative}
+              interestNarrative={interestNarrative}
+              eventNarrative={eventNarrative}
             />
           )}
         </>

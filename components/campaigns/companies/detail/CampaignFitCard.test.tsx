@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import type { FitScore, FitSummaryFit, SignalContribution } from '@/lib/schemas';
+import type { FitSummaryFit, SignalContribution } from '@/lib/schemas';
 
 // Mock framer-motion for ExpandableCard animations
 vi.mock('framer-motion', async () => {
@@ -35,7 +35,7 @@ function makeContribution(overrides: Partial<SignalContribution> = {}): SignalCo
   };
 }
 
-function makeFitScore(overrides: Partial<FitScore> = {}): FitScore {
+function makeFitSummary(overrides: Partial<FitSummaryFit> = {}): FitSummaryFit {
   return {
     company_id: 1,
     company_domain: 'acme.com',
@@ -45,72 +45,44 @@ function makeFitScore(overrides: Partial<FitScore> = {}): FitScore {
     likelihood_score: 0.75,
     urgency_score: 0.6,
     combined_score: 0.8,
-    interest_matches: [],
-    event_matches: [],
     top_drivers: ['hiring_growth', 'tech_adoption'],
-    missing_signals: [],
-    signals_used: 5,
     calculated_at: '2025-01-01T00:00:00Z',
     ...overrides,
   };
 }
 
-function makeFitSummary(overrides: Partial<FitSummaryFit> = {}): FitSummaryFit {
-  return {
-    company_id: 1,
-    company_domain: 'acme.com',
-    company_name: 'Acme Corp',
-    product_id: 10,
-    product_name: 'Product A',
-    likelihood_score: 0.65,
-    urgency_score: 0.5,
-    combined_score: 0.7,
-    top_drivers: ['content_engagement'],
-    calculated_at: '2025-01-01T00:00:00Z',
-    ...overrides,
-  };
-}
+const defaultProps = {
+  fitsSummary: [] as FitSummaryFit[],
+  targetProductId: 10,
+  domain: 'acme.com',
+  loading: false,
+};
 
 describe('CampaignFitCard', () => {
-  it('returns null when no score and not loading', () => {
-    const { container } = render(
-      <CampaignFitCard fitBreakdown={null} fitsSummary={[]} targetProductId={10} loading={false} />,
-    );
+  it('returns null when no matching product and not loading', () => {
+    const { container } = render(<CampaignFitCard {...defaultProps} />);
     expect(container.innerHTML).toBe('');
   });
 
-  it('renders fit score value from fitBreakdown', () => {
-    render(
-      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
-    );
+  it('renders fit score from matching fitsSummary entry', () => {
+    render(<CampaignFitCard {...defaultProps} fitsSummary={[makeFitSummary()]} />);
     // combined_score 0.8 → normalizeScore → 80
     expect(screen.getByText('80%')).toBeInTheDocument();
   });
 
-  it('falls back to matching fitsSummary when fitBreakdown is null', () => {
-    render(
-      <CampaignFitCard fitBreakdown={null} fitsSummary={[makeFitSummary()]} targetProductId={10} loading={false} />,
-    );
-    // combined_score 0.7 → normalizeScore → 70
-    expect(screen.getByText('70%')).toBeInTheDocument();
-  });
-
-  it('does not fall back to wrong product in fitsSummary', () => {
+  it('does not match wrong product in fitsSummary', () => {
     const { container } = render(
       <CampaignFitCard
-        fitBreakdown={null}
+        {...defaultProps}
         fitsSummary={[makeFitSummary({ product_id: 99, combined_score: 0.5 })]}
-        targetProductId={10}
-        loading={false}
       />,
     );
-    // product_id 99 does not match targetProductId 10, so should render nothing
     expect(container.innerHTML).toBe('');
   });
 
   it('renders likelihood progress bar', () => {
     const { container } = render(
-      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
+      <CampaignFitCard {...defaultProps} fitsSummary={[makeFitSummary()]} />,
     );
     // likelihood_score 0.75 → 75%
     expect(screen.getByText('75%')).toBeInTheDocument();
@@ -120,32 +92,31 @@ describe('CampaignFitCard', () => {
   it('renders explanation from fit_explanation', () => {
     render(
       <CampaignFitCard
-        fitBreakdown={makeFitScore({ fit_explanation: 'Strong hiring growth and tech adoption signals.' })}
-        fitsSummary={[]}
-        targetProductId={10}
-        loading={false}
+        {...defaultProps}
+        fitsSummary={[makeFitSummary({ fit_explanation: 'Strong hiring growth and tech adoption signals.' })]}
       />,
     );
     expect(screen.getByText('Strong hiring growth and tech adoption signals.')).toBeInTheDocument();
   });
 
-  it('renders "Campaign fit" heading', () => {
-    render(
-      <CampaignFitCard fitBreakdown={makeFitScore()} fitsSummary={[]} targetProductId={10} loading={false} />,
-    );
-    expect(screen.getByText('Campaign fit')).toBeInTheDocument();
+  it('renders "Product fit" heading', () => {
+    render(<CampaignFitCard {...defaultProps} fitsSummary={[makeFitSummary()]} />);
+    expect(screen.getByText('Product fit')).toBeInTheDocument();
   });
 
-  it('shows interest matches in expanded details', async () => {
+  it('renders product name as subtitle', () => {
+    render(<CampaignFitCard {...defaultProps} fitsSummary={[makeFitSummary({ product_name: 'Enterprise Suite' })]} />);
+    expect(screen.getByText('Enterprise Suite')).toBeInTheDocument();
+  });
+
+  it('shows interest matches using SignalRow in expanded details', async () => {
     const user = userEvent.setup();
     const { container } = render(
       <CampaignFitCard
-        fitBreakdown={makeFitScore({
+        {...defaultProps}
+        fitsSummary={[makeFitSummary({
           interest_matches: [makeContribution({ display_name: 'AI Adoption' })],
-        })}
-        fitsSummary={[]}
-        targetProductId={10}
-        loading={false}
+        })]}
       />,
     );
 
@@ -156,16 +127,14 @@ describe('CampaignFitCard', () => {
     expect(screen.getByText('AI Adoption')).toBeInTheDocument();
   });
 
-  it('shows event matches in expanded details', async () => {
+  it('shows event matches using SignalRow in expanded details', async () => {
     const user = userEvent.setup();
     const { container } = render(
       <CampaignFitCard
-        fitBreakdown={makeFitScore({
+        {...defaultProps}
+        fitsSummary={[makeFitSummary({
           event_matches: [makeContribution({ display_name: 'Product Launch', signal_type: 'event' })],
-        })}
-        fitsSummary={[]}
-        targetProductId={10}
-        loading={false}
+        })]}
       />,
     );
 
@@ -176,22 +145,42 @@ describe('CampaignFitCard', () => {
     expect(screen.getByText('Product Launch')).toBeInTheDocument();
   });
 
-  it('displays contribution value for signal matches', async () => {
+  it('renders discovery links for signals with signal_id', async () => {
     const user = userEvent.setup();
     const { container } = render(
       <CampaignFitCard
-        fitBreakdown={makeFitScore({
-          interest_matches: [makeContribution({ contribution: 0.42 })],
-        })}
-        fitsSummary={[]}
-        targetProductId={10}
-        loading={false}
+        {...defaultProps}
+        fitsSummary={[makeFitSummary({
+          interest_matches: [makeContribution({ signal_id: 42, display_name: 'AI Adoption' })],
+        })]}
       />,
     );
 
     const card = container.querySelector('[data-slot="expandable-card"]') as HTMLElement;
     await user.click(card);
 
-    expect(await screen.findByText('+0.42')).toBeInTheDocument();
+    await screen.findByText('AI Adoption');
+    const link = container.querySelector('a[target="_blank"]');
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/discovery/acme.com/products?product=10&signal=42');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('does not render link when signal_id is missing', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <CampaignFitCard
+        {...defaultProps}
+        fitsSummary={[makeFitSummary({
+          interest_matches: [makeContribution({ signal_id: undefined, display_name: 'No Link Signal' })],
+        })]}
+      />,
+    );
+
+    const card = container.querySelector('[data-slot="expandable-card"]') as HTMLElement;
+    await user.click(card);
+
+    await screen.findByText('No Link Signal');
+    expect(container.querySelector('a')).not.toBeInTheDocument();
   });
 });

@@ -1,11 +1,10 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useCampaignCompanyDetail } from './useCampaignCompanyDetail';
-import type { CompanyRead, CompanyExplainabilityResponse, FitScore } from '@/lib/schemas';
+import type { CompanyRead, CompanyExplainabilityResponse } from '@/lib/schemas';
 
 const mockGetCompany = vi.fn();
 const mockGetCompanyExplainability = vi.fn();
-const mockGetFitBreakdown = vi.fn();
 const mockGetCompanyPlaybooks = vi.fn();
 const mockGetCompanyPlaybook = vi.fn();
 const mockAssignCompanyToPartner = vi.fn();
@@ -16,10 +15,6 @@ const mockToastError = vi.fn();
 vi.mock('@/lib/api/companies', () => ({
   getCompany: (...args: any[]) => mockGetCompany(...args),
   getCompanyExplainability: (...args: any[]) => mockGetCompanyExplainability(...args),
-}));
-
-vi.mock('@/lib/api/fit-scores', () => ({
-  getFitBreakdown: (...args: any[]) => mockGetFitBreakdown(...args),
 }));
 
 vi.mock('@/lib/api/playbooks', () => ({
@@ -97,26 +92,6 @@ function makeCompanyRead(overrides: Partial<CompanyRead> = {}): CompanyRead {
   };
 }
 
-function makeFitScore(overrides: Partial<FitScore> = {}): FitScore {
-  return {
-    company_id: 1,
-    company_domain: 'acme.com',
-    company_name: 'Acme Corp',
-    product_id: 10,
-    product_name: 'Product A',
-    likelihood_score: 0.75,
-    urgency_score: 0.6,
-    combined_score: 0.8,
-    interest_matches: [],
-    event_matches: [],
-    top_drivers: ['hiring_growth'],
-    missing_signals: [],
-    signals_used: 5,
-    calculated_at: '2025-01-01T00:00:00Z',
-    ...overrides,
-  };
-}
-
 function makeExplainability(overrides: Partial<CompanyExplainabilityResponse> = {}): CompanyExplainabilityResponse {
   return {
     company_id: 1,
@@ -157,7 +132,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGetCompany.mockResolvedValue({ company: makeCompanyRead(), counts: {} });
   mockGetCompanyExplainability.mockResolvedValue(makeExplainability());
-  mockGetFitBreakdown.mockResolvedValue(makeFitScore());
   mockGetCompanyPlaybooks.mockResolvedValue({ playbooks: [{ id: 100, product_id: 10, product_name: 'Product A' }] });
   mockGetCompanyPlaybook.mockResolvedValue({ id: 100, contacts: [{ id: 1, name: 'Jane Doe' }] });
   mockAssignCompanyToPartner.mockResolvedValue({});
@@ -207,49 +181,6 @@ describe('useCampaignCompanyDetail — data fetching', () => {
 
     expect(mockGetCompany).toHaveBeenCalledWith('acme.com');
     expect(mockGetCompanyExplainability).toHaveBeenCalledWith('acme.com');
-  });
-});
-
-describe('useCampaignCompanyDetail — fit breakdown', () => {
-  it('fetches fit breakdown when domain and targetProductId are available', async () => {
-    const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
-    await act(async () => {});
-
-    expect(mockGetFitBreakdown).toHaveBeenCalledWith('acme.com', 10);
-    expect(result.current.fitBreakdown).toMatchObject({ combined_score: 0.8 });
-  });
-
-  it('does not fetch fit breakdown when targetProductId is null', async () => {
-    const { result } = renderHook(() =>
-      useCampaignCompanyDetail({ ...defaultOptions, targetProductId: null }),
-    );
-    await act(async () => {});
-
-    expect(mockGetFitBreakdown).not.toHaveBeenCalled();
-    expect(result.current.fitBreakdown).toBeNull();
-  });
-
-  it('resets fitBreakdown to null when domain changes', async () => {
-    const { result, rerender } = renderHook(
-      (props) => useCampaignCompanyDetail(props),
-      { initialProps: defaultOptions },
-    );
-    await act(async () => {});
-    expect(result.current.fitBreakdown).not.toBeNull();
-
-    rerender({ ...defaultOptions, domain: 'other.com' });
-    // fitBreakdown resets in the effect before new fetch resolves
-    expect(result.current.fitBreakdown).toBeNull();
-  });
-
-  it('sets fitBreakdown to null on fetch error', async () => {
-    mockGetFitBreakdown.mockRejectedValue(new Error('Not found'));
-
-    const { result } = renderHook(() => useCampaignCompanyDetail(defaultOptions));
-    await act(async () => {});
-
-    expect(result.current.fitBreakdown).toBeNull();
-    expect(result.current.fitLoading).toBe(false);
   });
 });
 
