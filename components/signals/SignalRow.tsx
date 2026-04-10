@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { Activity, Users } from 'lucide-react';
+import { Activity, Users, Eye, Zap } from 'lucide-react';
 import { SignalStrengthIndicator } from '@/components/ui/signal-strength-indicator';
 import { Badge } from '@/components/ui/badge';
 import type { VariantProps } from 'class-variance-authority';
@@ -36,6 +36,8 @@ export type SignalRowData = {
   source_types?: string[];
   contributor_count?: number;
   component_count?: number;
+  /** Signal type discriminator for displaying a type badge. */
+  signalType?: 'interest' | 'event';
 };
 
 interface SignalRowProps {
@@ -79,8 +81,8 @@ export function SignalRow({ signal, onClick, isActive, metrics, className, ref }
         </span>
         {visibleSourceTypes.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1">
-            {visibleSourceTypes.slice(0, 3).map((st, i) => (
-              <Badge key={i} variant={getBadgeVariant(st)} size="sm">
+            {visibleSourceTypes.slice(0, 3).map((st) => (
+              <Badge key={st} variant={getBadgeVariant(st)} size="sm">
                 {formatSourceType(st)}
               </Badge>
             ))}
@@ -99,11 +101,20 @@ export function SignalRow({ signal, onClick, isActive, metrics, className, ref }
       </div>
 
       {/* Metrics (hidden on mobile) */}
-      <div className="hidden md:flex items-center gap-7 shrink-0">
+      <div className="hidden md:flex items-center gap-4 shrink-0">
         {metrics ?? (
           <>
-            {/* Contributor count */}
-            <span className="flex items-center gap-2 text-sm w-12">
+            {signal.signalType && (
+              <span className="flex items-center gap-2 text-sm w-26">
+                {signal.signalType === 'interest' ? (
+                  <Eye className="w-3.5 h-3.5 shrink-0" />
+                ) : (
+                  <Zap className="w-3.5 h-3.5 shrink-0" />
+                )}
+                <span className="capitalize">{signal.signalType}</span>
+              </span>
+            )}
+            <span className="flex items-center gap-2 text-sm w-15">
               {signal.contributor_count != null && (
                 <>
                   <Users className="w-3.5 h-3.5 shrink-0" />
@@ -111,8 +122,6 @@ export function SignalRow({ signal, onClick, isActive, metrics, className, ref }
                 </>
               )}
             </span>
-
-            {/* Component count */}
             <span className="flex items-center gap-2 text-sm w-12">
               {signal.component_count != null && signal.component_count > 0 && (
                 <>

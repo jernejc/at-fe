@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "1.4.0",
+      "date": "2026-04-10",
+      "changes": [
+        "New Products & signals page for company details in discovery, merging previous Product fits, Interests, and Events tabs"
+      ]
+    },
+    {
       "version": "1.3.0",
       "date": "2026-04-08",
       "changes": [
