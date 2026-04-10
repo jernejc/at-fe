@@ -81,6 +81,15 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
       <div className="space-y-10">
         {/* Dashboard Summary */}
         <Dashboard>
+          <DashboardCell size="quarter" gradient={normalizedScore > 75 ? 'green' : undefined}>
+            <DashboardCellTitle>Product fit</DashboardCellTitle>
+            <Badge variant="grey" className="mt-2">{playbook.product_name ?? '—'}</Badge>
+            <DashboardCellBody className="flex items-end justify-between">
+              <span>{normalizedScore}%</span>
+              <FitScoreIndicator score={normalizedScore} size={80} showChange={false} showValue={false} />
+            </DashboardCellBody>
+          </DashboardCell>
+
           <DashboardCell size="quarter">
             <DashboardCellTitle>Contacts</DashboardCellTitle>
             <DashboardCellBody>{contactCount}</DashboardCellBody>
@@ -96,15 +105,6 @@ function PlaybookContentInner({ playbook }: PlaybookContentProps) {
                   </Badge>
                 ))
                 : '—'}
-            </DashboardCellBody>
-          </DashboardCell>
-
-          <DashboardCell size="quarter" gradient={normalizedScore > 75 ? 'green' : undefined}>
-            <DashboardCellTitle>Product fit</DashboardCellTitle>
-            <Badge variant="grey" className="mt-2">{playbook.product_name ?? '—'}</Badge>
-            <DashboardCellBody className="flex items-end justify-between">
-              <span>{normalizedScore}%</span>
-              <FitScoreIndicator score={normalizedScore} size={56} showChange={false} showValue={false} />
             </DashboardCellBody>
           </DashboardCell>
 

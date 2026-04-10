@@ -248,11 +248,11 @@ function FitScoreCell({ fitScore }: { fitScore: number | null }) {
   return (
     <DashboardCell size="quarter" gradient={fitScore && fitScore > 75 ? 'green' : 'none'}>
       <DashboardCellTitle>Product Fit</DashboardCellTitle>
-      <DashboardCellBody className="flex items-center gap-3">
+      <DashboardCellBody className="flex items-end justify-between">
         {fitScore != null ? (
           <>
-            <FitScoreIndicator score={fitScore} showValue={false} showChange={false} size={32} />
             <span>{fitScore}%</span>
+            <FitScoreIndicator score={fitScore} showValue={false} showChange={false} size={80} />
           </>
         ) : (
           <span>--</span>

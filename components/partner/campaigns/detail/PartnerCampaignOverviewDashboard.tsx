@@ -86,11 +86,11 @@ export function PartnerCampaignOverviewDashboard({
 
       <DashboardCell size="quarter" gradient={!loading && avgFit && avgFit > 75 ? 'green' : undefined}>
         <DashboardCellTitle tooltip="Average product fit across all companies in this campaign based on detected signals.">Avg. fit</DashboardCellTitle>
-        <DashboardCellBody loading={loading} className="flex items-center gap-3">
+        <DashboardCellBody loading={loading} className="flex items-end justify-between">
           {avgFit != null ? (
             <>
-              <FitScoreIndicator score={avgFit} showValue={false} showChange={false} size={32} />
               <span>{avgFit}%</span>
+              <FitScoreIndicator score={avgFit} showValue={false} showChange={false} size={80} />
             </>
           ) : (
             <span>--</span>

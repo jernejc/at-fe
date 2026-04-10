@@ -30,14 +30,14 @@ export function ProductFitDashboard({ breakdown, loading }: ProductFitDashboardP
         <DashboardCellTitle>Fit Score</DashboardCellTitle>
         <DashboardCellBody loading={loading} className="flex items-end justify-between">
           <span>{score}%</span>
-          <FitScoreIndicator score={score} size={56} showChange={false} showValue={false} />
+          <FitScoreIndicator score={score} size={80} showChange={false} showValue={false} />
         </DashboardCellBody>
       </DashboardCell>
 
       <DashboardCell gradient={!loading && likelihood > 75 ? 'green' : undefined}>
         <DashboardCellTitle>Likelihood</DashboardCellTitle>
         <DashboardCellBody loading={loading} className="flex items-end justify-between">
-          <CircularProgress value={likelihood} size={56} />
+          <CircularProgress value={likelihood} size={80} />
           <span>{likelihood}%</span>
         </DashboardCellBody>
       </DashboardCell>

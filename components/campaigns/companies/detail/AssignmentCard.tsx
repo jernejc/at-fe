@@ -2,7 +2,7 @@
 
 import { Building2, ChevronDown } from 'lucide-react';
 import { Menu } from '@base-ui/react/menu';
-import { ExpandableCard, ExpandableCardHeader } from '@/components/ui/expandable-card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -35,8 +35,8 @@ export function AssignmentCard({
   onReassign,
 }: AssignmentCardProps) {
   return (
-    <ExpandableCard>
-      <ExpandableCardHeader className="space-y-4">
+    <Card>
+      <CardContent className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground">Assignment</h3>
 
         {/* Partner row */}
@@ -97,8 +97,8 @@ export function AssignmentCard({
           <p className="text-sm text-muted-foreground">Progress</p>
           <Badge variant="grey">{formatStatus(status)}</Badge>
         </div>
-      </ExpandableCardHeader>
-    </ExpandableCard>
+      </CardContent>
+    </Card>
   );
 }
 

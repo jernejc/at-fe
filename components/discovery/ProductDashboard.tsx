@@ -78,14 +78,14 @@ export function ProductDashboard({
           <DashboardCell size="quarter" height="auto" gradient={score > 75 ? 'green' : undefined}>
             <DashboardCellTitle>Product fit</DashboardCellTitle>
             <DashboardCellBody className="flex items-end justify-between">
-              <FitScoreIndicator score={score} size={48} showChange={false} showValue={false} />
               <span>{score}%</span>
+              <FitScoreIndicator score={score} size={80} showChange={false} showValue={false} />
             </DashboardCellBody>
           </DashboardCell>
           <DashboardCell size="quarter" height="auto" gradient={likelihood > 75 ? 'green' : undefined}>
             <DashboardCellTitle>Likelihood</DashboardCellTitle>
             <DashboardCellBody className="flex items-end justify-between">
-              <CircularProgress value={likelihood} size={48} />
+              <CircularProgress value={likelihood} size={80} />
               <span>{likelihood}%</span>
             </DashboardCellBody>
           </DashboardCell>

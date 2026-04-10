@@ -97,7 +97,16 @@ function ExpandableCard({
 
 /** Always-visible header content for an ExpandableCard. */
 function ExpandableCardHeader({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="expandable-card-header" className={cn('px-6 pt-5 last:pb-5', className)} {...props} />;
+  const { expanded, hasDetails } = useExpandableCard();
+  const isCollapsed = hasDetails && !expanded;
+
+  return (
+    <div
+      data-slot="expandable-card-header"
+      className={cn('px-6 pt-5 last:pb-5', isCollapsed && 'pointer-events-none', className)}
+      {...props}
+    />
+  );
 }
 
 /** Collapsible content section that expands/collapses with animation. */
