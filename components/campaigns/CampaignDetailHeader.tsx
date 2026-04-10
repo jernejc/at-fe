@@ -30,7 +30,7 @@ export function CampaignDetailHeader({
   productName,
   loading = false,
   slug,
-  exportActions = ['companies'],
+  exportActions = ['companies', 'contacts'],
   showImport = false,
 }: CampaignDetailHeaderProps) {
   const importInputRef = useRef<HTMLInputElement>(null);
