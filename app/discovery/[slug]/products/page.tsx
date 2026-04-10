@@ -22,6 +22,12 @@ function ProductsAndSignalsContent() {
     [filteredSignals, selectedSignalId],
   );
 
+  const patchedProvenance = useMemo(() => {
+    if (!provenance || !selectedSignal) return provenance;
+    if (selectedSignal.strengthDelta == null) return provenance;
+    return { ...provenance, strength: selectedSignal.strength, strengthDelta: selectedSignal.strengthDelta };
+  }, [provenance, selectedSignal]);
+
   const { getItemRef } = useListKeyboardNav({
     items: filteredSignals,
     selectedItem: selectedSignal,
@@ -34,7 +40,7 @@ function ProductsAndSignalsContent() {
     <DetailSidePanel
       open={!!selectedSignalId}
       onClose={clearSignalSelection}
-      detail={<SignalProvenanceDetail signal={provenance} isLoading={provenanceLoading} />}
+      detail={<SignalProvenanceDetail signal={patchedProvenance} isLoading={provenanceLoading} />}
     >
       <div className="flex flex-col gap-8">
         <ProductDashboard

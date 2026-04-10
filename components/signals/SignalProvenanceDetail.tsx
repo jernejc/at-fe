@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/expandable-card';
 import { Dashboard, DashboardCell, DashboardCellTitle, DashboardCellBody } from '@/components/ui/dashboard';
 import { SignalStrengthIndicator } from '@/components/ui/signal-strength-indicator';
+import { TrendIndicator } from '@/components/ui/trend-indicator';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import { PersonRow } from '@/components/ui/person-row';
 import { Separator } from '@/components/ui/separator';
@@ -20,7 +21,7 @@ import {
 
 
 interface SignalProvenanceDetailProps {
-  signal: SignalProvenanceResponse | null;
+  signal: (SignalProvenanceResponse & { strengthDelta?: number }) | null;
   isLoading?: boolean;
 }
 
@@ -110,9 +111,14 @@ export function SignalProvenanceDetail({ signal, isLoading }: SignalProvenanceDe
 
           <Dashboard className="grid-cols-2">
             <DashboardCell size="half" className="lg:col-span-1" height="auto" gradient={signal.strength > 7 ? 'green' : undefined}>
-              <DashboardCellTitle>Strength</DashboardCellTitle>
+              <DashboardCellTitle className="flex items-center justify-between">
+                Strength
+                {signal.strengthDelta != null && signal.strengthDelta !== 0 && (
+                  <TrendIndicator change={signal.strengthDelta} direction="row" />
+                )}
+              </DashboardCellTitle>
               <DashboardCellBody className="flex items-end justify-between">
-                <span>{signal.strength} / 10</span>
+                <span>{parseFloat(signal.strength.toFixed(1))} / 10</span>
                 <SignalStrengthIndicator value={signal.strength} size={56} showValue={false} />
               </DashboardCellBody>
             </DashboardCell>

@@ -9,7 +9,11 @@ import type { ActiveFilter, SortState } from '@/lib/schemas/filter';
 import { normalizeScore } from '@/lib/utils';
 
 /** Signal with a discriminator tag for merged lists. */
-export type TaggedSignal = (SignalInterest | SignalEvent) & { signalType: 'interest' | 'event' };
+export type TaggedSignal = (SignalInterest | SignalEvent) & {
+  signalType: 'interest' | 'event';
+  /** Difference between product-adjusted and original strength (only set when a product filter is active). */
+  strengthDelta?: number;
+};
 
 /** Sync a key/value pair to the URL without creating history entries. */
 function syncParam(key: string, value: string | null) {
@@ -130,11 +134,24 @@ export function useProductsAndSignals() {
         result = result.filter((s) => s.signalType === f.value);
       }
       if (f.key === 'product' && selectedProduct) {
-        const matchedIds = new Set([
-          ...(selectedProduct.interest_matches ?? []).map((m) => m.signal_id),
-          ...(selectedProduct.event_matches ?? []).map((m) => m.signal_id),
-        ]);
-        result = result.filter((s) => matchedIds.has(s.id));
+        const allMatches = [
+          ...(selectedProduct.interest_matches ?? []),
+          ...(selectedProduct.event_matches ?? []),
+        ];
+        const matchedIds = new Set(allMatches.map((m) => m.signal_id));
+        const strengthMap = new Map(
+          allMatches
+            .filter((m) => m.signal_id != null)
+            .map((m) => [m.signal_id!, m.strength]),
+        );
+        result = result
+          .filter((s) => matchedIds.has(s.id))
+          .map((s) => {
+            const adjusted = strengthMap.get(s.id);
+            if (adjusted == null) return s;
+            const delta = parseFloat((adjusted - s.strength).toFixed(1));
+            return { ...s, strength: adjusted, strengthDelta: delta };
+          });
       }
     }
 

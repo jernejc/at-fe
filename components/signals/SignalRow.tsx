@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Activity, Users, Eye, Zap } from 'lucide-react';
 import { SignalStrengthIndicator } from '@/components/ui/signal-strength-indicator';
+import { TrendIndicator } from '@/components/ui/trend-indicator';
 import { Badge } from '@/components/ui/badge';
 import type { VariantProps } from 'class-variance-authority';
 import type { badgeVariants } from '@/components/ui/badge';
@@ -38,6 +39,8 @@ export type SignalRowData = {
   component_count?: number;
   /** Signal type discriminator for displaying a type badge. */
   signalType?: 'interest' | 'event';
+  /** Difference between product-adjusted and original strength. */
+  strengthDelta?: number;
 };
 
 interface SignalRowProps {
@@ -74,7 +77,12 @@ export function SignalRow({ signal, onClick, isActive, metrics, hoverable, class
       )}
     >
       {/* Signal strength triangle */}
-      <SignalStrengthIndicator value={signal.strength} className='flex-col text-xs' />
+      <div className="flex flex-col items-center gap-0.5">
+        <SignalStrengthIndicator value={signal.strength} className='flex-col text-xs' />
+        {signal.strengthDelta != null && signal.strengthDelta !== 0 && (
+          <TrendIndicator change={signal.strengthDelta} direction="row" />
+        )}
+      </div>
 
       {/* Name + source badges + evidence */}
       <div className="flex-1 min-w-0 flex flex-col">
