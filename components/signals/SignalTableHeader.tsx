@@ -8,8 +8,8 @@ export function SignalTableHeader() {
       <div className="flex-1 min-w-0">Signal</div>
       {/* Right-side metric columns (hidden on mobile) */}
       <div className="hidden md:flex items-center gap-7 shrink-0">
-        <span className="w-12">People</span>
-        <span className="w-12">Signals</span>
+        <span className="w-15">Contributors</span>
+        <span className="w-12">Sources</span>
       </div>
     </div>
   );
