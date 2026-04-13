@@ -389,3 +389,20 @@
 .dark .event-tooltip {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
+
+/* Competitor event map pin markers */
+.competitor-pin {
+    background: transparent !important;
+    border: none !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: transform 0.15s ease;
+}
+
+.competitor-pin:hover {
+    transform: scale(1.15);
+}
+
+.competitor-pin-selected {
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
+    z-index: 700 !important;
+}

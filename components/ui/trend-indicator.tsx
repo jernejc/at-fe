@@ -19,9 +19,9 @@ export function TrendIndicator({ change, direction = 'col', className }: TrendIn
   const isRow = direction === 'row';
 
   return (
-    <div
+    <span
       className={cn(
-        'flex items-center text-muted-foreground',
+        'inline-flex items-center text-muted-foreground',
         isRow ? 'flex-row gap-1' : 'flex-col',
         className,
       )}
@@ -38,6 +38,6 @@ export function TrendIndicator({ change, direction = 'col', className }: TrendIn
           {isRow && <span className="text-[11px] leading-tight font-medium">{label}</span>}
         </>
       )}
-    </div>
+    </span>
   );
 }

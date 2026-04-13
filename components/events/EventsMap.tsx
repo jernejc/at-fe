@@ -7,6 +7,8 @@ import L from 'leaflet';
 import type { LatLng } from '@/lib/geo';
 import type { GoogleOffice } from '@/lib/geo';
 import type { PartnerEvent } from '@/data/partner-events';
+import type { CompetitorEvent } from '@/data/competitor-events';
+import { COMPETITOR_BRAND_COLORS } from '@/data/competitor-events';
 import 'leaflet/dist/leaflet.css';
 
 const LIGHT_TILES = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -31,18 +33,23 @@ export interface ViewportInfo {
 
 export interface EventsMapHandle {
   flyTo: (lat: number, lng: number) => void;
+  getCenter: () => { lat: number; lng: number };
+  getZoom: () => number;
 }
 
 interface EventsMapProps {
   companyMarkers: EventCompanyMarker[];
   googleOffices: GoogleOffice[];
   partnerEvents: PartnerEvent[];
+  competitorEvents?: CompetitorEvent[];
   selectedEventId: string | null;
   onEventSelect: (id: string | null) => void;
   isDark: boolean;
   onViewportChange?: (info: ViewportInfo) => void;
   resizeKey?: number;
   mapRef?: React.MutableRefObject<EventsMapHandle | null>;
+  initialCenter?: [number, number];
+  initialZoom?: number;
 }
 
 function InvalidateSize({ resizeKey }: { resizeKey?: number }) {
@@ -59,6 +66,11 @@ function MapRefBridge({ mapRef }: { mapRef: React.MutableRefObject<EventsMapHand
   useEffect(() => {
     mapRef.current = {
       flyTo: (lat, lng) => map.flyTo([lat, lng], 10, { duration: 0.8 }),
+      getCenter: () => {
+        const c = map.getCenter();
+        return { lat: c.lat, lng: c.lng };
+      },
+      getZoom: () => map.getZoom(),
     };
     return () => { mapRef.current = null; };
   }, [map, mapRef]);
@@ -100,6 +112,29 @@ function getEventIcon(event: PartnerEvent, isSelected: boolean): L.DivIcon {
   });
 }
 
+function competitorPinSvg(color: string, initial: string, size: 'normal' | 'selected' = 'normal'): string {
+  const w = size === 'selected' ? 40 : 32;
+  const h = size === 'selected' ? 50 : 40;
+  const sw = size === 'selected' ? '2.5' : '2';
+  return `<svg width="${w}" height="${h}" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 0C7.16 0 0 7.16 0 16c0 12 16 24 16 24s16-12 16-24C32 7.16 24.84 0 16 0z" fill="${color}" stroke="#fff" stroke-width="${sw}"/>
+  <text x="16" y="20" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="system-ui,sans-serif">${initial}</text>
+</svg>`;
+}
+
+function getCompetitorIcon(event: CompetitorEvent, isSelected: boolean): L.DivIcon {
+  const color = COMPETITOR_BRAND_COLORS[event.brand];
+  const initial = event.brand.charAt(0);
+  const size = isSelected ? 'selected' as const : 'normal' as const;
+  return L.divIcon({
+    html: competitorPinSvg(color, initial, size),
+    className: `competitor-pin${isSelected ? ' competitor-pin-selected' : ''}`,
+    iconSize: isSelected ? L.point(40, 50) : L.point(32, 40),
+    iconAnchor: isSelected ? L.point(20, 50) : L.point(16, 40),
+    popupAnchor: isSelected ? L.point(0, -50) : L.point(0, -40),
+  });
+}
+
 const GOOGLE_ICON = L.divIcon({
   html: GOOGLE_PIN_SVG,
   className: 'google-office-pin',
@@ -121,12 +156,12 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-function FitBounds({ companyMarkers, googleOffices }: { companyMarkers: EventCompanyMarker[]; googleOffices: GoogleOffice[] }) {
+function FitBounds({ companyMarkers, googleOffices, skip }: { companyMarkers: EventCompanyMarker[]; googleOffices: GoogleOffice[]; skip?: boolean }) {
   const map = useMap();
   const hasFit = useRef(false);
 
   useEffect(() => {
-    if (hasFit.current) return;
+    if (hasFit.current || skip) return;
 
     const allPoints: L.LatLngTuple[] = [
       ...companyMarkers.map((m) => [m.position.lat, m.position.lng] as L.LatLngTuple),
@@ -138,7 +173,7 @@ function FitBounds({ companyMarkers, googleOffices }: { companyMarkers: EventCom
     hasFit.current = true;
     const bounds = L.latLngBounds(allPoints);
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 5 });
-  }, [companyMarkers, googleOffices, map]);
+  }, [companyMarkers, googleOffices, map, skip]);
 
   return null;
 }
@@ -146,10 +181,12 @@ function FitBounds({ companyMarkers, googleOffices }: { companyMarkers: EventCom
 function ViewportTracker({
   companyMarkers,
   partnerEvents,
+  competitorEvents,
   onViewportChange,
 }: {
   companyMarkers: EventCompanyMarker[];
   partnerEvents: PartnerEvent[];
+  competitorEvents: CompetitorEvent[];
   onViewportChange: (info: ViewportInfo) => void;
 }) {
   const map = useMap();
@@ -160,13 +197,15 @@ function ViewportTracker({
     const companies = companyMarkers.filter((m) =>
       bounds.contains([m.position.lat, m.position.lng]),
     );
-    const eventIds = new Set(
-      partnerEvents
-        .filter((e) => bounds.contains([e.position.lat, e.position.lng]))
-        .map((e) => e.id),
-    );
+    const partnerIds = partnerEvents
+      .filter((e) => bounds.contains([e.position.lat, e.position.lng]))
+      .map((e) => e.id);
+    const competitorIds = competitorEvents
+      .filter((e) => bounds.contains([e.position.lat, e.position.lng]))
+      .map((e) => e.id);
+    const eventIds = new Set([...partnerIds, ...competitorIds]);
     onViewportChange({ companies, eventIds, zoom });
-  }, [map, companyMarkers, partnerEvents, onViewportChange]);
+  }, [map, companyMarkers, partnerEvents, competitorEvents, onViewportChange]);
 
   useMapEvents({
     moveend: report,
@@ -184,24 +223,29 @@ export function EventsMap({
   companyMarkers,
   googleOffices,
   partnerEvents,
+  competitorEvents = [],
   selectedEventId,
   onEventSelect,
   isDark,
   onViewportChange,
   resizeKey,
   mapRef,
+  initialCenter,
+  initialZoom,
 }: EventsMapProps) {
+  const hasRestoredView = !!(initialCenter && initialZoom);
+
   return (
     <MapContainer
-      center={[39, -98]}
-      zoom={4}
+      center={initialCenter ?? [39, -98]}
+      zoom={initialZoom ?? 4}
       scrollWheelZoom
       zoomControl
       attributionControl={false}
       className="h-full w-full"
     >
       <TileLayer url={isDark ? DARK_TILES : LIGHT_TILES} attribution={TILE_ATTRIBUTION} />
-      <FitBounds companyMarkers={companyMarkers} googleOffices={googleOffices} />
+      <FitBounds companyMarkers={companyMarkers} googleOffices={googleOffices} skip={hasRestoredView} />
       <InvalidateSize resizeKey={resizeKey} />
 
       {mapRef && <MapRefBridge mapRef={mapRef} />}
@@ -210,6 +254,7 @@ export function EventsMap({
         <ViewportTracker
           companyMarkers={companyMarkers}
           partnerEvents={partnerEvents}
+          competitorEvents={competitorEvents}
           onViewportChange={onViewportChange}
         />
       )}
@@ -257,6 +302,36 @@ export function EventsMap({
               >
                 <strong>{event.name}</strong>
                 {event.partner && <span> · {event.partner}</span>}
+                <br />
+                {event.city}{event.state ? `, ${event.state}` : ''} · {formatEventDate(event.date)}
+              </Tooltip>
+            </Marker>
+          );
+        })}
+      </Pane>
+
+      {/* Competitor event markers */}
+      <Pane name="competitor-events" style={{ zIndex: 655 }}>
+        {competitorEvents.map((event) => {
+          const isSelected = event.id === selectedEventId;
+          return (
+            <Marker
+              key={event.id}
+              position={[event.position.lat, event.position.lng]}
+              icon={getCompetitorIcon(event, isSelected)}
+              pane="competitor-events"
+              eventHandlers={{
+                click: () => onEventSelect(isSelected ? null : event.id),
+              }}
+            >
+              <Tooltip
+                direction="top"
+                offset={L.point(0, isSelected ? -52 : -42)}
+                className="event-tooltip"
+                permanent={false}
+              >
+                <strong>{event.name}</strong>
+                <span> · {event.brand}</span>
                 <br />
                 {event.city}{event.state ? `, ${event.state}` : ''} · {formatEventDate(event.date)}
               </Tooltip>
