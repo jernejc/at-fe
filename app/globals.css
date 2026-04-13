@@ -357,7 +357,8 @@
     background: transparent !important;
     border: none !important;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, opacity 0.2s ease;
+    opacity: 1;
 }
 
 .event-pin:hover {
@@ -367,6 +368,16 @@
 .event-pin-selected {
     filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
     z-index: 700 !important;
+    opacity: 1;
+}
+
+/* When an event is focused, non-selected pins at 50% (each marker icon is its own element — stacks at same lat/lng still get per-pin opacity). */
+[data-map-event-selection="true"] .event-pin:not(.event-pin-selected) {
+    opacity: 0.5;
+}
+
+[data-map-event-selection="true"] .event-pin:not(.event-pin-selected):hover {
+    opacity: 0.9;
 }
 
 .event-tooltip {
@@ -395,7 +406,8 @@
     background: transparent !important;
     border: none !important;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, opacity 0.2s ease;
+    opacity: 1;
 }
 
 .competitor-pin:hover {
@@ -405,4 +417,13 @@
 .competitor-pin-selected {
     filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
     z-index: 700 !important;
+    opacity: 1;
+}
+
+[data-map-event-selection="true"] .competitor-pin:not(.competitor-pin-selected) {
+    opacity: 0.5;
+}
+
+[data-map-event-selection="true"] .competitor-pin:not(.competitor-pin-selected):hover {
+    opacity: 0.9;
 }

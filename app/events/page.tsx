@@ -75,6 +75,9 @@ export default function EventsPage() {
   const handleViewportChange = useCallback((info: ViewportInfo) => {
     setVisibleCompanies(info.companies);
     setVisibleEventIds(info.eventIds);
+    setSelectedEventId((current) =>
+      current != null && !info.eventIds.has(current) ? null : current,
+    );
     const center = mapRef.current?.getCenter();
     const zoom = mapRef.current?.getZoom();
     if (center && zoom != null) {

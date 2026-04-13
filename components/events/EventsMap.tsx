@@ -235,7 +235,12 @@ export function EventsMap({
 }: EventsMapProps) {
   const hasRestoredView = !!(initialCenter && initialZoom);
 
+  // MapContainer freezes className on first mount (react-leaflet useState) — keep selection state on a wrapper so dimming toggles correctly.
   return (
+    <div
+      className="h-full w-full min-h-0"
+      data-map-event-selection={selectedEventId ? 'true' : undefined}
+    >
     <MapContainer
       center={initialCenter ?? [39, -98]}
       zoom={initialZoom ?? 4}
@@ -360,6 +365,7 @@ export function EventsMap({
         ))}
       </Pane>
     </MapContainer>
+    </div>
   );
 }
 
